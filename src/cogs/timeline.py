@@ -1,46 +1,37 @@
 ##> Imports
+import asyncio
+
 # > 3rd Party Dependencies
-import yaml
-import twitter
-from pycoingecko import CoinGeckoAPI
+import tweepy
+from tweepy.asynchronous import AsyncStream 
 
-# Read config.yaml content
-with open("config.yaml", "r", encoding="utf-8") as f:
-    config = yaml.full_load(f)
+# > Discord dependencies
+import discord
+from discord.ext import commands
 
-# Twitter API:      https://python-twitter.readthedocs.io/en/latest/twitter.html
-# https://developer.twitter.com/en/docs/twitter-api/v1/tweets/search/api-reference/get-search-tweets
+# Local dependencies
+from config import config
 
-# CoinGecko API:        https://github.com/man-c/pycoingecko & https://www.coingecko.com/api/documentations/v3
-# Lynx API:             https://api.lynx.academy/
-# Yahoo Finance API:    https://github.com/ranaroussi/yfinance
+class Timeline(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot    
+        
+        # Call start() to start the stream
+        asyncio.create_task(self.start())
+        
+    async def start(self):
+        printer = Streamer(config['TWITTER']['CONSUMER_KEY'],
+                           config['TWITTER']['CONSUMER_SECRET'],
+                           config['TWITTER']['ACCESS_TOKEN_KEY'],
+                           config['TWITTER']['ACCESS_TOKEN_SECRET'])
+                        
+        await printer.filter(track=['Twitter'])
 
-api = twitter.Api(
-    config["TWITTER"]["CONSUMER_KEY"],
-    config["TWITTER"]["CONSUMER_SECRET"],
-    config["TWITTER"]["ACCES_TOKEN_KEY"],
-    config["TWITTER"]["ACCES_TOKEN_SECRET"],
-)
+def setup(bot):
+    bot.add_cog(Timeline(bot))
 
-followingIDS = api.GetFriendIDs()
-
-# Get the last 10 tweets of the following and convert them to text (excluding replies)
-for id in followingIDS:
-    for tweets in api.GetUserTimeline(user_id=id, count=10, exclude_replies=True):
-        print(tweets.text)
-
-# Create CoinGecko object
-cg = CoinGeckoAPI()
-
-# Create a list of the ticker names ("BTC", "DOGE", etc.)
-
-coinList = cg.get_coins_list()
-symbolList = []
-
-for i in coinList:
-    symbolList.append(i.get("symbol"))
-
-
-# Search for ticker, if it exists it is a cryptocurrency
-# if ('btc' in symbolList):
-#    print ("ja")
+class Streamer(AsyncStream):
+    
+    async def on_status(self, status):
+        print(status.id)
+        
