@@ -1,0 +1,4 @@
+__pycache__/
+authentication.json
+*.bat
+config.yaml

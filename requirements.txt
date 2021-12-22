@@ -1,0 +1,3 @@
+pycoingecko==2.2.0
+python_twitter==3.5
+PyYAML==6.0
