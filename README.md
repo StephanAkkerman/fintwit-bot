@@ -1,2 +1,2 @@
 # FinTwit_Bot
-For now this consists of the ideas I have for this project
+Follow the development over [here](https://github.com/StephanAkkerman/FinTwit_Bot/projects/1)
