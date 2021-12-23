@@ -5,7 +5,6 @@ import sys
 import re
 
 # > 3rd Party Dependencies
-import tweepy
 from tweepy.asynchronous import AsyncStream 
 
 # > Discord dependencies
@@ -13,18 +12,7 @@ import discord
 from discord.ext import commands
 
 # Local dependencies
-from config import config
-
-# Set variables
-consumer_key = config['TWITTER']['CONSUMER_KEY']
-consumer_secret = config['TWITTER']['CONSUMER_SECRET']
-access_token = config['TWITTER']['ACCESS_TOKEN_KEY']
-access_token_secret = config['TWITTER']['ACCESS_TOKEN_SECRET']
-
-# Init API
-auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_token_secret)
-api = tweepy.API(auth)
+from vars import config, consumer_key, consumer_secret, access_token, access_token_secret, api
 
 class Timeline(commands.Cog):
     def __init__(self, bot):
