@@ -61,13 +61,42 @@ class Streamer(AsyncStream):
                         else config["DISCORD"]["GUILD_NAME"],
                         name=config["TIMELINE"]["CHANNEL"],
                     )
+        
+        # Get user ids of people who we are following
+        self.following_ids = api.get_friend_ids()
     
     async def on_data(self, raw_data):
+        """
+        This method is called whenever data is received from the stream.
+        """
+        
+        # Convert the string json data to json object
         as_json = json.loads(raw_data)
         
-        user_id = as_json['user']['id']
-        
-        if user_id in api.get_friend_ids():
+        # Filter based on users we are following
+        # Otherwise shows all tweets (including tweets of people who we are not following)
+        if as_json['user']['id'] in self.following_ids:
+            
+            # Ignore replies to other pipo
+            # Could instead try: ... or as_json['in_reply_to_user_id'] == as_json['user']['id']
+            if as_json['in_reply_to_user_id'] is None or as_json['in_reply_to_user_id'] in self.following_ids:
+                
+                # Get the user
+                user = as_json['user']['screen_name']
+                
+                # Get the profile pic
+                profile_pic = as_json['user']['profile_image_url']
+                
+                # Get the tweet text
+                text = as_json['text']
+                
+                # Get the url
+                url = "https://twitter.com/{}/status/{}".format(user, as_json['id'])
+                
+                # Post the tweet
+                await self.post_tweet(text, user, profile_pic, url)
+            
+            print(as_json)
         
             try:
                 text = as_json["extended_tweet"]["full_text"]
@@ -82,6 +111,7 @@ class Streamer(AsyncStream):
             # Could also use ['id_sr'] instead
             url = f"https://twitter.com/{user}/status/{as_json['id']}"
                 
+            # Post the tweet containing the important info
             await self.post_tweet(text, user, profile_pic, url)
         
     async def post_tweet(self, text, user, profile_pic, url):
