@@ -28,6 +28,9 @@ async def on_ready():
     if len(sys.argv) > 1 and sys.argv[1] == "-test"
     else config["DISCORD"]["GUILD_NAME"],
     )
+    
+    # Load commands
+    load_folder(config, "commands")
 
     # Load all loops
     load_folder(config, "loops")
