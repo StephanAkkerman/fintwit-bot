@@ -2,6 +2,7 @@
 import asyncio
 import json
 import sys
+import re
 
 # > 3rd Party Dependencies
 import tweepy
@@ -75,38 +76,56 @@ class Streamer(AsyncStream):
         
         # Filter based on users we are following
         # Otherwise shows all tweets (including tweets of people who we are not following)
-        if as_json['user']['id'] in self.following_ids:
-            
+        try:
+            if as_json['user']['id'] in self.following_ids:
+                
+                print(as_json["user"]["screen_name"])
+                print(as_json)
+                print()
+                
+                # Ignore replies to other pipo
+                # Could instead try: ... or as_json['in_reply_to_user_id'] == as_json['user']['id']
+                if as_json['in_reply_to_user_id'] is None or as_json['in_reply_to_user_id'] in self.following_ids:
+                    
+                    # If the full text is available, use that
+                    try:
+                        text = as_json["extended_tweet"]["full_text"]
+                        extended = True
+                    except Exception:
+                        text = as_json["text"]
+                        extended = False
+                        
+                    # Get the user name
+                    user = as_json["user"]["screen_name"]
+                    
+                    # Get other info
+                    profile_pic = as_json["user"]["profile_image_url"]
+                    
+                    # Could also use ['id_sr'] instead
+                    url = f"https://twitter.com/{user}/status/{as_json['id']}"
+                    
+                    # Ticker is saved under 'entities', 'symbols'
+                    
+                    # If the media_url is available send that
+                    try:
+                        if extended:
+                            media_url = as_json["extended_tweet"]["entities"]["media"][0]["media_url"]
+                        else:
+                            media_url = as_json["entities"]["media"][0]["media_url"]
+                    except Exception:
+                        media_url = None
+                        
+                    if media_url != None:
+                        # This also removes other links that are not https://t.co/
+                        text = re.sub(r'http\S+', '', text)
+                        
+                    # Post the tweet containing the important info
+                    await self.post_tweet(text, user, profile_pic, url, media_url)
+                    
+        except Exception as e:
+            print(e)
             print(as_json)
             
-            # Ignore replies to other pipo
-            # Could instead try: ... or as_json['in_reply_to_user_id'] == as_json['user']['id']
-            if as_json['in_reply_to_user_id'] is None or as_json['in_reply_to_user_id'] in self.following_ids:
-                
-                # If the full text is available, use that
-                try:
-                    text = as_json["extended_tweet"]["full_text"]
-                except Exception:
-                    text = as_json["text"]
-                    
-                # Get the user name
-                user = as_json["user"]["screen_name"]
-                
-                # Get other info
-                profile_pic = as_json["user"]["profile_image_url"]
-                
-                # Could also use ['id_sr'] instead
-                url = f"https://twitter.com/{user}/status/{as_json['id']}"
-                
-                # If the media_url is available send that
-                try:
-                    media_url = as_json["entities"]["media"][0]["media_url"]
-                except Exception:
-                    media_url = None
-                    
-                # Post the tweet containing the important info
-                await self.post_tweet(text, user, profile_pic, url, media_url)
-        
     async def post_tweet(self, text, user, profile_pic, url, media_url):
                 
         # Use 'media' 'url' as url
@@ -122,6 +141,6 @@ class Streamer(AsyncStream):
         
         # Set image if an image is included in the tweet
         if media_url != None:
-            e.set_image(media_url)
+            e.set_image(url=media_url)
         
         await self.channel.send(embed=e)

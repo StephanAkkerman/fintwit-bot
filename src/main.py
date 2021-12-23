@@ -30,7 +30,7 @@ async def on_ready():
     )
 
     # Load all loops
-    load_folder(config, "cogs")
+    load_folder(config, "loops")
 
     print(f"{bot.user} is connected to {guild.name} (id: {guild.id}) \n")
     
@@ -39,10 +39,10 @@ def load_folder(config, foldername):
 
     # Load all commands
     print(f"Loading {foldername} ...")
-    for filename in os.listdir(f"./src/{foldername}"):
+    for filename in os.listdir(f"./src/cogs/{foldername}"):
         if filename.endswith(".py"):
             print("Loading:", filename)
-            bot.load_extension(f"{foldername}.{filename[:-3]}")
+            bot.load_extension(f"cogs.{foldername}.{filename[:-3]}")
 
     print()
     
