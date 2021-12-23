@@ -72,21 +72,19 @@ class Streamer(AsyncStream):
         try:
             if as_json['user']['id'] in self.following_ids:
                 
-                print(as_json["user"]["screen_name"])
-                print(as_json)
-                print()
+                #print(as_json["user"]["screen_name"])
+                #print(as_json)
+                #print()
                 
                 # Ignore replies to other pipo
                 # Could instead try: ... or as_json['in_reply_to_user_id'] == as_json['user']['id']
                 if as_json['in_reply_to_user_id'] is None or as_json['in_reply_to_user_id'] in self.following_ids:
                     
                     # If the full text is available, use that
-                    try:
+                    if "extended_tweet" in as_json:
                         text = as_json["extended_tweet"]["full_text"]
-                        extended = True
-                    except Exception:
+                    else:
                         text = as_json["text"]
-                        extended = False
                         
                     # Get the user name
                     user = as_json["user"]["screen_name"]
@@ -99,27 +97,39 @@ class Streamer(AsyncStream):
                     
                     # Ticker is saved under 'entities', 'symbols'
                     
-                    # If the media_url is available send that
-                    try:
-                        if extended:
-                            media_url = as_json["extended_tweet"]["entities"]["media"][0]["media_url"]
-                        else:
-                            media_url = as_json["entities"]["media"][0]["media_url"]
-                    except Exception:
-                        media_url = None
+                    # If the media_url is available send that      
+                    images = []
+                    
+                    # First check for extended media
+                    if "extended_entities" in as_json:
+                        if "media" in as_json["extended_entities"]:
+                            for media in as_json["extended_entities"]["media"]:
+                                images.append(media["media_url"])
                         
-                    if media_url != None:
+                    else:
+                        # Maybe check if extended_tweet is available
+                        if "extended_tweet" in as_json:
+                            if "media" in as_json["extended_tweet"]["entities"]:
+                                for media in as_json["extended_tweet"]["entities"]["media"]:
+                                    images.append(media["media_url"])
+                        else:
+                            if "media" in as_json["entities"]:
+                                for media in as_json["entities"]["media"]:
+                                    images.append(media["media_url"])
+                        
+                    # If there are images
+                    if images != []:
                         # This also removes other links that are not https://t.co/
                         text = re.sub(r'http\S+', '', text)
                         
                     # Post the tweet containing the important info
-                    await self.post_tweet(text, user, profile_pic, url, media_url)
+                    await self.post_tweet(text, user, profile_pic, url, images)
                     
         except Exception as e:
             print(e)
             print(as_json)
             
-    async def post_tweet(self, text, user, profile_pic, url, media_url):
+    async def post_tweet(self, text, user, profile_pic, url, images):
                 
         # Use 'media' 'url' as url
         # Use 'profile_image_url'' for thumbnail
@@ -133,7 +143,7 @@ class Streamer(AsyncStream):
         e.set_author(name=user, url=url)
         
         # Set image if an image is included in the tweet
-        if media_url != None:
+        for media_url in images:
             e.set_image(url=media_url)
         
         await self.channel.send(embed=e)
