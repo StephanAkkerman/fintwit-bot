@@ -77,44 +77,37 @@ class Streamer(AsyncStream):
         # Otherwise shows all tweets (including tweets of people who we are not following)
         if as_json['user']['id'] in self.following_ids:
             
+            print(as_json)
+            
             # Ignore replies to other pipo
             # Could instead try: ... or as_json['in_reply_to_user_id'] == as_json['user']['id']
             if as_json['in_reply_to_user_id'] is None or as_json['in_reply_to_user_id'] in self.following_ids:
                 
-                # Get the user
-                user = as_json['user']['screen_name']
+                # If the full text is available, use that
+                try:
+                    text = as_json["extended_tweet"]["full_text"]
+                except Exception:
+                    text = as_json["text"]
+                    
+                # Get the user name
+                user = as_json["user"]["screen_name"]
                 
-                # Get the profile pic
-                profile_pic = as_json['user']['profile_image_url']
+                # Get other info
+                profile_pic = as_json["user"]["profile_image_url"]
                 
-                # Get the tweet text
-                text = as_json['text']
+                # Could also use ['id_sr'] instead
+                url = f"https://twitter.com/{user}/status/{as_json['id']}"
                 
-                # Get the url
-                url = "https://twitter.com/{}/status/{}".format(user, as_json['id'])
-                
-                # Post the tweet
-                await self.post_tweet(text, user, profile_pic, url)
-            
-            print(as_json)
+                # If the media_url is available send that
+                try:
+                    media_url = as_json["entities"]["media"][0]["media_url"]
+                except Exception:
+                    media_url = None
+                    
+                # Post the tweet containing the important info
+                await self.post_tweet(text, user, profile_pic, url, media_url)
         
-            try:
-                text = as_json["extended_tweet"]["full_text"]
-            except Exception:
-                text = as_json["text"]
-                
-            user = as_json["user"]["screen_name"]
-            
-            # Get other info
-            profile_pic = as_json["user"]["profile_image_url"]
-            
-            # Could also use ['id_sr'] instead
-            url = f"https://twitter.com/{user}/status/{as_json['id']}"
-                
-            # Post the tweet containing the important info
-            await self.post_tweet(text, user, profile_pic, url)
-        
-    async def post_tweet(self, text, user, profile_pic, url):
+    async def post_tweet(self, text, user, profile_pic, url, media_url):
                 
         # Use 'media' 'url' as url
         # Use 'profile_image_url'' for thumbnail
@@ -126,5 +119,9 @@ class Streamer(AsyncStream):
         
         e.set_thumbnail(url=profile_pic)
         e.set_author(name=user, url=url)
+        
+        # Set image if an image is included in the tweet
+        if media_url != None:
+            e.set_image(media_url)
         
         await self.channel.send(embed=e)
