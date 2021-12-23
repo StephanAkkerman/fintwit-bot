@@ -14,6 +14,7 @@ from discord.ext.tasks import loop
 
 # Local dependencies
 from vars import config, consumer_key, consumer_secret, access_token, access_token_secret, api
+from sentimentanalyis import classify_sentiment
 
 class Timeline(commands.Cog):
     def __init__(self, bot):
@@ -132,6 +133,10 @@ class Streamer(AsyncStream):
         e.set_thumbnail(url=profile_pic)
         e.set_author(name=user, url=url)
         
+        sentiment = classify_sentiment(text)
+
+        e.add_field(name="Sentiment", value="Bullish" if sentiment == 1 else "Bearish", inline=True)
+
         # Set image if an image is included in the tweet
         if media_url != None:
             e.set_image(url=media_url)
