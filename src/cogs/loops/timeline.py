@@ -10,6 +10,7 @@ from tweepy.asynchronous import AsyncStream
 # > Discord dependencies
 import discord
 from discord.ext import commands
+from discord.ext.tasks import loop
 
 # Local dependencies
 from vars import config, consumer_key, consumer_secret, access_token, access_token_secret, api
@@ -51,6 +52,10 @@ class Streamer(AsyncStream):
                         name=config["TIMELINE"]["CHANNEL"],
                     )
         
+        self.get_following_ids.start()
+        
+    @loop(minutes=15)
+    async def get_following_ids(self):
         # Get user ids of people who we are following
         self.following_ids = api.get_friend_ids()
     
