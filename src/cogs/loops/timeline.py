@@ -70,13 +70,9 @@ class Streamer(AsyncStream):
         
         # Filter based on users we are following
         # Otherwise shows all tweets (including tweets of people who we are not following)
-        try:
+        if 'user' in as_json:
             if as_json['user']['id'] in self.following_ids:
-                
-                #print(as_json["user"]["screen_name"])
-                #print(as_json)
-                #print()
-                
+                                
                 # Ignore replies to other pipo
                 # Could instead try: ... or as_json['in_reply_to_user_id'] == as_json['user']['id']
                 if as_json['in_reply_to_user_id'] is None or as_json['in_reply_to_user_id'] in self.following_ids:
@@ -97,7 +93,11 @@ class Streamer(AsyncStream):
                     url = f"https://twitter.com/{user}/status/{as_json['id']}"
                     
                     # Ticker is saved under 'entities', 'symbols'
-                    
+                    tickers = []
+                    if 'symbols' in as_json['entities']:
+                        for symbol in as_json['entities']['symbols']:
+                            tickers.append(f"${symbol['text'].upper()}")
+                                        
                     # If the media_url is available send that      
                     images = []
                     
@@ -124,29 +124,29 @@ class Streamer(AsyncStream):
                         text = re.sub(r'http\S+', '', text)
                         
                     # Post the tweet containing the important info
-                    await self.post_tweet(text, user, profile_pic, url, images)
-                    
-        except Exception as e:
-            print(e)
-            print(as_json)
+                    await self.post_tweet(text, user, profile_pic, url, images, tickers)
+
             
-    async def post_tweet(self, text, user, profile_pic, url, images):
+    async def post_tweet(self, text, user, profile_pic, url, images, tickers):
                 
         # Use 'media' 'url' as url
         # Use 'profile_image_url'' for thumbnail
         e = discord.Embed(
+            title=f"{user} tweeted about {', '.join(tickers)}",
             url=url,
             description=text,
             color=0x00FFFF,
         )
         
         e.set_thumbnail(url=profile_pic)
-        e.set_author(name=user, url=url)
         
         sentiment = classify_sentiment(text)
+        
+        if tickers != []:
+            e.add_field(name="Ticker", value="\n".join(tickers), inline=True)
 
         e.add_field(name="Sentiment", value="Bullish" if sentiment == 1 else "Bearish", inline=True)
-
+        
         # Set image if an image is included in the tweet
         for media_url in images:
             e.set_image(url=media_url)

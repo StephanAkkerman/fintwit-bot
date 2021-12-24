@@ -1,3 +1,5 @@
-pycoingecko==2.2.0
-python_twitter==3.5
+pandas==1.2.4
+discord.py==1.7.3
+tweepy==4.4.0
+discord==1.7.3
 PyYAML==6.0
