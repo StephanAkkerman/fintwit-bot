@@ -3,6 +3,8 @@ import asyncio
 import json
 import sys
 import re
+import datetime
+from discord.enums import DefaultAvatar
 
 # > 3rd Party Dependencies
 from tweepy.asynchronous import AsyncStream 
@@ -135,20 +137,23 @@ class Streamer(AsyncStream):
             title=f"{user} tweeted about {', '.join(tickers)}",
             url=url,
             description=text,
-            color=0x00FFFF,
+            color=0x1DA1F2,
         )
         
+        e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
         e.set_thumbnail(url=profile_pic)
         
         sentiment = classify_sentiment(text)
         
-        if tickers != []:
-            e.add_field(name="Ticker", value="\n".join(tickers), inline=True)
+        if tickers:
+            e.add_field(name=f"Ticker{'s' if len(tickers) > 1 else ''}", value="\n".join(tickers), inline=True)
 
-        e.add_field(name="Sentiment", value="Bullish" if sentiment == 1 else "Bearish", inline=True)
+        e.add_field(name="Sentiment", value=("🐻 - Bearish", "🐂 - Bullish")[sentiment], inline=True)
         
         # Set image if an image is included in the tweet
         for media_url in images:
             e.set_image(url=media_url)
         
+        e.timestamp = datetime.datetime.utcnow()
+
         await self.channel.send(embed=e)
