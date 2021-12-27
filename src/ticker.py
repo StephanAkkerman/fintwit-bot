@@ -116,21 +116,23 @@ def get_coin_info(ticker):
 
 def get_stock_info(ticker):
     
-    info = yf.Ticker(ticker)
+    stock_info = yf.Ticker(ticker)
     website = f"https://finance.yahoo.com/quote/{ticker}"
     try:
         # Return prices corresponding to market hours
         if afterHours():
-            price = round(info.info['preMarketPrice'],2)
-            change = round((info.info['preMarketPrice'] - info.info['regularMarketPrice']) / info.info['regularMarketPrice'] * 100, 2)
+            price = round(stock_info.info['preMarketPrice'],2)
+            change = round((stock_info.info['preMarketPrice'] - stock_info.info['regularMarketPrice']) / stock_info.info['regularMarketPrice'] * 100, 2)
         else:
-            price = round(info.info['regularMarketPrice'],2)
-            change = round((info.info['regularMarketPrice'] - info.info['regularMarketPreviousClose']) / info.info['regularMarketPreviousClose'] * 100, 2)
+            price = round(stock_info.info['regularMarketPrice'],2)
+            change = round((stock_info.info['regularMarketPrice'] - stock_info.info['regularMarketPreviousClose']) / stock_info.info['regularMarketPreviousClose'] * 100, 2)
         
         # Return the important information
-        return info.info['volume'], website, info.info['exchange'], price, change
+        volume = stock_info.info['regularMarketVolume'] * price
+        return volume, website, stock_info.info['exchange'], price, change
     
-    except Exception:
+    except Exception as e:
+        
         return 0, None, None, None, None
     
 def classify_ticker(ticker):
@@ -140,6 +142,8 @@ def classify_ticker(ticker):
     
     coin = get_coin_info(ticker)
     stock = get_stock_info(ticker)
+    
+    print(stock)
         
     # First in tuple represents volume
     if coin[0] > stock[0]:
