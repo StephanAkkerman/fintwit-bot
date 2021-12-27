@@ -57,6 +57,7 @@ class Streamer(AsyncStream):
         self.crypto_charts_channel = get_channel(self.bot,config["CRYPTO"]["CHARTS_CHANNEL"])
         self.crypto_text_channel = get_channel(self.bot,config["CRYPTO"]["TEXT_CHANNEL"])
         
+        self.images_channel = get_channel(self.bot, config["IMAGES"]["CHANNEL"])
         self.other_channel = get_channel(self.bot,config["OTHER"]["CHANNEL"])
         
         # Set following ids
@@ -180,9 +181,9 @@ class Streamer(AsyncStream):
         
             # Format change
             if change > 0:
-                change = f"+{change}%"
+                change = f"+{change}% 📈"
             else:
-                change = f"{change}%"
+                change = f"{change}% 📉"
 
             description = f"[${price} ({change})]({website})"
             if 'Binance' in exchanges:
@@ -210,6 +211,8 @@ class Streamer(AsyncStream):
                 await self.crypto_charts_channel.send(embed=e)
             elif crypto < stocks:
                 await self.stocks_charts_channel.send(embed=e)
+            else:
+                await self.images_channel.send(embed=e)
         else:
             if crypto > stocks:
                 await self.crypto_text_channel.send(embed=e)

@@ -142,8 +142,6 @@ def classify_ticker(ticker):
     
     coin = get_coin_info(ticker)
     stock = get_stock_info(ticker)
-    
-    print(stock)
         
     # First in tuple represents volume
     if coin[0] > stock[0]:
