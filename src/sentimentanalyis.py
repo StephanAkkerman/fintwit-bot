@@ -9,4 +9,4 @@ classifier = model["Classifier"][0]
 def classify_sentiment(text):
     
     x = feature_selector.transform(vectorizer.transform([text]))
-    return (classifier.predict(x.toarray())[0])
+    return classifier.predict_proba(x.toarray())[0]

@@ -93,11 +93,19 @@ def get_coin_info(ticker):
         return 0, None, None, None, None
     
     # Get the information of this coin
-    coin_dict = cg.get_coin_by_id(id)
-    total_vol = coin_dict['market_data']['total_volume']['usd']
-    website = f"https://coingecko.com/en/coins/{id}"
-    price = coin_dict['market_data']['current_price']['usd']
-    price_change = round(coin_dict['market_data']['price_change_percentage_24h'], 2)
+    try:
+        coin_dict = cg.get_coin_by_id(id)
+        total_vol = coin_dict['market_data']['total_volume']['usd']
+        website = f"https://coingecko.com/en/coins/{id}"
+        price = coin_dict['market_data']['current_price']['usd']
+        price_change = round(coin_dict['market_data']['price_change_percentage_24h'], 2)
+
+        # Get the exchanges
+        exchanges = [exchange['market']['name'] for exchange in coin_dict['tickers']]
+    except Exception as e:
+        print(e)
+        print("CoinGecko API error:", ticker)
+        return 0, None, None, None, None
 
     # Get the exchanges
     exchanges = [exchange['market']['name'] for exchange in coin_dict['tickers']]

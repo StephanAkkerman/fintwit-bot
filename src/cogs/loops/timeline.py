@@ -4,15 +4,16 @@ import json
 import sys
 import re
 import datetime
-from discord.enums import DefaultAvatar
 
 # > 3rd Party Dependencies
 from tweepy.asynchronous import AsyncStream 
+import numpy as np
 
 # > Discord dependencies
 import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
+from discord.enums import DefaultAvatar
 
 # Local dependencies
 from vars import config, consumer_key, consumer_secret, access_token, access_token_secret, api
@@ -164,25 +165,31 @@ class Streamer(AsyncStream):
         
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
         e.set_thumbnail(url=profile_pic)
-        
-        sentiment = classify_sentiment(text)
-        
-        crypto = False
-        stock = False
+                
+        # In case multiple tickers get send
+        crypto = 0
+        stocks = 0
         
         for ticker in tickers:
             volume, website, exchanges, price, change = classify_ticker(ticker)
             
+            # Do this first           
             if volume is None:
                 # Skip this one
                 print(f"Skipping {ticker}")
                 continue
             
+            title = f"${ticker}"
+            if 'Binance' in exchanges:
+                title += " :binance:"
+            if "KuCoin" in exchanges:
+                title += " :kucoin:"
+            
             # Determine if this is a crypto or stock
             if 'coingecko' in website:
-                crypto = True
+                crypto += 1
             if 'yahoo' in website:
-                stock = True
+                stocks += 1
         
             # Format change
             if change > 0:
@@ -193,17 +200,22 @@ class Streamer(AsyncStream):
             # Add the field with hyperlink
             e.add_field(name=f"${ticker}", value=f"[${price} ({change})]({website})", inline=True)
 
-        e.add_field(name="Sentiment", value=("🐻 - Bearish", "🐂 - Bullish")[sentiment], inline=True)
+        # If there are any tickers
+        if tickers:
+            sentiment = classify_sentiment(text)
+            prediction = ("🐻 - Bearish", "🐂 - Bullish")[np.argmax(sentiment)]
+            e.add_field(name="Sentiment", value=f"{prediction} ({round(max(sentiment),2)}%)", inline=True)
         
         # Set image if an image is included in the tweet
         for media_url in images:
+            
             e.set_image(url=media_url)
         
         e.timestamp = datetime.datetime.utcnow()
 
-        if crypto:
+        if crypto > stocks:
             await self.crypto_channel.send(embed=e)
-        if stock:
+        if crypto < stocks:
             await self.stock_channel.send(embed=e)
             
         await self.timeline.send(embed=e)
