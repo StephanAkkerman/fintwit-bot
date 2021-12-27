@@ -23,11 +23,14 @@ def get_coin_info(ticker):
     coin_dict = cg.get_coin_by_id(id)
     total_vol = coin_dict['market_data']['total_volume']['usd']
     website = f"coingecko.com/en/coins/{id}"
-    
+    price = coin_dict['market_data']['current_price']['usd']
+    price_change = round(coin_dict['market_data']['price_change_percentage_24h'], 2)
+
     # Get the exchanges
     exchanges = [exchange['market']['name'] for exchange in coin_dict['tickers']]
     
-    return total_vol, website, exchanges
+    # Return the information
+    return total_vol, website, exchanges, price, price_change
 
 
 def get_stock_info(ticker):
@@ -35,9 +38,12 @@ def get_stock_info(ticker):
     info = yf.Ticker(ticker)
     website = f"https://finance.yahoo.com/quote/{ticker}"
     try:
-        return info.info['volume'], website, info.info['exchange']
+        change = round((info.info['regularMarketPrice'] - info.info['regularMarketPreviousClose']) / info.info['regularMarketPreviousClose'] * 100, 2)
+        premarket_change = round((info.info['preMarketPrice'] - info.info['regularMarketPrice']) / info.info['regularMarketPrice'] * 100, 2)
+        
+        return info.info['volume'], website, info.info['exchange'], info.info['regularMarketPrice'], info.info['preMarketPrice'], change, premarket_change
     except KeyError:
-        return 0, None, None
+        return 0, None, None, None, None
     
 def classify_ticker(ticker):
     """ Main function to classify the ticker as crypto or stock
