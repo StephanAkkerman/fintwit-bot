@@ -61,7 +61,7 @@ class Streamer(AsyncStream):
                         guild__name=config["DEBUG"]["GUILD_NAME"]
                         if len(sys.argv) > 1 and sys.argv[1] == "-test"
                         else config["DISCORD"]["GUILD_NAME"],
-                        name=config["TIMELINE"]["CHANNEL"],
+                        name=config["STOCKS"]["CHANNEL"],
                     )
             
         self.crypto_channel = discord.utils.get(
@@ -69,7 +69,7 @@ class Streamer(AsyncStream):
                         guild__name=config["DEBUG"]["GUILD_NAME"]
                         if len(sys.argv) > 1 and sys.argv[1] == "-test"
                         else config["DISCORD"]["GUILD_NAME"],
-                        name=config["TIMELINE"]["CHANNEL"],
+                        name=config["CRYPTO"]["CHANNEL"],
                     )
         
         self.get_following_ids.start()
@@ -101,6 +101,11 @@ class Streamer(AsyncStream):
                         text = as_json["extended_tweet"]["full_text"]
                     else:
                         text = as_json["text"]
+                        
+                    # If retweeted check the extended tweet
+                    if "retweeted_status" in as_json:
+                        if "extended_tweet" in as_json["retweeted_status"]:
+                            text = as_json["retweeted_status"]["extended_tweet"]["full_text"]
                         
                     # Get the user name
                     user = as_json["user"]["screen_name"]
@@ -168,19 +173,24 @@ class Streamer(AsyncStream):
         for ticker in tickers:
             volume, website, exchanges, price, change = classify_ticker(ticker)
             
-            try:
-                if 'coingecko' in website:
-                    crypto = True
-                if 'yahoo' in website:
-                    stock = True
+            if volume is None:
+                # Skip this one
+                print(f"Skipping {ticker}")
+                continue
             
-                if change > 0:
-                    change = f"+{change}%"
-                else:
-                    change = f"{change}%"
-            except Exception:
-                print(f"Could not get change for {ticker}")
+            # Determine if this is a crypto or stock
+            if 'coingecko' in website:
+                crypto = True
+            if 'yahoo' in website:
+                stock = True
         
+            # Format change
+            if change > 0:
+                change = f"+{change}%"
+            else:
+                change = f"{change}%"
+
+            # Add the field with hyperlink
             e.add_field(name=f"${ticker}", value=f"[${price} ({change})]({website})", inline=True)
 
         e.add_field(name="Sentiment", value=("🐻 - Bearish", "🐂 - Bullish")[sentiment], inline=True)

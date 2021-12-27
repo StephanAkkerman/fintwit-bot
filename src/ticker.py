@@ -55,9 +55,9 @@ def get_coin_info(ticker):
     # Check if the symbol exists
     if ticker in df['symbol'].values:
         id = df[df['symbol'] == ticker]['id'].values[0]
-    if ticker.lower() in df['id'].values:
+    elif ticker.lower() in df['id'].values:
         id = df[df['id'] == ticker.lower()]['id'].values[0]
-    if ticker in df['name'].values:
+    elif ticker in df['name'].values:
         id = df[df['name'] == ticker]['id'].values[0]
     else:
         return 0, None, None, None, None
@@ -90,7 +90,9 @@ def get_stock_info(ticker):
             change = round((info.info['regularMarketPrice'] - info.info['regularMarketPreviousClose']) / info.info['regularMarketPreviousClose'] * 100, 2)
         
         # Return the important information
-        return info.info['volume'], website, info.info['exchange'], price, change
+        # Use the USD volume instead of shares volume
+        volume = info.info['volume'] * price
+        return volume, website, info.info['exchange'], price, change
     
     except Exception:
         return 0, None, None, None, None
@@ -106,7 +108,7 @@ def classify_ticker(ticker):
     # First in tuple represents volume
     if coin[0] > stock[0]:
         return coin
-    if coin[0] == stock[0]:
-        return None
-    else:
+    if coin[0] < stock[0]:
         return stock
+    else:
+        return None, None, None, None, None

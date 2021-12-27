@@ -30,15 +30,16 @@ async def on_ready():
     )
     
     # Load commands
-    load_folder(config, "commands")
+    load_folder("commands")
 
     # Load all loops
-    load_folder(config, "loops")
+    load_folder("loops")
 
     print(f"{bot.user} is connected to {guild.name} (id: {guild.id}) \n")
     
     
-def load_folder(config, foldername):
+def load_folder(foldername):
+    # Currently not yet the option to enable or disable
 
     # Load all commands
     print(f"Loading {foldername} ...")
