@@ -149,7 +149,7 @@ class Streamer(AsyncStream):
         for ticker in tickers:
             ticker_info = classify_ticker(ticker)
         
-            e.add_field(name=f"${ticker}", value=ticker_info, inline=True)
+            e.add_field(name=f"[${ticker}]", value=ticker_info, inline=True)
 
         e.add_field(name="Sentiment", value=("🐻 - Bearish", "🐂 - Bullish")[sentiment], inline=True)
         

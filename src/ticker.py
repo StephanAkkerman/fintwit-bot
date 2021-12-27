@@ -1,6 +1,45 @@
-from pycoingecko import CoinGeckoAPI
+##> Imports
+
+# Standard libraries
+import datetime
+
+# > 3rd Party Dependencies
 import yfinance as yf
 import pandas as pd
+from pycoingecko import CoinGeckoAPI
+from pandas.tseries.holiday import USFederalHolidayCalendar
+
+# Get the public holidays
+cal = USFederalHolidayCalendar()
+us_holidays = cal.holidays(start=datetime.date(datetime.date.today().year, 1, 1).strftime('%Y-%m-%d'),
+                           end=datetime.date(datetime.date.today().year, 12, 31).strftime('%Y-%m-%d')).to_pydatetime()
+
+def afterHours():
+    """
+    Simple code to check if the current time is after hours in the US.
+    return: True if after hours, False otherwise
+    
+    source: https://www.reddit.com/r/algotrading/comments/9x9xho/python_code_to_check_if_market_is_open_in_your/
+    """
+    
+    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=-5), 'EST'))
+    openTime = datetime.time(hour = 9, minute = 30, second = 0)
+    closeTime = datetime.time(hour = 16, minute = 0, second = 0)
+    
+    # If a holiday
+    if now.strftime('%Y-%m-%d') in us_holidays:
+        return True
+    
+    # If before 0930 or after 1600
+    if (now.time() < openTime) or (now.time() > closeTime):
+        return True
+    
+    # If it's a weekend
+    if now.date().weekday() > 4:
+        return True
+
+    # Otherwise the market is open
+    return False 
 
 # Create CoinGecko object
 cg = CoinGeckoAPI()
@@ -38,10 +77,17 @@ def get_stock_info(ticker):
     info = yf.Ticker(ticker)
     website = f"https://finance.yahoo.com/quote/{ticker}"
     try:
-        change = round((info.info['regularMarketPrice'] - info.info['regularMarketPreviousClose']) / info.info['regularMarketPreviousClose'] * 100, 2)
-        premarket_change = round((info.info['preMarketPrice'] - info.info['regularMarketPrice']) / info.info['regularMarketPrice'] * 100, 2)
+        # Return prices corresponding to market hours
+        if afterHours():
+            price = info.info['preMarketPrice']
+            change = round((info.info['preMarketPrice'] - info.info['regularMarketPrice']) / info.info['regularMarketPrice'] * 100, 2)
+        else:
+            price = info.info['regularMarketPrice']
+            change = round((info.info['regularMarketPrice'] - info.info['regularMarketPreviousClose']) / info.info['regularMarketPreviousClose'] * 100, 2)
         
-        return info.info['volume'], website, info.info['exchange'], info.info['regularMarketPrice'], info.info['preMarketPrice'], change, premarket_change
+        # Return the important information
+        return info.info['volume'], website, info.info['exchange'], price, change
+    
     except Exception:
         return 0, None, None, None, None
     
