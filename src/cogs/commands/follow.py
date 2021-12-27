@@ -20,7 +20,7 @@ class Follow(commands.Cog):
             for user in input:
                 try:
                     api.create_friendship(screen_name = user)
-                    await ctx.send(f"You are now following {user}")
+                    await ctx.send(f"You are now following: https://twitter.com/{user}")
                 except Exception as e:
                     print(e)
                     raise commands.UserNotFound(user)
@@ -38,7 +38,7 @@ class Follow(commands.Cog):
             for user in input:
                 try:
                     api.destroy_friendship(screen_name = user)
-                    await ctx.send(f"You are no longer following {user}")
+                    await ctx.send(f"You are no longer following: https://twitter.com/{user}")
                 except Exception:
                     raise commands.UserNotFound(user)
         else:
