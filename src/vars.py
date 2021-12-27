@@ -1,6 +1,9 @@
+import sys
+
 # > 3rd Party Dependencies
 import yaml
 import tweepy
+import discord
 
 # Read config.yaml content
 with open("config.yaml", "r", encoding="utf-8") as f:
@@ -16,3 +19,27 @@ access_token_secret = config['TWITTER']['ACCESS_TOKEN_SECRET']
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth)
+
+def get_guild(bot):
+    
+    return discord.utils.get(
+        bot.guilds,
+        name=config["DEBUG"]["GUILD_NAME"]
+        if len(sys.argv) > 1 and sys.argv[1] == "-test"
+        else config["DISCORD"]["GUILD_NAME"],
+    )
+
+def get_channel(bot, channel_name):
+    
+    return discord.utils.get(
+        bot.get_all_channels(),
+        guild__name=config["DEBUG"]["GUILD_NAME"]
+        if len(sys.argv) > 1 and sys.argv[1] == "-test"
+        else config["DISCORD"]["GUILD_NAME"],
+        name=channel_name,
+    )
+
+def get_emoji(bot, emoji):
+    
+    guild = get_guild(bot)
+    return discord.utils.get(guild.emojis, name=emoji)

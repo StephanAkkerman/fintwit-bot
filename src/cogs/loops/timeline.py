@@ -16,7 +16,7 @@ from discord.ext.tasks import loop
 from discord.enums import DefaultAvatar
 
 # Local dependencies
-from vars import config, consumer_key, consumer_secret, access_token, access_token_secret, api
+from vars import config, consumer_key, consumer_secret, access_token, access_token_secret, api, get_channel, get_emoji
 from sentimentanalyis import classify_sentiment
 from ticker import classify_ticker
 
@@ -48,31 +48,18 @@ class Streamer(AsyncStream):
         # Set the bot for messages
         self.bot = bot
         
-        # Set the channel
-        self.timeline = discord.utils.get(
-                        self.bot.get_all_channels(),
-                        guild__name=config["DEBUG"]["GUILD_NAME"]
-                        if len(sys.argv) > 1 and sys.argv[1] == "-test"
-                        else config["DISCORD"]["GUILD_NAME"],
-                        name=config["TIMELINE"]["CHANNEL"],
-                    )
+        # Set the channels
+        self.timeline = get_channel(self.bot,config["TIMELINE"]["CHANNEL"])
         
-        self.stock_channel = discord.utils.get(
-                        self.bot.get_all_channels(),
-                        guild__name=config["DEBUG"]["GUILD_NAME"]
-                        if len(sys.argv) > 1 and sys.argv[1] == "-test"
-                        else config["DISCORD"]["GUILD_NAME"],
-                        name=config["STOCKS"]["CHANNEL"],
-                    )
-            
-        self.crypto_channel = discord.utils.get(
-                        self.bot.get_all_channels(),
-                        guild__name=config["DEBUG"]["GUILD_NAME"]
-                        if len(sys.argv) > 1 and sys.argv[1] == "-test"
-                        else config["DISCORD"]["GUILD_NAME"],
-                        name=config["CRYPTO"]["CHANNEL"],
-                    )
+        self.stocks_charts_channel = get_channel(self.bot,config["STOCKS"]["CHARTS_CHANNEL"])
+        self.stocks_text_channel = get_channel(self.bot,config["STOCKS"]["TEXT_CHANNEL"])
         
+        self.crypto_charts_channel = get_channel(self.bot,config["CRYPTO"]["CHARTS_CHANNEL"])
+        self.crypto_text_channel = get_channel(self.bot,config["CRYPTO"]["TEXT_CHANNEL"])
+        
+        self.other_channel = get_channel(self.bot,config["OTHER"]["CHANNEL"])
+        
+        # Set following ids
         self.get_following_ids.start()
         
     @loop(minutes=15)
@@ -144,7 +131,7 @@ class Streamer(AsyncStream):
                                     images.append(media["media_url"])
                         
                     # If there are images
-                    if images != []:
+                    if images:
                         # This also removes other links that are not https://t.co/
                         text = re.sub(r'http\S+', '', text)
                         
@@ -177,13 +164,13 @@ class Streamer(AsyncStream):
             if volume is None:
                 # Skip this one
                 print(f"Skipping {ticker}")
+                e.add_field(name=f"${ticker}")
+                
+                # Assume it is a crypto
+                crypto += 1
                 continue
             
             title = f"${ticker}"
-            if 'Binance' in exchanges:
-                title += " :binance:"
-            if "KuCoin" in exchanges:
-                title += " :kucoin:"
             
             # Determine if this is a crypto or stock
             if 'coingecko' in website:
@@ -197,25 +184,39 @@ class Streamer(AsyncStream):
             else:
                 change = f"{change}%"
 
+            description = f"[${price} ({change})]({website})"
+            if 'Binance' in exchanges:
+                title = f"{title} {get_emoji(self.bot, 'binance')}"
+            if "KuCoin" in exchanges:
+                title = f"{title} {get_emoji(self.bot, 'kucoin')}"
+
             # Add the field with hyperlink
-            e.add_field(name=f"${ticker}", value=f"[${price} ({change})]({website})", inline=True)
+            e.add_field(name=title, value=description, inline=True)
 
         # If there are any tickers
         if tickers:
             sentiment = classify_sentiment(text)
             prediction = ("🐻 - Bearish", "🐂 - Bullish")[np.argmax(sentiment)]
-            e.add_field(name="Sentiment", value=f"{prediction} ({round(max(sentiment),2)}%)", inline=True)
+            e.add_field(name="Sentiment", value=f"{prediction} ({round(max(sentiment*100),2)}%)", inline=True)
         
         # Set image if an image is included in the tweet
         for media_url in images:
-            
             e.set_image(url=media_url)
         
         e.timestamp = datetime.datetime.utcnow()
 
-        if crypto > stocks:
-            await self.crypto_channel.send(embed=e)
-        if crypto < stocks:
-            await self.stock_channel.send(embed=e)
+        if images:
+            if crypto > stocks:
+                await self.crypto_charts_channel.send(embed=e)
+            elif crypto < stocks:
+                await self.stocks_charts_channel.send(embed=e)
+        else:
+            if crypto > stocks:
+                await self.crypto_text_channel.send(embed=e)
+            elif crypto < stocks:
+                await self.stocks_text_channel.send(embed=e)
+            else:
+                await self.other_channel.send(embed=e)
             
+        # Send in the timeline channel
         await self.timeline.send(embed=e)
