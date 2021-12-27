@@ -54,18 +54,48 @@ def get_coin_info(ticker):
     # Get the id of the ticker
     # Check if the symbol exists
     if ticker in df['symbol'].values:
-        id = df[df['symbol'] == ticker]['id'].values[0]
+        ids = df[df['symbol'] == ticker]['id']
+        if len(ids) > 1:
+            id = None
+            best_vol = 0
+            for symbol in ids.values:
+                volume = cg.get_coin_by_id(symbol)['market_data']['total_volume']['usd']
+                if volume > best_vol:
+                    best_vol = volume
+                    id = symbol
+        else:
+            id = ids.values[0]
     elif ticker.lower() in df['id'].values:
-        id = df[df['id'] == ticker.lower()]['id'].values[0]
+        ids = df[df['id'] == ticker.lower()]['id']
+        if len(ids) > 1:
+            id = None
+            best_vol = 0
+            for symbol in ids.values:
+                volume = cg.get_coin_by_id(symbol)['market_data']['total_volume']['usd']
+                if volume > best_vol:
+                    best_vol = volume
+                    id = symbol
+        else:
+            id = ids.values[0]
     elif ticker in df['name'].values:
-        id = df[df['name'] == ticker]['id'].values[0]
+        ids = df[df['name'] == ticker]['id']
+        if len(ids) > 1:
+            id = None
+            best_vol = 0
+            for symbol in ids.values:
+                volume = cg.get_coin_by_id(symbol)['market_data']['total_volume']['usd']
+                if volume > best_vol:
+                    best_vol = volume
+                    id = symbol
+        else:
+            id = ids.values[0]
     else:
         return 0, None, None, None, None
     
     # Get the information of this coin
     coin_dict = cg.get_coin_by_id(id)
     total_vol = coin_dict['market_data']['total_volume']['usd']
-    website = f"coingecko.com/en/coins/{id}"
+    website = f"https://coingecko.com/en/coins/{id}"
     price = coin_dict['market_data']['current_price']['usd']
     price_change = round(coin_dict['market_data']['price_change_percentage_24h'], 2)
 
@@ -90,9 +120,7 @@ def get_stock_info(ticker):
             change = round((info.info['regularMarketPrice'] - info.info['regularMarketPreviousClose']) / info.info['regularMarketPreviousClose'] * 100, 2)
         
         # Return the important information
-        # Use the USD volume instead of shares volume
-        volume = info.info['volume'] * price
-        return volume, website, info.info['exchange'], price, change
+        return info.info['volume'], website, info.info['exchange'], price, change
     
     except Exception:
         return 0, None, None, None, None

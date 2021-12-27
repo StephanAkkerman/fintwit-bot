@@ -22,7 +22,6 @@ class Follow(commands.Cog):
                     api.create_friendship(screen_name = user)
                     await ctx.send(f"You are now following: https://twitter.com/{user}")
                 except Exception as e:
-                    print(e)
                     raise commands.UserNotFound(user)
         else:
             raise commands.UserInputError()
