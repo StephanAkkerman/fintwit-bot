@@ -48,7 +48,23 @@ class Streamer(AsyncStream):
         self.bot = bot
         
         # Set the channel
-        self.channel = discord.utils.get(
+        self.timeline = discord.utils.get(
+                        self.bot.get_all_channels(),
+                        guild__name=config["DEBUG"]["GUILD_NAME"]
+                        if len(sys.argv) > 1 and sys.argv[1] == "-test"
+                        else config["DISCORD"]["GUILD_NAME"],
+                        name=config["TIMELINE"]["CHANNEL"],
+                    )
+        
+        self.stock_channel = discord.utils.get(
+                        self.bot.get_all_channels(),
+                        guild__name=config["DEBUG"]["GUILD_NAME"]
+                        if len(sys.argv) > 1 and sys.argv[1] == "-test"
+                        else config["DISCORD"]["GUILD_NAME"],
+                        name=config["TIMELINE"]["CHANNEL"],
+                    )
+            
+        self.crypto_channel = discord.utils.get(
                         self.bot.get_all_channels(),
                         guild__name=config["DEBUG"]["GUILD_NAME"]
                         if len(sys.argv) > 1 and sys.argv[1] == "-test"
@@ -146,10 +162,26 @@ class Streamer(AsyncStream):
         
         sentiment = classify_sentiment(text)
         
-        for ticker in tickers:
-            ticker_info = classify_ticker(ticker)
+        crypto = False
+        stock = False
         
-            e.add_field(name=f"[${ticker}]", value=ticker_info, inline=True)
+        for ticker in tickers:
+            volume, website, exchanges, price, change = classify_ticker(ticker)
+            
+            try:
+                if 'coingecko' in website:
+                    crypto = True
+                if 'yahoo' in website:
+                    stock = True
+            
+                if change > 0:
+                    change = f"+{change}%"
+                else:
+                    change = f"{change}%"
+            except Exception:
+                print(f"Could not get change for {ticker}")
+        
+            e.add_field(name=f"${ticker}", value=f"[${price} ({change})]({website})", inline=True)
 
         e.add_field(name="Sentiment", value=("🐻 - Bearish", "🐂 - Bullish")[sentiment], inline=True)
         
@@ -159,4 +191,9 @@ class Streamer(AsyncStream):
         
         e.timestamp = datetime.datetime.utcnow()
 
-        await self.channel.send(embed=e)
+        if crypto:
+            await self.crypto_channel.send(embed=e)
+        if stock:
+            await self.stock_channel.send(embed=e)
+            
+        await self.timeline.send(embed=e)

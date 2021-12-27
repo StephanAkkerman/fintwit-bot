@@ -1,5 +1,4 @@
 ##> Imports
-
 # Standard libraries
 import datetime
 
@@ -53,10 +52,15 @@ def get_coin_info(ticker):
     """ Free CoinGecko API allows 50 calls per mintue """
     
     # Get the id of the ticker
-    try:
-        id = df.loc[df['symbol'] == ticker]['id'].values[0]
-    except Exception:
-        return 0, None
+    # Check if the symbol exists
+    if ticker in df['symbol'].values:
+        id = df[df['symbol'] == ticker]['id'].values[0]
+    if ticker.lower() in df['id'].values:
+        id = df[df['id'] == ticker.lower()]['id'].values[0]
+    if ticker in df['name'].values:
+        id = df[df['name'] == ticker]['id'].values[0]
+    else:
+        return 0, None, None, None, None
     
     # Get the information of this coin
     coin_dict = cg.get_coin_by_id(id)
@@ -79,10 +83,10 @@ def get_stock_info(ticker):
     try:
         # Return prices corresponding to market hours
         if afterHours():
-            price = info.info['preMarketPrice']
+            price = round(info.info['preMarketPrice'],2)
             change = round((info.info['preMarketPrice'] - info.info['regularMarketPrice']) / info.info['regularMarketPrice'] * 100, 2)
         else:
-            price = info.info['regularMarketPrice']
+            price = round(info.info['regularMarketPrice'],2)
             change = round((info.info['regularMarketPrice'] - info.info['regularMarketPreviousClose']) / info.info['regularMarketPreviousClose'] * 100, 2)
         
         # Return the important information
@@ -98,9 +102,11 @@ def classify_ticker(ticker):
     
     coin = get_coin_info(ticker)
     stock = get_stock_info(ticker)
-    
+        
     # First in tuple represents volume
     if coin[0] > stock[0]:
         return coin
+    if coin[0] == stock[0]:
+        return None
     else:
         return stock
