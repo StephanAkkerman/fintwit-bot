@@ -11,34 +11,36 @@ class Follow(commands.Cog):
 
     @commands.command()
     async def follow(self, ctx, *input):
-        """ Follow a Twitter user, using their screen name (without @ in front).
+        """ Follow Twitter user(s), using their screen name (without @ in front).
         
-        Usage: `!follow @<username>`
+        Usage: `!follow [<username>]`
         """
         
-        if len(input) == 1:
-            try:
-                api.create_friendship(screen_name = input[0])
-                await ctx.send(f"{ctx.author.mention} You are now following {input[0]}")
-            except Exception as e:
-                print(e)
-                raise commands.UserNotFound(input[0])
+        if input:
+            for user in input:
+                try:
+                    api.create_friendship(screen_name = user)
+                    await ctx.send(f"You are now following {user}")
+                except Exception as e:
+                    print(e)
+                    raise commands.UserNotFound(user)
         else:
             raise commands.UserInputError()
         
     @commands.command()
     async def unfollow(self, ctx, *input):
-        """ Unfollow a Twitter user, using their screen name (without @ in front).
+        """ Unfollow Twitter user(s), using their screen name (without @ in front).
         
-        Usage: `!unfollow <username>`
+        Usage: `!unfollow [<username>]`
         """
         
-        if len(input) == 1:
-            try:
-                api.destroy_friendship(screen_name = input[0])
-                await ctx.send(f"{ctx.author.mention} You are no longer following {input[0]}")
-            except Exception:
-                raise commands.UserNotFound(input[0])
+        if input:
+            for user in input:
+                try:
+                    api.destroy_friendship(screen_name = user)
+                    await ctx.send(f"You are no longer following {user}")
+                except Exception:
+                    raise commands.UserNotFound(user)
         else:
             raise commands.UserInputError()
         

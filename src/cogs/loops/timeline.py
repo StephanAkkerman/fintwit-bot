@@ -17,6 +17,7 @@ from discord.ext.tasks import loop
 # Local dependencies
 from vars import config, consumer_key, consumer_secret, access_token, access_token_secret, api
 from sentimentanalyis import classify_sentiment
+from ticker import classify_ticker
 
 class Timeline(commands.Cog):
     def __init__(self, bot):
@@ -98,8 +99,8 @@ class Streamer(AsyncStream):
                     tickers = []
                     if 'symbols' in as_json['entities']:
                         for symbol in as_json['entities']['symbols']:
-                            tickers.append(f"${symbol['text'].upper()}")
-                                        
+                            tickers.append(f"{symbol['text'].upper()}")
+                                                                    
                     # If the media_url is available send that      
                     images = []
                     
@@ -145,8 +146,10 @@ class Streamer(AsyncStream):
         
         sentiment = classify_sentiment(text)
         
-        if tickers:
-            e.add_field(name=f"Ticker{'s' if len(tickers) > 1 else ''}", value="\n".join(tickers), inline=True)
+        for ticker in tickers:
+            ticker_info = classify_ticker(ticker)
+        
+            e.add_field(name=f"${ticker}", value=ticker_info, inline=True)
 
         e.add_field(name="Sentiment", value=("🐻 - Bearish", "🐂 - Bullish")[sentiment], inline=True)
         

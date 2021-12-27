@@ -16,7 +16,7 @@ def get_coin_info(ticker):
     # Get the id of the ticker
     try:
         id = df.loc[df['symbol'] == ticker]['id'].values[0]
-    except IndexError:
+    except Exception:
         return 0, None
     
     # Get the information of this coin
@@ -42,7 +42,7 @@ def get_stock_info(ticker):
         premarket_change = round((info.info['preMarketPrice'] - info.info['regularMarketPrice']) / info.info['regularMarketPrice'] * 100, 2)
         
         return info.info['volume'], website, info.info['exchange'], info.info['regularMarketPrice'], info.info['preMarketPrice'], change, premarket_change
-    except KeyError:
+    except Exception:
         return 0, None, None, None, None
     
 def classify_ticker(ticker):
