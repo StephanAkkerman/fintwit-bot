@@ -21,14 +21,14 @@ bot.remove_command("help")
 @bot.event
 async def on_ready():
     """This gets printed on boot up"""
-    
+
     guild = discord.utils.get(
-    bot.guilds,
-    name=config["DEBUG"]["GUILD_NAME"]
-    if len(sys.argv) > 1 and sys.argv[1] == "-test"
-    else config["DISCORD"]["GUILD_NAME"],
+        bot.guilds,
+        name=config["DEBUG"]["GUILD_NAME"]
+        if len(sys.argv) > 1 and sys.argv[1] == "-test"
+        else config["DISCORD"]["GUILD_NAME"],
     )
-    
+
     # Load commands
     load_folder("commands")
 
@@ -36,8 +36,8 @@ async def on_ready():
     load_folder("loops")
 
     print(f"{bot.user} is connected to {guild.name} (id: {guild.id}) \n")
-    
-    
+
+
 def load_folder(foldername):
     # Currently not yet the option to enable or disable
 
@@ -49,7 +49,8 @@ def load_folder(foldername):
             bot.load_extension(f"cogs.{foldername}.{filename[:-3]}")
 
     print()
-    
+
+
 if __name__ == "__main__":
 
     TOKEN = (
