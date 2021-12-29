@@ -193,7 +193,7 @@ class Streamer(AsyncStream):
             if volume is None:
                 # Skip this one
                 print(f"Skipping {ticker}")
-                e.add_field(name=f"${ticker}")
+                e.add_field(name=f"${ticker}", value="")
 
                 # Assume it is a crypto
                 crypto += 1
@@ -254,4 +254,10 @@ class Streamer(AsyncStream):
                 await self.other_channel.send(embed=e)
 
         # Send in the timeline channel
-        await self.timeline.send(embed=e)
+        msg = await self.timeline.send(embed=e)
+
+        if tickers and config["DEBUG"]["GUILD_NAME"] == msg.channel.guild.name:
+            await msg.add_reaction("🐂")
+            await msg.add_reaction("🦆")
+            await msg.add_reaction("🐻")
+
