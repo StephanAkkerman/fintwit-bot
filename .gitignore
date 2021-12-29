@@ -3,3 +3,4 @@ authentication.json
 *.bat
 config.yaml
 models/
+data/

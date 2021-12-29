@@ -35,6 +35,9 @@ async def on_ready():
     # Load all loops
     load_folder("loops")
 
+    # Load all listeners
+    load_folder("listeners")
+
     print(f"{bot.user} is connected to {guild.name} (id: {guild.id}) \n")
 
 
