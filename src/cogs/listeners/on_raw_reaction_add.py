@@ -37,11 +37,11 @@ class On_raw_reaction_add(commands.Cog):
         with open("data/sentiment_data.csv", "a", newline="") as file:
             writer_object = writer(file)
             if str(reaction.emoji) == "🐻":
-                writer_object.writerow([message.embeds[0].description, -1])
+                writer_object.writerow([message.embeds[0].description.replace("\n"," "), -1])
             elif str(reaction.emoji) == "🐂":
-                writer_object.writerow([message.embeds[0].description, 1])
+                writer_object.writerow([message.embeds[0].description.replace("\n"," "), 1])
             elif str(reaction.emoji) == "🦆":
-                writer_object.writerow([message.embeds[0].description, 0])
+                writer_object.writerow([message.embeds[0].description.replace("\n"," "), 0])
 
 
 def setup(bot):
