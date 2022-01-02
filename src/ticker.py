@@ -126,10 +126,11 @@ def get_stock_info(ticker):
     try:
         # Return prices corresponding to market hours
         if afterHours():
-            price = round(stock_info.info["preMarketPrice"], 2)
+            # Could also try to use 'bid' if premarket price is not available
+            price = round(stock_info.info["preMarketPrice"], 2) if stock_info.info["preMarketPrice"] != None else stock_info.info["regularMarketPrice"]
             change = round(
                 (
-                    stock_info.info["preMarketPrice"]
+                    price
                     - stock_info.info["regularMarketPrice"]
                 )
                 / stock_info.info["regularMarketPrice"]
@@ -137,10 +138,11 @@ def get_stock_info(ticker):
                 2,
             )
         else:
+            # Could try 'currentPrice' as well
             price = round(stock_info.info["regularMarketPrice"], 2)
             change = round(
                 (
-                    stock_info.info["regularMarketPrice"]
+                    price
                     - stock_info.info["regularMarketPreviousClose"]
                 )
                 / stock_info.info["regularMarketPreviousClose"]
@@ -149,6 +151,7 @@ def get_stock_info(ticker):
             )
 
         # Return the important information
+        # Could also try 'volume' or 'volume24Hr' (is None if market is closed)
         volume = stock_info.info["regularMarketVolume"] * price
         return volume, website, stock_info.info["exchange"], price, change
 
