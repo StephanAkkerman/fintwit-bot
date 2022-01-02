@@ -126,8 +126,8 @@ def get_stock_info(ticker):
     try:
         # Return prices corresponding to market hours
         if afterHours():
-            # Could also try to use 'bid' if premarket price is not available
-            price = round(stock_info.info["preMarketPrice"], 2) if stock_info.info["preMarketPrice"] != None else stock_info.info["regularMarketPrice"]
+            # Use bid if premarket price is not available
+            price = round(stock_info.info["preMarketPrice"], 2) if stock_info.info["preMarketPrice"] != None else stock_info.info["bid"]
             change = round(
                 (
                     price
