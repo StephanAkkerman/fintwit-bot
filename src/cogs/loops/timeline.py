@@ -166,7 +166,11 @@ class Streamer(AsyncStream):
                         text = re.sub(r"http\S+", "", text)
 
                     # Post the tweet containing the important info
-                    await self.post_tweet(text, user, profile_pic, url, images, tickers)
+                    try:
+                        await self.post_tweet(text, user, profile_pic, url, images, tickers)
+                    except Exception as e:
+                        print(f"Error posting tweet of {user} at {datetime.datetime.now()}")
+                        print(e)
 
     async def post_tweet(self, text, user, profile_pic, url, images, tickers):
 
@@ -192,7 +196,7 @@ class Streamer(AsyncStream):
             # Do this first
             if volume is None:
                 # Skip this one
-                print(f"Skipping {ticker}")
+                print(f"No crypto or stock match found for ${ticker} in {user}'s tweet at {datetime.datetime.now()}")
                 e.add_field(name=f"${ticker}", value="")
 
                 # Assume it is a crypto
@@ -238,20 +242,24 @@ class Streamer(AsyncStream):
 
         e.timestamp = datetime.datetime.utcnow()
 
-        if images:
-            if crypto > stocks:
-                await self.crypto_charts_channel.send(embed=e)
-            elif crypto < stocks:
-                await self.stocks_charts_channel.send(embed=e)
+        try:
+            if images:
+                if crypto > stocks:
+                    await self.crypto_charts_channel.send(embed=e)
+                elif crypto < stocks:
+                    await self.stocks_charts_channel.send(embed=e)
+                else:
+                    await self.images_channel.send(embed=e)
             else:
-                await self.images_channel.send(embed=e)
-        else:
-            if crypto > stocks:
-                await self.crypto_text_channel.send(embed=e)
-            elif crypto < stocks:
-                await self.stocks_text_channel.send(embed=e)
-            else:
-                await self.other_channel.send(embed=e)
+                if crypto > stocks:
+                    await self.crypto_text_channel.send(embed=e)
+                elif crypto < stocks:
+                    await self.stocks_text_channel.send(embed=e)
+                else:
+                    await self.other_channel.send(embed=e)
+        except Exception as e:
+            print(f"Error posting tweet of {user} at {datetime.datetime.now()}")
+            print(e)
 
         # Send in the timeline channel
         msg = await self.timeline.send(embed=e)
@@ -260,4 +268,3 @@ class Streamer(AsyncStream):
             await msg.add_reaction("🐂")
             await msg.add_reaction("🦆")
             await msg.add_reaction("🐻")
-
