@@ -124,6 +124,7 @@ class Streamer(AsyncStream):
                         
                     # Replace &amp;
                     text = text.replace('&amp;', '&')
+                    text = text.replace('&gt;', '>')
 
                     # Post the tweet containing the important info
                     try:
@@ -289,6 +290,7 @@ class Streamer(AsyncStream):
                         "media"
                     ]:
                         images.append(media["media_url"])
+                        text = text.replace(media['url'], '')
                     
         # Not an extended tweet
         else:
@@ -304,6 +306,7 @@ class Streamer(AsyncStream):
                     "media"
                 ]:
                     images.append(media["media_url"])
+                    text = text.replace(media['url'], '')
                     
         tickers = []
         # Process hashtags and tickers
