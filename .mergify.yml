@@ -2,10 +2,10 @@ pull_request_rules:
   - name: Automatic merge on approval
     conditions:
         - or:
-          - "author=dependabot"
-          - "author=StephanAkkerman"
-          - "author=TimKoornstra"
-          - "author=imgbot"
+          - author=StephanAkkerman
+          - author=TimKoornstra
+          - author~=^dependabot(|-preview)\[bot\]$
+          - author=imgbot[bot]
     actions:
       merge:
         method: merge
