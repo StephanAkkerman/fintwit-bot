@@ -50,6 +50,8 @@ cg = CoinGeckoAPI()
 # Get all crypto tickers and change them to all caps
 # Maybe refresh this df daily
 df = pd.DataFrame(cg.get_coins_list())
+
+# Make everything upper since ticker is always all caps
 df["symbol"] = df["symbol"].str.upper()
 
 

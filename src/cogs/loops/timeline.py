@@ -120,12 +120,7 @@ class Streamer(AsyncStream):
                     # Could also use ['id_sr'] instead
                     url = f"https://twitter.com/{user}/status/{as_json['id']}"
                     
-                    text, tickers, images, retweeted_user = await self.get_tweet(as_json)
-
-                    # If there are images remove the links to them
-                    if images:
-                        # This also removes other links that are not https://t.co/
-                        text = re.sub(r"http\S+", "", text)
+                    text, tickers, images, retweeted_user = await self.get_tweet(as_json)                        
                         
                     # Replace &amp;
                     text = text.replace('&amp;', '&')
@@ -282,16 +277,27 @@ class Streamer(AsyncStream):
         if "extended_tweet" in as_json:
             text = as_json["extended_tweet"]["full_text"]
             ticker_list = as_json['extended_tweet']['entities']
+                        
+            if 'urls' in as_json['extended_tweet']['entities']:               
+                for url in as_json['extended_tweet']['entities']['urls']:
+                    text = text.replace(url['url'], url['expanded_url'])                
             
             # Add the media, check extended entities first
-            if "media" in as_json["extended_tweet"]["extended_entities"]:
-                for media in as_json["extended_tweet"]["extended_entities"][
-                    "media"
-                ]:
-                    images.append(media["media_url"])
+            if "extended_entities" in as_json["extended_tweet"]:
+                if "media" in as_json["extended_tweet"]["extended_entities"]:
+                    for media in as_json["extended_tweet"]["extended_entities"][
+                        "media"
+                    ]:
+                        images.append(media["media_url"])
+                    
+        # Not an extended tweet
         else:
             text = as_json["text"]
             ticker_list = as_json['entities']
+            
+            if 'urls' in as_json['entities']:               
+                for url in as_json['entities']['urls']:
+                    text = text.replace(url['url'], url['expanded_url'])  
             
             if "media" in as_json["entities"]:
                 for media in as_json["entities"][
@@ -299,13 +305,13 @@ class Streamer(AsyncStream):
                 ]:
                     images.append(media["media_url"])
                     
-            tickers = []
-            # Process hashtags and tickers
-            if "symbols" in ticker_list:
-                for symbol in ticker_list["symbols"]:
-                    tickers.append(f"{symbol['text'].upper()}")
-                # Also check the hashtags
-                for symbol in ticker_list["hashtags"]:
-                    tickers.append(f"{symbol['text'].upper()}")
+        tickers = []
+        # Process hashtags and tickers
+        if "symbols" in ticker_list:
+            for symbol in ticker_list["symbols"]:
+                tickers.append(f"{symbol['text'].upper()}")
+            # Also check the hashtags
+            for symbol in ticker_list["hashtags"]:
+                tickers.append(f"{symbol['text'].upper()}")
                     
         return text, tickers, images
