@@ -1,0 +1,11 @@
+pull_request_rules:
+  - name: Automatic merge on approval
+    conditions:
+        - or:
+          - "author=dependabot"
+          - "author=StephanAkkerman"
+          - "author=TimKoornstra"
+          - "author=imgbot"
+    actions:
+      merge:
+        method: merge
