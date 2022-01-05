@@ -231,16 +231,25 @@ class Streamer(AsyncStream):
                 stocks += 1
 
             # Format change
-            if change > 0:
-                change = f"+{change}% 📈"
-            else:
-                change = f"{change}% 📉"
-
-            description = f"[${price} ({change})]({website})"
-            if "Binance" in exchanges:
-                title = f"{title} {get_emoji(self.bot, 'binance')}"
-            if "KuCoin" in exchanges:
-                title = f"{title} {get_emoji(self.bot, 'kucoin')}"
+            if type(change) == list:
+                if len(change) == 2:
+                    for i in range(len(change)):
+                        if i == 0:
+                            description = f"[AH: ${price[i]} ({change[i]})]({website})\n"
+                        else:
+                            description += f"[${price[i]} ({change[i]})]({website})"
+                else:
+                    description = f"[${price[0]} ({change[0]})]({website})"
+                
+            else:    
+                description = f"[${price} ({change})]({website})"
+                
+                # Currently only adds emojis for crypto exchanges
+                if "coingecko" in website:
+                    if "Binance" in exchanges:
+                        title = f"{title} {get_emoji(self.bot, 'binance')}"
+                    if "KuCoin" in exchanges:
+                        title = f"{title} {get_emoji(self.bot, 'kucoin')}"
 
             # Add the field with hyperlink
             e.add_field(name=title, value=description, inline=True)

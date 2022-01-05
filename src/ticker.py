@@ -103,7 +103,9 @@ def get_coin_info(ticker):
         total_vol = coin_dict["market_data"]["total_volume"]["usd"]
         website = f"https://coingecko.com/en/coins/{id}"
         price = coin_dict["market_data"]["current_price"]["usd"]
-        price_change = round(coin_dict["market_data"]["price_change_percentage_24h"], 2)
+        change = round(coin_dict["market_data"]["price_change_percentage_24h"], 2)
+        
+        formatted_change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
 
         # Get the exchanges
         exchanges = [exchange["market"]["name"] for exchange in coin_dict["tickers"]]
@@ -116,7 +118,7 @@ def get_coin_info(ticker):
     exchanges = [exchange["market"]["name"] for exchange in coin_dict["tickers"]]
 
     # Return the information
-    return total_vol, website, exchanges, price, price_change
+    return total_vol, website, exchanges, price, formatted_change
 
 
 def get_stock_info(ticker):
@@ -124,6 +126,10 @@ def get_stock_info(ticker):
     stock_info = yf.Ticker(ticker)
     website = f"https://finance.yahoo.com/quote/{ticker}"
     try:
+        
+        prices = []
+        changes = []
+                
         # Return prices corresponding to market hours
         if afterHours():
             # Use bid if premarket price is not available
@@ -137,23 +143,32 @@ def get_stock_info(ticker):
                 * 100,
                 2,
             )
-        else:
-            # Could try 'currentPrice' as well
-            price = round(stock_info.info["regularMarketPrice"], 2)
-            change = round(
-                (
-                    price
-                    - stock_info.info["regularMarketPreviousClose"]
-                )
-                / stock_info.info["regularMarketPreviousClose"]
-                * 100,
-                2,
+            formatted_change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
+            
+            prices.append(price)
+            changes.append(formatted_change)
+        
+        # Could try 'currentPrice' as well
+        price = round(stock_info.info["regularMarketPrice"], 2)
+        change = round(
+            (
+                price
+                - stock_info.info["regularMarketPreviousClose"]
             )
+            / stock_info.info["regularMarketPreviousClose"]
+            * 100,
+            2,
+        )
+        
+        formatted_change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
+        
+        prices.append(price)
+        changes.append(formatted_change)
 
         # Return the important information
         # Could also try 'volume' or 'volume24Hr' (is None if market is closed)
         volume = stock_info.info["regularMarketVolume"] * price
-        return volume, website, stock_info.info["exchange"], price, change
+        return volume, website, stock_info.info["exchange"], prices, changes
 
     except Exception as e:
 
