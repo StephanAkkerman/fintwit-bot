@@ -129,18 +129,19 @@ class Streamer(AsyncStream):
 
                     # Post the tweet containing the important info
                     try:
-                        await self.post_tweet(text, user, profile_pic, url, images, tickers, hashtags)
+                        await self.post_tweet(text, user, profile_pic, url, images, tickers, hashtags, retweeted_user)
                     except Exception as e:
                         print(f"Error posting tweet of {user} at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}")
                         print(format_exc())
                         
 
-    async def post_tweet(self, text, user, profile_pic, url, images, tickers, hashtags):
+    async def post_tweet(self, text, user, profile_pic, url, images, tickers, hashtags, retweeted_user):
 
         # Use 'media' 'url' as url
         # Use 'profile_image_url'' for thumbnail
+        
         e = discord.Embed(
-            title=f"{user} tweeted about {', '.join(tickers)}",
+            title=f"{user} tweeted about {', '.join(tickers)}" if retweeted_user == None else f"{user} 🔁 {retweeted_user} about {', '.join(tickers)}",
             url=url,
             description=text,
             color=0x1DA1F2,
@@ -167,15 +168,16 @@ class Streamer(AsyncStream):
 
             # Do this first
             if volume is None:
-                # Skip this one
-                print(f"No crypto or stock match found for ${ticker} in {user}'s tweet at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}")
                 
                 # If it is a symbol, assume it is crypto (if no match could be found)
-                if ticker in symbols:
+                if ticker in tickers:
                     e.add_field(name=f"${ticker}", value="Crypto?")
                     crypto += 1
                     
                     # Go to next in symbols
+                    print(f"No crypto or stock match found for ${ticker} in {user}'s tweet at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}")
+                    continue
+                else:
                     continue
 
             title = f"${ticker}"
@@ -224,7 +226,7 @@ class Streamer(AsyncStream):
         if images:
             e.set_image(url=images[0])
 
-        e.timestamp = datetime.datetime.utcnow()
+        e.set_footer(text=f"Today at {datetime.datetime.utcnow().strftime('%H:%M')}", icon_url="https://abs.twimg.com/icons/apple-touch-icon-192x192.png")
 
         if images:
             if crypto > stocks:
