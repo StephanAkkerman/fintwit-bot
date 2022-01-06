@@ -1,7 +1,7 @@
 pandas==0.24.2
 tweepy==4.4.0
 pycoingecko==2.2.0
-yfinance==0.1.59
+yfinance==0.1.68
 py-cord==1.7.3
 numpy==1.22.0
 discord==1.7.3
