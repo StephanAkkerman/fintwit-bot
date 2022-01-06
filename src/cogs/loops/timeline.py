@@ -171,7 +171,8 @@ class Streamer(AsyncStream):
         crypto = 0
         stocks = 0
 
-        symbols = tickers + hashtags
+        # Get the unique values
+        symbols = list(set(tickers + hashtags))
 
         for ticker in symbols:
 
@@ -180,6 +181,10 @@ class Streamer(AsyncStream):
                 ticker = "BTC"
             if ticker == "ETHEREUM":
                 ticker = "ETH"
+            if ticker == "SPX":
+                ticker = "^SPX"
+            if ticker == "ES_F":
+                ticker = "ES=F"
 
             volume, website, exchanges, price, change = classify_ticker(ticker)
 
@@ -248,7 +253,7 @@ class Streamer(AsyncStream):
             e.set_image(url=images[0])
 
         e.set_footer(
-            text=f"Today at {datetime.datetime.utcnow().strftime('%H:%M')}",
+            text=f"Today at {datetime.datetime.now().strftime('%H:%M')}",
             icon_url="https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
         )
 
