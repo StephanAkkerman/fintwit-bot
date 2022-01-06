@@ -305,7 +305,7 @@ class Streamer(AsyncStream):
                     user_hashtags,
                 ) = await self.standard_tweet_info(as_json)
 
-            retweeted_user = f"[@{as_json['quoted_status']['user']['screen_name']}](https://twitter.com/{as_json['quoted_status']['user']['screen_name']})"
+            retweeted_user = as_json['quoted_status']['user']['screen_name']
 
             text, ticker_list, image, hashtags = await self.standard_tweet_info(
                 as_json["quoted_status"]
@@ -316,7 +316,7 @@ class Streamer(AsyncStream):
             ticker_list = user_ticker_list + ticker_list
             hashtags = user_hashtags + hashtags
 
-            text = f"{user_text}\n\n{retweeted_user}:\n{text}"
+            text = f"{user_text}\n\n[@{retweeted_user}](https://twitter.com/{retweeted_user}):\n{text}"
 
         # If retweeted check the extended tweet
         elif "retweeted_status" in as_json:
