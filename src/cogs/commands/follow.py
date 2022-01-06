@@ -12,8 +12,8 @@ class Follow(commands.Cog):
 
     @commands.command()
     async def follow(self, ctx, *input):
-        """ Follow Twitter user(s), using their screen name (without @ in front).
-        
+        """Follow Twitter user(s), using their screen name (without @ in front).
+
         Usage: `!follow [<username>]`
         """
 
@@ -29,8 +29,8 @@ class Follow(commands.Cog):
 
     @commands.command()
     async def unfollow(self, ctx, *input):
-        """ Unfollow Twitter user(s), using their screen name (without @ in front).
-        
+        """Unfollow Twitter user(s), using their screen name (without @ in front).
+
         Usage: `!unfollow [<username>]`
         """
 

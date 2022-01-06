@@ -20,7 +20,7 @@ def afterHours():
     """
     Simple code to check if the current time is after hours in the US.
     return: True if after hours, False otherwise
-    
+
     source: https://www.reddit.com/r/algotrading/comments/9x9xho/python_code_to_check_if_market_is_open_in_your/
     """
 
@@ -56,7 +56,7 @@ df["symbol"] = df["symbol"].str.upper()
 
 
 def get_coin_info(ticker):
-    """ Free CoinGecko API allows 50 calls per mintue """
+    """Free CoinGecko API allows 50 calls per mintue"""
 
     # Get the id of the ticker
     # Check if the symbol exists
@@ -106,7 +106,7 @@ def get_coin_info(ticker):
         website = f"https://coingecko.com/en/coins/{id}"
         price = coin_dict["market_data"]["current_price"]["usd"]
         change = round(coin_dict["market_data"]["price_change_percentage_24h"], 2)
-        
+
         formatted_change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
 
         # Get the exchanges
@@ -128,42 +128,40 @@ def get_stock_info(ticker):
     stock_info = yf.Ticker(ticker)
     website = f"https://finance.yahoo.com/quote/{ticker}"
     try:
-        
+
         prices = []
         changes = []
-                
+
         # Return prices corresponding to market hours
         if afterHours():
             # Use bid if premarket price is not available
-            price = round(stock_info.info["preMarketPrice"], 2) if stock_info.info["preMarketPrice"] != None else stock_info.info["bid"]
+            price = (
+                round(stock_info.info["preMarketPrice"], 2)
+                if stock_info.info["preMarketPrice"] != None
+                else stock_info.info["bid"]
+            )
             change = round(
-                (
-                    price
-                    - stock_info.info["regularMarketPrice"]
-                )
+                (price - stock_info.info["regularMarketPrice"])
                 / stock_info.info["regularMarketPrice"]
                 * 100,
                 2,
             )
             formatted_change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
-            
+
             prices.append(price)
             changes.append(formatted_change)
-        
+
         # Could try 'currentPrice' as well
         price = round(stock_info.info["regularMarketPrice"], 2)
         change = round(
-            (
-                price
-                - stock_info.info["regularMarketPreviousClose"]
-            )
+            (price - stock_info.info["regularMarketPreviousClose"])
             / stock_info.info["regularMarketPreviousClose"]
             * 100,
             2,
         )
-        
+
         formatted_change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
-        
+
         prices.append(price)
         changes.append(formatted_change)
 
@@ -178,7 +176,7 @@ def get_stock_info(ticker):
 
 
 def classify_ticker(ticker):
-    """ Main function to classify the ticker as crypto or stock
+    """Main function to classify the ticker as crypto or stock
     Returns 24h volume, website, and exchanges
     """
 

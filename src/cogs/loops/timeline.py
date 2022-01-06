@@ -2,8 +2,6 @@
 import asyncio
 import json
 import datetime
-import os
-from urllib.request import urlretrieve
 from traceback import format_exc
 
 # > 3rd Party Dependencies
@@ -14,7 +12,6 @@ import numpy as np
 import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
-from discord.enums import DefaultAvatar
 
 # Local dependencies
 from vars import (
@@ -109,8 +106,8 @@ class Streamer(AsyncStream):
                 if (
                     as_json["in_reply_to_user_id"] is None
                     or as_json["in_reply_to_user_id"] in self.following_ids
-                ):                 
-                    #print(as_json)
+                ):
+                    # print(as_json)
 
                     # Get the user name
                     user = as_json["user"]["screen_name"]
@@ -120,28 +117,48 @@ class Streamer(AsyncStream):
 
                     # Could also use ['id_sr'] instead
                     url = f"https://twitter.com/{user}/status/{as_json['id']}"
-                    
-                    text, tickers, images, retweeted_user, hashtags = await self.get_tweet(as_json)                        
-                        
+
+                    (
+                        text,
+                        tickers,
+                        images,
+                        retweeted_user,
+                        hashtags,
+                    ) = await self.get_tweet(as_json)
+
                     # Replace &amp;
-                    text = text.replace('&amp;', '&')
-                    text = text.replace('&gt;', '>')
+                    text = text.replace("&amp;", "&")
+                    text = text.replace("&gt;", ">")
 
                     # Post the tweet containing the important info
                     try:
-                        await self.post_tweet(text, user, profile_pic, url, images, tickers, hashtags, retweeted_user)
+                        await self.post_tweet(
+                            text,
+                            user,
+                            profile_pic,
+                            url,
+                            images,
+                            tickers,
+                            hashtags,
+                            retweeted_user,
+                        )
                     except Exception as e:
-                        print(f"Error posting tweet of {user} at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}")
+                        print(
+                            f"Error posting tweet of {user} at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
+                        )
                         print(format_exc())
-                        
 
-    async def post_tweet(self, text, user, profile_pic, url, images, tickers, hashtags, retweeted_user):
+    async def post_tweet(
+        self, text, user, profile_pic, url, images, tickers, hashtags, retweeted_user
+    ):
 
         # Use 'media' 'url' as url
         # Use 'profile_image_url'' for thumbnail
-        
+
         e = discord.Embed(
-            title=f"{user} tweeted about {', '.join(tickers)}" if retweeted_user == None else f"{user} 🔁 {retweeted_user} about {', '.join(tickers)}",
+            title=f"{user} tweeted about {', '.join(tickers)}"
+            if retweeted_user == None
+            else f"{user} 🔁 {retweeted_user} about {', '.join(tickers)}",
             url=url,
             description=text,
             color=0x1DA1F2,
@@ -153,29 +170,31 @@ class Streamer(AsyncStream):
         # In case multiple tickers get send
         crypto = 0
         stocks = 0
-        
+
         symbols = tickers + hashtags
 
         for ticker in symbols:
-            
+
             # Get the symbol for these names
-            if ticker == 'BITCOIN':
-                ticker = 'BTC'
-            if ticker == 'ETHEREUM':
-                ticker = 'ETH'
-                
+            if ticker == "BITCOIN":
+                ticker = "BTC"
+            if ticker == "ETHEREUM":
+                ticker = "ETH"
+
             volume, website, exchanges, price, change = classify_ticker(ticker)
 
-            # Do this first
+            # Check if there is any volume
             if volume is None:
-                
+
                 # If it is a symbol, assume it is crypto (if no match could be found)
                 if ticker in tickers:
                     e.add_field(name=f"${ticker}", value="Crypto?")
                     crypto += 1
-                    
+
                     # Go to next in symbols
-                    print(f"No crypto or stock match found for ${ticker} in {user}'s tweet at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}")
+                    print(
+                        f"No crypto or stock match found for ${ticker} in {user}'s tweet at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
+                    )
                     continue
                 else:
                     continue
@@ -193,15 +212,17 @@ class Streamer(AsyncStream):
                 if len(change) == 2:
                     for i in range(len(change)):
                         if i == 0:
-                            description = f"[AH: ${price[i]} ({change[i]})]({website})\n"
+                            description = (
+                                f"[AH: ${price[i]} ({change[i]})]({website})\n"
+                            )
                         else:
                             description += f"[${price[i]} ({change[i]})]({website})"
                 else:
                     description = f"[${price[0]} ({change[0]})]({website})"
-                
-            else:    
+
+            else:
                 description = f"[${price} ({change})]({website})"
-                
+
                 # Currently only adds emojis for crypto exchanges
                 if "coingecko" in website:
                     if "Binance" in exchanges:
@@ -226,7 +247,10 @@ class Streamer(AsyncStream):
         if images:
             e.set_image(url=images[0])
 
-        e.set_footer(text=f"Today at {datetime.datetime.utcnow().strftime('%H:%M')}", icon_url="https://abs.twimg.com/icons/apple-touch-icon-192x192.png")
+        e.set_footer(
+            text=f"Today at {datetime.datetime.utcnow().strftime('%H:%M')}",
+            icon_url="https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
+        )
 
         if images:
             if crypto > stocks:
@@ -246,68 +270,84 @@ class Streamer(AsyncStream):
         # Send in the timeline channel
         if len(images) < 2:
             msg = await self.timeline.send(embed=e)
-        else:           
+        else:
             msg = await self.timeline.send(embed=e)
-            
+
             # Send all the other images as a reply
             for i in range(len(images)):
-                if i>0:
+                if i > 0:
                     await self.timeline.send(reference=msg, content=images[i])
-            
+
         if tickers:
             await msg.add_reaction("🐂")
             await msg.add_reaction("🦆")
             await msg.add_reaction("🐻")
 
     async def get_tweet(self, as_json):
-        """ Returns the info of the tweet that was quote retweeted """
-                
+        """Returns the info of the tweet that was quote retweeted"""
+
         # Check for quote tweet (combine this with user's text)
         if "quoted_status" in as_json:
-            
+
             # If it is a retweet change format
             if "retweeted_status" in as_json:
-                user_text, user_ticker_list, user_image, user_hashtags = await self.standard_tweet_info(as_json["retweeted_status"])
+                (
+                    user_text,
+                    user_ticker_list,
+                    user_image,
+                    user_hashtags,
+                ) = await self.standard_tweet_info(as_json["retweeted_status"])
             else:
-                user_text, user_ticker_list, user_image, user_hashtags = await self.standard_tweet_info(as_json)
-                                               
+                (
+                    user_text,
+                    user_ticker_list,
+                    user_image,
+                    user_hashtags,
+                ) = await self.standard_tweet_info(as_json)
+
             retweeted_user = f"[@{as_json['quoted_status']['user']['screen_name']}](https://twitter.com/{as_json['quoted_status']['user']['screen_name']})"
-            
-            text, ticker_list, image, hashtags = await self.standard_tweet_info(as_json["quoted_status"])
-            
+
+            text, ticker_list, image, hashtags = await self.standard_tweet_info(
+                as_json["quoted_status"]
+            )
+
             # Combine the information
             images = user_image + image
             ticker_list = user_ticker_list + ticker_list
             hashtags = user_hashtags + hashtags
-            
+
             text = f"{user_text}\n\n{retweeted_user}:\n{text}"
-        
+
         # If retweeted check the extended tweet
         elif "retweeted_status" in as_json:
 
-            text, ticker_list, images, hashtags = await self.standard_tweet_info(as_json["retweeted_status"])     
+            text, ticker_list, images, hashtags = await self.standard_tweet_info(
+                as_json["retweeted_status"]
+            )
             retweeted_user = as_json["retweeted_status"]["user"]["screen_name"]
-                    
+
         else:
-            text, ticker_list, images, hashtags = await self.standard_tweet_info(as_json)
+            text, ticker_list, images, hashtags = await self.standard_tweet_info(
+                as_json
+            )
             retweeted_user = None
-            
+
         return text, ticker_list, images, retweeted_user, hashtags
-    
+
     async def standard_tweet_info(self, as_json):
-        """ Returns the info of the tweet """
-        
+        """Returns the info of the tweet"""
+
         images = []
-        
+
         # If the full text is available, use that
         if "extended_tweet" in as_json:
             text = as_json["extended_tweet"]["full_text"]
-            ticker_list = as_json['extended_tweet']['entities']
-                        
-            if 'urls' in as_json['extended_tweet']['entities']:               
-                for url in as_json['extended_tweet']['entities']['urls']:
-                    text = text.replace(url['url'], url['expanded_url'])                
-            
+            ticker_list = as_json["extended_tweet"]["entities"]
+
+            if "urls" in as_json["extended_tweet"]["entities"]:
+                for url in as_json["extended_tweet"]["entities"]["urls"]:
+                    text = text.replace(url["url"], url["expanded_url"])
+
             # Add the media, check extended entities first
             if "extended_entities" in as_json["extended_tweet"]:
                 if "media" in as_json["extended_tweet"]["extended_entities"]:
@@ -315,24 +355,22 @@ class Streamer(AsyncStream):
                         "media"
                     ]:
                         images.append(media["media_url"])
-                        text = text.replace(media['url'], '')
-                    
+                        text = text.replace(media["url"], "")
+
         # Not an extended tweet
         else:
             text = as_json["text"]
-            ticker_list = as_json['entities']
-            
-            if 'urls' in as_json['entities']:               
-                for url in as_json['entities']['urls']:
-                    text = text.replace(url['url'], url['expanded_url'])  
-            
+            ticker_list = as_json["entities"]
+
+            if "urls" in as_json["entities"]:
+                for url in as_json["entities"]["urls"]:
+                    text = text.replace(url["url"], url["expanded_url"])
+
             if "media" in as_json["entities"]:
-                for media in as_json["entities"][
-                    "media"
-                ]:
+                for media in as_json["entities"]["media"]:
                     images.append(media["media_url"])
-                    text = text.replace(media['url'], '')
-                    
+                    text = text.replace(media["url"], "")
+
         tickers = []
         hashtags = []
         # Process hashtags and tickers
@@ -342,5 +380,5 @@ class Streamer(AsyncStream):
             # Also check the hashtags
             for symbol in ticker_list["hashtags"]:
                 hashtags.append(f"{symbol['text'].upper()}")
-                    
+
         return text, tickers, images, hashtags
