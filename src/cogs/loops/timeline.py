@@ -1,9 +1,10 @@
 ##> Imports
 import asyncio
 import json
-import sys
-import re
 import datetime
+import os
+from urllib.request import urlretrieve
+from traceback import format_exc
 
 # > 3rd Party Dependencies
 from tweepy.asynchronous import AsyncStream
@@ -131,7 +132,8 @@ class Streamer(AsyncStream):
                         await self.post_tweet(text, user, profile_pic, url, images, tickers, hashtags)
                     except Exception as e:
                         print(f"Error posting tweet of {user} at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}")
-                        print(e)
+                        print(format_exc())
+                        
 
     async def post_tweet(self, text, user, profile_pic, url, images, tickers, hashtags):
 
@@ -219,8 +221,8 @@ class Streamer(AsyncStream):
             )
 
         # Set image if an image is included in the tweet
-        for media_url in images:
-            e.set_image(url=media_url)
+        if images:
+            e.set_image(url=images[0])
 
         e.timestamp = datetime.datetime.utcnow()
 
@@ -240,8 +242,16 @@ class Streamer(AsyncStream):
                 await self.other_channel.send(embed=e)
 
         # Send in the timeline channel
-        msg = await self.timeline.send(embed=e)
-
+        if len(images) < 2:
+            msg = await self.timeline.send(embed=e)
+        else:           
+            msg = await self.timeline.send(embed=e)
+            
+            # Send all the other images as a reply
+            for i in range(len(images)):
+                if i>0:
+                    await self.timeline.send(reference=msg, content=images[i])
+            
         if tickers:
             await msg.add_reaction("🐂")
             await msg.add_reaction("🦆")
