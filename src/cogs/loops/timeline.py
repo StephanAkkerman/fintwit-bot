@@ -265,8 +265,10 @@ class Streamer(AsyncStream):
             icon_url="https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
         )
         
-        category = None
-        if crypto >= stocks:
+        # Decide the category
+        if crypto == 0 and stocks == 0:
+            category = None
+        elif crypto >= stocks:
             category = "crypto"
         elif crypto < stocks:
             category = "stocks"            
