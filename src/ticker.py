@@ -105,7 +105,13 @@ def get_coin_info(ticker):
         total_vol = coin_dict["market_data"]["total_volume"]["usd"]
         website = f"https://coingecko.com/en/coins/{id}"
         price = coin_dict["market_data"]["current_price"]["usd"]
-        change = round(coin_dict["market_data"]["price_change_percentage_24h"], 2)
+        
+        price_change = coin_dict["market_data"]["price_change_percentage_24h"]
+        
+        if price_change != None:
+            change = round(price_change, 2)
+        else:
+            return 0, None, None, None, None
 
         formatted_change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
 
@@ -179,14 +185,14 @@ def classify_ticker(ticker):
     """Main function to classify the ticker as crypto or stock
     Returns 24h volume, website, and exchanges
     """
-
+    
     coin = get_coin_info(ticker)
     stock = get_stock_info(ticker)
 
     # First in tuple represents volume
     if coin[0] > stock[0]:
         return coin
-    if coin[0] < stock[0]:
+    elif coin[0] < stock[0]:
         return stock
     else:
         return None, None, None, None, None

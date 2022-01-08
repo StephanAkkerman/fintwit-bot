@@ -79,6 +79,16 @@ class Streamer(AsyncStream):
 
         self.images_channel = get_channel(self.bot, config["IMAGES"]["CHANNEL"])
         self.other_channel = get_channel(self.bot, config["OTHER"]["CHANNEL"])
+        
+        self.unusual_whales = get_channel(self.bot, "🐳┃unusual_whales")
+        
+        # Replace key by value
+        self.filter_dict = {"BITCOIN" : "BTC",
+                            "ETHEREUM" : "ETH",
+                            "SPX" : "^SPX",
+                            "ES_F" : "ES=F",
+                            "DXY" : "DX-Y.NYB"
+                           }
 
         # Set following ids
         self.get_following_ids.start()
@@ -107,7 +117,7 @@ class Streamer(AsyncStream):
                     as_json["in_reply_to_user_id"] is None
                     or as_json["in_reply_to_user_id"] in self.following_ids
                 ):
-                    # print(as_json)
+                    #print(as_json)
 
                     # Get the user name
                     user = as_json["user"]["screen_name"]
@@ -175,16 +185,14 @@ class Streamer(AsyncStream):
         symbols = list(set(tickers + hashtags))
 
         for ticker in symbols:
-
-            # Get the symbol for these names
-            if ticker == "BITCOIN":
-                ticker = "BTC"
-            if ticker == "ETHEREUM":
-                ticker = "ETH"
-            if ticker == "SPX":
-                ticker = "^SPX"
-            if ticker == "ES_F":
-                ticker = "ES=F"
+            
+            # Filter beforehand
+            if ticker in self.filter_dict.keys():
+                ticker = self.filter_dict[ticker]
+                
+                # Skip doubles (for instance $BTC and #Bitocin)
+                if ticker in symbols:
+                    continue
 
             volume, website, exchanges, price, change = classify_ticker(ticker)
 
@@ -256,38 +264,49 @@ class Streamer(AsyncStream):
             text=f"Today at {datetime.datetime.now().strftime('%H:%M')}",
             icon_url="https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
         )
-
-        if images:
-            if crypto > stocks:
-                await self.crypto_charts_channel.send(embed=e)
-            elif crypto < stocks:
-                await self.stocks_charts_channel.send(embed=e)
-            else:
-                await self.images_channel.send(embed=e)
+        
+        category = None
+        if crypto >= stocks:
+            category = "crypto"
+        elif crypto < stocks:
+            category = "stocks"            
+        
+        await self.upload_tweet(e, category, images, user, retweeted_user)
+        
+    async def upload_tweet(self, e, category, images, user, retweeted_user):
+        """ Upload tweet in the dedicated discord channel """
+        
+        if user == "unusual_whales" or retweeted_user == "unusual_whales":
+            msg = await self.unusual_whales.send(embed=e)
+        
+        elif category == None and not images:
+            msg = await self.other_channel.send(embed=e)
+        elif category == None and images:
+            msg = await self.images_channel.send(embed=e)
+            
+        elif category == "crypto" and not images:
+            msg = await self.crypto_text_channel.send(embed=e)
+        elif category == "crypto" and images:
+            msg = await self.crypto_charts_channel.send(embed=e)
+            
+        elif category == "stocks" and not images:
+            msg = await self.stocks_text_channel.send(embed=e)
         else:
-            if crypto > stocks:
-                await self.crypto_text_channel.send(embed=e)
-            elif crypto < stocks:
-                await self.stocks_text_channel.send(embed=e)
-            else:
-                await self.other_channel.send(embed=e)
-
-        # Send in the timeline channel
-        if len(images) < 2:
-            msg = await self.timeline.send(embed=e)
-        else:
-            msg = await self.timeline.send(embed=e)
-
+            msg = await self.stocks_charts_channel.send(embed=e)
+            
             # Send all the other images as a reply
             for i in range(len(images)):
                 if i > 0:
                     await self.timeline.send(reference=msg, content=images[i])
 
-        if tickers:
+        # Do this for every message
+        await msg.add_reaction("💸")
+
+        if category != None:
             await msg.add_reaction("🐂")
             await msg.add_reaction("🦆")
             await msg.add_reaction("🐻")
-
+            
     async def get_tweet(self, as_json):
         """Returns the info of the tweet that was quote retweeted"""
 
