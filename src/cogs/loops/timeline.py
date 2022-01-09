@@ -249,7 +249,7 @@ class Streamer(AsyncStream):
         # If there are any tickers
         if symbols:
             sentiment = classify_sentiment(text)
-            prediction = ("🐻 - Bearish", "🐂 - Bullish")[np.argmax(sentiment)]
+            prediction = ("🐻 - Bearish", "🦆 - Neutral", "🐂 - Bullish")[np.argmax(sentiment)]
             e.add_field(
                 name="Sentiment",
                 value=f"{prediction} ({round(max(sentiment*100),2)}%)",
