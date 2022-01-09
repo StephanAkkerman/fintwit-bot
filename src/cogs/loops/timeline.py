@@ -247,7 +247,7 @@ class Streamer(AsyncStream):
             e.add_field(name=title, value=description, inline=True)
 
         # If there are any tickers
-        if tickers:
+        if symbols:
             sentiment = classify_sentiment(text)
             prediction = ("🐻 - Bearish", "🐂 - Bullish")[np.argmax(sentiment)]
             e.add_field(
@@ -279,27 +279,29 @@ class Streamer(AsyncStream):
         """ Upload tweet in the dedicated discord channel """
         
         if user == "unusual_whales" or retweeted_user == "unusual_whales":
-            msg = await self.unusual_whales.send(embed=e)
-        
+            channel = self.unusual_whales
+            
         elif category == None and not images:
-            msg = await self.other_channel.send(embed=e)
+            channel = self.other_channel
         elif category == None and images:
-            msg = await self.images_channel.send(embed=e)
+            channel = self.images_channel
             
         elif category == "crypto" and not images:
-            msg = await self.crypto_text_channel.send(embed=e)
+            channel = self.crypto_text_channel
         elif category == "crypto" and images:
-            msg = await self.crypto_charts_channel.send(embed=e)
+            channel = self.crypto_charts_channel
             
         elif category == "stocks" and not images:
-            msg = await self.stocks_text_channel.send(embed=e)
+            channel = self.stocks_text_channel
         else:
-            msg = await self.stocks_charts_channel.send(embed=e)
+            channel = self.stocks_charts_channel
             
-            # Send all the other images as a reply
-            for i in range(len(images)):
-                if i > 0:
-                    await self.timeline.send(reference=msg, content=images[i])
+        msg = await channel.send(embed=e)
+            
+        # Send all the other images as a reply
+        for i in range(len(images)):
+            if i > 0:
+                await channel.send(reference=msg, content=images[i])
 
         # Do this for every message
         await msg.add_reaction("💸")
