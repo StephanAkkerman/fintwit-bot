@@ -23,6 +23,7 @@ from vars import (
     api,
     get_channel,
     get_emoji,
+    filter_dict
 )
 from sentimentanalyis import classify_sentiment
 from ticker import classify_ticker
@@ -80,16 +81,9 @@ class Streamer(AsyncStream):
         self.images_channel = get_channel(self.bot, config["IMAGES"]["CHANNEL"])
         self.other_channel = get_channel(self.bot, config["OTHER"]["CHANNEL"])
         
+        # Maybe do this differently for scalability
         self.unusual_whales = get_channel(self.bot, "🐳┃unusual_whales")
         
-        # Replace key by value
-        self.filter_dict = {"BITCOIN" : "BTC",
-                            "ETHEREUM" : "ETH",
-                            "SPX" : "^SPX",
-                            "ES_F" : "ES=F",
-                            "DXY" : "DX-Y.NYB"
-                           }
-
         # Set following ids
         self.get_following_ids.start()
 
@@ -187,8 +181,8 @@ class Streamer(AsyncStream):
         for ticker in symbols:
             
             # Filter beforehand
-            if ticker in self.filter_dict.keys():
-                ticker = self.filter_dict[ticker]
+            if ticker in filter_dict.keys():
+                ticker = filter_dict[ticker]
                 
                 # Skip doubles (for instance $BTC and #Bitocin)
                 if ticker in symbols:

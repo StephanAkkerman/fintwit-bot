@@ -20,6 +20,14 @@ auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth)
 
+# Replace key by value
+filter_dict = {"BITCOIN" : "BTC",
+               "ETHEREUM" : "ETH",
+               "SPX" : "^SPX",
+               "ES_F" : "ES=F",
+               "DXY" : "DX-Y.NYB",
+               "NQ" : "NQ=F",               
+              }
 
 def get_guild(bot):
 
