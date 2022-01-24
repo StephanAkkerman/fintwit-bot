@@ -145,7 +145,7 @@ def get_stock_info(ticker):
                 round(stock_info.info["preMarketPrice"], 2)
                 if stock_info.info["preMarketPrice"] != None
                 else stock_info.info["bid"]
-            )
+            )                
             change = round(
                 (price - stock_info.info["regularMarketPrice"])
                 / stock_info.info["regularMarketPrice"]
@@ -154,8 +154,10 @@ def get_stock_info(ticker):
             )
             formatted_change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
 
-            prices.append(price)
-            changes.append(formatted_change)
+            # Dont add if prices are 0
+            if price != 0:
+                prices.append(price)
+                changes.append(formatted_change)
 
         # Could try 'currentPrice' as well
         price = round(stock_info.info["regularMarketPrice"], 2)
