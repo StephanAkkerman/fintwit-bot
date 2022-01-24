@@ -1,3 +1,15 @@
+import json
+import datetime
+from traceback import format_exc
+
+# Local dependencies
+from sentimentanalyis import classify_sentiment
+from ticker import classify_ticker
+from vars import (
+    get_emoji,
+    filter_dict
+)
+
 async def get_tweet(as_json):
     """Returns the info of the tweet that was quote retweeted"""
 
@@ -97,3 +109,142 @@ async def standard_tweet_info(as_json):
             hashtags.append(f"{symbol['text'].upper()}")
 
     return text, tickers, images, hashtags
+
+async def format_tweet(raw_data, following_ids):
+    # Convert the string json data to json object
+        as_json = json.loads(raw_data)
+
+        # Filter based on users we are following
+        # Otherwise shows all tweets (including tweets of people who we are not following)
+        if "user" in as_json:
+            if as_json["user"]["id"] in following_ids:
+
+                # Ignore replies to other pipo
+                # Could instead try: ... or as_json['in_reply_to_user_id'] == as_json['user']['id']
+                if (
+                    as_json["in_reply_to_user_id"] is None
+                    or as_json["in_reply_to_user_id"] in following_ids
+                ):
+                    #print(as_json)
+
+                    # Get the user name
+                    user = as_json["user"]["screen_name"]
+
+                    # Get other info
+                    profile_pic = as_json["user"]["profile_image_url"]
+
+                    # Could also use ['id_sr'] instead
+                    url = f"https://twitter.com/{user}/status/{as_json['id']}"
+
+                    (
+                        text,
+                        tickers,
+                        images,
+                        retweeted_user,
+                        hashtags,
+                    ) = await get_tweet(as_json)
+
+                    # Replace &amp;
+                    text = text.replace("&amp;", "&")
+                    text = text.replace("&gt;", ">")
+
+                    # Post the tweet containing the important info
+                    try:
+                        return text, user, profile_pic, url, images, tickers, hashtags, retweeted_user
+                        
+                    except Exception:
+                        print(
+                            f"Error posting tweet of {user} at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
+                        )
+                        print(format_exc())
+                        return None, None, None, None, None, None, None, None
+                        
+async def add_financials(e, tickers, hashtags, text, user, bot):
+    # In case multiple tickers get send
+    crypto = 0
+    stocks = 0
+
+    # Get the unique values
+    symbols = list(set(tickers + hashtags))
+
+    for ticker in symbols:
+        
+        # Filter beforehand
+        if ticker in filter_dict.keys():
+            ticker = filter_dict[ticker]
+            
+            # Skip doubles (for instance $BTC and #Bitocin)
+            if ticker in symbols:
+                continue
+
+        volume, website, exchanges, price, change = classify_ticker(ticker)
+
+        # Check if there is any volume
+        if volume is None:
+
+            # If it is a symbol, assume it is crypto (if no match could be found)
+            if ticker in tickers:
+                e.add_field(name=f"${ticker}", value="Crypto?")
+                crypto += 1
+
+                # Go to next in symbols
+                print(
+                    f"No crypto or stock match found for ${ticker} in {user}'s tweet at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
+                )
+                continue
+            else:
+                continue
+
+        title = f"${ticker}"
+
+        # Determine if this is a crypto or stock
+        if "coingecko" in website:
+            crypto += 1
+        if "yahoo" in website:
+            stocks += 1
+
+        # Format change
+        if type(change) == list:
+            if len(change) == 2:
+                for i in range(len(change)):
+                    if i == 0:
+                        description = (
+                            f"[AH: ${price[i]} ({change[i]})]({website})\n"
+                        )
+                    else:
+                        description += f"[${price[i]} ({change[i]})]({website})"
+            else:
+                description = f"[${price[0]} ({change[0]})]({website})"
+
+        else:
+            description = f"[${price} ({change})]({website})"
+
+            # Currently only adds emojis for crypto exchanges
+            if "coingecko" in website:
+                if "Binance" in exchanges:
+                    title = f"{title} {get_emoji(bot, 'binance')}"
+                if "KuCoin" in exchanges:
+                    title = f"{title} {get_emoji(bot, 'kucoin')}"
+
+        # Add the field with hyperlink
+        e.add_field(name=title, value=description, inline=True)
+
+    # If there are any tickers
+    if symbols:
+        sentiment = classify_sentiment(text)
+        prediction = ("🐻 - Bearish", "🦆 - Neutral", "🐂 - Bullish")[np.argmax(sentiment)]
+        e.add_field(
+            name="Sentiment",
+            value=f"{prediction} ({round(max(sentiment*100),2)}%)",
+            inline=True,
+        )
+        
+    # Decide the category
+    if crypto == 0 and stocks == 0:
+        category = None
+    elif crypto >= stocks:
+        category = "crypto"
+    elif crypto < stocks:
+        category = "stocks"
+        
+    return e, category

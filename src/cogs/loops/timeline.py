@@ -1,8 +1,6 @@
 ##> Imports
 import asyncio
-import json
 import datetime
-from traceback import format_exc
 
 # > 3rd Party Dependencies
 from tweepy.asynchronous import AsyncStream
@@ -21,13 +19,11 @@ from vars import (
     access_token,
     access_token_secret,
     api,
-    get_channel,
-    get_emoji,
-    filter_dict
+    get_channel, 
+    news
 )
-from sentimentanalyis import classify_sentiment
-from ticker import classify_ticker
-from tweet_util import get_tweet
+
+from tweet_util import format_tweet, add_financials
 
 class Timeline(commands.Cog):
     def __init__(self, bot):
@@ -41,8 +37,11 @@ class Timeline(commands.Cog):
             consumer_key, consumer_secret, access_token, access_token_secret, self.bot
         )
 
-        await printer.filter(follow=api.get_friend_ids())
-
+        # https://codeofaninja.com/tools/find-twitter-id/
+        news_ids = [11385742, 3295423333, 55395551]
+        following = api.get_friend_ids() + news_ids
+        
+        await printer.filter(follow=following)    
 
 def setup(bot):
     bot.add_cog(Timeline(bot))
@@ -81,8 +80,9 @@ class Streamer(AsyncStream):
         self.images_channel = get_channel(self.bot, config["IMAGES"]["CHANNEL"])
         self.other_channel = get_channel(self.bot, config["OTHER"]["CHANNEL"])
         
-        # Maybe do this differently for scalability
-        self.unusual_whales = get_channel(self.bot, "🐳┃unusual_whales")
+        self.news_channel = get_channel(
+            self.bot, "📰┃news"
+        )
         
         # Get all text channels
         self.all_txt_channels.start()
@@ -113,61 +113,9 @@ class Streamer(AsyncStream):
         """
         This method is called whenever data is received from the stream.
         """
-
-        # Convert the string json data to json object
-        as_json = json.loads(raw_data)
-
-        # Filter based on users we are following
-        # Otherwise shows all tweets (including tweets of people who we are not following)
-        if "user" in as_json:
-            if as_json["user"]["id"] in self.following_ids:
-
-                # Ignore replies to other pipo
-                # Could instead try: ... or as_json['in_reply_to_user_id'] == as_json['user']['id']
-                if (
-                    as_json["in_reply_to_user_id"] is None
-                    or as_json["in_reply_to_user_id"] in self.following_ids
-                ):
-                    #print(as_json)
-
-                    # Get the user name
-                    user = as_json["user"]["screen_name"]
-
-                    # Get other info
-                    profile_pic = as_json["user"]["profile_image_url"]
-
-                    # Could also use ['id_sr'] instead
-                    url = f"https://twitter.com/{user}/status/{as_json['id']}"
-
-                    (
-                        text,
-                        tickers,
-                        images,
-                        retweeted_user,
-                        hashtags,
-                    ) = await get_tweet(as_json)
-
-                    # Replace &amp;
-                    text = text.replace("&amp;", "&")
-                    text = text.replace("&gt;", ">")
-
-                    # Post the tweet containing the important info
-                    try:
-                        await self.post_tweet(
-                            text,
-                            user,
-                            profile_pic,
-                            url,
-                            images,
-                            tickers,
-                            hashtags,
-                            retweeted_user,
-                        )
-                    except Exception as e:
-                        print(
-                            f"Error posting tweet of {user} at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
-                        )
-                        print(format_exc())
+        text, user, profile_pic, url, images, tickers, hashtags, retweeted_user = await format_tweet(raw_data, self.following_ids)
+        
+        await self.post_tweet(text, user, profile_pic, url, images, tickers, hashtags, retweeted_user)
 
     async def post_tweet(
         self, text, user, profile_pic, url, images, tickers, hashtags, retweeted_user
@@ -188,84 +136,8 @@ class Streamer(AsyncStream):
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
         e.set_thumbnail(url=profile_pic)
 
-        # In case multiple tickers get send
-        crypto = 0
-        stocks = 0
-
-        # Get the unique values
-        symbols = list(set(tickers + hashtags))
-
-        for ticker in symbols:
-            
-            # Filter beforehand
-            if ticker in filter_dict.keys():
-                ticker = filter_dict[ticker]
-                
-                # Skip doubles (for instance $BTC and #Bitocin)
-                if ticker in symbols:
-                    continue
-
-            volume, website, exchanges, price, change = classify_ticker(ticker)
-
-            # Check if there is any volume
-            if volume is None:
-
-                # If it is a symbol, assume it is crypto (if no match could be found)
-                if ticker in tickers:
-                    e.add_field(name=f"${ticker}", value="Crypto?")
-                    crypto += 1
-
-                    # Go to next in symbols
-                    print(
-                        f"No crypto or stock match found for ${ticker} in {user}'s tweet at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
-                    )
-                    continue
-                else:
-                    continue
-
-            title = f"${ticker}"
-
-            # Determine if this is a crypto or stock
-            if "coingecko" in website:
-                crypto += 1
-            if "yahoo" in website:
-                stocks += 1
-
-            # Format change
-            if type(change) == list:
-                if len(change) == 2:
-                    for i in range(len(change)):
-                        if i == 0:
-                            description = (
-                                f"[AH: ${price[i]} ({change[i]})]({website})\n"
-                            )
-                        else:
-                            description += f"[${price[i]} ({change[i]})]({website})"
-                else:
-                    description = f"[${price[0]} ({change[0]})]({website})"
-
-            else:
-                description = f"[${price} ({change})]({website})"
-
-                # Currently only adds emojis for crypto exchanges
-                if "coingecko" in website:
-                    if "Binance" in exchanges:
-                        title = f"{title} {get_emoji(self.bot, 'binance')}"
-                    if "KuCoin" in exchanges:
-                        title = f"{title} {get_emoji(self.bot, 'kucoin')}"
-
-            # Add the field with hyperlink
-            e.add_field(name=title, value=description, inline=True)
-
-        # If there are any tickers
-        if symbols:
-            sentiment = classify_sentiment(text)
-            prediction = ("🐻 - Bearish", "🦆 - Neutral", "🐂 - Bullish")[np.argmax(sentiment)]
-            e.add_field(
-                name="Sentiment",
-                value=f"{prediction} ({round(max(sentiment*100),2)}%)",
-                inline=True,
-            )
+        if user.lower not in news:
+            e, category = await add_financials(e, tickers, hashtags, text, user, self.bot)
 
         # Set image if an image is included in the tweet
         if images:
@@ -274,15 +146,7 @@ class Streamer(AsyncStream):
         e.set_footer(
             text=f"Today at {datetime.datetime.now().strftime('%H:%M')}",
             icon_url="https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
-        )
-        
-        # Decide the category
-        if crypto == 0 and stocks == 0:
-            category = None
-        elif crypto >= stocks:
-            category = "crypto"
-        elif crypto < stocks:
-            category = "stocks"            
+        )           
         
         await self.upload_tweet(e, category, images, user, retweeted_user)
         
@@ -292,6 +156,9 @@ class Streamer(AsyncStream):
         # Check if there is a user specific channel
         if user.lower() in self.text_channel_names or retweeted_user.lower() in self.text_channel_names:
             channel = self.text_channels[self.text_channel_names.index(user.lower())]
+            
+        if user.lower() in news:
+            channel = self.news_channel
                     
         elif category == None and not images:
             channel = self.other_channel
@@ -322,3 +189,4 @@ class Streamer(AsyncStream):
             await msg.add_reaction("🐂")
             await msg.add_reaction("🦆")
             await msg.add_reaction("🐻")
+            
