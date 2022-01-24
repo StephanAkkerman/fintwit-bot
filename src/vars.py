@@ -30,6 +30,8 @@ filter_dict = {"BITCOIN" : "BTC",
                "NQ" : "NQ=F",               
               }
 
+news = ['deltaone', 'FirstSquawk', 'EPSGUID']
+
 def get_guild(bot):
 
     return discord.utils.get(
