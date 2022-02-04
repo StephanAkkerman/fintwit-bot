@@ -3,7 +3,7 @@ tweepy==4.5.0
 pycoingecko==2.2.0
 yfinance==0.1.70
 py-cord==1.7.3
-numpy==1.22.1
+numpy==1.22.2
 discord==1.7.3
 PyYAML==6.0
 aiohttp>=3.8.0 # not directly required, pinned by Snyk to avoid a vulnerability
