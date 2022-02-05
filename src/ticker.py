@@ -66,10 +66,12 @@ def get_coin_info(ticker):
             id = None
             best_vol = 0
             for symbol in ids.values:
-                volume = cg.get_coin_by_id(symbol)["market_data"]["total_volume"]["usd"]
-                if volume > best_vol:
-                    best_vol = volume
-                    id = symbol
+                coin_info = cg.get_coin_by_id(symbol)
+                if "usd" in coin_info["market_data"]["total_volume"]:
+                    volume = coin_info["market_data"]["total_volume"]["usd"]
+                    if volume > best_vol:
+                        best_vol = volume
+                        id = symbol
         else:
             id = ids.values[0]
     elif ticker.lower() in df["id"].values:
@@ -78,10 +80,12 @@ def get_coin_info(ticker):
             id = None
             best_vol = 0
             for symbol in ids.values:
-                volume = cg.get_coin_by_id(symbol)["market_data"]["total_volume"]["usd"]
-                if volume > best_vol:
-                    best_vol = volume
-                    id = symbol
+                coin_info = cg.get_coin_by_id(symbol)
+                if "usd" in coin_info["market_data"]["total_volume"]:
+                    volume = coin_info["market_data"]["total_volume"]["usd"]
+                    if volume > best_vol:
+                        best_vol = volume
+                        id = symbol
         else:
             id = ids.values[0]
     elif ticker in df["name"].values:
@@ -90,10 +94,12 @@ def get_coin_info(ticker):
             id = None
             best_vol = 0
             for symbol in ids.values:
-                volume = cg.get_coin_by_id(symbol)["market_data"]["total_volume"]["usd"]
-                if volume > best_vol:
-                    best_vol = volume
-                    id = symbol
+                coin_info = cg.get_coin_by_id(symbol)
+                if "usd" in coin_info["market_data"]["total_volume"]:
+                    volume = coin_info["market_data"]["total_volume"]["usd"]
+                    if volume > best_vol:
+                        best_vol = volume
+                        id = symbol
         else:
             id = ids.values[0]
     else:

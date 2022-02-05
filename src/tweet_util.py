@@ -2,6 +2,8 @@ import json
 import datetime
 from traceback import format_exc
 
+import numpy as np
+
 # Local dependencies
 from sentimentanalyis import classify_sentiment
 from ticker import classify_ticker
@@ -157,7 +159,7 @@ async def format_tweet(raw_data, following_ids):
                             f"Error posting tweet of {user} at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
                         )
                         print(format_exc())
-                        return None, None, None, None, None, None, None, None
+                        return None
                         
 async def add_financials(e, tickers, hashtags, text, user, bot):
     # In case multiple tickers get send

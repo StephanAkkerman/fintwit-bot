@@ -38,7 +38,9 @@ class Timeline(commands.Cog):
         )
 
         # https://codeofaninja.com/tools/find-twitter-id/
+        # Get Twitter ID of accounts in vars.news
         news_ids = [11385742, 3295423333, 55395551]
+        
         following = api.get_friend_ids() + news_ids
         
         await printer.filter(follow=following)    
@@ -113,9 +115,12 @@ class Streamer(AsyncStream):
         """
         This method is called whenever data is received from the stream.
         """
-        text, user, profile_pic, url, images, tickers, hashtags, retweeted_user = await format_tweet(raw_data, self.following_ids)
+        formatted_tweet = await format_tweet(raw_data, self.following_ids)
         
-        await self.post_tweet(text, user, profile_pic, url, images, tickers, hashtags, retweeted_user)
+        if formatted_tweet == None:
+            return
+        else:        
+            await self.post_tweet(*formatted_tweet)
 
     async def post_tweet(
         self, text, user, profile_pic, url, images, tickers, hashtags, retweeted_user
