@@ -159,8 +159,13 @@ class Streamer(AsyncStream):
         """ Upload tweet in the dedicated discord channel """
         
         # Check if there is a user specific channel
-        if user.lower() in self.text_channel_names or retweeted_user.lower() in self.text_channel_names:
-            channel = self.text_channels[self.text_channel_names.index(user.lower())]
+        # If there is a retweeted user check for both
+        if retweeted_user:
+            if user.lower() in self.text_channel_names or retweeted_user.lower() in self.text_channel_names:
+                channel = self.text_channels[self.text_channel_names.index(user.lower())]
+        else:
+            if user.lower() in self.text_channel_names:
+                channel = self.text_channels[self.text_channel_names.index(user.lower())]
             
         if user.lower() in news:
             channel = self.news_channel
