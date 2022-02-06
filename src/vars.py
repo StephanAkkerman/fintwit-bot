@@ -27,10 +27,15 @@ filter_dict = {"BITCOIN" : "BTC",
                "ES_F" : "ES=F",
                "ES" : "ES=F",
                "DXY" : "DX-Y.NYB",
-               "NQ" : "NQ=F",               
+               "NQ" : "NQ=F",           
               }
 
-news = ['deltaone', 'FirstSquawk', 'EPSGUID']
+# https://twitter.com/DeItaone
+# https://twitter.com/FirstSquawk
+# https://twitter.com/EPSGUID
+# https://twitter.com/eWhispers
+# Make sure to follow these accounts to get the tweets
+news = ['DeItaone', 'FirstSquawk', 'EPSGUID', 'eWhispers']
 
 def get_guild(bot):
 

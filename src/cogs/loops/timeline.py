@@ -36,12 +36,8 @@ class Timeline(commands.Cog):
         printer = Streamer(
             consumer_key, consumer_secret, access_token, access_token_secret, self.bot
         )
-
-        # https://codeofaninja.com/tools/find-twitter-id/
-        # Get Twitter ID of accounts in vars.news
-        news_ids = [11385742, 3295423333, 55395551]
         
-        following = api.get_friend_ids() + news_ids
+        following = api.get_friend_ids()
         
         await printer.filter(follow=following)    
 
@@ -167,7 +163,7 @@ class Streamer(AsyncStream):
             if user.lower() in self.text_channel_names:
                 channel = self.text_channels[self.text_channel_names.index(user.lower())]
             
-        if user.lower() in news:
+        if user in news:
             channel = self.news_channel
                     
         elif category == None and not images:
