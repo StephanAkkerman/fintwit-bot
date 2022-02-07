@@ -212,20 +212,20 @@ def classify_ticker(ticker, majority):
 
     if majority == 'crypto' or majority == '🤷‍♂️':
         coin = get_coin_info(ticker)
-        # If volume of the crypto is bigger than half a million, it is likely a crypto
-        if coin[0] > 500000:
+        # If volume of the crypto is bigger than 100,000, it is likely a crypto
+        if coin[0] > 100000:
             return coin
         stock = get_stock_info(ticker)
     else:
         stock = get_stock_info(ticker)
-        if stock[0] > 500000:
+        if stock[0] > 100000:
             return stock
         coin = get_coin_info(ticker)
 
     # First in tuple represents volume
-    if coin[0] > stock[0]:
+    if coin[0] > stock[0] and coin[0] > 50000:
         return coin
-    elif coin[0] < stock[0]:
+    elif coin[0] < stock[0] and stock[0] > 50000:
         return stock
     else:
         return None, None, None, None, None
