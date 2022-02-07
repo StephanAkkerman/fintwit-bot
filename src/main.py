@@ -12,7 +12,7 @@ import discord
 from discord.ext import commands
 
 # Import local dependencies
-from vars import config
+from util.vars import config
 
 bot = commands.Bot(command_prefix=config["PREFIX"], intents=discord.Intents.all())
 bot.remove_command("help")

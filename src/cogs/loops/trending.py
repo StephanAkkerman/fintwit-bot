@@ -10,10 +10,8 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
-from vars import (
-    config,
-    get_channel
-)
+from util.vars import config, get_channel
+
 
 class Trending(commands.Cog):
     def __init__(self, bot):
@@ -39,39 +37,33 @@ class Trending(commands.Cog):
         prices = []
         vol = []
 
-        for coin in cg.get_search_trending()['coins']:
-            coin_dict = cg.get_coin_by_id(coin['item']['id'])
-            
+        for coin in cg.get_search_trending()["coins"]:
+            coin_dict = cg.get_coin_by_id(coin["item"]["id"])
+
             website = f"https://coingecko.com/en/coins/{coin['item']['id']}"
             price = coin_dict["market_data"]["current_price"]["usd"]
             price_change = coin_dict["market_data"]["price_change_percentage_24h"]
-            
+
             ticker.append(f"[{coin['item']['symbol']}]({website})")
             vol.append(str(coin_dict["market_data"]["total_volume"]["usd"]))
-            
+
             if price_change != None:
                 change = round(price_change, 2)
                 price_change = f"(+{change}% 📈)" if change > 0 else f"({change}% 📉)"
                 prices.append(f"{price} {price_change}")
             else:
                 prices.append(price)
-            
+
         e.add_field(
-            name="Coin",
-            value="\n".join(ticker),
-            inline=True,
+            name="Coin", value="\n".join(ticker), inline=True,
         )
 
         e.add_field(
-            name="Price ($)",
-            value="\n".join(prices),
-            inline=True,
+            name="Price ($)", value="\n".join(prices), inline=True,
         )
 
         e.add_field(
-            name="Volume ($)",
-            value="\n".join(vol),
-            inline=True,
+            name="Volume ($)", value="\n".join(vol), inline=True,
         )
 
         e.set_footer(
@@ -79,9 +71,10 @@ class Trending(commands.Cog):
             icon_url="https://static.coingecko.com/s/thumbnail-007177f3eca19695592f0b8b0eabbdae282b54154e1be912285c9034ea6cbaf2.png",
         )
 
-        channel = get_channel(self.bot, config['TRENDING']['CHANNEL'])
+        channel = get_channel(self.bot, config["TRENDING"]["CHANNEL"])
 
         await channel.send(embed=e)
+
 
 def setup(bot):
     bot.add_cog(Trending(bot))

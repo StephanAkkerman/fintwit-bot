@@ -1,9 +1,8 @@
 ##> Imports
 # > 3rd Party Dependencies
-import discord
 from discord.ext import commands
 
-from vars import api
+from util.vars import api
 
 
 class Follow(commands.Cog):

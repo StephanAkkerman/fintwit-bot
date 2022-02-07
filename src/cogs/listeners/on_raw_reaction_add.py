@@ -6,7 +6,8 @@ from discord.ext import commands
 # > Standard libraries
 from csv import writer
 
-from vars import get_channel
+from util.vars import get_channel
+
 
 class On_raw_reaction_add(commands.Cog):
     def __init__(self, bot):
@@ -26,7 +27,11 @@ class On_raw_reaction_add(commands.Cog):
                 await channel.history(limit=100).flatten(), id=reaction.message_id
             )
             if reaction.user_id != self.bot.user.id:
-                if str(reaction.emoji) == "🐻" or str(reaction.emoji) == "🐂" or str(reaction.emoji) == "🦆":
+                if (
+                    str(reaction.emoji) == "🐻"
+                    or str(reaction.emoji) == "🐂"
+                    or str(reaction.emoji) == "🦆"
+                ):
                     await self.classify_reaction(reaction, message)
                 if str(reaction.emoji) == "💸":
                     await self.highlight(message, reaction.member)
@@ -53,14 +58,17 @@ class On_raw_reaction_add(commands.Cog):
 
     async def highlight(self, message, user):
         channel = get_channel(self.bot, "💸┃highlights")
-        
+
         # Get the old embed
         e = message.embeds[0]
-        
+
         user = str(user).split("#")[0]
-        e.set_footer(text= f"{e.footer.text} | Highlighted by {user}", icon_url=e.footer.icon_url)
-        
-        await channel.send(embed=e) 
-                
+        e.set_footer(
+            text=f"{e.footer.text} | Highlighted by {user}", icon_url=e.footer.icon_url
+        )
+
+        await channel.send(embed=e)
+
+
 def setup(bot):
     bot.add_cog(On_raw_reaction_add(bot))

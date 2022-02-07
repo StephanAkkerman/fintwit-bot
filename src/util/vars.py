@@ -21,21 +21,23 @@ auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth)
 
 # Replace key by value
-filter_dict = {"BITCOIN" : "BTC",
-               "ETHEREUM" : "ETH",
-               "SPX" : "^SPX",
-               "ES_F" : "ES=F",
-               "ES" : "ES=F",
-               "DXY" : "DX-Y.NYB",
-               "NQ" : "NQ=F",           
-              }
+filter_dict = {
+    "BITCOIN": "BTC",
+    "ETHEREUM": "ETH",
+    "SPX": "^SPX",
+    "ES_F": "ES=F",
+    "ES": "ES=F",
+    "DXY": "DX-Y.NYB",
+    "NQ": "NQ=F",
+}
 
 # https://twitter.com/DeItaone
 # https://twitter.com/FirstSquawk
 # https://twitter.com/EPSGUID
 # https://twitter.com/eWhispers
 # Make sure to follow these accounts to get the tweets
-news = ['DeItaone', 'FirstSquawk', 'EPSGUID', 'eWhispers']
+news = ["DeItaone", "FirstSquawk", "EPSGUID", "eWhispers"]
+
 
 def get_guild(bot):
 

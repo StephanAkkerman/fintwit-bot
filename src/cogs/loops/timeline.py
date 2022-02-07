@@ -12,18 +12,19 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
-from vars import (
+from util.vars import (
     config,
     consumer_key,
     consumer_secret,
     access_token,
     access_token_secret,
     api,
-    get_channel, 
-    news
+    get_channel,
+    news,
 )
 
-from tweet_util import format_tweet, add_financials
+from util.tweet_util import format_tweet, add_financials
+
 
 class Timeline(commands.Cog):
     def __init__(self, bot):
@@ -36,10 +37,11 @@ class Timeline(commands.Cog):
         printer = Streamer(
             consumer_key, consumer_secret, access_token, access_token_secret, self.bot
         )
-        
+
         following = api.get_friend_ids()
-        
-        await printer.filter(follow=following)    
+
+        await printer.filter(follow=following)
+
 
 def setup(bot):
     bot.add_cog(Timeline(bot))
@@ -77,17 +79,14 @@ class Streamer(AsyncStream):
 
         self.images_channel = get_channel(self.bot, config["IMAGES"]["CHANNEL"])
         self.other_channel = get_channel(self.bot, config["OTHER"]["CHANNEL"])
-        
-        self.news_channel = get_channel(
-            self.bot, "📰┃news"
-        )
-        
+
+        self.news_channel = get_channel(self.bot, "📰┃news")
+
         # Get all text channels
         self.all_txt_channels.start()
-        
+
         # Set following ids
         self.get_following_ids.start()
-        
 
     @loop(minutes=60)
     async def all_txt_channels(self):
@@ -95,12 +94,12 @@ class Streamer(AsyncStream):
         text_channel_names = []
         for server in self.bot.guilds:
             for channel in server.channels:
-                if str(channel.type) == 'text':
+                if str(channel.type) == "text":
                     text_channel_list.append(channel)
                     text_channel_names.append(channel.name.split("┃")[1])
-        
-        self.text_channels = text_channel_list 
-        self.text_channel_names = text_channel_names           
+
+        self.text_channels = text_channel_list
+        self.text_channel_names = text_channel_names
 
     @loop(minutes=15)
     async def get_following_ids(self):
@@ -112,10 +111,10 @@ class Streamer(AsyncStream):
         This method is called whenever data is received from the stream.
         """
         formatted_tweet = await format_tweet(raw_data, self.following_ids)
-        
+
         if formatted_tweet == None:
             return
-        else:        
+        else:
             await self.post_tweet(*formatted_tweet)
 
     async def post_tweet(
@@ -138,7 +137,9 @@ class Streamer(AsyncStream):
         e.set_thumbnail(url=profile_pic)
 
         if tickers or hashtags:
-            e, category = await add_financials(e, tickers, hashtags, text, user, self.bot)
+            e, category = await add_financials(
+                e, tickers, hashtags, text, user, self.bot
+            )
 
         # Set image if an image is included in the tweet
         if images:
@@ -147,46 +148,53 @@ class Streamer(AsyncStream):
         e.set_footer(
             text=f"Today at {datetime.datetime.now().strftime('%H:%M')}",
             icon_url="https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
-        )           
-        
+        )
+
         await self.upload_tweet(e, category, images, user, retweeted_user)
-        
+
     async def upload_tweet(self, e, category, images, user, retweeted_user):
         """ Upload tweet in the dedicated discord channel """
-        
+
         # Check if there is a user specific channel
         # If there is a retweeted user check for both
         if retweeted_user:
-            if user.lower() in self.text_channel_names or retweeted_user.lower() in self.text_channel_names:
-                channel = self.text_channels[self.text_channel_names.index(user.lower())]
+            if (
+                user.lower() in self.text_channel_names
+                or retweeted_user.lower() in self.text_channel_names
+            ):
+                channel = self.text_channels[
+                    self.text_channel_names.index(user.lower())
+                ]
         else:
             if user.lower() in self.text_channel_names:
-                channel = self.text_channels[self.text_channel_names.index(user.lower())]
-            
+                channel = self.text_channels[
+                    self.text_channel_names.index(user.lower())
+                ]
+
         if user in news:
             channel = self.news_channel
-                    
+
         elif category == None and not images:
             channel = self.other_channel
         elif category == None and images:
             channel = self.images_channel
-            
+
         elif category == "crypto" and not images:
             channel = self.crypto_text_channel
         elif category == "crypto" and images:
             channel = self.crypto_charts_channel
-            
+
         elif category == "stocks" and not images:
             channel = self.stocks_text_channel
         else:
             channel = self.stocks_charts_channel
-            
+
         try:
             msg = await channel.send(embed=e)
         except Exception as e:
             print(f"Could not send tweet of user {user}")
             print(e)
-            
+
         # Send all the other images as a reply
         for i in range(len(images)):
             if i > 0:
@@ -199,4 +207,3 @@ class Streamer(AsyncStream):
             await msg.add_reaction("🐂")
             await msg.add_reaction("🦆")
             await msg.add_reaction("🐻")
-            
