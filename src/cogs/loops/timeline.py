@@ -137,7 +137,7 @@ class Streamer(AsyncStream):
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
         e.set_thumbnail(url=profile_pic)
 
-        if user.lower not in news:
+        if tickers or hashtags:
             e, category = await add_financials(e, tickers, hashtags, text, user, self.bot)
 
         # Set image if an image is included in the tweet
@@ -181,7 +181,11 @@ class Streamer(AsyncStream):
         else:
             channel = self.stocks_charts_channel
             
-        msg = await channel.send(embed=e)
+        try:
+            msg = await channel.send(embed=e)
+        except Exception as e:
+            print(f"Could not send tweet of user {user}")
+            print(e)
             
         # Send all the other images as a reply
         for i in range(len(images)):
