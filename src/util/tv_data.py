@@ -60,8 +60,9 @@ def ws_data(ws):
                     # symbol = jsonRes['p'][1]['n']
                     price = jsonRes["p"][1]["v"]["lp"]
                     change = jsonRes["p"][1]["v"]["ch"]
-                    perc_change = (change / price) * 100
-                    return price, perc_change
+                    perc_change = round((change / price) * 100,2)
+                    volume = jsonRes['p'][1]['v']['volume']
+                    return price, perc_change, volume
         else:
             # ping packet
             pingStr = re.findall(".......(.*)", result)
@@ -74,26 +75,26 @@ def ws_data(ws):
         print(traceback.format_exc())
 
 
-def get_tv_data(symbol):
+def get_tv_data(symbol, asset):
     """
     Returns the current price and percent change of a stock based on TradingView websocket data
     @param symbol: string (ex: 'AAPL', 'BTCUSDT')
-    @return: tuple (price, perc_change, is_stock (bool))
+    @param asset: string (ex: 'stock', 'crypto')
+    @return: tuple (price, perc_change, volume, exchange)
     """
 
     try:
-        is_stock = None
         stock = tv_stocks.loc[tv_stocks["stock"] == symbol]
         crypto = tv_crypto.loc[tv_crypto["stock"] == symbol]
 
-        if not stock.empty:
-            symbol = f"{stock['exchange'].values[0]}:{stock['stock'].values[0]}"
-            is_stock = True
-        elif not crypto.empty:
-            symbol = f"{crypto['exchange'].values[0]}:{crypto['stock'].values[0]}"
-            is_stock = False
+        if not stock.empty and asset == 'stock':
+            exchange = stock["exchange"].values[0]
+            symbol = f"{exchange}:{stock['stock'].values[0]}"
+        elif not crypto.empty and asset == 'crypto':
+            exchange = stock["exchange"].values[0]
+            symbol = f"{exchange}:{crypto['stock'].values[0]}"
         else:
-            return is_stock
+            return False
 
         # create tunnel
         ws = create_connection(
@@ -103,7 +104,7 @@ def get_tv_data(symbol):
         session = generateSession()
 
         sendMessage(ws, "quote_create_session", [session])
-        sendMessage(ws, "quote_set_fields", [session, "ch", "lp"])
+        sendMessage(ws, "quote_set_fields", [session, "ch", "lp", "volume"])
         sendMessage(ws, "quote_add_symbols", [session, symbol])
 
         # Keep trying untill we get a useful response
@@ -115,12 +116,11 @@ def get_tv_data(symbol):
             if ws_resp != None:
                 break
 
-            # Quit after 10 tries
-            elif counter == 10:
-                ws_resp = None
-                break
+            # Quit after 3 tries
+            elif counter == 3:
+                return False
 
-        return ws_resp[0], ws_resp[1], is_stock
+        return ws_resp[0], ws_resp[1], ws_resp[2], exchange
 
     except Exception:
         print(traceback.format_exc())

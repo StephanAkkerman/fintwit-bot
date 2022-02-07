@@ -172,6 +172,7 @@ async def add_financials(e, tickers, hashtags, text, user, bot):
     symbols = list(set(tickers + hashtags))
 
     for ticker in symbols:
+        print(f"Getting financials for {ticker}")
 
         # Filter beforehand
         if ticker in filter_dict.keys():
@@ -180,24 +181,27 @@ async def add_financials(e, tickers, hashtags, text, user, bot):
             # Skip doubles (for instance $BTC and #Bitocin)
             if ticker in symbols:
                 continue
+            
+        if crypto > stocks:
+            majority = "crypto"
+        elif crypto < stocks:
+            majority = "stocks"
+        else:
+            majority = "🤷‍♂️"
 
-        volume, website, exchanges, price, change = classify_ticker(ticker)
+        volume, website, exchanges, price, change = classify_ticker(ticker, majority)
 
-        # Check if there is any volume
+        # Check if there is any volume, and if it is a symbol
         if volume is None:
-
-            # If it is a symbol, assume it is crypto (if no match could be found)
             if ticker in tickers:
-                e.add_field(name=f"${ticker}", value="Crypto?")
-                crypto += 1
+            
+                e.add_field(name=f"${ticker}", value=majority)
 
                 # Go to next in symbols
                 print(
                     f"No crypto or stock match found for ${ticker} in {user}'s tweet at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
                 )
-                continue
-            else:
-                continue
+            continue
 
         title = f"${ticker}"
 

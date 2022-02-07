@@ -124,10 +124,13 @@ class Streamer(AsyncStream):
         # Use 'media' 'url' as url
         # Use 'profile_image_url'' for thumbnail
 
+        title = f"{user} tweeted about {', '.join(tickers)}" if retweeted_user == None else f"{user} 🔁 {retweeted_user} about {', '.join(tickers)}"
+        
+        if len(title) > 256:
+            title = title[:253] + "..."
+            
         e = discord.Embed(
-            title=f"{user} tweeted about {', '.join(tickers)}"
-            if retweeted_user == None
-            else f"{user} 🔁 {retweeted_user} about {', '.join(tickers)}",
+            title=title,
             url=url,
             description=text,
             color=0x1DA1F2,
@@ -136,10 +139,13 @@ class Streamer(AsyncStream):
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
         e.set_thumbnail(url=profile_pic)
 
-        if tickers or hashtags:
+        # Max 25 fields
+        if len(tickers + hashtags) < 26:
             e, category = await add_financials(
                 e, tickers, hashtags, text, user, self.bot
             )
+        else:
+            category = None
 
         # Set image if an image is included in the tweet
         if images:
@@ -154,24 +160,23 @@ class Streamer(AsyncStream):
 
     async def upload_tweet(self, e, category, images, user, retweeted_user):
         """ Upload tweet in the dedicated discord channel """
-
+        
+        # Default channel
+        channel = self.other_channel
+        
         # Check if there is a user specific channel
         # If there is a retweeted user check for both
         if retweeted_user:
-            if (
-                user.lower() in self.text_channel_names
-                or retweeted_user.lower() in self.text_channel_names
-            ):
+            if (retweeted_user.lower() in self.text_channel_names):
                 channel = self.text_channels[
-                    self.text_channel_names.index(user.lower())
-                ]
-        else:
-            if user.lower() in self.text_channel_names:
-                channel = self.text_channels[
-                    self.text_channel_names.index(user.lower())
-                ]
+                        self.text_channel_names.index(retweeted_user.lower())
+                    ]            
+        elif user.lower() in self.text_channel_names:
+            channel = self.text_channels[
+                self.text_channel_names.index(user.lower())
+            ]
 
-        if user in news:
+        elif user in news:
             channel = self.news_channel
 
         elif category == None and not images:
@@ -189,11 +194,7 @@ class Streamer(AsyncStream):
         else:
             channel = self.stocks_charts_channel
 
-        try:
-            msg = await channel.send(embed=e)
-        except Exception as e:
-            print(f"Could not send tweet of user {user}")
-            print(e)
+        msg = await channel.send(embed=e)
 
         # Send all the other images as a reply
         for i in range(len(images)):

@@ -8,6 +8,9 @@ import pandas as pd
 from pycoingecko import CoinGeckoAPI
 from pandas.tseries.holiday import USFederalHolidayCalendar
 
+# Local dependencies
+from util.tv_data import get_tv_data
+
 # Get the public holidays
 cal = USFederalHolidayCalendar()
 us_holidays = cal.holidays(
@@ -74,6 +77,11 @@ def get_coin_info(ticker):
                         id = symbol
         else:
             id = ids.values[0]
+    elif tv_data := get_tv_data(ticker, 'crypto'):
+        price, perc_change, volume, exchange = tv_data
+        formatted_change = f"+{perc_change}% 📈" if perc_change > 0 else f"{perc_change}% 📉"
+        website = f"https://www.tradingview.com/symbols/{ticker}-{exchange}/?coingecko"
+        return volume, website, exchange, price, perc_change            
     elif ticker.lower() in df["id"].values:
         ids = df[df["id"] == ticker.lower()]["id"]
         if len(ids) > 1:
@@ -138,64 +146,81 @@ def get_coin_info(ticker):
 def get_stock_info(ticker):
 
     stock_info = yf.Ticker(ticker)
-    website = f"https://finance.yahoo.com/quote/{ticker}"
-    try:
+    
+    if stock_info.info['regularMarketPrice'] != None:        
+        try:
+            prices = []
+            changes = []
 
-        prices = []
-        changes = []
+            # Return prices corresponding to market hours
+            if afterHours():
+                # Use bid if premarket price is not available
+                price = (
+                    round(stock_info.info["preMarketPrice"], 2)
+                    if stock_info.info["preMarketPrice"] != None
+                    else stock_info.info["bid"]
+                )
+                change = round(
+                    (price - stock_info.info["regularMarketPrice"])
+                    / stock_info.info["regularMarketPrice"]
+                    * 100,
+                    2,
+                )
+                formatted_change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
 
-        # Return prices corresponding to market hours
-        if afterHours():
-            # Use bid if premarket price is not available
-            price = (
-                round(stock_info.info["preMarketPrice"], 2)
-                if stock_info.info["preMarketPrice"] != None
-                else stock_info.info["bid"]
-            )
+                # Dont add if prices are 0
+                if price != 0:
+                    prices.append(price)
+                    changes.append(formatted_change)
+
+            # Could try 'currentPrice' as well
+            price = round(stock_info.info["regularMarketPrice"], 2)
             change = round(
-                (price - stock_info.info["regularMarketPrice"])
-                / stock_info.info["regularMarketPrice"]
+                (price - stock_info.info["regularMarketPreviousClose"])
+                / stock_info.info["regularMarketPreviousClose"]
                 * 100,
                 2,
             )
+
             formatted_change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
 
-            # Dont add if prices are 0
-            if price != 0:
-                prices.append(price)
-                changes.append(formatted_change)
+            prices.append(price)
+            changes.append(formatted_change)
 
-        # Could try 'currentPrice' as well
-        price = round(stock_info.info["regularMarketPrice"], 2)
-        change = round(
-            (price - stock_info.info["regularMarketPreviousClose"])
-            / stock_info.info["regularMarketPreviousClose"]
-            * 100,
-            2,
-        )
+            # Return the important information
+            # Could also try 'volume' or 'volume24Hr' (is None if market is closed)
+            volume = stock_info.info["regularMarketVolume"] * price
+            return volume, f"https://finance.yahoo.com/quote/{ticker}", stock_info.info["exchange"], prices, changes
 
-        formatted_change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
+        except Exception as e:
+            pass
+        
+    # Check TradingView data
+    elif tv_data := get_tv_data(ticker, 'stock'):
+        price, perc_change, volume, exchange = tv_data
+        formatted_change = f"+{perc_change}% 📈" if perc_change > 0 else f"{perc_change}% 📉"
+        website = f"https://www.tradingview.com/symbols/{ticker}-{exchange}/?yahoo"
+        return volume, website, exchange, price, perc_change    
 
-        prices.append(price)
-        changes.append(formatted_change)
-
-        # Return the important information
-        # Could also try 'volume' or 'volume24Hr' (is None if market is closed)
-        volume = stock_info.info["regularMarketVolume"] * price
-        return volume, website, stock_info.info["exchange"], prices, changes
-
-    except Exception as e:
-
+    else:
         return 0, None, None, None, None
 
-
-def classify_ticker(ticker):
+def classify_ticker(ticker, majority):
     """Main function to classify the ticker as crypto or stock
     Returns 24h volume, website, and exchanges
     """
 
-    coin = get_coin_info(ticker)
-    stock = get_stock_info(ticker)
+    if majority == 'crypto' or majority == '🤷‍♂️':
+        coin = get_coin_info(ticker)
+        # If volume of the crypto is bigger than half a million, it is likely a crypto
+        if coin[0] > 500000:
+            return coin
+        stock = get_stock_info(ticker)
+    else:
+        stock = get_stock_info(ticker)
+        if stock[0] > 500000:
+            return stock
+        coin = get_coin_info(ticker)
 
     # First in tuple represents volume
     if coin[0] > stock[0]:
