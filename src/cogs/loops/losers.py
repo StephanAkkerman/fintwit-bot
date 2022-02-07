@@ -22,7 +22,7 @@ class Losers(commands.Cog):
     @loop(hours=4)
     async def losers(self):
         e = discord.Embed(
-            title=f"Top 50 Gainers",
+            title=f"Top 50 Losers",
             url="https://finance.yahoo.com/gainers/",
             description="",
             color=0x1DA1F2,
@@ -30,7 +30,7 @@ class Losers(commands.Cog):
         
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
         
-        gainers = si.get_day_losers()[['Symbol', 'Price (Intraday)', '% Change', 'Volume']]
+        gainers = si.get_day_losers()[['Symbol', 'Price (Intraday)', '% Change', 'Volume']].head(50)
         
         gainers['% Change'] = gainers['% Change'].apply(lambda x: f" (+{x}% 📈)" if x > 0 else f"({x}% 📉)")
         gainers['Price'] = gainers['Price (Intraday)'].astype(str) + gainers['% Change']
