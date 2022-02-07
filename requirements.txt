@@ -5,7 +5,7 @@ py_cord==1.7.3
 tweepy==4.5.0
 pycoingecko==2.2.0
 pandas==1.4.0
-requests==2.26.0
+requests==2.27.1
 discord==1.7.3
 PyYAML==6.0
 websocket_client==1.2.3
