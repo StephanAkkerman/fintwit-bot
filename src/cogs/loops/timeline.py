@@ -1,5 +1,6 @@
 ##> Imports
 import asyncio
+from calendar import c
 import datetime
 
 # > 3rd Party Dependencies
@@ -163,14 +164,13 @@ class Streamer(AsyncStream):
         
         # Default channel
         channel = self.other_channel
-        
+                
         # Check if there is a user specific channel
         # If there is a retweeted user check for both
-        if retweeted_user:
-            if (retweeted_user.lower() in self.text_channel_names):
-                channel = self.text_channels[
-                        self.text_channel_names.index(retweeted_user.lower())
-                    ]            
+        if retweeted_user and retweeted_user.lower() in self.text_channel_names:
+            channel = self.text_channels[
+                    self.text_channel_names.index(retweeted_user.lower())
+                ]            
         elif user.lower() in self.text_channel_names:
             channel = self.text_channels[
                 self.text_channel_names.index(user.lower())

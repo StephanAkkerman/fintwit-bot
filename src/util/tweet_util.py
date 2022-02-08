@@ -189,7 +189,7 @@ async def add_financials(e, tickers, hashtags, text, user, bot):
         else:
             majority = "🤷‍♂️"
 
-        volume, website, exchanges, price, change = classify_ticker(ticker, majority)
+        volume, website, exchanges, price, change, ta = classify_ticker(ticker, majority)
 
         # Check if there is any volume, and if it is a symbol
         if volume is None:
@@ -234,7 +234,10 @@ async def add_financials(e, tickers, hashtags, text, user, bot):
 
         # Add the field with hyperlink
         e.add_field(name=title, value=description, inline=True)
-
+        
+        if ta is not None:
+            e.add_field(name="4h TA", value=ta, inline=True)
+        
     # If there are any tickers
     if symbols:
         sentiment = classify_sentiment(text)
@@ -245,7 +248,7 @@ async def add_financials(e, tickers, hashtags, text, user, bot):
             inline=True,
         )
 
-    # Decide the category
+    # Decide the category of this tweet
     if crypto == 0 and stocks == 0:
         category = None
     elif crypto >= stocks:

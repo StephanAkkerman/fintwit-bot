@@ -9,7 +9,7 @@ from pycoingecko import CoinGeckoAPI
 from pandas.tseries.holiday import USFederalHolidayCalendar
 
 # Local dependencies
-from util.tv_data import get_tv_data
+from util.tv_data import get_tv_data, get_tv_TA
 
 # Get the public holidays
 cal = USFederalHolidayCalendar()
@@ -80,7 +80,7 @@ def get_coin_info(ticker):
     elif tv_data := get_tv_data(ticker, 'crypto'):
         price, perc_change, volume, exchange = tv_data
         formatted_change = f"+{perc_change}% 📈" if perc_change > 0 else f"{perc_change}% 📉"
-        website = f"https://www.tradingview.com/symbols/{ticker}-{exchange}/?coingecko"
+        website = f"https://www.tradingview.com/symbols/{ticker}-{exchange}/?coingecko"        
         return volume, website, exchange, price, perc_change            
     elif ticker.lower() in df["id"].values:
         ids = df[df["id"] == ticker.lower()]["id"]
@@ -138,7 +138,7 @@ def get_coin_info(ticker):
 
     # Get the exchanges
     exchanges = [exchange["market"]["name"] for exchange in coin_dict["tickers"]]
-
+    
     # Return the information
     return total_vol, website, exchanges, price, formatted_change
 
@@ -190,7 +190,8 @@ def get_stock_info(ticker):
 
             # Return the important information
             # Could also try 'volume' or 'volume24Hr' (is None if market is closed)
-            volume = stock_info.info["regularMarketVolume"] * price
+            volume = stock_info.info["regularMarketVolume"] * price            
+            
             return volume, f"https://finance.yahoo.com/quote/{ticker}", stock_info.info["exchange"], prices, changes
 
     except Exception as e:
@@ -201,7 +202,11 @@ def get_stock_info(ticker):
         price, perc_change, volume, exchange = tv_data
         formatted_change = f"+{perc_change}% 📈" if perc_change > 0 else f"{perc_change}% 📉"
         website = f"https://www.tradingview.com/symbols/{ticker}-{exchange}/?yahoo"
-        return volume, website, exchange, price, perc_change    
+        
+        # Get the tradingview TA
+        ta = get_tv_TA(ticker, 'stock')
+        
+        return volume, website, exchange, price, perc_change, ta  
 
     else:
         return 0, None, None, None, None
@@ -213,20 +218,25 @@ def classify_ticker(ticker, majority):
 
     if majority == 'crypto' or majority == '🤷‍♂️':
         coin = get_coin_info(ticker)
-        # If volume of the crypto is bigger than 100,000, it is likely a crypto
-        if coin[0] > 100000:
-            return coin
+        # If volume of the crypto is bigger than 1,000,000, it is likely a crypto
+        # Stupdi Tessla Coin https://www.coingecko.com/en/coins/tessla-coin
+        if coin[0] > 1000000:
+            ta = get_tv_TA(ticker, 'crypto')
+            return *coin, ta
         stock = get_stock_info(ticker)
     else:
         stock = get_stock_info(ticker)
-        if stock[0] > 100000:
-            return stock
+        if stock[0] > 1000000:
+            ta = get_tv_TA(ticker, 'stock')
+            return *stock, ta
         coin = get_coin_info(ticker)
 
     # First in tuple represents volume
     if coin[0] > stock[0] and coin[0] > 50000:
-        return coin
-    elif coin[0] < stock[0] and stock[0] > 50000:
-        return stock
+        ta = get_tv_TA(ticker, 'crypto')
+        return *coin, ta
+    elif coin[0] < stock[0]:
+        ta = get_tv_TA(ticker, 'stock')
+        return *stock, ta
     else:
-        return None, None, None, None, None
+        return None, None, None, None, None, None

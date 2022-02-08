@@ -8,6 +8,7 @@ import traceback
 
 # > 3rd party dependencies
 from websocket import create_connection
+from tradingview_ta import TA_Handler, Interval, Exchange
 import pandas as pd
 
 # Get the current symbols and exchanges on TradingView
@@ -74,6 +75,50 @@ def ws_data(ws):
     except Exception:
         print(traceback.format_exc())
 
+def get_tv_TA(symbol, asset):
+    
+    if asset == 'stock':
+        stock = tv_stocks.loc[tv_stocks["stock"] == symbol]
+        if not stock.empty:
+            exchange = stock["exchange"].values[0]
+            market = 'america'
+        else:
+            return None
+    else:
+        crypto = tv_crypto.loc[tv_crypto["stock"] == symbol]
+        if not crypto.empty:
+            exchange = crypto["exchange"].values[0]
+            market = 'crypto'
+        else:
+            # If it crypto try adding USD or USDT
+            crypto_USD = tv_crypto.loc[tv_crypto["stock"] == symbol+'USD']
+            crypto_USDT = tv_crypto.loc[tv_crypto["stock"] == symbol+'USDT']
+            
+            if not crypto_USD.empty:
+                symbol = crypto_USD['stock'].values[0]
+                exchange = crypto_USD["exchange"].values[0]
+                market = 'crypto'
+            elif not crypto_USDT.empty:
+                symbol = crypto_USDT['stock'].values[0]
+                exchange = crypto_USDT["exchange"].values[0]
+                market = 'crypto'
+            else:
+                return None
+            
+    # Get the TradingView TA for symbol
+    # Interval can be 1m, 5m, 15m, 30m, 1h, 2h, 4h, 1d, 1W, 1M
+    try:
+        # Wait max 5 sec
+        analysis = TA_Handler(symbol=symbol, screener=market, exchange=exchange, interval=Interval.INTERVAL_4_HOURS, timeout=5).get_analysis().summary
+    except Exception as e:
+        print(f"Error getting TradingView TA for {symbol}")
+        print(e)
+        return None    
+    
+    # Format the analysis
+    formatted_analysis = f"{analysis['RECOMMENDATION']}\n{analysis['BUY']}📈 {analysis['NEUTRAL']}⌛️ {analysis['SELL']}📉"
+    
+    return formatted_analysis
 
 def get_tv_data(symbol, asset):
     """
@@ -84,17 +129,20 @@ def get_tv_data(symbol, asset):
     """
 
     try:
-        stock = tv_stocks.loc[tv_stocks["stock"] == symbol]
-        crypto = tv_crypto.loc[tv_crypto["stock"] == symbol]
-
-        if not stock.empty and asset == 'stock':
-            exchange = stock["exchange"].values[0]
-            symbol = f"{exchange}:{stock['stock'].values[0]}"
-        elif not crypto.empty and asset == 'crypto':
-            exchange = crypto["exchange"].values[0]
-            symbol = f"{exchange}:{crypto['stock'].values[0]}"
+        if asset == 'stock':
+            stock = tv_stocks.loc[tv_stocks["stock"] == symbol]
+            if not stock.empty:
+                exchange = stock["exchange"].values[0]
+                symbol = f"{exchange}:{stock['stock'].values[0]}"
+            else:
+                return False
         else:
-            return False
+            crypto = tv_crypto.loc[tv_crypto["stock"] == symbol]
+            if not crypto.empty:
+                exchange = crypto["exchange"].values[0]
+                symbol = f"{exchange}:{crypto['stock'].values[0]}"
+            else:
+                return False
 
         # create tunnel
         ws = create_connection(
