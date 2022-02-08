@@ -15,7 +15,7 @@ import pandas as pd
 tv_stocks = requests.get("https://scanner.tradingview.com/america/scan").json()["data"]
 tv_crypto = requests.get("https://scanner.tradingview.com/crypto/scan").json()["data"]
 
-stock_indices = ['CBOE:PCC', 'CBOE:PCCE', 'TVC:DXY', 'TVC:US10Y', 'TVC:VIX']
+stock_indices = ['AMEX:SPY', 'NASDAQ:NDX', 'USI:PCC', 'USI:PCCE', 'TVC:DXY', 'TVC:US10Y', 'TVC:VIX']
 
 tv_stocks = pd.DataFrame(tv_stocks).drop(columns=["d"])
 tv_stocks = pd.concat([tv_stocks, pd.DataFrame(stock_indices, columns=['s'])])
@@ -174,6 +174,7 @@ def get_tv_data(symbol, asset):
             elif counter == 3:
                 return False
 
+        # Returns the price, percent change, volume and exchange
         return ws_resp[0], ws_resp[1], ws_resp[2], exchange
 
     except Exception:
