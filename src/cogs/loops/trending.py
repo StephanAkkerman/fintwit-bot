@@ -77,7 +77,7 @@ class Trending(commands.Cog):
 
         await channel.send(embed=e)
 
-    @loop(hours=4)
+    @loop(hours=12)
     async def stocks(self):
         """Print the most activaly traded stocks in dedicated channel"""
 
@@ -89,7 +89,7 @@ class Trending(commands.Cog):
         )
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
 
-        active = si.get_day_most_active()
+        active = si.get_day_most_active().head(50)
         #active['Symbol'] = active['Symbol'].apply(lambda x: f"[{x}](https://finance.yahoo.com/quote/{x}/)")
         active['% Change'] = active['% Change'].apply(lambda x: f" (+{x}% 📈)" if x > 0 else f"({x}% 📉)")
         active['Price'] = active['Price (Intraday)'].astype(str) + active['% Change']
@@ -100,9 +100,9 @@ class Trending(commands.Cog):
        
         if len(ticker) > 1024 or len(prices) > 1024 or len(vol) > 1024:
             # Drop the last
-            ticker = "\n".join(ticker[:1024].split("\n").pop())
-            prices = "\n".join(prices[:1024].split("\n").pop())
-            vol = "\n".join(vol[:1024].split("\n").pop())
+            ticker = "\n".join(ticker[:1024].split("\n")[:-1])
+            prices = "\n".join(prices[:1024].split("\n")[:-1])
+            vol = "\n".join(vol[:1024].split("\n")[:-1])
 
         e.add_field(
             name="Coin", value=ticker, inline=True,

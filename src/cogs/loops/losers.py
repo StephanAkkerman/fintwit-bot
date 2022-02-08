@@ -41,9 +41,9 @@ class Losers(commands.Cog):
        
         if len(ticker) > 1024 or len(prices) > 1024 or len(vol) > 1024:
             # Drop the last
-            ticker = "\n".join(ticker[:1024].split("\n").pop())
-            prices = "\n".join(prices[:1024].split("\n").pop())
-            vol = "\n".join(vol[:1024].split("\n").pop())
+            ticker = "\n".join(ticker[:1024].split("\n")[:-1])
+            prices = "\n".join(prices[:1024].split("\n")[:-1])
+            vol = "\n".join(vol[:1024].split("\n")[:-1])
 
         e.add_field(
             name="Coin", value=ticker, inline=True,
