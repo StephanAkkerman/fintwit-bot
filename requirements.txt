@@ -9,4 +9,5 @@ requests==2.27.1
 discord==1.7.3
 PyYAML==6.0
 websocket_client==1.2.3
+tradingview-ta==3.2.10
 aiohttp>=3.8.0 # not directly required, pinned by Snyk to avoid a vulnerability

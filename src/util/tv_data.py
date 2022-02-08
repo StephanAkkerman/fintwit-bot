@@ -15,12 +15,18 @@ import pandas as pd
 tv_stocks = requests.get("https://scanner.tradingview.com/america/scan").json()["data"]
 tv_crypto = requests.get("https://scanner.tradingview.com/crypto/scan").json()["data"]
 
+stock_indices = ['CBOE:PCC', 'CBOE:PCCE', 'TVC:DXY', 'TVC:US10Y', 'TVC:VIX']
+
 tv_stocks = pd.DataFrame(tv_stocks).drop(columns=["d"])
+tv_stocks = pd.concat([tv_stocks, pd.DataFrame(stock_indices, columns=['s'])])
 tv_stocks[["exchange", "stock"]] = tv_stocks["s"].str.split(":", 1, expand=True)
 
-tv_crypto = pd.DataFrame(tv_crypto).drop(columns=["d"])
-tv_crypto[["exchange", "stock"]] = tv_crypto["s"].str.split(":", 1, expand=True)
+# Get all EXCHANGE:INDEX symbols
+crypto_indices = ['CRYPTOCAP:TOTAL', 'CRYPTOCAP:BTC.D',  'CRYPTOCAP:OTHERS.D', 'CRYPTOCAP:TOTALDEFI.D']
 
+tv_crypto = pd.DataFrame(tv_crypto).drop(columns=["d"])
+tv_crypto = pd.concat([tv_crypto, pd.DataFrame(crypto_indices, columns=['s'])])
+tv_crypto[["exchange", "stock"]] = tv_crypto["s"].str.split(":", 1, expand=True)
 # Based on https://github.com/mohamadkhalaj/tradingView-API websocket implementation
 
 
