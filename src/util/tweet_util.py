@@ -172,7 +172,7 @@ async def add_financials(e, tickers, hashtags, text, user, bot):
     symbols = list(set(tickers + hashtags))
 
     for ticker in symbols:
-        print(f"Getting financials for {ticker}")
+        #print(f"Getting financials for {ticker}")
 
         # Filter beforehand
         if ticker in filter_dict.keys():

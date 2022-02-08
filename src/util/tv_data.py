@@ -91,7 +91,7 @@ def get_tv_data(symbol, asset):
             exchange = stock["exchange"].values[0]
             symbol = f"{exchange}:{stock['stock'].values[0]}"
         elif not crypto.empty and asset == 'crypto':
-            exchange = stock["exchange"].values[0]
+            exchange = crypto["exchange"].values[0]
             symbol = f"{exchange}:{crypto['stock'].values[0]}"
         else:
             return False

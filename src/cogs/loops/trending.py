@@ -21,7 +21,7 @@ class Trending(commands.Cog):
         self.crypto.start()
         self.stocks.start()
 
-    @loop(hours=4)
+    @loop(hours=12)
     async def crypto(self):
         """Print the top 7 trending cryptocurrencies in dedicated channel"""
 

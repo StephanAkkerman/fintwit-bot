@@ -19,7 +19,7 @@ class Losers(commands.Cog):
 
         self.losers.start()
 
-    @loop(hours=4)
+    @loop(hours=12)
     async def losers(self):
         e = discord.Embed(
             title=f"Top 50 Losers",
@@ -35,20 +35,26 @@ class Losers(commands.Cog):
         gainers['% Change'] = gainers['% Change'].apply(lambda x: f" (+{x}% 📈)" if x > 0 else f"({x}% 📉)")
         gainers['Price'] = gainers['Price (Intraday)'].astype(str) + gainers['% Change']
         
-        ticker = gainers["Symbol"].tolist()
-        prices = gainers["Price"].tolist()
-        vol = gainers['Volume'].astype(int).astype(str).tolist()
+        ticker = "\n".join(gainers["Symbol"].tolist())
+        prices = "\n".join(gainers["Price"].tolist())
+        vol = "\n".join(gainers['Volume'].astype(int).astype(str).tolist())
+       
+        if len(ticker) > 1024 or len(prices) > 1024 or len(vol) > 1024:
+            # Drop the last
+            ticker = "\n".join(ticker[:1024].split("\n").pop())
+            prices = "\n".join(prices[:1024].split("\n").pop())
+            vol = "\n".join(vol[:1024].split("\n").pop())
 
         e.add_field(
-            name="Coin", value="\n".join(ticker), inline=True,
+            name="Coin", value=ticker, inline=True,
         )
 
         e.add_field(
-            name="Price ($)", value="\n".join(prices), inline=True,
+            name="Price ($)", value=prices, inline=True,
         )
 
         e.add_field(
-            name="Volume ($)", value="\n".join(vol), inline=True,
+            name="Volume ($)", value=vol, inline=True,
         )
 
         e.set_footer(

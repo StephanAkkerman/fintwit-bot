@@ -147,8 +147,9 @@ def get_stock_info(ticker):
 
     stock_info = yf.Ticker(ticker)
     
-    if stock_info.info['regularMarketPrice'] != None:        
-        try:
+    try:
+        if stock_info.info['regularMarketPrice'] != None:        
+        
             prices = []
             changes = []
 
@@ -192,11 +193,11 @@ def get_stock_info(ticker):
             volume = stock_info.info["regularMarketVolume"] * price
             return volume, f"https://finance.yahoo.com/quote/{ticker}", stock_info.info["exchange"], prices, changes
 
-        except Exception as e:
-            pass
+    except Exception as e:
+        pass
         
     # Check TradingView data
-    elif tv_data := get_tv_data(ticker, 'stock'):
+    if tv_data := get_tv_data(ticker, 'stock'):
         price, perc_change, volume, exchange = tv_data
         formatted_change = f"+{perc_change}% 📈" if perc_change > 0 else f"{perc_change}% 📉"
         website = f"https://www.tradingview.com/symbols/{ticker}-{exchange}/?yahoo"
