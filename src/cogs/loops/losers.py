@@ -30,14 +30,14 @@ class Losers(commands.Cog):
         
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
         
-        gainers = si.get_day_losers()[['Symbol', 'Price (Intraday)', '% Change', 'Volume']].head(50)
+        losers = si.get_day_losers()[['Symbol', 'Price (Intraday)', '% Change', 'Volume']].head(50)
         
-        gainers['% Change'] = gainers['% Change'].apply(lambda x: f" (+{x}% 📈)" if x > 0 else f"({x}% 📉)")
-        gainers['Price'] = gainers['Price (Intraday)'].astype(str) + gainers['% Change']
+        losers['% Change'] = losers['% Change'].apply(lambda x: f" (+{x}% 📈)" if x > 0 else f"({x}% 📉)")
+        losers['Price'] = losers['Price (Intraday)'].astype(str) + losers['% Change']
         
-        ticker = "\n".join(gainers["Symbol"].tolist())
-        prices = "\n".join(gainers["Price"].tolist())
-        vol = "\n".join(gainers['Volume'].astype(int).astype(str).tolist())
+        ticker = "\n".join(losers["Symbol"].tolist())
+        prices = "\n".join(losers["Price"].tolist())
+        vol = "\n".join(losers['Volume'].astype(int).astype(str).tolist())
        
         if len(ticker) > 1024 or len(prices) > 1024 or len(vol) > 1024:
             # Drop the last

@@ -94,21 +94,28 @@ class Trending(commands.Cog):
         active['% Change'] = active['% Change'].apply(lambda x: f" (+{x}% 📈)" if x > 0 else f"({x}% 📉)")
         active['Price'] = active['Price (Intraday)'].astype(str) + active['% Change']
         
-        ticker = active["Symbol"].tolist()
-        prices = active["Price"].tolist()
-        vol = active['Volume'].astype(int).astype(str).tolist()
+        ticker = "\n".join(active["Symbol"].tolist())
+        prices = "\n".join(active["Price"].tolist())
+        vol = "\n".join(active['Volume'].astype(int).astype(str).tolist())
+       
+        if len(ticker) > 1024 or len(prices) > 1024 or len(vol) > 1024:
+            # Drop the last
+            ticker = "\n".join(ticker[:1024].split("\n").pop())
+            prices = "\n".join(prices[:1024].split("\n").pop())
+            vol = "\n".join(vol[:1024].split("\n").pop())
 
         e.add_field(
-            name="Coin", value="\n".join(ticker), inline=True,
+            name="Coin", value=ticker, inline=True,
         )
 
         e.add_field(
-            name="Price ($)", value="\n".join(prices), inline=True,
+            name="Price ($)", value=prices, inline=True,
         )
 
         e.add_field(
-            name="Volume ($)", value="\n".join(vol), inline=True,
+            name="Volume ($)", value=vol, inline=True,
         )
+
 
         e.set_footer(
             text=f"Today at {datetime.datetime.now().strftime('%H:%M')}",
