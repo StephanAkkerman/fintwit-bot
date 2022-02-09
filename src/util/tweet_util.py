@@ -189,7 +189,12 @@ async def add_financials(e, tickers, hashtags, text, user, bot):
         else:
             majority = "🤷‍♂️"
 
-        volume, website, exchanges, price, change, ta = classify_ticker(ticker, majority)
+        try:
+            volume, website, exchanges, price, change, ta = classify_ticker(ticker, majority)
+        except Exception:
+            print(ticker)
+            print(format_exc())
+            continue
 
         # Check if there is any volume, and if it is a symbol
         if volume is None:

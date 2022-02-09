@@ -60,9 +60,17 @@ df["symbol"] = df["symbol"].str.upper()
 
 def get_coin_info(ticker):
     """Free CoinGecko API allows 50 calls per mintue"""
+    
+    # Remove formatting
+    if ticker.endswith('USD'):
+        ticker = ticker[:-3]
+    elif ticker.endswith('USDT'):
+        ticker = ticker[:-4]
+    elif ticker.endswith('USDTPERP'):
+        ticker = ticker[:-8]
 
     # Get the id of the ticker
-    # Check if the symbol exists
+    # Check if the symbol exists    
     if ticker in df["symbol"].values:
         ids = df[df["symbol"] == ticker]["id"]
         if len(ids) > 1:
@@ -80,8 +88,8 @@ def get_coin_info(ticker):
     elif tv_data := get_tv_data(ticker, 'crypto'):
         price, perc_change, volume, exchange = tv_data
         formatted_change = f"+{perc_change}% 📈" if perc_change > 0 else f"{perc_change}% 📉"
-        website = f"https://www.tradingview.com/symbols/{ticker}-{exchange}/?coingecko"        
-        return volume, website, exchange, price, perc_change            
+        website = f"https://www.tradingview.com/symbols/{ticker}-{exchange}/?coingecko"    
+        return volume, website, exchange, price, formatted_change            
     elif ticker.lower() in df["id"].values:
         ids = df[df["id"] == ticker.lower()]["id"]
         if len(ids) > 1:
@@ -209,7 +217,7 @@ def get_stock_info(ticker):
         return volume, website, exchange, price, perc_change, ta  
 
     else:
-        return 0, None, None, None, None
+        return 0, None, None, None, None, None
 
 def classify_ticker(ticker, majority):
     """Main function to classify the ticker as crypto or stock
@@ -220,7 +228,7 @@ def classify_ticker(ticker, majority):
         coin = get_coin_info(ticker)
         # If volume of the crypto is bigger than 1,000,000, it is likely a crypto
         # Stupdi Tessla Coin https://www.coingecko.com/en/coins/tessla-coin
-        if coin[0] > 1000000:
+        if coin[0] > 1000000 or ticker.endswith('BTC'):
             ta = get_tv_TA(ticker, 'crypto')
             return *coin, ta
         stock = get_stock_info(ticker)
