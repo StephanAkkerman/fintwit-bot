@@ -17,39 +17,15 @@ from websocket import WebSocketApp
 # Local dependencies
 from util.db import get_db
 
-def binance_msg(ws, msg):
-    if "executionReport" in msg.keys():
-        symbol = msg["s"]
-        # Market + buy
-        operation = f"{msg['o']} {msg['s']}"
-        quantity = msg['q']
-        price = msg['L']
-        
-id = None
-def kucoin_msg(ws,msg):
-    msg = json.loads(msg)
-    
-    if msg['topic'] == "/spotMarket/tradeOrders":
-        data = msg['data']
-        symbol = data['symbol']
-        operation = f"{data['orderType']} {data['side']}"
-        quantity = data['filledSize'] + data['remainSize']
-        price = data['matchPrice']
-    
-    global id
-    
-    # Set the global id
-    if msg['type'] == 'welcome':
-        id = json.loads(ws.recv())['id']
-
 def binance_on_open(ws):
     print("Started Binance Socket")
-
+    
 def kucoin_on_open(ws):
     print("Started KuCoin Socket")
-    if id != None:
-        ws.send(json.dumps({'id': id, 'type': 'subscribe', 'topic': '/spotMarket/tradeOrders', 'privateChannel': 'true', 'response': 'true'}))
     
+    # Subscribe to tradeOrders
+    ws.send(json.dumps({'type': 'subscribe', 'topic': '/spotMarket/tradeOrders', 'privateChannel': 'true', 'response': 'true'}))
+
 def binance_on_close(ws):
     print("Closed Binance Socket")
     
@@ -65,7 +41,25 @@ def on_pong(ws, message):
 class Exchanges(commands.Cog):    
     def __init__(self, bot):
         self.bot = bot
-        print("Started exchanges")
+        self.id = None
+        
+    def binance_msg(self, ws, msg):
+        if "executionReport" in msg.keys():
+            symbol = msg["s"]
+            # Market + buy
+            operation = f"{msg['o']} {msg['s']}"
+            quantity = msg['q']
+            price = msg['L']
+            
+    def kucoin_msg(self, ws, msg):        
+        msg = json.loads(msg)
+                
+        if msg['topic'] == "/spotMarket/tradeOrders":
+            data = msg['data']
+            symbol = data['symbol']
+            operation = f"{data['orderType']} {data['side']}"
+            quantity = data['filledSize'] + data['remainSize']
+            price = data['matchPrice']
         
     async def start_binance_ws(self, row):
         headers = {'X-MBX-APIKEY': row['key']}
@@ -74,7 +68,7 @@ class Exchanges(commands.Cog):
         
         if 'listenKey' in listen_key.keys():
             ws = WebSocketApp(f'wss://stream.binance.com:9443/ws/{listen_key["listenKey"]}',
-                                on_message=binance_msg, 
+                                on_message=self.binance_msg, 
                                 on_open=binance_on_open, 
                                 on_close=binance_on_close,
                                 on_ping=on_ping, 
@@ -117,7 +111,7 @@ class Exchanges(commands.Cog):
             token = response['data']['token']
             
             ws = WebSocketApp(f'wss://ws-api.kucoin.com/endpoint?token={token}', 
-                                on_message=kucoin_msg,
+                                on_message=self.kucoin_msg,
                                 on_open=kucoin_on_open, 
                                 on_close=kucoin_on_close,
                                 on_ping=on_ping, 
