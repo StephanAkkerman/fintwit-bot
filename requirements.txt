@@ -11,3 +11,4 @@ PyYAML==6.0
 websocket-client==1.2.3
 tradingview-ta==3.2.10
 aiohttp>=3.8.0 # not directly required, pinned by Snyk to avoid a vulnerability
+asyncpraw==7.5.0
