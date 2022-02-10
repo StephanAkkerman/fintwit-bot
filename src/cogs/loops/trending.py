@@ -31,7 +31,7 @@ class Trending(commands.Cog):
             title=f"Trending Crypto",
             url="https://www.coingecko.com/en/discover",
             description="",
-            color=0x1DA1F2,
+            color=0x8CC63F,
         )
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
 
@@ -85,7 +85,7 @@ class Trending(commands.Cog):
             title=f"Trending Stocks",
             url="https://finance.yahoo.com/most-active/",
             description="",
-            color=0x1DA1F2,
+            color=0x720E9E,
         )
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
 
