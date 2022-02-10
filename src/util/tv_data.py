@@ -174,6 +174,9 @@ def get_tv_data(symbol, asset):
             elif counter == 3:
                 return False
 
+        # Close the websocket connection
+        ws.close()
+        
         # Returns the price, percent change, volume and exchange
         return ws_resp[0], ws_resp[1], ws_resp[2], exchange
 

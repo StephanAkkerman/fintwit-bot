@@ -8,6 +8,7 @@ import time
 import hmac
 import base64
 import hashlib
+import json
 
 # > 3rd Party Dependencies
 from discord.ext import commands
@@ -31,19 +32,47 @@ def update_db(db):
 def binance_msg(ws, msg):
     if "executionReport" in msg.keys():
         symbol = msg["s"]
-        # Market buy
+        # Market + buy
         operation = f"{msg['o']} {msg['s']}"
         quantity = msg['q']
         price = msg['L']
         
+id = None
 def kucoin_msg(ws,msg):
-    print(msg)
+    msg = json.loads(msg)
     
-def on_open(ws):
-    print("### opened ###")
+    if msg['topic'] == "/spotMarket/tradeOrders":
+        data = msg['data']
+        symbol = data['symbol']
+        operation = f"{data['orderType']} {data['side']}"
+        quantity = data['filledSize'] + data['remainSize']
+        price = data['matchPrice']
     
-def on_close(ws):
-    print("### closed ###")
+    global id
+    
+    # Set the global id
+    if msg['type'] == 'welcome':
+        id = json.loads(ws.recv())['id']
+
+def binance_on_open(ws):
+    print("Started Binance Socket")
+
+def kucoin_on_open(ws):
+    print("Started KuCoin Socket")
+    if id != None:
+        ws.send(json.dumps({'id': id, 'type': 'subscribe', 'topic': '/spotMarket/tradeOrders', 'privateChannel': 'true', 'response': 'true'}))
+    
+def binance_on_close(ws):
+    print("Closed Binance Socket")
+    
+def kucoin_on_close(ws):
+    print("Closed KuCoin Socket")   
+    
+def on_ping(ws, message):
+    pass
+
+def on_pong(ws, message):
+    pass
 
 class Portfolio(commands.Cog):    
     def __init__(self, bot):
@@ -61,8 +90,6 @@ class Portfolio(commands.Cog):
         """
         
         if input:
-            print(input[0].lower())
-
             if len(input) == 3:
                 if input[0].lower() == 'binance':
                     exchange, key, secret = input
@@ -105,20 +132,26 @@ class Portfolio(commands.Cog):
             
     async def trades(self, db=get_db()):     
         if not db.empty:
-            binance = pd.DataFrame()#db.loc[db['exchange'] == 'binance']
-            kucoin = db.loc[db['exchange'] == 'kucoin']
+            binance = db.loc[db['exchange'] == 'binance']
+            kucoin = pd.DataFrame()#db.loc[db['exchange'] == 'kucoin']
             
             # Documentation: https://github.com/binance/binance-spot-api-docs/blob/master/user-data-stream.md
             if not binance.empty:
                 for _, row in binance.iterrows():
                     headers = {'X-MBX-APIKEY': row['key']}
+                    
                     listen_key = requests.post(url = 'https://api.binance.com/api/v3/userDataStream', headers=headers).json()
                     
                     if 'listenKey' in listen_key.keys():
-                        binance_user_data = f'wss://stream.binance.com:9443/ws/{listen_key["listenKey"]}'
-                        ws = WebSocketApp(binance_user_data, on_message=binance_msg, on_open=on_open, on_close=on_close)
+                        ws = WebSocketApp(f'wss://stream.binance.com:9443/ws/{listen_key["listenKey"]}',
+                                          on_message=binance_msg, 
+                                          on_open=binance_on_open, 
+                                          on_close=binance_on_close,
+                                          on_ping=on_ping, 
+                                          on_pong=on_pong)
+
                         # ws.run_forever() is blocking, use https://stackoverflow.com/questions/29145442/threaded-non-blocking-websocket-client
-                        wst = threading.Thread(target=ws.run_forever)
+                        wst = threading.Thread(target=ws.run_forever, kwargs={'ping_interval':60*30, 'ping_timeout':10*3})
                         wst.daemon = True
                         wst.start()
                         
@@ -154,10 +187,21 @@ class Portfolio(commands.Cog):
                     if response['code'] == '200000':
                         token = response['data']['token']
                         
-                        # or try wss://push1-v2.kucoin.com/endpoint
-                        kucoin_user_data = f'wss://ws-api.kucoin.com/endpoint?token={token}'
-                        ws = WebSocketApp(kucoin_user_data, on_message=kucoin_msg, on_open=on_open, on_close=on_close)
-                        ws.run_forever()
+                        ws = WebSocketApp(f'wss://ws-api.kucoin.com/endpoint?token={token}', 
+                                          on_message=kucoin_msg,
+                                          on_open=kucoin_on_open, 
+                                          on_close=kucoin_on_close,
+                                          on_ping=on_ping, 
+                                          on_pong=on_pong)
+                     
+                        # Set ping pong
+                        ping_interval=int(response['data']['instanceServers'][0]['pingInterval']) // 1000
+                        ping_timeout=int(response['data']['instanceServers'][0]['pingTimeout']) // 1000
+                        
+                        wst = threading.Thread(target=ws.run_forever, kwargs={'ping_interval':ping_interval, 'ping_timeout':ping_timeout})
+                        wst.daemon = True
+                        wst.start()
+                        
                     else:
                         print("Error getting KuCoin response")
                     
