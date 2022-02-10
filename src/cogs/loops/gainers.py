@@ -25,7 +25,7 @@ class Gainers(commands.Cog):
             title=f"Top 50 Gainers",
             url="https://finance.yahoo.com/gainers/",
             description="",
-            color=0x1DA1F2,
+            color=0x720E9E,
         )
         
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)

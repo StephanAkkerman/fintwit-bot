@@ -32,7 +32,7 @@ class Indices(commands.Cog):
         e = discord.Embed(
             title=f"Crypto Indices",
             description="",
-            color=0x1DA1F2,
+            color=0x131722,
         )
         
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
@@ -80,7 +80,7 @@ class Indices(commands.Cog):
         e = discord.Embed(
             title=f"Stock Indices",
             description="",
-            color=0x1DA1F2,
+            color=0x131722,
         )
         
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
