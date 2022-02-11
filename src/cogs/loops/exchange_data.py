@@ -1,97 +1,141 @@
 ##> Imports
 import requests
 import asyncio
-import threading
 import time
 import hmac
 import base64
 import json
 import hashlib
+import websockets
+import datetime
 
 # > 3rd Party Dependencies
-import pandas as pd
+import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
-from websocket import WebSocketApp
 
 # Local dependencies
 from util.db import get_db, update_db
 from util.disc_util import get_channel
 from util.vars import config
 
+
+async def trades_msg(exchange, channel, user, symbol, side, orderType, price, quantity):
+    
+    e = discord.Embed(
+            title=f"{side.capitalize()} {quantity} {symbol}",
+            description="",
+            color=0xf0b90b if exchange == 'binance' else 0x24ae8f,
+        )
+    
+    e.set_author(name=user.name, icon_url=user.avatar_url)
+    
+    if symbol.endswith('USDT') or symbol.endswith('USD') or symbol.endswith('BUSD'):
+        price = f"${price}"
+    
+    e.add_field(
+            name="Price", value=price, inline=True,
+        )
+    
+    e.add_field(name="Amount", value=quantity, inline=True)
+    
+    e.add_field(
+            name="Order Type", value=orderType, inline=True,
+        )
+    
+    e.set_footer(
+        text=f"Today at {datetime.datetime.now().strftime('%H:%M')}",
+        icon_url="https://public.bnbstatic.com/20190405/eb2349c3-b2f8-4a93-a286-8f86a62ea9d8.png" if exchange == 'binance' else "https://yourcryptolibrary.com/wp-content/uploads/2021/12/Kucoin-exchange-logo-1.png",
+    )
+    
+    await channel.send(embed=e)
+
 class Binance_Socket():
     def __init__(self, bot, row, trades_channel):
         self.bot = bot
         self.trades_channel = trades_channel
-        
-        self.user = row["user"]
+                
+        self.user = bot.get_user(row["id"])
         self.key = row["key"]
         self.secret = row["secret"]
         
-    def on_open(ws):
-        print("Started Binance Socket")
-        
-    def on_close(ws):
-        print("Closed Binance Socket")
-        
-    def on_msg(self, ws, msg):
-        if "executionReport" in msg.keys():
+    async def on_msg(self, msg):   
+        # Convert the message to a json object (dict)
+        msg = json.loads(msg)
+             
+        if msg['e'] == 'executionReport':
             sym = msg["s"]  # ie 'YFIUSDT'
             side = msg["S"]  # ie 'BUY', 'SELL'
             orderType = msg["o"]  # ie 'LIMIT', 'MARKET', 'STOP_LOSS_LIMIT'
             execType = msg["x"]  # ie 'TRADE', 'NEW' or 'CANCELLED'
-            execPrice = msg["L"]  # The latest price it was filled at
+            #execPrice = round(float(msg["L"]), 4) # The latest price it was filled at
+            #execQuant = round(float(msg["z"]), 4) # The quantity filled
+            price = round(float(msg["p"]), 4) # Order price
+            quantity = round(float(msg["q"]), 4) # Order quantity
             
             # Only care about actual trades
             if execType == "TRADE":
-                pass
-        
+                await trades_msg("binance", self.trades_channel, self.user, sym, side, orderType, price, quantity)
+                
+            # If it is a sell, remove it from assets db
+            # If it is a buy, add it to assets db
+                
+
     async def start_sockets(self):
         # Documentation: https://github.com/binance/binance-spot-api-docs/blob/master/user-data-stream.md
         headers = {'X-MBX-APIKEY': self.key}
                     
         listen_key = requests.post(url = 'https://api.binance.com/api/v3/userDataStream', headers=headers).json()
-        
+                
         if 'listenKey' in listen_key.keys():
-            ws = WebSocketApp(f'wss://stream.binance.com:9443/ws/{listen_key["listenKey"]}',
-                                on_message=self.on_msg, 
-                                on_open=self.on_open, 
-                                on_close=self.on_close)
-
-            # ws.run_forever() is blocking, use https://stackoverflow.com/questions/29145442/threaded-non-blocking-websocket-client
-            wst = threading.Thread(target=ws.run_forever, kwargs={'ping_interval':60*30, 'ping_timeout':10*3})
-            wst.daemon = True
-            wst.start()
-
+            # https://gist.github.com/pgrandinetti/964747a9f2464e576b8c6725da12c1eb
+            while True:
+                # outer loop restarted every time the connection fails
+                try:
+                    async with websockets.connect(uri=f'wss://stream.binance.com:9443/ws/{listen_key["listenKey"]}', 
+                                                  ping_interval= 60*3) as ws:
+                        print("Succesfully connected with Binance socket")
+                        while True:
+                        # listener loop
+                            try:
+                                reply = await ws.recv()
+                                await self.on_msg(reply)
+                            except (websockets.exceptions.ConnectionClosed):
+                                print("Binance: Connection Closed")
+                                break
+                                # Maybe ping the server
+                except ConnectionRefusedError:
+                    print("Binance: Connection Refused")
+                    # Should reconnect after a bit
+                    
+                # For some reason this always happens at startup, so ignore it
+                except asyncio.TimeoutError:
+                    continue
+                    
 class KuCoin_Socket():
     def __init__(self, bot, row, trades_channel):
         self.bot = bot
         self.trades_channel = trades_channel
         
-        self.user = row["user"]
+        self.user = bot.get_user(row["id"])
         self.key = row["key"]
         self.secret = row["secret"]
         self.passphrase = row["passphrase"]
-        
-    def on_open(ws):
-        print("Started KuCoin Socket")
-        
-        # Subscribe to tradeOrders
-        ws.send(json.dumps({'type': 'subscribe', 'topic': '/spotMarket/tradeOrders', 'privateChannel': 'true', 'response': 'true'}))
-        
-    def on_close(ws):
-        print("Closed KuCoin Socket")   
-        
-    def on_msg(self, ws, msg):        
-        msg = json.loads(msg)
                 
-        if msg['topic'] == "/spotMarket/tradeOrders":
-            data = msg['data']
-            symbol = data['symbol']
-            operation = f"{data['orderType']} {data['side']}"
-            quantity = data['filledSize'] + data['remainSize']
-            price = data['matchPrice']
-        
+    async def on_msg(self, msg):        
+        msg = json.loads(msg)
+                        
+        if 'topic' in msg.keys():
+            if msg['topic'] == "/spotMarket/tradeOrders" and msg['type'] != 'canceled':                 
+                data = msg['data']
+                sym = data['symbol']
+                side = data['side']
+                orderType = data['orderType']
+                quantity = data['filledSize'] + data['remainSize']
+                execPrice = data['matchPrice']
+                
+                await trades_msg("KuCoin", self.trades_channel, self.user, sym, side, orderType, execPrice, quantity)
+            
     async def start_sockets(self):
         # From documentation: https://docs.kucoin.com/
         # For the GET, DELETE request, all query parameters need to be included in the request url. (e.g. /api/v1/accounts?currency=BTC)
@@ -123,28 +167,49 @@ class KuCoin_Socket():
         if response['code'] == '200000':
             token = response['data']['token']
             
-            ws = WebSocketApp(f'wss://ws-api.kucoin.com/endpoint?token={token}', 
-                                on_message=self.on_msg,
-                                on_open=self.on_open, 
-                                on_close=self.on_close)
-            
-            # Set ping pong
+            # Set ping 
             ping_interval=int(response['data']['instanceServers'][0]['pingInterval']) // 1000
             ping_timeout=int(response['data']['instanceServers'][0]['pingTimeout']) // 1000
             
-            wst = threading.Thread(target=ws.run_forever, kwargs={'ping_interval':ping_interval, 'ping_timeout':ping_timeout})
-            wst.daemon = True
-            wst.start()
-            
+            while True:
+                # outer loop restarted every time the connection fails
+                try:
+                    async with websockets.connect(uri=f'wss://ws-api.kucoin.com/endpoint?token={token}', 
+                                                  ping_interval = ping_interval,
+                                                  ping_timeout = ping_timeout) as ws:
+                        await ws.send(json.dumps({'type': 'subscribe', 'topic': '/spotMarket/tradeOrders', 'privateChannel': 'true', 'response': 'true'}))
+                        print("Succesfully connected with KuCoin socket")
+                        while True:
+                        # listener loop
+                            try:
+                                reply = await ws.recv()
+                                await self.on_msg(reply)
+                            except (websockets.exceptions.ConnectionClosed):
+                                print("KuCoin: Connection Closed")
+                                break
+                                # Maybe ping the server
+                except ConnectionRefusedError:
+                    print("KuCoin: Connection Refused")
+                    # Should reconnect after a bit
+                    
+                # For some reason this always happens at startup, so ignore it
+                except asyncio.TimeoutError:
+                    continue
         else:
             print("Error getting KuCoin response")
     
 class Exchanges(commands.Cog):    
-    def __init__(self, bot):
+    def __init__(self, bot, db=get_db('portfolio')):
         self.bot = bot
-        self.trades_channel = get_channel(self.bot, config["TRADES"]["CHANNEL"])         
+        self.trades_channel = get_channel(self.bot, config["TRADES"]["CHANNEL"])  
+                
+        # Start getting trades
+        asyncio.create_task(self.trades(db))      
+        
+        # Refresh assets
+        asyncio.create_task(self.assets(db))
     
-    async def trades(self, db=get_db('portfolio')):     
+    async def trades(self, db):   
         if not db.empty:
             
             # Divide per exchange
@@ -153,18 +218,36 @@ class Exchanges(commands.Cog):
             
             if not binance.empty:
                 for _, row in binance.iterrows():
-                    await Binance_Socket(self.bot, row, self.trades_channel).start_sockets()
+                    # If using await, it will block other connections
+                    asyncio.create_task(Binance_Socket(self.bot, row, self.trades_channel).start_sockets())
                         
             if not kucoin.empty:
                 for _, row in kucoin.iterrows():
-                    await KuCoin_Socket(self.bot, row, self.trades_channel).start_sockets()
+                    asyncio.create_task(KuCoin_Socket(self.bot, row, self.trades_channel).start_sockets())
                     
     async def reset_connection(self):
         pass
         
-    @loop(hours=1)
-    async def assets(self):
-        pass
-    
+
+    async def assets(self, db=get_db('portfolio')):
+        """ 
+        Only do this function at startup and if a new portfolio has been added
+        Checks the account balances of accounts saved in portfolio db, then updates the assets db
+        """
+        
+        if not db.empty:
+            
+            # Divide per exchange
+            binance = db.loc[db['exchange'] == 'binance']
+            kucoin = db.loc[db['exchange'] == 'kucoin']
+            
+            if not binance.empty:
+                for _, row in binance.iterrows():
+                    pass
+                        
+            if not kucoin.empty:
+                for _, row in kucoin.iterrows():
+                    pass
+        
 def setup(bot):
     bot.add_cog(Exchanges(bot))
