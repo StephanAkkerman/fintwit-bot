@@ -20,9 +20,9 @@ from util.vars import (
     access_token,
     access_token_secret,
     api,
-    get_channel,
-    news,
 )
+
+from util.disc_util import get_channel
 
 from util.tweet_util import format_tweet, add_financials
 
@@ -176,7 +176,7 @@ class Streamer(AsyncStream):
                 self.text_channel_names.index(user.lower())
             ]
 
-        elif user in news:
+        elif user in config['NEWS']:
             channel = self.news_channel
 
         elif category == None and not images:

@@ -6,7 +6,7 @@ from discord.ext import commands
 # > Standard libraries
 from csv import writer
 
-from util.vars import get_channel
+from util.disc_util import get_channel
 
 
 class On_raw_reaction_add(commands.Cog):

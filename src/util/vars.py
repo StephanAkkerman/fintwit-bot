@@ -1,9 +1,6 @@
-import sys
-
 # > 3rd Party Dependencies
 import yaml
 import tweepy
-import discord
 
 # Read config.yaml content
 with open("config.yaml", "r", encoding="utf-8") as f:
@@ -29,38 +26,5 @@ filter_dict = {
     "ES": "ES=F",
     "DXY": "DX-Y.NYB",
     "NQ": "NQ=F",
+    "NQ_F": "NQ=F",
 }
-
-# https://twitter.com/DeItaone
-# https://twitter.com/FirstSquawk
-# https://twitter.com/EPSGUID
-# https://twitter.com/eWhispers
-# Make sure to follow these accounts to get the tweets
-news = ["DeItaone", "FirstSquawk", "EPSGUID", "eWhispers"]
-
-
-def get_guild(bot):
-
-    return discord.utils.get(
-        bot.guilds,
-        name=config["DEBUG"]["GUILD_NAME"]
-        if len(sys.argv) > 1 and sys.argv[1] == "-test"
-        else config["DISCORD"]["GUILD_NAME"],
-    )
-
-
-def get_channel(bot, channel_name):
-
-    return discord.utils.get(
-        bot.get_all_channels(),
-        guild__name=config["DEBUG"]["GUILD_NAME"]
-        if len(sys.argv) > 1 and sys.argv[1] == "-test"
-        else config["DISCORD"]["GUILD_NAME"],
-        name=channel_name,
-    )
-
-
-def get_emoji(bot, emoji):
-
-    guild = get_guild(bot)
-    return discord.utils.get(guild.emojis, name=emoji)

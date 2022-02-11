@@ -8,7 +8,7 @@ import traceback
 
 # > 3rd party dependencies
 from websocket import create_connection
-from tradingview_ta import TA_Handler, Interval, Exchange
+from tradingview_ta import TA_Handler, Interval
 import pandas as pd
 
 # Get the current symbols and exchanges on TradingView
