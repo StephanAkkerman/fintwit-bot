@@ -8,6 +8,8 @@ import json
 import hashlib
 import websockets
 import datetime
+import hmac
+from urllib.parse import urlencode
 
 # > 3rd Party Dependencies
 import discord
@@ -40,7 +42,7 @@ async def trades_msg(exchange, channel, user, symbol, side, orderType, price, qu
     e.add_field(name="Amount", value=quantity, inline=True)
     
     e.add_field(
-            name="Order Type", value=orderType, inline=True,
+            name="Order Type", value=orderType.capitalize(), inline=True,
         )
     
     e.set_footer(
@@ -198,6 +200,57 @@ class KuCoin_Socket():
         else:
             print("Error getting KuCoin response")
     
+class Binance_Data():
+    def __init__(self, key, secret):
+        self.key = key
+        self.secret = secret
+        self.base_url = "https://api.binance.com"
+        self.params = {"type": "SPOT"}
+        self.http_method = "GET"
+        self.url_path = "/sapi/v1/accountSnapshot"
+    
+    def get_timestamp(self):
+        return int(time.time() * 1000)
+
+    def hashing(self, query_string):
+        return hmac.new(
+            self.secret.encode("utf-8"), query_string.encode("utf-8"), hashlib.sha256
+        ).hexdigest()
+
+    def dispatch_request(self, http_method):
+        session = requests.Session()
+        session.headers.update(
+            {"Content-Type": "application/json;charset=utf-8", "X-MBX-APIKEY": self.key}
+        )
+        return {
+            "GET": session.get,
+            "DELETE": session.delete,
+            "PUT": session.put,
+            "POST": session.post,
+        }.get(http_method, "GET")
+
+    # used for sending request requires the signature
+    def send_signed_request(self, http_method, url_path, payload={}):
+        query_string = urlencode(payload, True)
+        if query_string:
+            query_string = "{}&timestamp={}".format(query_string, self.get_timestamp())
+        else:
+            query_string = "timestamp={}".format(self.get_timestamp())
+
+        url = (
+            self.base_url + url_path + "?" + query_string + "&signature=" + self.hashing(query_string)
+        )
+        #print("{} {}".format(http_method, url))
+        params = {"url": url, "params": {}}
+        response = self.dispatch_request(http_method)(**params)
+        return response.json()
+    
+    def get_data(self):
+        response = self.send_signed_request(self.http_method, self.url_path, self.params)
+        balances = response['snapshotVos'][0]['data']['balances']
+        owned = [{'asset':asset['asset'], 'owned':float(asset['free'])+float(asset['locked'])} for asset in balances if float(asset['free']) > 0 or float(asset['locked']) > 0]
+        return owned
+    
 class Exchanges(commands.Cog):    
     def __init__(self, bot, db=get_db('portfolio')):
         self.bot = bot
@@ -226,6 +279,9 @@ class Exchanges(commands.Cog):
                     asyncio.create_task(KuCoin_Socket(self.bot, row, self.trades_channel).start_sockets())
                     
     async def reset_connection(self):
+        """
+        This function should be called to reset one of the sockets
+        """
         pass
         
 
@@ -233,6 +289,7 @@ class Exchanges(commands.Cog):
         """ 
         Only do this function at startup and if a new portfolio has been added
         Checks the account balances of accounts saved in portfolio db, then updates the assets db
+        Posts an overview of everyone's assets in their asset channel
         """
         
         if not db.empty:
@@ -243,7 +300,8 @@ class Exchanges(commands.Cog):
             
             if not binance.empty:
                 for _, row in binance.iterrows():
-                    pass
+                    # Add this info to the assets.pkl database
+                    Binance_Data(row['key'], row['secret']).get_data()
                         
             if not kucoin.empty:
                 for _, row in kucoin.iterrows():
