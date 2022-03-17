@@ -15,11 +15,14 @@ from urllib.parse import urlencode
 import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
+from discord.utils import get
+import pandas as pd
 
 # Local dependencies
 from util.db import get_db, update_db
 from util.disc_util import get_channel
 from util.vars import config
+from util.disc_util import get_guild
 
 
 async def trades_msg(exchange, channel, user, symbol, side, orderType, price, quantity):
@@ -57,9 +60,17 @@ class Binance_Socket():
         self.bot = bot
         self.trades_channel = trades_channel
                 
+        self.id = row["id"]
         self.user = bot.get_user(row["id"])
         self.key = row["key"]
         self.secret = row["secret"]
+        
+    def get_base_sym(self, sym):
+        response = requests.get(f"https://api.binance.com/api/v3/exchangeInfo?symbol={sym}").json()
+        if "symbols" in response.keys():
+            return response["symbols"][0]["baseAsset"]
+        else:
+            return sym
         
     async def on_msg(self, msg):   
         # Convert the message to a json object (dict)
@@ -79,9 +90,29 @@ class Binance_Socket():
             if execType == "TRADE":
                 await trades_msg("binance", self.trades_channel, self.user, sym, side, orderType, price, quantity)
                 
+            # Assets db: asset, owned (quantity), exchange, id, user
+            assets_db = get_db("assets")
+
             # If it is a sell, remove it from assets db
-            # If it is a buy, add it to assets db
+            if side == "SELL":
+                old_row = assets_db.loc[(assets_db["asset"] == sym) & 
+                                        (assets_db["exchange"] == "binance") & 
+                                        (assets_db["id"] == self.id)]
                 
+                # Decrease owned by quantity, or remove it
+            
+            # If it is a buy, add it to assets db
+            elif side == "BUY":
+                new_row = pd.DataFrame({'asset':self.get_base_sym(sym),
+                                        'owned':quantity,
+                                        'exchange':"binance", 
+                                        'id':self.id, 
+                                        'user':self.user})
+                # Add it to the database
+                assets_db = pd.concat(assets_db, new_row)
+            
+            update_db("assets", assets_db)
+            # Maybe post the assets as well
 
     async def start_sockets(self):
         # Documentation: https://github.com/binance/binance-spot-api-docs/blob/master/user-data-stream.md
@@ -156,11 +187,11 @@ class KuCoin_Socket():
             hmac.new(self.secret.encode('utf-8'), self.passphrase.encode('utf-8'), hashlib.sha256).digest())
         
         headers = {"KC-API-KEY": self.key, 
-                    "KC-API-SIGN" : sign, 
-                    "KC-API-TIMESTAMP": str(now_time),
-                    "KC-API-PASSPHRASE": passphrase, 
-                    "KC-API-KEY-VERSION": '2',
-                    "Content-Type": "application/json"}
+                   "KC-API-SIGN" : sign, 
+                   "KC-API-TIMESTAMP": str(now_time),
+                   "KC-API-PASSPHRASE": passphrase, 
+                   "KC-API-KEY-VERSION": '2',
+                   "Content-Type": "application/json"}
         
         # https://docs.kucoin.com/#apply-connect-token
         response = requests.post(url = "https://api.kucoin.com" + api_request, headers=headers).json()
@@ -249,7 +280,32 @@ class Binance_Data():
         response = self.send_signed_request(self.http_method, self.url_path, self.params)
         balances = response['snapshotVos'][0]['data']['balances']
         owned = [{'asset':asset['asset'], 'owned':float(asset['free'])+float(asset['locked'])} for asset in balances if float(asset['free']) > 0 or float(asset['locked']) > 0]
-        return owned
+        return pd.DataFrame(owned)
+    
+class KuCoin_Data():
+    def __init__(self, key, secret, passphrase):
+        self.key = key
+        self.secret = secret
+        self.passphrase = passphrase
+    
+    def get_data(self):
+        #https://docs.kucoin.com/#get-an-account
+        url = 'https://api.kucoin.com/api/v1/accounts'
+        now = int(time.time() * 1000)
+        str_to_sign = str(now) + 'GET' + '/api/v1/accounts'
+        signature = base64.b64encode(hmac.new(self.secret.encode('utf-8'), str_to_sign.encode('utf-8'), hashlib.sha256).digest())
+        passphrase = base64.b64encode(hmac.new(self.secret.encode('utf-8'), self.passphrase.encode('utf-8'), hashlib.sha256).digest())
+        headers = {
+            "KC-API-SIGN": signature,
+            "KC-API-TIMESTAMP": str(now),
+            "KC-API-KEY": self.key,
+            "KC-API-PASSPHRASE": passphrase,
+            "KC-API-KEY-VERSION": "2",
+            "Content-Type": "application/json"
+        }
+        response = requests.get(url, headers=headers).json()['data']
+        owned = [{"asset":sym['currency'], "owned":sym['balance']} for sym in response if float(sym['balance']) > 0]
+        return pd.DataFrame(owned)
     
 class Exchanges(commands.Cog):    
     def __init__(self, bot, db=get_db('portfolio')):
@@ -292,6 +348,13 @@ class Exchanges(commands.Cog):
         Posts an overview of everyone's assets in their asset channel
         """
         
+        if db.equals(get_db('portfolio')):
+             # Make a new assets db, since this call is for restarting the bot
+            assets_db = pd.DataFrame({'asset':[],'owned':[],'exchange':[], 'id':[], 'user':[]})
+        else:
+            # Add it to the old assets db, since this call is for a specific person
+            assets_db = get_db('assets')
+           
         if not db.empty:
             
             # Divide per exchange
@@ -301,11 +364,152 @@ class Exchanges(commands.Cog):
             if not binance.empty:
                 for _, row in binance.iterrows():
                     # Add this info to the assets.pkl database
-                    Binance_Data(row['key'], row['secret']).get_data()
+                    new_info = Binance_Data(row['key'], row['secret']).get_data()
+                    new_info['exchange'] = row['exchange']
+                    new_info['id'] = row['id']
+                    new_info['user'] = row['user']
+                    
+                    # Add it to the assets db
+                    assets_db = pd.concat([assets_db, new_info], ignore_index=True)
                         
             if not kucoin.empty:
                 for _, row in kucoin.iterrows():
-                    pass
+                    new_info = KuCoin_Data(row['key'], row['secret'], row['passphrase']).get_data()
+                    new_info['exchange'] = row['exchange']
+                    new_info['id'] = row['id']
+                    new_info['user'] = row['user']
+                    
+                    assets_db = pd.concat([assets_db, new_info], ignore_index=True)
+                    
+        # Sum values where assets and names are the same
+        assets_db = assets_db.astype({'asset':'string', 'owned':'float64', 'exchange':'string', 'id':'int64', 'user':'string'})
+                    
+        # Update the assets db
+        update_db(assets_db, 'assets')
+        print("Updated assets database")
+        
+        self.post_assets.start()
+
+    @loop(hours=12)
+    async def post_assets(self):
+        print("Started")
+        
+        assets_db = get_db('assets')
+        guild = get_guild(self.bot)
+        
+        # Use the user name as channel
+        names = assets_db['user'].unique()
+            
+        for name in names:
+            channel_name = '🌟┃' + name.lower()
+                        
+            # If this channel does not exist make it
+            channel = get_channel(self.bot, channel_name)
+            if channel is None:
+                channel = await guild.create_text_channel(channel_name)
+                print(f"Created channel {channel_name}")
+                
+            # Get the data
+            assets = assets_db.loc[assets_db['user'] == name]
+            
+            if not assets.empty:
+                e = discord.Embed(
+                    title=f"{name}'s crypto assets",
+                    description="",
+                    color=0x1DA1F2,
+                )
+                
+                e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
+                
+                # Divide it per exchange
+                binance = assets.loc[assets['exchange'] == 'binance']
+                kucoin = assets.loc[assets['exchange'] == 'kucoin']
+                
+                # Add the binance info
+                if not binance.empty:
+                    # Sort and clean the data
+                    sorted_binance = binance.sort_values(by=['owned'], ascending=False)
+                    sorted_binance = sorted_binance.round({'owned':3})
+                    binance = sorted_binance.drop(sorted_binance[sorted_binance.owned == 0].index)
+                                        
+                    b_assets = "\n".join(binance['asset'].to_list())
+                    b_owned_floats = binance['owned'].to_list()
+                    b_owned = "\n".join(str(x) for x in b_owned_floats)
+                    
+                    if len(b_assets) > 1024:
+                        b_assets = b_assets[:1024].split("\n")[:-1]
+                        b_owned = "\n".join(b_owned.split("\n")[:len(b_assets)])
+                        b_assets = "\n".join(b_assets)
+                    elif len(b_owned) > 1024:
+                        b_owned = b_owned[:1024].split("\n")[:-1]
+                        b_assets = "\n".join(b_assets.split("\n")[:len(b_owned)])
+                        b_owned = "\n".join(b_owned)
+                    
+                    usd_values = []
+                    for sym in b_assets.split("\n"):
+                        if sym != 'USDT':
+                            usd_values.append(binance_price(sym+'USDT'))
+                        else:
+                            usd_values.append(1)
+
+                    values = [str(round(x*y,2)) for x,y in zip(b_owned_floats, usd_values)]
+                    values = "\n".join(values)
+                    
+                    e.add_field(name="Binance Coins", value=b_assets, inline=True)
+                    e.add_field(name="Amount Owned", value=b_owned, inline=True)
+                    e.add_field(name="USD Value", value=values, inline=True)
+                
+                if not kucoin.empty:
+                    sorted_kucoin = kucoin.sort_values(by=['owned'], ascending=False)
+                    sorted_kucoin = sorted_kucoin.round({'owned':3})
+                    kucoin = sorted_kucoin.drop(sorted_kucoin[sorted_kucoin.owned == 0].index)
+                    
+                    k_assets = "\n".join(kucoin['asset'].to_list())
+                    k_owned_floats = kucoin['owned'].to_list()
+                    k_owned = "\n".join(str(x) for x in k_owned_floats)
+
+                    if len(k_assets) > 1024:
+                        k_assets = k_assets[:1024].split("\n")[:-1]
+                        k_owned = "\n".join(k_owned.split("\n")[:len(k_assets)])
+                        k_assets = "\n".join(k_assets)
+                    elif len(k_owned) > 1024:
+                        k_owned = k_owned[:1024].split("\n")[:-1]
+                        k_assets = "\n".join(k_assets.split("\n")[:len(k_owned)])
+                        k_owned = "\n".join(k_owned)
+                    
+                    usd_values = []
+                    for sym in k_assets.split("\n"):
+                        if sym != 'USDT':
+                            usd_values.append(kucoin_price(sym+'-USDT'))
+                        else:
+                            usd_values.append(1)
+                            
+                    values = [str(round(x*y,2)) for x,y in zip(k_owned_floats, usd_values)]
+                    values = "\n".join(values)
+                    
+                    e.add_field(name="Kucoin Coins", value=k_assets, inline=True)
+                    e.add_field(name="Amount Owned", value=k_owned, inline=True)
+                    e.add_field(name="USD Value", value=values, inline=True)
+                    
+                await channel.send(embed=e)
+                
+def binance_price(symbol):
+    """Symbol should be in the format of 'BTCUSDT'"""
+    response = requests.get(f"https://api.binance.com/api/v3/avgPrice?symbol={symbol}").json()
+    if "price" in response.keys():
+        return round(float(response["price"]),3)
+    else:
+        print(f"Could not find average price on Binance for {symbol}")
+        return 1
+    
+def kucoin_price(symbol):
+    """Symbol should be in the format of 'BTC-USDT'"""
+    response = requests.get(f"https://api.kucoin.com/api/v1/market/stats?symbol={symbol}").json()
+    if "averagePrice" in response.keys():
+        return round(float(response["averagePrice"]),3)
+    else:
+        print(f"Could not find average price on KuCoin for {symbol}")
+        return 1
         
 def setup(bot):
     bot.add_cog(Exchanges(bot))
