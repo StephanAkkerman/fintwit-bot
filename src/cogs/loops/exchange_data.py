@@ -15,7 +15,6 @@ from urllib.parse import urlencode
 import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
-from discord.utils import get
 import pandas as pd
 
 # Local dependencies
@@ -24,11 +23,12 @@ from util.disc_util import get_channel
 from util.vars import config
 from util.disc_util import get_guild
 
+stables = ['USDT', 'USD', 'BUSD', 'DAI']
 
-async def trades_msg(exchange, channel, user, symbol, side, orderType, price, quantity):
+async def trades_msg(exchange, channel, user, symbol, side, orderType, price, quantity, usd):
     
     e = discord.Embed(
-            title=f"{side.capitalize()} {quantity} {symbol}",
+            title=f"{orderType.capitalize()} {side.lower()} {quantity} {symbol}",
             description="",
             color=0xf0b90b if exchange == 'binance' else 0x24ae8f,
         )
@@ -44,26 +44,80 @@ async def trades_msg(exchange, channel, user, symbol, side, orderType, price, qu
     
     e.add_field(name="Amount", value=quantity, inline=True)
     
-    e.add_field(
-            name="Order Type", value=orderType.capitalize(), inline=True,
-        )
+    if usd != 0:
+        e.add_field(
+                name="$ Worth", value=f"${usd}", inline=True,
+            )
     
     e.set_footer(
         text=f"Today at {datetime.datetime.now().strftime('%H:%M')}",
         icon_url="https://public.bnbstatic.com/20190405/eb2349c3-b2f8-4a93-a286-8f86a62ea9d8.png" if exchange == 'binance' else "https://yourcryptolibrary.com/wp-content/uploads/2021/12/Kucoin-exchange-logo-1.png",
     )
-    
+            
     await channel.send(embed=e)
 
-class Binance_Socket():
+    # Tag the person
+    if orderType.upper() != "MARKET":
+        await channel.send(f"<@{user.id}>")
+        
+class Binance():
     def __init__(self, bot, row, trades_channel):
         self.bot = bot
         self.trades_channel = trades_channel
-                
-        self.id = row["id"]
-        self.user = bot.get_user(row["id"])
-        self.key = row["key"]
-        self.secret = row["secret"]
+        
+        # So we can also just use None as row
+        if isinstance(row, pd.Series):
+            self.id = row["id"]
+            self.user = bot.get_user(row["id"])
+            self.key = row["key"]
+            self.secret = row["secret"]
+        
+    def get_timestamp(self):
+        return int(time.time() * 1000)
+
+    def hashing(self, query_string):
+        return hmac.new(
+            self.secret.encode("utf-8"), query_string.encode("utf-8"), hashlib.sha256
+        ).hexdigest()
+
+    def dispatch_request(self, http_method):
+        session = requests.Session()
+        session.headers.update(
+            {"Content-Type": "application/json;charset=utf-8", "X-MBX-APIKEY": self.key}
+        )
+        return {
+            "GET": session.get,
+            "DELETE": session.delete,
+            "PUT": session.put,
+            "POST": session.post,
+        }.get(http_method, "GET")
+
+    # used for sending request requires the signature
+    def send_signed_request(self, http_method, url_path, payload={}):
+        query_string = urlencode(payload, True)
+        if query_string:
+            query_string = "{}&timestamp={}".format(query_string, self.get_timestamp())
+        else:
+            query_string = "timestamp={}".format(self.get_timestamp())
+
+        url = (
+            "https://api.binance.com" + url_path + "?" + query_string + "&signature=" + self.hashing(query_string)
+        )
+        #print("{} {}".format(http_method, url))
+        params = {"url": url, "params": {}}
+        response = self.dispatch_request(http_method)(**params)
+        return response.json()
+    
+    def get_data(self):
+        #https://binance-docs.github.io/apidocs/spot/en/#account-information-user_data
+        response = self.send_signed_request("GET", "/api/v3/account", {})
+        balances = response['balances']
+        owned = [{'asset':asset['asset'],
+                  'owned':float(asset['free'])+float(asset['locked']),
+                  'exchange':'binance',
+                  'id':self.id,
+                  'user':self.user.name.split('#')[0]} for asset in balances if float(asset['free']) > 0 or float(asset['locked']) > 0]
+        return pd.DataFrame(owned) 
         
     def get_base_sym(self, sym):
         response = requests.get(f"https://api.binance.com/api/v3/exchangeInfo?symbol={sym}").json()
@@ -72,47 +126,53 @@ class Binance_Socket():
         else:
             return sym
         
+    def get_usd_price(self, symbol):
+        """Symbol should be in the format of 'BTCUSDT'"""
+        # Use for-loop using USDT, USD, BUSD, DAI
+        for usd in stables:
+            response = requests.get(f"https://api.binance.com/api/v3/avgPrice?symbol={symbol+usd}").json()
+            if "price" in response.keys():
+                return round(float(response["price"]),2)
+        
+        print(f"Could not find average price on Binance for {symbol}")
+        return 0
+        
+    ### From here are the websocket functions ###
     async def on_msg(self, msg):   
         # Convert the message to a json object (dict)
         msg = json.loads(msg)
              
-        if msg['e'] == 'executionReport':
+        if msg['e'] == 'executionReport':                        
             sym = msg["s"]  # ie 'YFIUSDT'
             side = msg["S"]  # ie 'BUY', 'SELL'
             orderType = msg["o"]  # ie 'LIMIT', 'MARKET', 'STOP_LOSS_LIMIT'
             execType = msg["x"]  # ie 'TRADE', 'NEW' or 'CANCELLED'
-            #execPrice = round(float(msg["L"]), 4) # The latest price it was filled at
             #execQuant = round(float(msg["z"]), 4) # The quantity filled
-            price = round(float(msg["p"]), 4) # Order price
+            price = round(float(msg["p"]), 4) # Order price, sometimes shows 0.0
+            if price == 0:
+                price = round(float(msg["L"]), 4) # The latest price it was filled at
             quantity = round(float(msg["q"]), 4) # Order quantity
             
             # Only care about actual trades
             if execType == "TRADE":
-                await trades_msg("binance", self.trades_channel, self.user, sym, side, orderType, price, quantity)
+                base = self.get_base_sym(sym)
+                if base not in stables:
+                    usd = self.get_usd_price(base)
+                else:
+                    usd = 0
+                await trades_msg("binance", self.trades_channel, self.user, sym, side, orderType, price, quantity, usd)
                 
             # Assets db: asset, owned (quantity), exchange, id, user
             assets_db = get_db("assets")
-
-            # If it is a sell, remove it from assets db
-            if side == "SELL":
-                old_row = assets_db.loc[(assets_db["asset"] == sym) & 
-                                        (assets_db["exchange"] == "binance") & 
-                                        (assets_db["id"] == self.id)]
-                
-                # Decrease owned by quantity, or remove it
             
-            # If it is a buy, add it to assets db
-            elif side == "BUY":
-                new_row = pd.DataFrame({'asset':self.get_base_sym(sym),
-                                        'owned':quantity,
-                                        'exchange':"binance", 
-                                        'id':self.id, 
-                                        'user':self.user})
-                # Add it to the database
-                assets_db = pd.concat(assets_db, new_row)
+            # Drop all rows for this user and exchange
+            updated_assets_db = assets_db.drop(assets_db[(assets_db["id"] == self.id) & 
+                                              (assets_db["exchange"] == "binance")].index)
             
-            update_db("assets", assets_db)
-            # Maybe post the assets as well
+            assets_db = pd.concat([updated_assets_db, self.get_data()]).reset_index(drop=True)
+            
+            update_db(assets_db, "assets")
+            # Maybe post the assets of this user as well
 
     async def start_sockets(self):
         # Documentation: https://github.com/binance/binance-spot-api-docs/blob/master/user-data-stream.md
@@ -145,16 +205,55 @@ class Binance_Socket():
                 except asyncio.TimeoutError:
                     continue
                     
-class KuCoin_Socket():
+class KuCoin():
     def __init__(self, bot, row, trades_channel):
         self.bot = bot
         self.trades_channel = trades_channel
         
-        self.user = bot.get_user(row["id"])
-        self.key = row["key"]
-        self.secret = row["secret"]
-        self.passphrase = row["passphrase"]
+        if isinstance(row, pd.Series):
+            self.id = row["id"]
+            self.user = bot.get_user(row["id"])
+            self.key = row["key"]
+            self.secret = row["secret"]
+            self.passphrase = row["passphrase"]
+        
+    def get_data(self):
+        #https://docs.kucoin.com/#get-an-account
+        url = 'https://api.kucoin.com/api/v1/accounts'
+        now = int(time.time() * 1000)
+        str_to_sign = str(now) + 'GET' + '/api/v1/accounts'
+        signature = base64.b64encode(hmac.new(self.secret.encode('utf-8'), str_to_sign.encode('utf-8'), hashlib.sha256).digest())
+        passphrase = base64.b64encode(hmac.new(self.secret.encode('utf-8'), self.passphrase.encode('utf-8'), hashlib.sha256).digest())
+        headers = {
+            "KC-API-SIGN": signature,
+            "KC-API-TIMESTAMP": str(now),
+            "KC-API-KEY": self.key,
+            "KC-API-PASSPHRASE": passphrase,
+            "KC-API-KEY-VERSION": "2",
+            "Content-Type": "application/json"
+        }
+        response = requests.get(url, headers=headers).json()['data']
+        owned = [{"asset":sym['currency'],
+                  "owned":sym['balance'],
+                  'exchange':'kucoin',
+                  'id':self.id,
+                  'user':self.user.name.split('#')[0]} for sym in response if float(sym['balance']) > 0]
+        return pd.DataFrame(owned)
+    
+    def get_quote_price(self, symbol):
+        """
+        Symbol should be in the format of 'BTC-USDT'
+        Returns the value of BTC in USDT
+        """
+        response = requests.get(f"https://api.kucoin.com/api/v1/market/stats?symbol={symbol}").json()
+        data = response['data']
+        if data["averagePrice"] != None:
+            return round(float(data["averagePrice"]),2)
+        else:
+            print(f"Could not find average price on KuCoin for {symbol}")
+            return 0
                 
+    ### From here are the websocket functions ###
     async def on_msg(self, msg):        
         msg = json.loads(msg)
                         
@@ -167,8 +266,26 @@ class KuCoin_Socket():
                 quantity = data['filledSize'] + data['remainSize']
                 execPrice = data['matchPrice']
                 
-                await trades_msg("KuCoin", self.trades_channel, self.user, sym, side, orderType, execPrice, quantity)
+                base = sym.split('-')[0]
+                if base not in stables:
+                    usd = self.get_quote_price( + '-' + "USDT")
+                else:
+                    usd = 0
+                
+                await trades_msg("KuCoin", self.trades_channel, self.user, sym, side, orderType, execPrice, quantity, usd)
             
+                # Assets db: asset, owned (quantity), exchange, id, user
+                assets_db = get_db("assets")
+                
+                # Drop all rows for this user and exchange
+                updated_assets_db = assets_db.drop(assets_db[(assets_db["id"] == self.id) & 
+                                                (assets_db["exchange"] == "kucoin")].index)
+                
+                assets_db = pd.concat([updated_assets_db, self.get_data()]).reset_index(drop=True)
+                
+                update_db(assets_db, "assets")
+                # Maybe post the assets of this user as well
+                        
     async def start_sockets(self):
         # From documentation: https://docs.kucoin.com/
         # For the GET, DELETE request, all query parameters need to be included in the request url. (e.g. /api/v1/accounts?currency=BTC)
@@ -230,83 +347,7 @@ class KuCoin_Socket():
                     continue
         else:
             print("Error getting KuCoin response")
-    
-class Binance_Data():
-    def __init__(self, key, secret):
-        self.key = key
-        self.secret = secret
-        self.base_url = "https://api.binance.com"
-        self.params = {"type": "SPOT"}
-        self.http_method = "GET"
-        self.url_path = "/sapi/v1/accountSnapshot"
-    
-    def get_timestamp(self):
-        return int(time.time() * 1000)
-
-    def hashing(self, query_string):
-        return hmac.new(
-            self.secret.encode("utf-8"), query_string.encode("utf-8"), hashlib.sha256
-        ).hexdigest()
-
-    def dispatch_request(self, http_method):
-        session = requests.Session()
-        session.headers.update(
-            {"Content-Type": "application/json;charset=utf-8", "X-MBX-APIKEY": self.key}
-        )
-        return {
-            "GET": session.get,
-            "DELETE": session.delete,
-            "PUT": session.put,
-            "POST": session.post,
-        }.get(http_method, "GET")
-
-    # used for sending request requires the signature
-    def send_signed_request(self, http_method, url_path, payload={}):
-        query_string = urlencode(payload, True)
-        if query_string:
-            query_string = "{}&timestamp={}".format(query_string, self.get_timestamp())
-        else:
-            query_string = "timestamp={}".format(self.get_timestamp())
-
-        url = (
-            self.base_url + url_path + "?" + query_string + "&signature=" + self.hashing(query_string)
-        )
-        #print("{} {}".format(http_method, url))
-        params = {"url": url, "params": {}}
-        response = self.dispatch_request(http_method)(**params)
-        return response.json()
-    
-    def get_data(self):
-        response = self.send_signed_request(self.http_method, self.url_path, self.params)
-        balances = response['snapshotVos'][0]['data']['balances']
-        owned = [{'asset':asset['asset'], 'owned':float(asset['free'])+float(asset['locked'])} for asset in balances if float(asset['free']) > 0 or float(asset['locked']) > 0]
-        return pd.DataFrame(owned)
-    
-class KuCoin_Data():
-    def __init__(self, key, secret, passphrase):
-        self.key = key
-        self.secret = secret
-        self.passphrase = passphrase
-    
-    def get_data(self):
-        #https://docs.kucoin.com/#get-an-account
-        url = 'https://api.kucoin.com/api/v1/accounts'
-        now = int(time.time() * 1000)
-        str_to_sign = str(now) + 'GET' + '/api/v1/accounts'
-        signature = base64.b64encode(hmac.new(self.secret.encode('utf-8'), str_to_sign.encode('utf-8'), hashlib.sha256).digest())
-        passphrase = base64.b64encode(hmac.new(self.secret.encode('utf-8'), self.passphrase.encode('utf-8'), hashlib.sha256).digest())
-        headers = {
-            "KC-API-SIGN": signature,
-            "KC-API-TIMESTAMP": str(now),
-            "KC-API-KEY": self.key,
-            "KC-API-PASSPHRASE": passphrase,
-            "KC-API-KEY-VERSION": "2",
-            "Content-Type": "application/json"
-        }
-        response = requests.get(url, headers=headers).json()['data']
-        owned = [{"asset":sym['currency'], "owned":sym['balance']} for sym in response if float(sym['balance']) > 0]
-        return pd.DataFrame(owned)
-    
+       
 class Exchanges(commands.Cog):    
     def __init__(self, bot, db=get_db('portfolio')):
         self.bot = bot
@@ -328,18 +369,12 @@ class Exchanges(commands.Cog):
             if not binance.empty:
                 for _, row in binance.iterrows():
                     # If using await, it will block other connections
-                    asyncio.create_task(Binance_Socket(self.bot, row, self.trades_channel).start_sockets())
+                    asyncio.create_task(Binance(self.bot, row, self.trades_channel).start_sockets())
                         
             if not kucoin.empty:
                 for _, row in kucoin.iterrows():
-                    asyncio.create_task(KuCoin_Socket(self.bot, row, self.trades_channel).start_sockets())
-                    
-    async def reset_connection(self):
-        """
-        This function should be called to reset one of the sockets
-        """
-        pass
-        
+                    asyncio.create_task(KuCoin(self.bot, row, self.trades_channel).start_sockets())
+                            
 
     async def assets(self, db=get_db('portfolio')):
         """ 
@@ -363,23 +398,12 @@ class Exchanges(commands.Cog):
             
             if not binance.empty:
                 for _, row in binance.iterrows():
-                    # Add this info to the assets.pkl database
-                    new_info = Binance_Data(row['key'], row['secret']).get_data()
-                    new_info['exchange'] = row['exchange']
-                    new_info['id'] = row['id']
-                    new_info['user'] = row['user']
-                    
-                    # Add it to the assets db
-                    assets_db = pd.concat([assets_db, new_info], ignore_index=True)
+                    # Add this data to the assets.pkl database                    
+                    assets_db = pd.concat([assets_db, Binance(self.bot, row, None).get_data()], ignore_index=True)
                         
             if not kucoin.empty:
-                for _, row in kucoin.iterrows():
-                    new_info = KuCoin_Data(row['key'], row['secret'], row['passphrase']).get_data()
-                    new_info['exchange'] = row['exchange']
-                    new_info['id'] = row['id']
-                    new_info['user'] = row['user']
-                    
-                    assets_db = pd.concat([assets_db, new_info], ignore_index=True)
+                for _, row in kucoin.iterrows():                    
+                    assets_db = pd.concat([assets_db, KuCoin(self.bot, row, None).get_data()], ignore_index=True)
                     
         # Sum values where assets and names are the same
         assets_db = assets_db.astype({'asset':'string', 'owned':'float64', 'exchange':'string', 'id':'int64', 'user':'string'})
@@ -391,9 +415,7 @@ class Exchanges(commands.Cog):
         self.post_assets.start()
 
     @loop(hours=12)
-    async def post_assets(self):
-        print("Started")
-        
+    async def post_assets(self):        
         assets_db = get_db('assets')
         guild = get_guild(self.bot)
         
@@ -448,7 +470,7 @@ class Exchanges(commands.Cog):
                     usd_values = []
                     for sym in b_assets.split("\n"):
                         if sym != 'USDT':
-                            usd_values.append(binance_price(sym+'USDT'))
+                            usd_values.append(Binance(self.bot, None, None).get_usd_price(sym))
                         else:
                             usd_values.append(1)
 
@@ -480,7 +502,7 @@ class Exchanges(commands.Cog):
                     usd_values = []
                     for sym in k_assets.split("\n"):
                         if sym != 'USDT':
-                            usd_values.append(kucoin_price(sym+'-USDT'))
+                            usd_values.append(KuCoin(self.bot, None, None).get_quote_price(sym+'-USDT'))
                         else:
                             usd_values.append(1)
                             
@@ -491,25 +513,8 @@ class Exchanges(commands.Cog):
                     e.add_field(name="Amount Owned", value=k_owned, inline=True)
                     e.add_field(name="USD Value", value=values, inline=True)
                     
-                await channel.send(embed=e)
-                
-def binance_price(symbol):
-    """Symbol should be in the format of 'BTCUSDT'"""
-    response = requests.get(f"https://api.binance.com/api/v3/avgPrice?symbol={symbol}").json()
-    if "price" in response.keys():
-        return round(float(response["price"]),3)
-    else:
-        print(f"Could not find average price on Binance for {symbol}")
-        return 1
-    
-def kucoin_price(symbol):
-    """Symbol should be in the format of 'BTC-USDT'"""
-    response = requests.get(f"https://api.kucoin.com/api/v1/market/stats?symbol={symbol}").json()
-    if "averagePrice" in response.keys():
-        return round(float(response["averagePrice"]),3)
-    else:
-        print(f"Could not find average price on KuCoin for {symbol}")
-        return 1
+                await channel.send(embed=e)  
+
         
 def setup(bot):
     bot.add_cog(Exchanges(bot))

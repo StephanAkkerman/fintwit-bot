@@ -211,13 +211,10 @@ def get_stock_info(ticker):
         formatted_change = f"+{perc_change}% 📈" if perc_change > 0 else f"{perc_change}% 📉"
         website = f"https://www.tradingview.com/symbols/{ticker}-{exchange}/?yahoo"
         
-        # Get the tradingview TA
-        ta = get_tv_TA(ticker, 'stock')
-        
-        return volume, website, exchange, price, perc_change, ta  
+        return volume, website, exchange, price, perc_change  
 
     else:
-        return 0, None, None, None, None, None
+        return 0, None, None, None, None
 
 def classify_ticker(ticker, majority):
     """Main function to classify the ticker as crypto or stock
