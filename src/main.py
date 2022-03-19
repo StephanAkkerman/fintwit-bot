@@ -49,8 +49,12 @@ def load_folder(foldername):
     for filename in os.listdir(f"./src/cogs/{foldername}"):
         if filename.endswith(".py"):
             print("Loading:", filename)
-            bot.load_extension(f"cogs.{foldername}.{filename[:-3]}")
-
+            try:
+                bot.load_extension(f"cogs.{foldername}.{filename[:-3]}")
+            except commands.ExtensionAlreadyLoaded:
+                print("Cog already loaded")
+            except commands.ExtensionNotFound:
+                print("Cog not found")
     print()
 
 

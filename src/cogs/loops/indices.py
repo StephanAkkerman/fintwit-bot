@@ -8,9 +8,9 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
-from util.vars import config, get_channel
+from util.vars import config
+from util.disc_util import get_channel
 from util.tv_data import get_tv_data
-from util.ticker import get_stock_info
 
 def human_format(number):
     """ https://stackoverflow.com/questions/579310/formatting-long-numbers-as-strings-in-python/45846841 """
