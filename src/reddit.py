@@ -11,7 +11,8 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
-from util.vars import config, get_channel
+from util.vars import config
+from util.disc_util import get_channel
 
 class Reddit(commands.Cog):
     def __init__(self, bot):

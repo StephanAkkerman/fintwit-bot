@@ -31,7 +31,11 @@ class Losers(commands.Cog):
         
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
         
-        losers = si.get_day_losers()[['Symbol', 'Price (Intraday)', '% Change', 'Volume']].head(50)
+        try:
+            losers = si.get_day_losers()[['Symbol', 'Price (Intraday)', '% Change', 'Volume']].head(50)
+        except Exception:
+            print("Failed to get losers")
+            return
         
         losers['% Change'] = losers['% Change'].apply(lambda x: f" (+{x}% 📈)" if x > 0 else f"({x}% 📉)")
         losers['Price'] = losers['Price (Intraday)'].astype(str) + losers['% Change']
