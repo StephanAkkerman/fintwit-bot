@@ -12,6 +12,7 @@ from discord.ext.tasks import loop
 # Local dependencies
 from util.vars import config
 from util.disc_util import get_channel
+from util.ticker import afterHours
 
 
 class Gainers(commands.Cog):
@@ -20,8 +21,13 @@ class Gainers(commands.Cog):
 
         self.gainers.start()
 
-    @loop(hours=12)
+    @loop(hours=2)
     async def gainers(self):
+        
+        # Dont send if the market is closed
+        if afterHours():
+           return 
+        
         e = discord.Embed(
             title=f"Top 50 Gainers",
             url="https://finance.yahoo.com/gainers/",

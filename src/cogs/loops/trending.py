@@ -13,6 +13,7 @@ from discord.ext.tasks import loop
 # Local dependencies
 from util.vars import config
 from util.disc_util import get_channel
+from util.ticker import afterHours
 
 
 class Trending(commands.Cog):
@@ -78,9 +79,12 @@ class Trending(commands.Cog):
 
         await channel.send(embed=e)
 
-    @loop(hours=12)
+    @loop(hours=2)
     async def stocks(self):
         """Print the most activaly traded stocks in dedicated channel"""
+        # Dont send if the market is closed
+        if afterHours():
+           return 
 
         e = discord.Embed(
             title=f"Trending Stocks",

@@ -11,6 +11,7 @@ from discord.ext.tasks import loop
 from util.vars import config
 from util.disc_util import get_channel
 from util.tv_data import get_tv_data
+from util.ticker import afterHours
 
 def human_format(number):
     """ https://stackoverflow.com/questions/579310/formatting-long-numbers-as-strings-in-python/45846841 """
@@ -75,8 +76,12 @@ class Indices(commands.Cog):
 
         await channel.send(embed=e)
         
-    @loop(hours=12)
+    @loop(hours=2)
     async def stock(self):
+        # Dont send if the market is closed
+        if afterHours():
+           return 
+        
         e = discord.Embed(
             title=f"Stock Indices",
             description="",
