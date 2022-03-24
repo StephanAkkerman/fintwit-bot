@@ -8,6 +8,7 @@ import pandas as pd
 # Local dependencies
 from util.db import get_db, update_db
 from cogs.loops.exchange_data import Exchanges
+from cogs.loops.assets import Assets
 class Portfolio(commands.Cog):    
     def __init__(self, bot):
         self.bot = bot
@@ -43,8 +44,10 @@ class Portfolio(commands.Cog):
                 update_db(pd.concat([get_db('portfolio'),new_data], ignore_index=True), 'portfolio')
                 await ctx.send("Succesfully added your portfolio to the database!")
 
-                # Init Exchanges to start assets and websockets
+                # Init Exchanges to start websockets
                 Exchanges(self.bot, new_data)
+                # Post the assets
+                Assets(self.bot, new_data)
                 
             elif input[0] == "remove":
                 old_db = get_db('portfolio')
