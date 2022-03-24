@@ -66,10 +66,10 @@ class Reddit(commands.Cog):
                         img_url.append(largest_image['u'])
                 else:
                     descr = url                
-                
+ 
             e = discord.Embed(
                 title=title,
-                url=submission.url,
+                url=submission.permalink,
                 description=descr,
                 color=0xFF3F18,
                 timestamp=datetime.datetime.utcfromtimestamp(submission.created_utc),
