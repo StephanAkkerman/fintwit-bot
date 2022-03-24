@@ -1,6 +1,5 @@
 # Standard libraries
 import datetime
-import asyncio
 
 # > 3rd party dependencies
 import asyncpraw
@@ -18,11 +17,11 @@ class Reddit(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        reddit = asyncpraw.Reddit(client_id=config["REDDIT"]["PERSONAL_USE"], \
-                     client_secret=config["REDDIT"]["SECRET"], \
-                     user_agent=config["REDDIT"]["APP_NAME"], \
-                     username=config["REDDIT"]["USERNAME"], \
-                     password=config["REDDIT"]["PASSWORD"])
+        reddit = asyncpraw.Reddit(client_id=config["REDDIT"]["PERSONAL_USE"], 
+                                  client_secret=config["REDDIT"]["SECRET"], 
+                                  user_agent=config["REDDIT"]["APP_NAME"], 
+                                  username=config["REDDIT"]["USERNAME"], 
+                                  password=config["REDDIT"]["PASSWORD"])
 
         self.wsb.start(reddit)
 
@@ -44,19 +43,40 @@ class Reddit(commands.Cog):
 
         subreddit = await reddit.subreddit('WallStreetBets')
         async for submission in subreddit.hot(limit=10):
-            
-
             descr = submission.selftext
+            
+            # Make sure the description and title are not too long
             if len(descr) > 280:
                 descr = descr[:280] + "..."
-
+                
+            title = submission.title
+            if len(title) > 250:
+                title = title[:250] + "..."
+            
+            # Add images to the embed
+            img_url = []
+            if not submission.is_self:
+                url = submission.url
+                if url.endswith(".jpg") or url.endswith(".png") or url.endswith(".gif"):
+                    img_url.append(url)
+                elif "gallery" in url:
+                    image_dict = submission.media_metadata
+                    for image_item in image_dict.values():
+                        largest_image = image_item['s']
+                        img_url.append(largest_image['u'])
+                else:
+                    descr = url                
+                
             e = discord.Embed(
-                title=submission.title,
+                title=title,
                 url=submission.url,
                 description=descr,
                 color=0xFF3F18,
-                timestamp=datetime.datetime.utcfromtimestamp(submission.created_utc)
+                timestamp=datetime.datetime.utcfromtimestamp(submission.created_utc),
             )
+            if img_url:
+                e.set_image(url=img_url[0])
+            
             e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
             e.set_thumbnail(url="https://styles.redditmedia.com/t5_2th52/styles/communityIcon_wzrl8s0hx8a81.png?width=256&s=dcbf830170c1e8237335a3f046b36f723c5d55e7")
 
@@ -73,8 +93,11 @@ class Reddit(commands.Cog):
                 icon_url="https://external-preview.redd.it/iDdntscPf-nfWKqzHRGFmhVxZm4hZgaKe5oyFws-yzA.png?width=640&crop=smart&auto=webp&s=bfd318557bf2a5b3602367c9c4d9cd84d917ccd5",
             )
 
-            await channel.send(embed=e)
+            msg = await channel.send(embed=e)
+            
+            for i in range(len(img_url)):
+                if i > 0:
+                    await channel.send(reference=msg, content=img_url[i])
 
 def setup(bot):
     bot.add_cog(Reddit(bot))
-
