@@ -44,7 +44,10 @@ class Indices(commands.Cog):
         prices = []
         
         for index in crypto_indices:
-            price, change, _, exchange = get_tv_data(index, 'crypto')
+            tv_data = get_tv_data(index, 'crypto')
+            if tv_data == False:
+                continue
+            price, change, _, exchange = tv_data
             change = round(change, 2)
             change = f" (+{change}% 📈)" if change > 0 else f"({change}% 📉)"
             
@@ -96,7 +99,10 @@ class Indices(commands.Cog):
         prices = []
                 
         for index in stock_indices:
-            price, change, _, exchange = get_tv_data(index, 'stock')
+            tv_data = get_tv_data(index, 'stock')
+            if tv_data == False:
+                continue
+            price, change, _, exchange = tv_data
             change = round(change, 2)
             change = f" (+{change}% 📈)" if change > 0 else f"({change}% 📉)"
             price = f"{round(price, 2)} {change}"           

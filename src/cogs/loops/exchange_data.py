@@ -64,6 +64,7 @@ class Binance():
     def __init__(self, bot, row, trades_channel):
         self.bot = bot
         self.trades_channel = trades_channel
+        self.ws = None
         
         # So we can also just use None as row
         if isinstance(row, pd.Series):
@@ -71,6 +72,8 @@ class Binance():
             self.user = bot.get_user(row["id"])
             self.key = row["key"]
             self.secret = row["secret"]
+            
+        self.restart_sockets.start()
         
     def get_timestamp(self):
         return int(time.time() * 1000)
@@ -173,6 +176,14 @@ class Binance():
             
             update_db(assets_db, "assets")
             # Maybe post the assets of this user as well
+            
+    @loop(hours=24)
+    async def restart_sockets(self):
+        if self.ws != None:
+            await self.ws.close()
+            self.ws = None
+            await asyncio.sleep(60)
+            await self.start_sockets()
 
     async def start_sockets(self):
         # Documentation: https://github.com/binance/binance-spot-api-docs/blob/master/user-data-stream.md
@@ -181,25 +192,25 @@ class Binance():
         listen_key = requests.post(url = 'https://api.binance.com/api/v3/userDataStream', headers=headers).json()
                 
         if 'listenKey' in listen_key.keys():
-            # https://gist.github.com/pgrandinetti/964747a9f2464e576b8c6725da12c1eb
+            # Implementation inspired by: https://gist.github.com/pgrandinetti/964747a9f2464e576b8c6725da12c1eb
             while True:
                 # outer loop restarted every time the connection fails
                 try:
                     async with websockets.connect(uri=f'wss://stream.binance.com:9443/ws/{listen_key["listenKey"]}', 
-                                                  ping_interval= 60*3) as ws:
+                                                  ping_interval= 60*3) as self.ws:
                         print("Succesfully connected with Binance socket")
                         while True:
                         # listener loop
                             try:
-                                reply = await ws.recv()
+                                reply = await self.ws.recv()
                                 await self.on_msg(reply)
                             except (websockets.exceptions.ConnectionClosed):
                                 print("Binance: Connection Closed")
-                                break
-                                # Maybe ping the server
+                                await self.restart_sockets()
+                                
                 except ConnectionRefusedError:
                     print("Binance: Connection Refused")
-                    # Should reconnect after a bit
+                    await self.restart_sockets()
                     
                 # For some reason this always happens at startup, so ignore it
                 except asyncio.TimeoutError:
@@ -209,6 +220,7 @@ class KuCoin():
     def __init__(self, bot, row, trades_channel):
         self.bot = bot
         self.trades_channel = trades_channel
+        self.ws = None
         
         if isinstance(row, pd.Series):
             self.id = row["id"]
@@ -216,6 +228,8 @@ class KuCoin():
             self.key = row["key"]
             self.secret = row["secret"]
             self.passphrase = row["passphrase"]
+            
+        self.restart_sockets.start()
         
     def get_data(self):
         #https://docs.kucoin.com/#get-an-account
@@ -285,6 +299,14 @@ class KuCoin():
                 
                 update_db(assets_db, "assets")
                 # Maybe post the assets of this user as well
+                
+    @loop(hours=24)
+    async def restart_sockets(self):
+        if self.ws != None:
+            await self.ws.close()
+            self.ws = None
+            await asyncio.sleep(60)
+            await self.start_sockets()
                         
     async def start_sockets(self):
         # From documentation: https://docs.kucoin.com/
@@ -326,27 +348,33 @@ class KuCoin():
                 try:
                     async with websockets.connect(uri=f'wss://ws-api.kucoin.com/endpoint?token={token}', 
                                                   ping_interval = ping_interval,
-                                                  ping_timeout = ping_timeout) as ws:
-                        await ws.send(json.dumps({'type': 'subscribe', 'topic': '/spotMarket/tradeOrders', 'privateChannel': 'true', 'response': 'true'}))
+                                                  ping_timeout = ping_timeout) as self.ws:
+                        await self.ws.send(json.dumps({'type': 'subscribe', 'topic': '/spotMarket/tradeOrders', 'privateChannel': 'true', 'response': 'true'}))
                         print("Succesfully connected with KuCoin socket")
                         while True:
                         # listener loop
                             try:
-                                reply = await ws.recv()
+                                reply = await self.ws.recv()
                                 await self.on_msg(reply)
                             except (websockets.exceptions.ConnectionClosed):
                                 print("KuCoin: Connection Closed")
-                                break
-                                # Maybe ping the server
+                                # Close the websocket and restart
+                                await self.restart_sockets()
+
+                except websockets.exceptions.InvalidStatusCode:
+                    print("KuCoin: Server rejected connection")
+                    await self.restart_sockets()
+                                                    
                 except ConnectionRefusedError:
                     print("KuCoin: Connection Refused")
-                    # Should reconnect after a bit
+                    await self.restart_sockets()
                     
                 # For some reason this always happens at startup, so ignore it
                 except asyncio.TimeoutError:
                     continue
         else:
             print("Error getting KuCoin response")
+            self.restart_sockets()
        
 class Exchanges(commands.Cog):    
     def __init__(self, bot, db=get_db('portfolio')):
