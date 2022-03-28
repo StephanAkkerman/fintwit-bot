@@ -1,6 +1,6 @@
 ##> Imports
-import requests
 import asyncio
+import aiohttp
 import time
 import hmac
 import base64
@@ -9,7 +9,6 @@ import hashlib
 import websockets
 import datetime
 import hmac
-from urllib.parse import urlencode
 
 # > 3rd Party Dependencies
 import discord
@@ -21,7 +20,6 @@ import pandas as pd
 from util.db import get_db, update_db
 from util.disc_util import get_channel
 from util.vars import config
-from util.disc_util import get_guild
 
 stables = ['USDT', 'USD', 'BUSD', 'DAI']
 
@@ -69,52 +67,44 @@ class Binance():
         # So we can also just use None as row
         if isinstance(row, pd.Series):
             self.id = row["id"]
-            self.user = bot.get_user(row["id"])
             self.key = row["key"]
             self.secret = row["secret"]
+            self.user = bot.get_user(self.id)
             
         self.restart_sockets.start()
         
-    def get_timestamp(self):
-        return int(time.time() * 1000)
-
+    async def get_user(self):
+        self.user = await self.bot.fetch_user(self.id)
+        
     def hashing(self, query_string):
         return hmac.new(
             self.secret.encode("utf-8"), query_string.encode("utf-8"), hashlib.sha256
         ).hexdigest()
-
-    def dispatch_request(self, http_method):
-        session = requests.Session()
-        session.headers.update(
-            {"Content-Type": "application/json;charset=utf-8", "X-MBX-APIKEY": self.key}
-        )
-        return {
-            "GET": session.get,
-            "DELETE": session.delete,
-            "PUT": session.put,
-            "POST": session.post,
-        }.get(http_method, "GET")
-
-    # used for sending request requires the signature
-    def send_signed_request(self, http_method, url_path, payload={}):
-        query_string = urlencode(payload, True)
-        if query_string:
-            query_string = "{}&timestamp={}".format(query_string, self.get_timestamp())
-        else:
-            query_string = "timestamp={}".format(self.get_timestamp())
-
-        url = (
-            "https://api.binance.com" + url_path + "?" + query_string + "&signature=" + self.hashing(query_string)
-        )
-        #print("{} {}".format(http_method, url))
-        params = {"url": url, "params": {}}
-        response = self.dispatch_request(http_method)(**params)
-        return response.json()
     
-    def get_data(self):
+    # used for sending request requires the signature
+    async def send_signed_request(self, url_path):
+        query_string = f"timestamp={int(time.time() * 1000)}&recvWindow=60000"
+        url = (
+            "https://api.binance.com" + url_path + "?" + query_string + "&signature=" + self.hashing(query_string) 
+        )
+        headers = {"Content-Type": "application/json;charset=utf-8", "X-MBX-APIKEY": self.key}
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                url, headers=headers
+            ) as r:
+                response = await r.json()
+                return response
+        
+    async def get_data(self):
         #https://binance-docs.github.io/apidocs/spot/en/#account-information-user_data
-        response = self.send_signed_request("GET", "/api/v3/account", {})
+        response = await self.send_signed_request("/api/v3/account")
         balances = response['balances']
+        
+        # Ensure that the user is set
+        if self.user is None:
+            await self.get_user()
+        
         owned = [{'asset':asset['asset'],
                   'owned':float(asset['free'])+float(asset['locked']),
                   'exchange':'binance',
@@ -122,20 +112,30 @@ class Binance():
                   'user':self.user.name.split('#')[0]} for asset in balances if float(asset['free']) > 0 or float(asset['locked']) > 0]
         return pd.DataFrame(owned) 
         
-    def get_base_sym(self, sym):
-        response = requests.get(f"https://api.binance.com/api/v3/exchangeInfo?symbol={sym}").json()
-        if "symbols" in response.keys():
-            return response["symbols"][0]["baseAsset"]
-        else:
-            return sym
+    async def get_base_sym(self, sym):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                f"https://api.binance.com/api/v3/exchangeInfo?symbol={sym}"
+            ) as r:
+                response = await r.json()
+                
+                if "symbols" in response.keys():
+                    return response["symbols"][0]["baseAsset"]
+                else:
+                    return sym
         
-    def get_usd_price(self, symbol):
+    async def get_usd_price(self, symbol):
         """Symbol should be in the format of 'BTCUSDT'"""
         # Use for-loop using USDT, USD, BUSD, DAI
         for usd in stables:
-            response = requests.get(f"https://api.binance.com/api/v3/avgPrice?symbol={symbol+usd}").json()
-            if "price" in response.keys():
-                return round(float(response["price"]),2)
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    f"https://api.binance.com/api/v3/avgPrice?symbol={symbol+usd}"
+                ) as r:
+                    response = await r.json()
+
+                    if "price" in response.keys():
+                        return round(float(response["price"]),2)
         
         print(f"Could not find average price on Binance for {symbol}")
         return 0
@@ -158,9 +158,9 @@ class Binance():
             
             # Only care about actual trades
             if execType == "TRADE":
-                base = self.get_base_sym(sym)
+                base = await self.get_base_sym(sym)
                 if base not in stables:
-                    usd = self.get_usd_price(base)
+                    usd = await self.get_usd_price(base)
                 else:
                     usd = 0
                 await trades_msg("binance", self.trades_channel, self.user, sym, side, orderType, price, quantity, usd)
@@ -172,7 +172,7 @@ class Binance():
             updated_assets_db = assets_db.drop(assets_db[(assets_db["id"] == self.id) & 
                                               (assets_db["exchange"] == "binance")].index)
             
-            assets_db = pd.concat([updated_assets_db, self.get_data()]).reset_index(drop=True)
+            assets_db = pd.concat([updated_assets_db, await self.get_data()]).reset_index(drop=True)
             
             update_db(assets_db, "assets")
             # Maybe post the assets of this user as well
@@ -187,34 +187,36 @@ class Binance():
 
     async def start_sockets(self):
         # Documentation: https://github.com/binance/binance-spot-api-docs/blob/master/user-data-stream.md
-        headers = {'X-MBX-APIKEY': self.key}
-                    
-        listen_key = requests.post(url = 'https://api.binance.com/api/v3/userDataStream', headers=headers).json()
-                
-        if 'listenKey' in listen_key.keys():
-            # Implementation inspired by: https://gist.github.com/pgrandinetti/964747a9f2464e576b8c6725da12c1eb
-            while True:
-                # outer loop restarted every time the connection fails
-                try:
-                    async with websockets.connect(uri=f'wss://stream.binance.com:9443/ws/{listen_key["listenKey"]}', 
-                                                  ping_interval= 60*3) as self.ws:
-                        print("Succesfully connected with Binance socket")
-                        while True:
-                        # listener loop
-                            try:
-                                reply = await self.ws.recv()
-                                await self.on_msg(reply)
-                            except (websockets.exceptions.ConnectionClosed):
-                                print("Binance: Connection Closed")
-                                await self.restart_sockets()
-                                
-                except ConnectionRefusedError:
-                    print("Binance: Connection Refused")
-                    await self.restart_sockets()
-                    
-                # For some reason this always happens at startup, so ignore it
-                except asyncio.TimeoutError:
-                    continue
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                url = 'https://api.binance.com/api/v3/userDataStream', headers= {'X-MBX-APIKEY': self.key}
+            ) as r:
+                listen_key = await r.json()
+                                    
+                if 'listenKey' in listen_key.keys():
+                    # Implementation inspired by: https://gist.github.com/pgrandinetti/964747a9f2464e576b8c6725da12c1eb
+                    while True:
+                        # outer loop restarted every time the connection fails
+                        try:
+                            async with websockets.connect(uri=f'wss://stream.binance.com:9443/ws/{listen_key["listenKey"]}', 
+                                                        ping_interval= 60*3) as self.ws:
+                                print("Succesfully connected with Binance socket")
+                                while True:
+                                # listener loop
+                                    try:
+                                        reply = await self.ws.recv()
+                                        await self.on_msg(reply)
+                                    except (websockets.exceptions.ConnectionClosed):
+                                        print("Binance: Connection Closed")
+                                        await self.restart_sockets()
+                                        
+                        except ConnectionRefusedError:
+                            print("Binance: Connection Refused")
+                            await self.restart_sockets()
+                            
+                        # For some reason this always happens at startup, so ignore it
+                        except asyncio.TimeoutError:
+                            continue
                     
 class KuCoin():
     def __init__(self, bot, row, trades_channel):
@@ -231,7 +233,7 @@ class KuCoin():
             
         self.restart_sockets.start()
         
-    def get_data(self):
+    async def get_data(self):
         #https://docs.kucoin.com/#get-an-account
         url = 'https://api.kucoin.com/api/v1/accounts'
         now = int(time.time() * 1000)
@@ -239,33 +241,44 @@ class KuCoin():
         signature = base64.b64encode(hmac.new(self.secret.encode('utf-8'), str_to_sign.encode('utf-8'), hashlib.sha256).digest())
         passphrase = base64.b64encode(hmac.new(self.secret.encode('utf-8'), self.passphrase.encode('utf-8'), hashlib.sha256).digest())
         headers = {
-            "KC-API-SIGN": signature,
+            "KC-API-SIGN": signature.decode('utf8'),
             "KC-API-TIMESTAMP": str(now),
             "KC-API-KEY": self.key,
-            "KC-API-PASSPHRASE": passphrase,
+            "KC-API-PASSPHRASE": passphrase.decode('utf8'),
             "KC-API-KEY-VERSION": "2",
             "Content-Type": "application/json"
         }
-        response = requests.get(url, headers=headers).json()['data']
-        owned = [{"asset":sym['currency'],
-                  "owned":sym['balance'],
-                  'exchange':'kucoin',
-                  'id':self.id,
-                  'user':self.user.name.split('#')[0]} for sym in response if float(sym['balance']) > 0]
-        return pd.DataFrame(owned)
-    
-    def get_quote_price(self, symbol):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                url, headers=headers
+            ) as r:
+                response = await r.json()
+                response = response['data']
+        
+                owned = [{"asset":sym['currency'],
+                        "owned":sym['balance'],
+                        'exchange':'kucoin',
+                        'id':self.id,
+                        'user':self.user.name.split('#')[0]} for sym in response if float(sym['balance']) > 0]
+                return pd.DataFrame(owned)
+            
+    async def get_quote_price(self, symbol):
         """
         Symbol should be in the format of 'BTC-USDT'
         Returns the value of BTC in USDT
         """
-        response = requests.get(f"https://api.kucoin.com/api/v1/market/stats?symbol={symbol}").json()
-        data = response['data']
-        if data["averagePrice"] != None:
-            return round(float(data["averagePrice"]),2)
-        else:
-            print(f"Could not find average price on KuCoin for {symbol}")
-            return 0
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                f"https://api.kucoin.com/api/v1/market/stats?symbol={symbol}"
+            ) as r:
+                response = await r.json()
+
+                data = response['data']
+                if data["averagePrice"] != None:
+                    return round(float(data["averagePrice"]),2)
+                else:
+                    print(f"Could not find average price on KuCoin for {symbol}")
+                    return 0
                 
     ### From here are the websocket functions ###
     async def on_msg(self, msg):        
@@ -282,7 +295,7 @@ class KuCoin():
                 
                 base = sym.split('-')[0]
                 if base not in stables:
-                    usd = self.get_quote_price( + '-' + "USDT")
+                    usd = await self.get_quote_price( + '-' + "USDT")
                 else:
                     usd = 0
                 
@@ -295,7 +308,7 @@ class KuCoin():
                 updated_assets_db = assets_db.drop(assets_db[(assets_db["id"] == self.id) & 
                                                 (assets_db["exchange"] == "kucoin")].index)
                 
-                assets_db = pd.concat([updated_assets_db, self.get_data()]).reset_index(drop=True)
+                assets_db = pd.concat([updated_assets_db, await self.get_data()]).reset_index(drop=True)
                 
                 update_db(assets_db, "assets")
                 # Maybe post the assets of this user as well
@@ -326,55 +339,59 @@ class KuCoin():
             hmac.new(self.secret.encode('utf-8'), self.passphrase.encode('utf-8'), hashlib.sha256).digest())
         
         headers = {"KC-API-KEY": self.key, 
-                   "KC-API-SIGN" : sign, 
+                   "KC-API-SIGN" : sign.decode('utf8'), 
                    "KC-API-TIMESTAMP": str(now_time),
-                   "KC-API-PASSPHRASE": passphrase, 
+                   "KC-API-PASSPHRASE": passphrase.decode('utf8'), 
                    "KC-API-KEY-VERSION": '2',
                    "Content-Type": "application/json"}
         
         # https://docs.kucoin.com/#apply-connect-token
-        response = requests.post(url = "https://api.kucoin.com" + api_request, headers=headers).json()
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                url = "https://api.kucoin.com" + api_request, headers=headers
+            ) as r:
+                response = await r.json()
         
-        # https://docs.kucoin.com/#request for codes
-        if response['code'] == '200000':
-            token = response['data']['token']
-            
-            # Set ping 
-            ping_interval=int(response['data']['instanceServers'][0]['pingInterval']) // 1000
-            ping_timeout=int(response['data']['instanceServers'][0]['pingTimeout']) // 1000
-            
-            while True:
-                # outer loop restarted every time the connection fails
-                try:
-                    async with websockets.connect(uri=f'wss://ws-api.kucoin.com/endpoint?token={token}', 
-                                                  ping_interval = ping_interval,
-                                                  ping_timeout = ping_timeout) as self.ws:
-                        await self.ws.send(json.dumps({'type': 'subscribe', 'topic': '/spotMarket/tradeOrders', 'privateChannel': 'true', 'response': 'true'}))
-                        print("Succesfully connected with KuCoin socket")
-                        while True:
-                        # listener loop
-                            try:
-                                reply = await self.ws.recv()
-                                await self.on_msg(reply)
-                            except (websockets.exceptions.ConnectionClosed):
-                                print("KuCoin: Connection Closed")
-                                # Close the websocket and restart
-                                await self.restart_sockets()
-
-                except websockets.exceptions.InvalidStatusCode:
-                    print("KuCoin: Server rejected connection")
-                    await self.restart_sockets()
-                                                    
-                except ConnectionRefusedError:
-                    print("KuCoin: Connection Refused")
-                    await self.restart_sockets()
+                # https://docs.kucoin.com/#request for codes
+                if response['code'] == '200000':
+                    token = response['data']['token']
                     
-                # For some reason this always happens at startup, so ignore it
-                except asyncio.TimeoutError:
-                    continue
-        else:
-            print("Error getting KuCoin response")
-            self.restart_sockets()
+                    # Set ping 
+                    ping_interval=int(response['data']['instanceServers'][0]['pingInterval']) // 1000
+                    ping_timeout=int(response['data']['instanceServers'][0]['pingTimeout']) // 1000
+                    
+                    while True:
+                        # outer loop restarted every time the connection fails
+                        try:
+                            async with websockets.connect(uri=f'wss://ws-api.kucoin.com/endpoint?token={token}', 
+                                                        ping_interval = ping_interval,
+                                                        ping_timeout = ping_timeout) as self.ws:
+                                await self.ws.send(json.dumps({'type': 'subscribe', 'topic': '/spotMarket/tradeOrders', 'privateChannel': 'true', 'response': 'true'}))
+                                print("Succesfully connected with KuCoin socket")
+                                while True:
+                                # listener loop
+                                    try:
+                                        reply = await self.ws.recv()
+                                        await self.on_msg(reply)
+                                    except (websockets.exceptions.ConnectionClosed):
+                                        print("KuCoin: Connection Closed")
+                                        # Close the websocket and restart
+                                        await self.restart_sockets()
+
+                        except websockets.exceptions.InvalidStatusCode:
+                            print("KuCoin: Server rejected connection")
+                            await self.restart_sockets()
+                                                            
+                        except ConnectionRefusedError:
+                            print("KuCoin: Connection Refused")
+                            await self.restart_sockets()
+                            
+                        # For some reason this always happens at startup, so ignore it
+                        except asyncio.TimeoutError:
+                            continue
+                else:
+                    print("Error getting KuCoin response")
+                    self.restart_sockets()
        
 class Exchanges(commands.Cog):    
     def __init__(self, bot, db=get_db('portfolio')):

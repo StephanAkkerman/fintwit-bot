@@ -45,11 +45,11 @@ class Assets(commands.Cog):
             if not binance.empty:
                 for _, row in binance.iterrows():
                     # Add this data to the assets.pkl database                    
-                    assets_db = pd.concat([assets_db, Binance(self.bot, row, None).get_data()], ignore_index=True)
+                    assets_db = pd.concat([assets_db, await Binance(self.bot, row, None).get_data()], ignore_index=True)
                         
             if not kucoin.empty:
                 for _, row in kucoin.iterrows():                    
-                    assets_db = pd.concat([assets_db, KuCoin(self.bot, row, None).get_data()], ignore_index=True)
+                    assets_db = pd.concat([assets_db, await KuCoin(self.bot, row, None).get_data()], ignore_index=True)
                     
         # Sum values where assets and names are the same
         assets_db = assets_db.astype({'asset':'string', 'owned':'float64', 'exchange':'string', 'id':'int64', 'user':'string'})
@@ -116,7 +116,7 @@ class Assets(commands.Cog):
                     usd_values = []
                     for sym in b_assets.split("\n"):
                         if sym != 'USDT':
-                            usd_values.append(Binance(self.bot, None, None).get_usd_price(sym))
+                            usd_values.append(await Binance(self.bot, None, None).get_usd_price(sym))
                         else:
                             usd_values.append(1)
 
@@ -148,7 +148,7 @@ class Assets(commands.Cog):
                     usd_values = []
                     for sym in k_assets.split("\n"):
                         if sym != 'USDT':
-                            usd_values.append(KuCoin(self.bot, None, None).get_quote_price(sym+'-USDT'))
+                            usd_values.append(await KuCoin(self.bot, None, None).get_quote_price(sym+'-USDT'))
                         else:
                             usd_values.append(1)
                             
