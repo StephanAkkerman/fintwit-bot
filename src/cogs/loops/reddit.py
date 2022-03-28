@@ -69,7 +69,7 @@ class Reddit(commands.Cog):
  
             e = discord.Embed(
                 title=title,
-                url=submission.permalink,
+                url="https://www.reddit.com" + submission.permalink,
                 description=descr,
                 color=0xFF3F18,
                 timestamp=datetime.datetime.utcfromtimestamp(submission.created_utc),

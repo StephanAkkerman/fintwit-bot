@@ -57,17 +57,16 @@ df = pd.DataFrame(cg.get_coins_list())
 # Make everything upper since ticker is always all caps
 df["symbol"] = df["symbol"].str.upper()
 
+stables = ['USD', 'USDT', 'USDTPERP']
 
 def get_coin_info(ticker):
     """Free CoinGecko API allows 50 calls per mintue"""
     
     # Remove formatting
-    if ticker.endswith('USD'):
-        ticker = ticker[:-3]
-    elif ticker.endswith('USDT'):
-        ticker = ticker[:-4]
-    elif ticker.endswith('USDTPERP'):
-        ticker = ticker[:-8]
+    if ticker not in stables:
+        for stable in stables:
+            if ticker.endswith(stable):
+                ticker = ticker[:-len(stable)]
 
     # Get the id of the ticker
     # Check if the symbol exists    

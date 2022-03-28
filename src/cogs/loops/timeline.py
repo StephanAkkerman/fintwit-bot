@@ -1,11 +1,9 @@
 ##> Imports
 import asyncio
-from calendar import c
 import datetime
 
 # > 3rd Party Dependencies
 from tweepy.asynchronous import AsyncStream
-import numpy as np
 
 # > Discord dependencies
 import discord
@@ -23,7 +21,7 @@ from util.vars import (
 )
 
 from util.disc_util import get_channel
-
+from util.db import get_db
 from util.tweet_util import format_tweet, add_financials
 
 
@@ -88,6 +86,13 @@ class Streamer(AsyncStream):
 
         # Set following ids
         self.get_following_ids.start()
+        
+        self.assets_db = None
+        self.get_assets_db.start()
+        
+    @loop(minutes=60)
+    async def get_assets_db(self):
+        self.assets_db = get_db("assets")
 
     @loop(minutes=60)
     async def all_txt_channels(self):
@@ -157,7 +162,20 @@ class Streamer(AsyncStream):
             icon_url="https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
         )
 
-        await self.upload_tweet(e, category, images, user, retweeted_user)
+        msg, channel = await self.upload_tweet(e, category, images, user, retweeted_user)
+        
+        if len(tickers + hashtags) > 0:
+            await self.tag_user(msg, channel, tickers + hashtags)
+        
+    
+    async def tag_user(self, msg, channel, tickers):
+        # Get the stored db
+        matching_users = self.assets_db[self.assets_db["asset"].isin(tickers)]['id'].tolist()
+        unique_users = list(set(matching_users))
+        
+        for user in unique_users:
+            await channel.send(f"<@{user}>", reference=msg)
+        
 
     async def upload_tweet(self, e, category, images, user, retweeted_user):
         """ Upload tweet in the dedicated discord channel """
@@ -208,3 +226,5 @@ class Streamer(AsyncStream):
             await msg.add_reaction("🐂")
             await msg.add_reaction("🦆")
             await msg.add_reaction("🐻")
+            
+        return msg, channel
