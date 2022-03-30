@@ -295,7 +295,7 @@ class KuCoin():
                 
                 base = sym.split('-')[0]
                 if base not in stables:
-                    usd = await self.get_quote_price( + '-' + "USDT")
+                    usd = await self.get_quote_price(base + '-' + "USDT")
                 else:
                     usd = 0
                 

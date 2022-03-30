@@ -65,7 +65,8 @@ class Reddit(commands.Cog):
                         largest_image = image_item['s']
                         img_url.append(largest_image['u'])
                 else:
-                    descr = url                
+                    # Adding /DASH_360.mp4 makes the video play in Discord
+                    descr = url + "/DASH_360.mp4"                
  
             e = discord.Embed(
                 title=title,
