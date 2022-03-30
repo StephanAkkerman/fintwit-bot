@@ -38,7 +38,7 @@ class Indices(commands.Cog):
         
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
         
-        crypto_indices = ['TOTAL', 'BTC.D',  'OTHERS.D', 'TOTALDEFI.D']
+        crypto_indices = ['TOTAL', 'BTC.D',  'OTHERS.D', 'TOTALDEFI.D', 'USDT.D']
         
         ticker = []
         prices = []
@@ -54,7 +54,7 @@ class Indices(commands.Cog):
             if index == 'TOTAL':
                 price = f"{human_format(price)} {change}" 
             else:
-                price = f"{round(price, 2)} {change}"           
+                price = f"{round(price, 2)}% {change}"           
 
             ticker.append(f"[{index}](https://www.tradingview.com/symbols/{exchange}-{index}/)")
             prices.append(price)

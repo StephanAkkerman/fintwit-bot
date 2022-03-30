@@ -22,7 +22,7 @@ tv_stocks = pd.concat([tv_stocks, pd.DataFrame(stock_indices, columns=['s'])])
 tv_stocks[["exchange", "stock"]] = tv_stocks["s"].str.split(":", 1, expand=True)
 
 # Get all EXCHANGE:INDEX symbols
-crypto_indices = ['CRYPTOCAP:TOTAL', 'CRYPTOCAP:BTC.D',  'CRYPTOCAP:OTHERS.D', 'CRYPTOCAP:TOTALDEFI.D']
+crypto_indices = ['CRYPTOCAP:TOTAL', 'CRYPTOCAP:BTC.D',  'CRYPTOCAP:OTHERS.D', 'CRYPTOCAP:TOTALDEFI.D', 'CRYPTOCAP:USDT.D']
 
 tv_crypto = pd.DataFrame(tv_crypto).drop(columns=["d"])
 tv_crypto = pd.concat([tv_crypto, pd.DataFrame(crypto_indices, columns=['s'])])
