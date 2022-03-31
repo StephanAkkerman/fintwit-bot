@@ -8,6 +8,7 @@ import asyncpraw
 import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
+from matplotlib.pyplot import xcorr
 
 # Local dependencies
 from util.vars import config
@@ -43,6 +44,9 @@ class Reddit(commands.Cog):
 
         subreddit = await reddit.subreddit('WallStreetBets')
         async for submission in subreddit.hot(limit=10):
+            if submission.stickied:
+                continue
+            
             descr = submission.selftext
             
             # Make sure the description and title are not too long
@@ -55,6 +59,7 @@ class Reddit(commands.Cog):
             
             # Add images to the embed
             img_url = []
+            video = False
             if not submission.is_self:
                 url = submission.url
                 if url.endswith(".jpg") or url.endswith(".png") or url.endswith(".gif"):
@@ -65,8 +70,8 @@ class Reddit(commands.Cog):
                         largest_image = image_item['s']
                         img_url.append(largest_image['u'])
                 else:
-                    # Adding /DASH_360.mp4 makes the video play in Discord
-                    descr = url + "/DASH_360.mp4"                
+                    video = True
+                    descr = "See video below."       
  
             e = discord.Embed(
                 title=title,
@@ -99,6 +104,9 @@ class Reddit(commands.Cog):
             for i in range(len(img_url)):
                 if i > 0:
                     await channel.send(reference=msg, content=img_url[i])
+                    
+            if video:
+                await channel.send(reference=msg, content=url + "/DASH_360.mp4")
 
 def setup(bot):
     bot.add_cog(Reddit(bot))

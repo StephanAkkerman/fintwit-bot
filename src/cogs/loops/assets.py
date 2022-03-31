@@ -150,7 +150,6 @@ class Assets(commands.Cog):
         usd_values = []
         for sym in assets.split("\n"):
             if sym not in stables:
-                print(sym)
                 usd_val = 0
                 if exchange == 'Binance':
                     usd_val = await Binance(self.bot, None, None).get_usd_price(sym)
