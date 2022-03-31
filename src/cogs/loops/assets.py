@@ -35,7 +35,10 @@ class Assets(commands.Cog):
         else:
             # Add it to the old assets db, since this call is for a specific person
             assets_db = get_db('assets')
-        
+            
+        # Ensure that the db knows the right types
+        assets_db = assets_db.astype({'asset':str, 'owned':float, 'exchange':str, 'id':'int64', 'user':str})
+            
         if not db.empty:
             
             # Divide per exchange

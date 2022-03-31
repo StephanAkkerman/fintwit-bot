@@ -110,7 +110,7 @@ class Binance():
                   'exchange':'binance',
                   'id':self.id,
                   'user':self.user.name.split('#')[0]} for asset in balances if float(asset['free']) > 0 or float(asset['locked']) > 0]
-        return pd.DataFrame(owned) 
+        return pd.DataFrame(owned)
         
     async def get_base_sym(self, sym):
         async with aiohttp.ClientSession() as session:
@@ -256,7 +256,7 @@ class KuCoin():
                 response = response['data']
         
                 owned = [{"asset":sym['currency'],
-                        "owned":sym['balance'],
+                        "owned":float(sym['balance']),
                         'exchange':'kucoin',
                         'id':self.id,
                         'user':self.user.name.split('#')[0]} for sym in response if float(sym['balance']) > 0]
