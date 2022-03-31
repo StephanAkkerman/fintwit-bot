@@ -10,6 +10,7 @@ from pandas.tseries.holiday import USFederalHolidayCalendar
 
 # Local dependencies
 from util.tv_data import get_tv_data, get_tv_TA
+from util.vars import stables
 
 # Get the public holidays
 cal = USFederalHolidayCalendar()
@@ -56,8 +57,6 @@ df = pd.DataFrame(cg.get_coins_list())
 
 # Make everything upper since ticker is always all caps
 df["symbol"] = df["symbol"].str.upper()
-
-stables = ['USD', 'USDT', 'USDTPERP']
 
 def get_coin_info(ticker):
     """Free CoinGecko API allows 50 calls per mintue"""
@@ -223,7 +222,7 @@ def classify_ticker(ticker, majority):
     if majority == 'crypto' or majority == '🤷‍♂️':
         coin = get_coin_info(ticker)
         # If volume of the crypto is bigger than 1,000,000, it is likely a crypto
-        # Stupdi Tessla Coin https://www.coingecko.com/en/coins/tessla-coin
+        # Stupid Tessla Coin https://www.coingecko.com/en/coins/tessla-coin
         if coin[0] > 1000000 or ticker.endswith('BTC'):
             ta = get_tv_TA(ticker, 'crypto')
             return *coin, ta

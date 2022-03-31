@@ -33,7 +33,16 @@ class Stock(commands.Cog):
                                              'user': ctx.message.author.name}, 
                                             index=[0])
                     
-                    update_db(pd.concat([get_db('assets'),new_data], ignore_index=True), 'assets')
+                    old_db = get_db('assets')
+                    
+                    # Check if the user has this asset already
+                    owned_in_db = old_db.loc[(old_db['id'] == ctx.message.author.id) & 
+                                             (old_db['asset'] == ticker.upper())]                    
+                    if owned_in_db.empty:
+                        update_db(pd.concat([old_db,new_data], ignore_index=True), 'assets')
+                    else:
+                        old_db.loc[(old_db['id'] == ctx.message.author.id) & (old_db['asset'] == ticker.upper()), 'owned'] += int(amount)
+                        update_db(old_db, 'assets')
                     await ctx.send("Succesfully added your stock to the database!")
                 else:
                     await ctx.send("Please specify a ticker and amount!")
@@ -43,12 +52,35 @@ class Stock(commands.Cog):
                     _, ticker = input
                     
                     old_db = get_db('assets')
-                    row = old_db.index[(old_db['id'] == ctx.message.author.id) & (old_db['asset'] == ticker)].tolist()                
+                    row = old_db.index[(old_db['id'] == ctx.message.author.id) & (old_db['asset'] == ticker)]                
                 
                     # Update database
-                    update_db(old_db.drop(index=row), 'assets')
+                    if not row.empty:
+                        update_db(old_db.drop(index=row), 'assets')
+                        await ctx.send(f"Succesfully removed all {ticker.upper()} from your owned stocks!")
+                    else:
+                        await ctx.send("You do not own this stock!")
+                                            
+                elif len(input) == 3:
+                    _, ticker, amount = input
+                    old_db = get_db('assets')
                     
-                    await ctx.send(f"Succesfully removed {ticker.upper()} from your owned stocks!")
+                    row = old_db.loc[(old_db['id'] == ctx.message.author.id) & (old_db['asset'] == ticker)]
+                    
+                    # Update database
+                    if not row.empty:
+                        # Check the amount owned
+                        owned_now = row['owned'].tolist()[0]
+                        # if it is equal to or greater than the amount to remove, remove all
+                        if int(amount) >= owned_now:
+                            update_db(old_db.drop(index=row.index), 'assets')
+                            await ctx.send(f"Succesfully removed all {ticker.upper()} from your owned stocks!")
+                        else:
+                            old_db.loc[(old_db['id'] == ctx.message.author.id) & (old_db['asset'] == ticker.upper()), 'owned'] -= int(amount)
+                            update_db(old_db, 'assets')
+                            await ctx.send(f"Succesfully removed {amount} {ticker.upper()} from your owned stocks!")
+                    else:
+                        await ctx.send("You do not own this stock!")
                 else:
                     await ctx.send("Please specify a ticker!")
                     
@@ -57,6 +89,7 @@ class Stock(commands.Cog):
                 rows = db.loc[(db['id'] == ctx.message.author.id) & (db['exchange'] == 'stock')]
                 if not rows.empty:
                     for _, row in rows.iterrows():
+                        # Maybe send this an embed
                         await ctx.send(f"Stock: {row['asset'].upper()} \nAmount: {row['owned']}")
                 else:
                     await ctx.send("You do not have any stocks")      
@@ -67,6 +100,7 @@ class Stock(commands.Cog):
 
     @stock.error
     async def follow_error(self, ctx, error):
+        print(error)
         if isinstance(error, commands.UserInputError):
             await ctx.send(f"{ctx.author.mention} Please use one of the following keywords: 'add', 'remove', 'show' followed by stock ticker and amount!")
         else:

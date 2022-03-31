@@ -19,9 +19,7 @@ import pandas as pd
 # Local dependencies
 from util.db import get_db, update_db
 from util.disc_util import get_channel
-from util.vars import config
-
-stables = ['USDT', 'USD', 'BUSD', 'DAI']
+from util.vars import config, stables
 
 async def trades_msg(exchange, channel, user, symbol, side, orderType, price, quantity, usd):
     

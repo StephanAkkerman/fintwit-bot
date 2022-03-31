@@ -28,3 +28,6 @@ filter_dict = {
     "NQ": "NQ=F",
     "NQ_F": "NQ=F",
 }
+
+# Stable coins
+stables = ['USDT', 'USD', 'BUSD', 'DAI', 'USDTPERP']

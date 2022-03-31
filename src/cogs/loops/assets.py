@@ -8,6 +8,7 @@ import pandas as pd
 
 # Local dependencies
 from cogs.loops.exchange_data import Binance, KuCoin
+from util.ticker import get_stock_info
 from util.db import get_db, update_db
 from util.disc_util import get_channel
 from util.vars import config
@@ -30,8 +31,10 @@ class Assets(commands.Cog):
         """
         
         if db.equals(get_db('portfolio')):
-            # Make a new assets db, since this call is for restarting the bot
-            assets_db = pd.DataFrame({'asset':[],'owned':[],'exchange':[], 'id':[], 'user':[]})
+            # Drop all crypto assets
+            old_db = get_db('assets')
+            crypto_rows = old_db.index[old_db['exchange'] != 'stock'].tolist()
+            assets_db = old_db.drop(index=crypto_rows)
         else:
             # Add it to the old assets db, since this call is for a specific person
             assets_db = get_db('assets')
@@ -85,7 +88,7 @@ class Assets(commands.Cog):
             
             if not assets.empty:
                 e = discord.Embed(
-                    title=f"{name}'s crypto assets",
+                    title=f"{name}'s assets",
                     description="",
                     color=0x1DA1F2,
                 )
@@ -95,6 +98,7 @@ class Assets(commands.Cog):
                 # Divide it per exchange
                 binance = assets.loc[assets['exchange'] == 'binance']
                 kucoin = assets.loc[assets['exchange'] == 'kucoin']
+                stocks = assets.loc[assets['exchange'] == 'stock']
                 
                 # Add the binance info
                 if not binance.empty:
@@ -160,6 +164,34 @@ class Assets(commands.Cog):
                     
                     e.add_field(name="Kucoin Coins", value=k_assets, inline=True)
                     e.add_field(name="Amount Owned", value=k_owned, inline=True)
+                    e.add_field(name="USD Value", value=values, inline=True)
+                    
+                if not stocks.empty:
+                    stocks = stocks.sort_values(by=['owned'], ascending=False)
+                    
+                    stocks_assets = "\n".join(stocks['asset'].to_list())
+                    stocks_owned_floats = stocks['owned'].to_list()
+                    stocks_owned = "\n".join(str(x) for x in stocks_owned_floats)
+
+                    if len(stocks_assets) > 1024:
+                        stocks_assets = stocks_assets[:1024].split("\n")[:-1]
+                        stocks_owned = "\n".join(stocks_owned.split("\n")[:len(stocks_assets)])
+                        stocks_assets = "\n".join(stocks_assets)
+                    elif len(stocks_owned) > 1024:
+                        stocks_owned = stocks_owned[:1024].split("\n")[:-1]
+                        stocks_assets = "\n".join(stocks_assets.split("\n")[:len(stocks_owned)])
+                        stocks_owned = "\n".join(stocks_owned)
+                    
+                    usd_values = []
+                    for sym in stocks_assets.split("\n"):
+                        # Check what the current price is
+                        usd_values.append(get_stock_info(sym)[3][0])
+                            
+                    values = [str(round(x*y,2)) for x,y in zip(stocks_owned_floats, usd_values)]
+                    values = "\n".join(values)
+                    
+                    e.add_field(name="Stocks", value=stocks_assets, inline=True)
+                    e.add_field(name="Amount Owned", value=stocks_owned, inline=True)
                     e.add_field(name="USD Value", value=values, inline=True)
                     
                 await channel.send(embed=e)  
