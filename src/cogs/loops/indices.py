@@ -11,7 +11,7 @@ from discord.ext.tasks import loop
 from util.vars import config
 from util.disc_util import get_channel
 from util.tv_data import get_tv_data
-from util.ticker import afterHours
+from util.afterhours import afterHours
 
 def human_format(number):
     """ https://stackoverflow.com/questions/579310/formatting-long-numbers-as-strings-in-python/45846841 """

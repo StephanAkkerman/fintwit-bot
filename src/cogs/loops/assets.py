@@ -11,10 +11,9 @@ from cogs.loops.exchange_data import Binance, KuCoin
 from util.ticker import get_stock_info
 from util.db import get_db, update_db
 from util.disc_util import get_channel, get_user
-from util.vars import config
+from util.vars import config, stables, cg_coins, cg
 from util.disc_util import get_guild
- 
- 
+from util.tv_data import get_tv_data 
 class Assets(commands.Cog):    
     def __init__(self, bot, db=get_db('portfolio')):
         self.bot = bot
@@ -22,6 +21,45 @@ class Assets(commands.Cog):
         
         # Refresh assets
         asyncio.create_task(self.assets(db))
+        
+    async def usd_value(self, asset, owned, exchange):
+        
+        usd_val = 0
+        
+        # Check the corresponding exchange
+        if exchange == 'binance':
+            usd_val = await Binance(self.bot, None, None).get_usd_price(asset)
+        elif exchange == 'kucoin':
+            usd_val = await KuCoin(self.bot, None, None).get_quote_price(asset+'-USDT')
+        
+        if usd_val == 0:
+            if asset in cg_coins["symbol"].values:
+                ids = cg_coins[cg_coins["symbol"] == asset]["id"]
+                if len(ids) > 1:
+                    best_vol = 0
+                    coin_dict = None
+                    for symbol in ids.values:
+                        coin_info = cg.get_coin_by_id(symbol)
+                        if "usd" in coin_info["market_data"]["total_volume"]:
+                            volume = coin_info["market_data"]["total_volume"]["usd"]
+                            if volume > best_vol:
+                                best_vol = volume
+                                coin_dict = coin_info
+                else:
+                    coin_dict = cg.get_coin_by_id(ids.values[0])   
+                    
+                try:
+                    price = coin_dict["market_data"]["current_price"]["usd"]
+                    return price * owned
+                except Exception as e:
+                    print(e)
+                    print("CoinGecko API error for asset:", asset)
+                    return 0
+                                  
+            elif tv_data := get_tv_data(asset, 'crypto'):
+                return tv_data[0] * owned
+        else:
+            return usd_val * owned
         
     async def assets(self, db):
         """ 
@@ -58,13 +96,84 @@ class Assets(commands.Cog):
                     assets_db = pd.concat([assets_db, await KuCoin(self.bot, row, None).get_data()], ignore_index=True)
                     
         # Sum values where assets and names are the same
-        assets_db = assets_db.astype({'asset':'string', 'owned':'float64', 'exchange':'string', 'id':'int64', 'user':'string'})
+        assets_db = assets_db.astype({'asset':str, 'owned':float, 'exchange':str, 'id':'int64', 'user':str})
+                    
+        # Get USD value of each asset
+        for index, row in assets_db.iterrows():
+            
+            # Do not check stocks
+            if row['exchange'] == 'stock':
+                continue
+            
+            # Stables is always the same in USD
+            if row['asset'] in stables:
+                continue
+            
+            # Remove small quantities, 0.005 btc is 20 usd
+            if round(row['owned'], 3) == 0:
+                assets_db.drop(index, inplace=True)
+                continue
+            
+            usd_val = await self.usd_value(row['asset'], row['owned'], row['exchange'])
+            
+            # Remove assets below threshold
+            if usd_val < 1:
+                assets_db.drop(index, inplace=True)
                     
         # Update the assets db
         update_db(assets_db, 'assets')
         print("Updated assets database")
         
         self.post_assets.start()
+        
+    async def format_exchange(self, exchange_df, exchange, e):        
+        # Sort and clean the data
+        sorted_df = exchange_df.sort_values(by=['owned'], ascending=False)
+        
+        # Round by 3 and drop everything that is 0
+        sorted_df = sorted_df.round({'owned':3})
+        exchange_df = sorted_df.drop(sorted_df[sorted_df.owned == 0].index)
+                            
+        assets = "\n".join(exchange_df['asset'].to_list())
+        owned_floats = exchange_df['owned'].to_list()
+        owned = "\n".join(str(x) for x in owned_floats)
+        
+        if len(assets) > 1024:
+            assets = assets[:1024].split("\n")[:-1]
+            owned = "\n".join(owned.split("\n")[:len(assets)])
+            assets = "\n".join(assets)
+        elif len(owned) > 1024:
+            owned = owned[:1024].split("\n")[:-1]
+            assets = "\n".join(assets.split("\n")[:len(owned)])
+            owned = "\n".join(owned)
+        
+        usd_values = []
+        for sym in assets.split("\n"):
+            if sym not in stables:
+                print(sym)
+                usd_val = 0
+                if exchange == 'Binance':
+                    usd_val = await Binance(self.bot, None, None).get_usd_price(sym)
+                elif exchange == 'Kucoin':
+                    usd_val = await KuCoin(self.bot, None, None).get_quote_price(sym+'-USDT')
+                elif exchange == 'Stocks':
+                    usd_val = get_stock_info(sym)[3][0]
+                    
+                if usd_val == 0 and exchange != 'Stocks':
+                    # Exchange is None, because it is not on this exchange
+                    usd_val = await self.usd_value(sym, 1, None)
+                usd_values.append(usd_val)
+            else:
+                usd_values.append(1)
+
+        values = ['$'+str(round(x*y,2)) for x,y in zip(owned_floats, usd_values)]
+        values = "\n".join(values)
+        
+        e.add_field(name=exchange, value=assets, inline=True)
+        e.add_field(name="Quantity", value=owned, inline=True)
+        e.add_field(name="Worth", value=values, inline=True)
+        
+        return e
 
     @loop(hours=12)
     async def post_assets(self):        
@@ -104,101 +213,14 @@ class Assets(commands.Cog):
                 binance = assets.loc[assets['exchange'] == 'binance']
                 kucoin = assets.loc[assets['exchange'] == 'kucoin']
                 stocks = assets.loc[assets['exchange'] == 'stock']
-                
-                # Add the binance info
+            
                 if not binance.empty:
-                    # Sort and clean the data
-                    sorted_binance = binance.sort_values(by=['owned'], ascending=False)
-                    sorted_binance = sorted_binance.round({'owned':3})
-                    binance = sorted_binance.drop(sorted_binance[sorted_binance.owned == 0].index)
-                                        
-                    b_assets = "\n".join(binance['asset'].to_list())
-                    b_owned_floats = binance['owned'].to_list()
-                    b_owned = "\n".join(str(x) for x in b_owned_floats)
-                    
-                    if len(b_assets) > 1024:
-                        b_assets = b_assets[:1024].split("\n")[:-1]
-                        b_owned = "\n".join(b_owned.split("\n")[:len(b_assets)])
-                        b_assets = "\n".join(b_assets)
-                    elif len(b_owned) > 1024:
-                        b_owned = b_owned[:1024].split("\n")[:-1]
-                        b_assets = "\n".join(b_assets.split("\n")[:len(b_owned)])
-                        b_owned = "\n".join(b_owned)
-                    
-                    usd_values = []
-                    for sym in b_assets.split("\n"):
-                        if sym != 'USDT':
-                            usd_values.append(await Binance(self.bot, None, None).get_usd_price(sym))
-                        else:
-                            usd_values.append(1)
-
-                    values = ['$'+str(round(x*y,2)) for x,y in zip(b_owned_floats, usd_values)]
-                    values = "\n".join(values)
-                    
-                    e.add_field(name="Binance", value=b_assets, inline=True)
-                    e.add_field(name="Quantity", value=b_owned, inline=True)
-                    e.add_field(name="Worth", value=values, inline=True)
-                
+                    e = await self.format_exchange(binance, 'Binance', e)
                 if not kucoin.empty:
-                    sorted_kucoin = kucoin.sort_values(by=['owned'], ascending=False)
-                    sorted_kucoin = sorted_kucoin.round({'owned':3})
-                    kucoin = sorted_kucoin.drop(sorted_kucoin[sorted_kucoin.owned == 0].index)
-                    
-                    k_assets = "\n".join(kucoin['asset'].to_list())
-                    k_owned_floats = kucoin['owned'].to_list()
-                    k_owned = "\n".join(str(x) for x in k_owned_floats)
-
-                    if len(k_assets) > 1024:
-                        k_assets = k_assets[:1024].split("\n")[:-1]
-                        k_owned = "\n".join(k_owned.split("\n")[:len(k_assets)])
-                        k_assets = "\n".join(k_assets)
-                    elif len(k_owned) > 1024:
-                        k_owned = k_owned[:1024].split("\n")[:-1]
-                        k_assets = "\n".join(k_assets.split("\n")[:len(k_owned)])
-                        k_owned = "\n".join(k_owned)
-                    
-                    usd_values = []
-                    for sym in k_assets.split("\n"):
-                        if sym != 'USDT':
-                            usd_values.append(await KuCoin(self.bot, None, None).get_quote_price(sym+'-USDT'))
-                        else:
-                            usd_values.append(1)
-                            
-                    values = ['$'+str(round(x*y,2)) for x,y in zip(k_owned_floats, usd_values)]
-                    values = "\n".join(values)
-                    
-                    e.add_field(name="Kucoin", value=k_assets, inline=True)
-                    e.add_field(name="Quantity", value=k_owned, inline=True)
-                    e.add_field(name="Worth", value=values, inline=True)
-                    
+                    e = await self.format_exchange(kucoin, 'KuCoin', e)
                 if not stocks.empty:
-                    stocks = stocks.sort_values(by=['owned'], ascending=False)
-                    
-                    stocks_assets = "\n".join(stocks['asset'].to_list())
-                    stocks_owned_floats = stocks['owned'].to_list()
-                    stocks_owned = "\n".join(str(x) for x in stocks_owned_floats)
-
-                    if len(stocks_assets) > 1024:
-                        stocks_assets = stocks_assets[:1024].split("\n")[:-1]
-                        stocks_owned = "\n".join(stocks_owned.split("\n")[:len(stocks_assets)])
-                        stocks_assets = "\n".join(stocks_assets)
-                    elif len(stocks_owned) > 1024:
-                        stocks_owned = stocks_owned[:1024].split("\n")[:-1]
-                        stocks_assets = "\n".join(stocks_assets.split("\n")[:len(stocks_owned)])
-                        stocks_owned = "\n".join(stocks_owned)
-                    
-                    usd_values = []
-                    for sym in stocks_assets.split("\n"):
-                        # Check what the current price is
-                        usd_values.append(get_stock_info(sym)[3][0])
-                            
-                    values = ['$'+str(round(x*y,2)) for x,y in zip(stocks_owned_floats, usd_values)]
-                    values = "\n".join(values)
-                    
-                    e.add_field(name="Stocks", value=stocks_assets, inline=True)
-                    e.add_field(name="Quantity", value=stocks_owned, inline=True)
-                    e.add_field(name="Worth", value=values, inline=True)
-                    
+                    e = await self.format_exchange(stocks, 'Stocks', e)                
+                                    
                 await channel.send(embed=e)  
                 
 def setup(bot):

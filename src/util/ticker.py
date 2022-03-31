@@ -1,62 +1,11 @@
 ##> Imports
-# Standard libraries
-import datetime
-
 # > 3rd Party Dependencies
 import yfinance as yf
-import pandas as pd
-from pycoingecko import CoinGeckoAPI
-from pandas.tseries.holiday import USFederalHolidayCalendar
 
 # Local dependencies
 from util.tv_data import get_tv_data, get_tv_TA
-from util.vars import stables
-
-# Get the public holidays
-cal = USFederalHolidayCalendar()
-us_holidays = cal.holidays(
-    start=datetime.date(datetime.date.today().year, 1, 1).strftime("%Y-%m-%d"),
-    end=datetime.date(datetime.date.today().year, 12, 31).strftime("%Y-%m-%d"),
-).to_pydatetime()
-
-
-def afterHours():
-    """
-    Simple code to check if the current time is after hours in the US.
-    return: True if after hours, False otherwise
-
-    source: https://www.reddit.com/r/algotrading/comments/9x9xho/python_code_to_check_if_market_is_open_in_your/
-    """
-
-    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=-5), "EST"))
-    openTime = datetime.time(hour=9, minute=30, second=0)
-    closeTime = datetime.time(hour=16, minute=0, second=0)
-
-    # If a holiday
-    if now.strftime("%Y-%m-%d") in us_holidays:
-        return True
-
-    # If before 0930 or after 1600
-    if (now.time() < openTime) or (now.time() > closeTime):
-        return True
-
-    # If it's a weekend
-    if now.date().weekday() > 4:
-        return True
-
-    # Otherwise the market is open
-    return False
-
-
-# Create CoinGecko object
-cg = CoinGeckoAPI()
-
-# Get all crypto tickers and change them to all caps
-# Maybe refresh this df daily
-df = pd.DataFrame(cg.get_coins_list())
-
-# Make everything upper since ticker is always all caps
-df["symbol"] = df["symbol"].str.upper()
+from util.vars import stables, cg_coins, cg
+from util.afterhours import afterHours
 
 def get_coin_info(ticker):
     """Free CoinGecko API allows 50 calls per mintue"""
@@ -69,11 +18,12 @@ def get_coin_info(ticker):
 
     # Get the id of the ticker
     # Check if the symbol exists    
-    if ticker in df["symbol"].values:
-        ids = df[df["symbol"] == ticker]["id"]
+    if ticker in cg_coins["symbol"].values:
+        ids = cg_coins[cg_coins["symbol"] == ticker]["id"]
         if len(ids) > 1:
             id = None
             best_vol = 0
+            coin_dict = None
             for symbol in ids.values:
                 coin_info = cg.get_coin_by_id(symbol)
                 if "usd" in coin_info["market_data"]["total_volume"]:
@@ -81,6 +31,7 @@ def get_coin_info(ticker):
                     if volume > best_vol:
                         best_vol = volume
                         id = symbol
+                        coin_dict = coin_info
         else:
             id = ids.values[0]
     elif tv_data := get_tv_data(ticker, 'crypto'):
@@ -88,11 +39,12 @@ def get_coin_info(ticker):
         formatted_change = f"+{perc_change}% 📈" if perc_change > 0 else f"{perc_change}% 📉"
         website = f"https://www.tradingview.com/symbols/{ticker}-{exchange}/?coingecko"    
         return volume, website, exchange, price, formatted_change            
-    elif ticker.lower() in df["id"].values:
-        ids = df[df["id"] == ticker.lower()]["id"]
+    elif ticker.lower() in cg_coins["id"].values:
+        ids = cg_coins[cg_coins["id"] == ticker.lower()]["id"]
         if len(ids) > 1:
             id = None
             best_vol = 0
+            coin_dict = None
             for symbol in ids.values:
                 coin_info = cg.get_coin_by_id(symbol)
                 if "usd" in coin_info["market_data"]["total_volume"]:
@@ -100,13 +52,15 @@ def get_coin_info(ticker):
                     if volume > best_vol:
                         best_vol = volume
                         id = symbol
+                        coin_dict = coin_info
         else:
             id = ids.values[0]
-    elif ticker in df["name"].values:
-        ids = df[df["name"] == ticker]["id"]
+    elif ticker in cg_coins["name"].values:
+        ids = cg_coins[cg_coins["name"] == ticker]["id"]
         if len(ids) > 1:
             id = None
             best_vol = 0
+            coin_dict = None
             for symbol in ids.values:
                 coin_info = cg.get_coin_by_id(symbol)
                 if "usd" in coin_info["market_data"]["total_volume"]:
@@ -114,6 +68,7 @@ def get_coin_info(ticker):
                     if volume > best_vol:
                         best_vol = volume
                         id = symbol
+                        coin_dict = coin_info
         else:
             id = ids.values[0]
     else:
@@ -121,7 +76,6 @@ def get_coin_info(ticker):
 
     # Get the information of this coin
     try:
-        coin_dict = cg.get_coin_by_id(id)
         total_vol = coin_dict["market_data"]["total_volume"]["usd"]
         website = f"https://coingecko.com/en/coins/{id}"
         price = coin_dict["market_data"]["current_price"]["usd"]

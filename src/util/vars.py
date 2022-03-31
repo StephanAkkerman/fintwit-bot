@@ -1,6 +1,8 @@
 # > 3rd Party Dependencies
 import yaml
 import tweepy
+import pandas as pd
+from pycoingecko import CoinGeckoAPI
 
 # Read config.yaml content
 with open("config.yaml", "r", encoding="utf-8") as f:
@@ -31,3 +33,8 @@ filter_dict = {
 
 # Stable coins
 stables = ['USDT', 'USD', 'BUSD', 'DAI', 'USDTPERP']
+
+# Saves all CoinGecko coins, maybe refresh this daily
+cg = CoinGeckoAPI()
+cg_coins = pd.DataFrame(cg.get_coins_list())
+cg_coins["symbol"] = cg_coins["symbol"].str.upper()

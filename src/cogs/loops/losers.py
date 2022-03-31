@@ -12,7 +12,7 @@ from discord.ext.tasks import loop
 # Local dependencies
 from util.vars import config
 from util.disc_util import get_channel
-from util.ticker import afterHours
+from util.afterhours import afterHours
 
 
 class Losers(commands.Cog):
