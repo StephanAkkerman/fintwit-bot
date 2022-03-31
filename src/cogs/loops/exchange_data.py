@@ -18,7 +18,7 @@ import pandas as pd
 
 # Local dependencies
 from util.db import get_db, update_db
-from util.disc_util import get_channel
+from util.disc_util import get_channel, get_user
 from util.vars import config, stables
 
 async def trades_msg(exchange, channel, user, symbol, side, orderType, price, quantity, usd):
@@ -71,9 +71,6 @@ class Binance():
             
         self.restart_sockets.start()
         
-    async def get_user(self):
-        self.user = await self.bot.fetch_user(self.id)
-        
     def hashing(self, query_string):
         return hmac.new(
             self.secret.encode("utf-8"), query_string.encode("utf-8"), hashlib.sha256
@@ -101,7 +98,7 @@ class Binance():
         
         # Ensure that the user is set
         if self.user is None:
-            await self.get_user()
+            self.user = await get_user(self.bot, self.id)
         
         owned = [{'asset':asset['asset'],
                   'owned':float(asset['free'])+float(asset['locked']),
@@ -232,6 +229,10 @@ class KuCoin():
         self.restart_sockets.start()
         
     async def get_data(self):
+        # Ensure that the user is set
+        if self.user is None:
+            self.user = await get_user(self.bot, self.id)        
+        
         #https://docs.kucoin.com/#get-an-account
         url = 'https://api.kucoin.com/api/v1/accounts'
         now = int(time.time() * 1000)

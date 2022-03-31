@@ -30,3 +30,6 @@ def get_emoji(bot, emoji):
 
     guild = get_guild(bot)
     return discord.utils.get(guild.emojis, name=emoji)
+
+async def get_user(bot, user_id):
+    return await bot.fetch_user(user_id)

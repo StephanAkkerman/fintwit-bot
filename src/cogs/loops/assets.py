@@ -10,7 +10,7 @@ import pandas as pd
 from cogs.loops.exchange_data import Binance, KuCoin
 from util.ticker import get_stock_info
 from util.db import get_db, update_db
-from util.disc_util import get_channel
+from util.disc_util import get_channel, get_user
 from util.vars import config
 from util.disc_util import get_guild
  
@@ -85,15 +85,20 @@ class Assets(commands.Cog):
                 
             # Get the data
             assets = assets_db.loc[assets_db['user'] == name]
+            id = assets['id'].values[0]
+            disc_user = self.bot.get_user(id)
+            
+            if disc_user == None:
+                disc_user = await get_user(self.bot, id)
             
             if not assets.empty:
                 e = discord.Embed(
-                    title=f"{name}'s assets",
+                    title="",
                     description="",
                     color=0x1DA1F2,
                 )
-                
-                e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
+
+                e.set_author(name=disc_user.name + "'s Assets", icon_url=disc_user.avatar_url)
                 
                 # Divide it per exchange
                 binance = assets.loc[assets['exchange'] == 'binance']
@@ -127,12 +132,12 @@ class Assets(commands.Cog):
                         else:
                             usd_values.append(1)
 
-                    values = [str(round(x*y,2)) for x,y in zip(b_owned_floats, usd_values)]
+                    values = ['$'+str(round(x*y,2)) for x,y in zip(b_owned_floats, usd_values)]
                     values = "\n".join(values)
                     
-                    e.add_field(name="Binance Coins", value=b_assets, inline=True)
-                    e.add_field(name="Amount Owned", value=b_owned, inline=True)
-                    e.add_field(name="USD Value", value=values, inline=True)
+                    e.add_field(name="Binance", value=b_assets, inline=True)
+                    e.add_field(name="Quantity", value=b_owned, inline=True)
+                    e.add_field(name="Worth", value=values, inline=True)
                 
                 if not kucoin.empty:
                     sorted_kucoin = kucoin.sort_values(by=['owned'], ascending=False)
@@ -159,12 +164,12 @@ class Assets(commands.Cog):
                         else:
                             usd_values.append(1)
                             
-                    values = [str(round(x*y,2)) for x,y in zip(k_owned_floats, usd_values)]
+                    values = ['$'+str(round(x*y,2)) for x,y in zip(k_owned_floats, usd_values)]
                     values = "\n".join(values)
                     
-                    e.add_field(name="Kucoin Coins", value=k_assets, inline=True)
-                    e.add_field(name="Amount Owned", value=k_owned, inline=True)
-                    e.add_field(name="USD Value", value=values, inline=True)
+                    e.add_field(name="Kucoin", value=k_assets, inline=True)
+                    e.add_field(name="Quantity", value=k_owned, inline=True)
+                    e.add_field(name="Worth", value=values, inline=True)
                     
                 if not stocks.empty:
                     stocks = stocks.sort_values(by=['owned'], ascending=False)
@@ -187,12 +192,12 @@ class Assets(commands.Cog):
                         # Check what the current price is
                         usd_values.append(get_stock_info(sym)[3][0])
                             
-                    values = [str(round(x*y,2)) for x,y in zip(stocks_owned_floats, usd_values)]
+                    values = ['$'+str(round(x*y,2)) for x,y in zip(stocks_owned_floats, usd_values)]
                     values = "\n".join(values)
                     
                     e.add_field(name="Stocks", value=stocks_assets, inline=True)
-                    e.add_field(name="Amount Owned", value=stocks_owned, inline=True)
-                    e.add_field(name="USD Value", value=values, inline=True)
+                    e.add_field(name="Quantity", value=stocks_owned, inline=True)
+                    e.add_field(name="Worth", value=values, inline=True)
                     
                 await channel.send(embed=e)  
                 
