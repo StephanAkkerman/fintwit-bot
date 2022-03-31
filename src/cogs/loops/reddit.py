@@ -8,7 +8,6 @@ import asyncpraw
 import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
-from matplotlib.pyplot import xcorr
 
 # Local dependencies
 from util.vars import config
