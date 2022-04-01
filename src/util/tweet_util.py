@@ -222,14 +222,14 @@ async def add_financials(e, tickers, hashtags, text, user, bot):
             if len(change) == 2:
                 for i in range(len(change)):
                     if i == 0:
-                        description = f"[AH: ${price[i]} ({change[i]})]({website})\n"
+                        description = f"[AH: ${price[i]}\n({change[i]})]({website})\n"
                     else:
-                        description += f"[${price[i]} ({change[i]})]({website})"
+                        description += f"[${price[i]}\n({change[i]})]({website})"
             else:
-                description = f"[${price[0]} ({change[0]})]({website})"
+                description = f"[${price[0]}\n({change[0]})]({website})"
 
         else:
-            description = f"[${price} ({change})]({website})"
+            description = f"[${price}\n({change})]({website})"
 
             # Currently only adds emojis for crypto exchanges
             if "coingecko" in website:
@@ -251,7 +251,7 @@ async def add_financials(e, tickers, hashtags, text, user, bot):
         e.add_field(
             name="Sentiment",
             value=f"{prediction} ({round(max(sentiment*100),2)}%)",
-            inline=True,
+            inline=False,
         )
 
     # Decide the category of this tweet

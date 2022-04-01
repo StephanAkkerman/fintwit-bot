@@ -132,7 +132,6 @@ class Binance():
                     if "price" in response.keys():
                         return round(float(response["price"]),2)
         
-        print(f"Could not find average price on Binance for {symbol}")
         return 0
         
     ### From here are the websocket functions ###
@@ -276,7 +275,6 @@ class KuCoin():
                 if data["averagePrice"] != None:
                     return round(float(data["averagePrice"]),2)
                 else:
-                    print(f"Could not find average price on KuCoin for {symbol}")
                     return 0
                 
     ### From here are the websocket functions ###
