@@ -232,11 +232,12 @@ async def add_financials(e, tickers, hashtags, text, user, bot):
             description = f"[${price}\n({change})]({website})"
 
             # Currently only adds emojis for crypto exchanges
-            if "coingecko" in website:
-                if "Binance" in exchanges:
-                    title = f"{title} {get_emoji(bot, 'binance')}"
-                if "KuCoin" in exchanges:
-                    title = f"{title} {get_emoji(bot, 'kucoin')}"
+            if website:
+                if "coingecko" in website:
+                    if "Binance" in exchanges:
+                        title = f"{title} {get_emoji(bot, 'binance')}"
+                    if "KuCoin" in exchanges:
+                        title = f"{title} {get_emoji(bot, 'kucoin')}"
 
         # Add the field with hyperlink
         e.add_field(name=title, value=description, inline=True)

@@ -1,5 +1,6 @@
 # Standard libraries
 import datetime
+import aiohttp
 
 # > Discord dependencies
 import discord
@@ -19,6 +20,22 @@ class Indices(commands.Cog):
 
         self.crypto.start()
         self.stock.start()
+        
+    async def get_feargread(self):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                f"https://api.alternative.me/fng/?limit=2"
+            ) as r:
+                response = await r.json()
+                
+                if "data" in response.keys():
+                    today = int(response["data"][0]["value"])
+                    yesterday = int(response["data"][1]["value"])
+                    
+                    change = round((today - yesterday) / yesterday * 100, 2)
+                    change = f" (+{change}% 📈)" if change > 0 else f"({change}% 📉)"
+                    
+                    return f"{today} {change}"
 
     @loop(hours=12)
     async def crypto(self):
@@ -49,10 +66,16 @@ class Indices(commands.Cog):
                 price = f"{round(price, 2)}% {change}"           
 
             ticker.append(f"[{index}](https://www.tradingview.com/symbols/{exchange}-{index}/)")
-            prices.append(price)
+            prices.append(price)   
+            
+        value = await self.get_feargread()
+        
+        if value:
+            ticker.append(f"[Fear&Greed](https://alternative.me/crypto/fear-and-greed-index/)")
+            prices.append(value)
                 
         ticker = "\n".join(ticker)
-        prices = "\n".join(prices)
+        prices = "\n".join(prices)        
        
         e.add_field(
             name="Index", value=ticker, inline=True,

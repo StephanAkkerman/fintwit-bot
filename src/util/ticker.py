@@ -34,6 +34,7 @@ def get_coin_info(ticker):
                         coin_dict = coin_info
         else:
             id = ids.values[0]
+            coin_dict = cg.get_coin_by_id(id)
     elif tv_data := get_tv_data(ticker, 'crypto'):
         price, perc_change, volume, exchange = tv_data
         formatted_change = f"+{perc_change}% 📈" if perc_change > 0 else f"{perc_change}% 📉"
@@ -55,6 +56,7 @@ def get_coin_info(ticker):
                         coin_dict = coin_info
         else:
             id = ids.values[0]
+            coin_dict = cg.get_coin_by_id(id)
     elif ticker in cg_coins["name"].values:
         ids = cg_coins[cg_coins["name"] == ticker]["id"]
         if len(ids) > 1:
@@ -71,6 +73,7 @@ def get_coin_info(ticker):
                         coin_dict = coin_info
         else:
             id = ids.values[0]
+            coin_dict = cg.get_coin_by_id(id)
     else:
         return 0, None, None, None, None
 
