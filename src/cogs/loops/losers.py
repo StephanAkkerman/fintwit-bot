@@ -15,6 +15,7 @@ from util.disc_util import get_channel
 from util.afterhours import afterHours
 from util.formatting import human_format
 
+
 class Losers(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -25,32 +26,36 @@ class Losers(commands.Cog):
     async def losers(self):
         # Dont send if the market is closed
         if afterHours():
-           return 
-        
+            return
+
         e = discord.Embed(
             title=f"Top 50 Losers",
             url="https://finance.yahoo.com/gainers/",
             description="",
             color=0x720E9E,
         )
-        
+
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
-        
+
         try:
-            losers = si.get_day_losers()[['Symbol', 'Price (Intraday)', '% Change', 'Volume']].head(50)
+            losers = si.get_day_losers()[
+                ["Symbol", "Price (Intraday)", "% Change", "Volume"]
+            ].head(50)
         except Exception:
             print("Failed to get losers")
             return
-        
-        losers['% Change'] = losers['% Change'].apply(lambda x: f" (+{x}% 📈)" if x > 0 else f"({x}% 📉)")
-        losers['Price'] = losers['Price (Intraday)'].astype(str) + losers['% Change']
-        losers['Price'] = losers['Price'].apply(lambda x: '$' + x)
-        losers['Volume'] = losers['Volume'].apply(lambda x: '$' + human_format(x))
-        
+
+        losers["% Change"] = losers["% Change"].apply(
+            lambda x: f" (+{x}% 📈)" if x > 0 else f"({x}% 📉)"
+        )
+        losers["Price"] = losers["Price (Intraday)"].astype(str) + losers["% Change"]
+        losers["Price"] = losers["Price"].apply(lambda x: "$" + x)
+        losers["Volume"] = losers["Volume"].apply(lambda x: "$" + human_format(x))
+
         ticker = "\n".join(losers["Symbol"].tolist())
         prices = "\n".join(losers["Price"].tolist())
-        vol = "\n".join(losers['Volume'].astype(str).tolist())
-       
+        vol = "\n".join(losers["Volume"].astype(str).tolist())
+
         if len(ticker) > 1024 or len(prices) > 1024 or len(vol) > 1024:
             # Drop the last
             ticker = "\n".join(ticker[:1024].split("\n")[:-1])
@@ -77,6 +82,7 @@ class Losers(commands.Cog):
         channel = get_channel(self.bot, config["LOSERS"]["CHANNEL"])
 
         await channel.send(embed=e)
-        
+
+
 def setup(bot):
     bot.add_cog(Losers(bot))

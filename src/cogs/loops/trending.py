@@ -17,6 +17,7 @@ from util.disc_util import get_channel
 from util.afterhours import afterHours
 from util.formatting import human_format
 
+
 class Trending(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -50,14 +51,16 @@ class Trending(commands.Cog):
             price_change = coin_dict["market_data"]["price_change_percentage_24h"]
 
             ticker.append(f"[{coin['item']['symbol']}]({website})")
-            vol.append('$'+human_format(coin_dict["market_data"]["total_volume"]["usd"]))
+            vol.append(
+                "$" + human_format(coin_dict["market_data"]["total_volume"]["usd"])
+            )
 
             if price_change != None:
                 change = round(price_change, 2)
                 price_change = f"(+{change}% 📈)" if change > 0 else f"({change}% 📉)"
                 prices.append(f"${price} {price_change}")
             else:
-                prices.append('$'+price)
+                prices.append("$" + price)
 
         e.add_field(
             name="Coin", value="\n".join(ticker), inline=True,
@@ -85,7 +88,7 @@ class Trending(commands.Cog):
         """Print the most activaly traded stocks in dedicated channel"""
         # Dont send if the market is closed
         if afterHours():
-           return 
+            return
 
         e = discord.Embed(
             title=f"Trending Stocks",
@@ -96,16 +99,18 @@ class Trending(commands.Cog):
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
 
         active = si.get_day_most_active().head(50)
-        #active['Symbol'] = active['Symbol'].apply(lambda x: f"[{x}](https://finance.yahoo.com/quote/{x}/)")
-        active['% Change'] = active['% Change'].apply(lambda x: f" (+{x}% 📈)" if x > 0 else f"({x}% 📉)")
-        active['Price'] = active['Price (Intraday)'].astype(str) + active['% Change']
-        active['Price'] = active['Price'].apply(lambda x: '$' + x)
-        active['Volume'] = active['Volume'].apply(lambda x: '$'+human_format(x))
-        
+        # active['Symbol'] = active['Symbol'].apply(lambda x: f"[{x}](https://finance.yahoo.com/quote/{x}/)")
+        active["% Change"] = active["% Change"].apply(
+            lambda x: f" (+{x}% 📈)" if x > 0 else f"({x}% 📉)"
+        )
+        active["Price"] = active["Price (Intraday)"].astype(str) + active["% Change"]
+        active["Price"] = active["Price"].apply(lambda x: "$" + x)
+        active["Volume"] = active["Volume"].apply(lambda x: "$" + human_format(x))
+
         ticker = "\n".join(active["Symbol"].tolist())
         prices = "\n".join(active["Price"].tolist())
-        vol = "\n".join(active['Volume'].astype(int).astype(str).tolist())
-       
+        vol = "\n".join(active["Volume"].astype(int).astype(str).tolist())
+
         if len(ticker) > 1024 or len(prices) > 1024 or len(vol) > 1024:
             # Drop the last
             ticker = "\n".join(ticker[:1024].split("\n")[:-1])
@@ -124,7 +129,6 @@ class Trending(commands.Cog):
             name="Volume", value=vol, inline=True,
         )
 
-
         e.set_footer(
             text=f"Today at {datetime.datetime.now().strftime('%H:%M')}",
             icon_url="https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png",
@@ -133,6 +137,7 @@ class Trending(commands.Cog):
         channel = get_channel(self.bot, config["TRENDING"]["STOCKS"]["CHANNEL"])
 
         await channel.send(embed=e)
+
 
 def setup(bot):
     bot.add_cog(Trending(bot))

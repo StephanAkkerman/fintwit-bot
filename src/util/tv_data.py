@@ -15,17 +15,31 @@ import pandas as pd
 tv_stocks = requests.get("https://scanner.tradingview.com/america/scan").json()["data"]
 tv_crypto = requests.get("https://scanner.tradingview.com/crypto/scan").json()["data"]
 
-stock_indices = ['AMEX:SPY', 'NASDAQ:NDX', 'USI:PCC', 'USI:PCCE', 'TVC:DXY', 'TVC:US10Y', 'TVC:VIX']
+stock_indices = [
+    "AMEX:SPY",
+    "NASDAQ:NDX",
+    "USI:PCC",
+    "USI:PCCE",
+    "TVC:DXY",
+    "TVC:US10Y",
+    "TVC:VIX",
+]
 
 tv_stocks = pd.DataFrame(tv_stocks).drop(columns=["d"])
-tv_stocks = pd.concat([tv_stocks, pd.DataFrame(stock_indices, columns=['s'])])
+tv_stocks = pd.concat([tv_stocks, pd.DataFrame(stock_indices, columns=["s"])])
 tv_stocks[["exchange", "stock"]] = tv_stocks["s"].str.split(":", 1, expand=True)
 
 # Get all EXCHANGE:INDEX symbols
-crypto_indices = ['CRYPTOCAP:TOTAL', 'CRYPTOCAP:BTC.D',  'CRYPTOCAP:OTHERS.D', 'CRYPTOCAP:TOTALDEFI.D', 'CRYPTOCAP:USDT.D']
+crypto_indices = [
+    "CRYPTOCAP:TOTAL",
+    "CRYPTOCAP:BTC.D",
+    "CRYPTOCAP:OTHERS.D",
+    "CRYPTOCAP:TOTALDEFI.D",
+    "CRYPTOCAP:USDT.D",
+]
 
 tv_crypto = pd.DataFrame(tv_crypto).drop(columns=["d"])
-tv_crypto = pd.concat([tv_crypto, pd.DataFrame(crypto_indices, columns=['s'])])
+tv_crypto = pd.concat([tv_crypto, pd.DataFrame(crypto_indices, columns=["s"])])
 tv_crypto[["exchange", "stock"]] = tv_crypto["s"].str.split(":", 1, expand=True)
 # Based on https://github.com/mohamadkhalaj/tradingView-API websocket implementation
 
@@ -67,8 +81,8 @@ def ws_data(ws):
                     # symbol = jsonRes['p'][1]['n']
                     price = jsonRes["p"][1]["v"]["lp"]
                     change = jsonRes["p"][1]["v"]["ch"]
-                    perc_change = round((change / price) * 100,2)
-                    volume = jsonRes['p'][1]['v']['volume']
+                    perc_change = round((change / price) * 100, 2)
+                    volume = jsonRes["p"][1]["v"]["volume"]
                     return price, perc_change, volume
         else:
             # ping packet
@@ -81,50 +95,62 @@ def ws_data(ws):
     except Exception:
         print(traceback.format_exc())
 
+
 def get_tv_TA(symbol, asset):
-    
-    if asset == 'stock':
+
+    if asset == "stock":
         stock = tv_stocks.loc[tv_stocks["stock"] == symbol]
         if not stock.empty:
             exchange = stock["exchange"].values[0]
-            market = 'america'
+            market = "america"
         else:
             return None
     else:
         crypto = tv_crypto.loc[tv_crypto["stock"] == symbol]
         if not crypto.empty:
             exchange = crypto["exchange"].values[0]
-            market = 'crypto'
+            market = "crypto"
         else:
             # If it crypto try adding USD or USDT
-            crypto_USD = tv_crypto.loc[tv_crypto["stock"] == symbol+'USD']
-            crypto_USDT = tv_crypto.loc[tv_crypto["stock"] == symbol+'USDT']
-            
+            crypto_USD = tv_crypto.loc[tv_crypto["stock"] == symbol + "USD"]
+            crypto_USDT = tv_crypto.loc[tv_crypto["stock"] == symbol + "USDT"]
+
             if not crypto_USD.empty:
-                symbol = crypto_USD['stock'].values[0]
+                symbol = crypto_USD["stock"].values[0]
                 exchange = crypto_USD["exchange"].values[0]
-                market = 'crypto'
+                market = "crypto"
             elif not crypto_USDT.empty:
-                symbol = crypto_USDT['stock'].values[0]
+                symbol = crypto_USDT["stock"].values[0]
                 exchange = crypto_USDT["exchange"].values[0]
-                market = 'crypto'
+                market = "crypto"
             else:
                 return None
-            
+
     # Get the TradingView TA for symbol
     # Interval can be 1m, 5m, 15m, 30m, 1h, 2h, 4h, 1d, 1W, 1M
     try:
         # Wait max 5 sec
-        analysis = TA_Handler(symbol=symbol, screener=market, exchange=exchange, interval=Interval.INTERVAL_4_HOURS, timeout=5).get_analysis().summary
+        analysis = (
+            TA_Handler(
+                symbol=symbol,
+                screener=market,
+                exchange=exchange,
+                interval=Interval.INTERVAL_4_HOURS,
+                timeout=5,
+            )
+            .get_analysis()
+            .summary
+        )
     except Exception as e:
         print(f"Error getting TradingView TA for {symbol}")
         print(e)
-        return None    
-    
+        return None
+
     # Format the analysis
     formatted_analysis = f"{analysis['RECOMMENDATION']}\n{analysis['BUY']}📈 {analysis['NEUTRAL']}⌛️ {analysis['SELL']}📉"
-    
+
     return formatted_analysis
+
 
 def get_tv_data(symbol, asset):
     """
@@ -135,7 +161,7 @@ def get_tv_data(symbol, asset):
     """
 
     try:
-        if asset == 'stock':
+        if asset == "stock":
             stock = tv_stocks.loc[tv_stocks["stock"] == symbol]
             if not stock.empty:
                 exchange = stock["exchange"].values[0]
@@ -176,7 +202,7 @@ def get_tv_data(symbol, asset):
 
         # Close the websocket connection
         ws.close()
-        
+
         # Returns the price, percent change, volume and exchange
         return ws_resp[0], ws_resp[1], ws_resp[2], exchange
 

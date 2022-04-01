@@ -14,69 +14,68 @@ from util.tv_data import get_tv_data
 from util.afterhours import afterHours
 from util.formatting import human_format
 
+
 class Indices(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
         self.crypto.start()
         self.stock.start()
-        
+
     async def get_feargread(self):
         async with aiohttp.ClientSession() as session:
-            async with session.get(
-                f"https://api.alternative.me/fng/?limit=2"
-            ) as r:
+            async with session.get(f"https://api.alternative.me/fng/?limit=2") as r:
                 response = await r.json()
-                
+
                 if "data" in response.keys():
                     today = int(response["data"][0]["value"])
                     yesterday = int(response["data"][1]["value"])
-                    
+
                     change = round((today - yesterday) / yesterday * 100, 2)
                     change = f" (+{change}% 📈)" if change > 0 else f"({change}% 📉)"
-                    
+
                     return f"{today} {change}"
 
     @loop(hours=12)
     async def crypto(self):
-        e = discord.Embed(
-            title=f"Crypto Indices",
-            description="",
-            color=0x131722,
-        )
-        
+        e = discord.Embed(title=f"Crypto Indices", description="", color=0x131722,)
+
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
-        
-        crypto_indices = ['TOTAL', 'BTC.D',  'OTHERS.D', 'TOTALDEFI.D', 'USDT.D']
-        
+
+        crypto_indices = ["TOTAL", "BTC.D", "OTHERS.D", "TOTALDEFI.D", "USDT.D"]
+
         ticker = []
         prices = []
-        
+
         for index in crypto_indices:
-            tv_data = get_tv_data(index, 'crypto')
+            tv_data = get_tv_data(index, "crypto")
             if tv_data == False:
                 continue
             price, change, _, exchange = tv_data
             change = round(change, 2)
             change = f" (+{change}% 📈)" if change > 0 else f"({change}% 📉)"
-            
-            if index == 'TOTAL':
-                price = f"{human_format(price)} {change}" 
-            else:
-                price = f"{round(price, 2)}% {change}"           
 
-            ticker.append(f"[{index}](https://www.tradingview.com/symbols/{exchange}-{index}/)")
-            prices.append(price)   
-            
+            if index == "TOTAL":
+                price = f"{human_format(price)} {change}"
+            else:
+                price = f"{round(price, 2)}% {change}"
+
+            ticker.append(
+                f"[{index}](https://www.tradingview.com/symbols/{exchange}-{index}/)"
+            )
+            prices.append(price)
+
         value = await self.get_feargread()
-        
+
         if value:
-            ticker.append(f"[Fear&Greed](https://alternative.me/crypto/fear-and-greed-index/)")
+            ticker.append(
+                f"[Fear&Greed](https://alternative.me/crypto/fear-and-greed-index/)"
+            )
             prices.append(value)
-                
+
         ticker = "\n".join(ticker)
-        prices = "\n".join(prices)        
-       
+        prices = "\n".join(prices)
+
         e.add_field(
             name="Index", value=ticker, inline=True,
         )
@@ -93,47 +92,45 @@ class Indices(commands.Cog):
         channel = get_channel(self.bot, config["INDEX"]["CRYPTO"]["CHANNEL"])
 
         await channel.send(embed=e)
-        
+
     @loop(hours=2)
     async def stock(self):
         # Dont send if the market is closed
         if afterHours():
-           return 
-        
-        e = discord.Embed(
-            title=f"Stock Indices",
-            description="",
-            color=0x131722,
-        )
-        
+            return
+
+        e = discord.Embed(title=f"Stock Indices", description="", color=0x131722,)
+
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
-        
-        stock_indices = ['SPY', 'NDX', 'DXY', 'PCC', 'PCCE', 'US10Y', 'VIX']
-        
+
+        stock_indices = ["SPY", "NDX", "DXY", "PCC", "PCCE", "US10Y", "VIX"]
+
         ticker = []
         prices = []
-                
+
         for index in stock_indices:
-            tv_data = get_tv_data(index, 'stock')
+            tv_data = get_tv_data(index, "stock")
             if tv_data == False:
                 continue
             price, change, _, exchange = tv_data
             change = round(change, 2)
             change = f" (+{change}% 📈)" if change > 0 else f"({change}% 📉)"
-            
-            if index in ['SPY', 'NDX']:
+
+            if index in ["SPY", "NDX"]:
                 price = f"${round(price, 2)} {change}"
-            elif index == 'USD10Y':
+            elif index == "USD10Y":
                 price = f"{round(price, 2)}% {change}"
             else:
                 price = f"{round(price, 2)} {change}"
-            
-            ticker.append(f"[{index}](https://www.tradingview.com/symbols/{exchange}-{index}/)")
+
+            ticker.append(
+                f"[{index}](https://www.tradingview.com/symbols/{exchange}-{index}/)"
+            )
             prices.append(price)
-                
+
         ticker = "\n".join(ticker)
         prices = "\n".join(prices)
-       
+
         e.add_field(
             name="Index", value=ticker, inline=True,
         )
@@ -150,6 +147,7 @@ class Indices(commands.Cog):
         channel = get_channel(self.bot, config["INDEX"]["STOCKS"]["CHANNEL"])
 
         await channel.send(embed=e)
-        
+
+
 def setup(bot):
     bot.add_cog(Indices(bot))

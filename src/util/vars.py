@@ -32,7 +32,7 @@ filter_dict = {
 }
 
 # Stable coins
-stables = ['USDT', 'USD', 'BUSD', 'DAI', 'USDTPERP']
+stables = ["USDT", "USD", "BUSD", "DAI", "USDTPERP"]
 
 # Saves all CoinGecko coins, maybe refresh this daily
 cg = CoinGeckoAPI()

@@ -173,7 +173,7 @@ async def add_financials(e, tickers, hashtags, text, user, bot):
     symbols = list(set(tickers + hashtags))
 
     for ticker in symbols:
-        #print(f"Getting financials for {ticker}")
+        # print(f"Getting financials for {ticker}")
 
         # Filter beforehand
         if ticker in filter_dict.keys():
@@ -182,7 +182,7 @@ async def add_financials(e, tickers, hashtags, text, user, bot):
             # Skip doubles (for instance $BTC and #Bitocin)
             if ticker in symbols:
                 continue
-            
+
         if crypto > stocks:
             majority = "crypto"
         elif crypto < stocks:
@@ -191,7 +191,9 @@ async def add_financials(e, tickers, hashtags, text, user, bot):
             majority = "🤷‍♂️"
 
         try:
-            volume, website, exchanges, price, change, ta = classify_ticker(ticker, majority)
+            volume, website, exchanges, price, change, ta = classify_ticker(
+                ticker, majority
+            )
         except Exception:
             print(ticker)
             print(format_exc())
@@ -200,7 +202,7 @@ async def add_financials(e, tickers, hashtags, text, user, bot):
         # Check if there is any volume, and if it is a symbol
         if volume is None:
             if ticker in tickers:
-            
+
                 e.add_field(name=f"${ticker}", value=majority)
 
                 # Go to next in symbols
@@ -241,10 +243,10 @@ async def add_financials(e, tickers, hashtags, text, user, bot):
 
         # Add the field with hyperlink
         e.add_field(name=title, value=description, inline=True)
-        
+
         if ta is not None:
             e.add_field(name="4h TA", value=ta, inline=True)
-        
+
     # If there are any tickers
     if symbols:
         sentiment = classify_sentiment(text)

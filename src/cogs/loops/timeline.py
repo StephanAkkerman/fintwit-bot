@@ -86,10 +86,10 @@ class Streamer(AsyncStream):
 
         # Set following ids
         self.get_following_ids.start()
-        
+
         self.assets_db = None
         self.get_assets_db.start()
-        
+
     @loop(minutes=60)
     async def get_assets_db(self):
         self.assets_db = get_db("assets")
@@ -130,17 +130,16 @@ class Streamer(AsyncStream):
         # Use 'media' 'url' as url
         # Use 'profile_image_url'' for thumbnail
 
-        title = f"{user} tweeted about {', '.join(tickers)}" if retweeted_user == None else f"{user} 🔁 {retweeted_user} about {', '.join(tickers)}"
-        
+        title = (
+            f"{user} tweeted about {', '.join(tickers)}"
+            if retweeted_user == None
+            else f"{user} 🔁 {retweeted_user} about {', '.join(tickers)}"
+        )
+
         if len(title) > 256:
             title = title[:253] + "..."
-            
-        e = discord.Embed(
-            title=title,
-            url=url,
-            description=text,
-            color=0x1DA1F2,
-        )
+
+        e = discord.Embed(title=title, url=url, description=text, color=0x1DA1F2,)
 
         e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
         e.set_thumbnail(url=profile_pic)
@@ -162,39 +161,39 @@ class Streamer(AsyncStream):
             icon_url="https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
         )
 
-        msg, channel = await self.upload_tweet(e, category, images, user, retweeted_user)
-        
+        msg, channel = await self.upload_tweet(
+            e, category, images, user, retweeted_user
+        )
+
         if len(tickers + hashtags) > 0:
             await self.tag_user(msg, channel, tickers + hashtags)
-        
-    
+
     async def tag_user(self, msg, channel, tickers):
         # Get the stored db
-        matching_users = self.assets_db[self.assets_db["asset"].isin(tickers)]['id'].tolist()
+        matching_users = self.assets_db[self.assets_db["asset"].isin(tickers)][
+            "id"
+        ].tolist()
         unique_users = list(set(matching_users))
-        
+
         for user in unique_users:
             await channel.send(f"<@{user}>", reference=msg)
-        
 
     async def upload_tweet(self, e, category, images, user, retweeted_user):
         """ Upload tweet in the dedicated discord channel """
-        
+
         # Default channel
         channel = self.other_channel
-                
+
         # Check if there is a user specific channel
         # If there is a retweeted user check for both
         if retweeted_user and retweeted_user.lower() in self.text_channel_names:
             channel = self.text_channels[
-                    self.text_channel_names.index(retweeted_user.lower())
-                ]            
-        elif user.lower() in self.text_channel_names:
-            channel = self.text_channels[
-                self.text_channel_names.index(user.lower())
+                self.text_channel_names.index(retweeted_user.lower())
             ]
+        elif user.lower() in self.text_channel_names:
+            channel = self.text_channels[self.text_channel_names.index(user.lower())]
 
-        elif user in config['NEWS']:
+        elif user in config["NEWS"]:
             channel = self.news_channel
 
         elif category == None and not images:
@@ -226,5 +225,5 @@ class Streamer(AsyncStream):
             await msg.add_reaction("🐂")
             await msg.add_reaction("🦆")
             await msg.add_reaction("🐻")
-            
+
         return msg, channel

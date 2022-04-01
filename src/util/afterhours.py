@@ -11,6 +11,7 @@ us_holidays = cal.holidays(
     end=datetime.date(datetime.date.today().year, 12, 31).strftime("%Y-%m-%d"),
 ).to_pydatetime()
 
+
 def afterHours():
     """
     Simple code to check if the current time is after hours in the US.
