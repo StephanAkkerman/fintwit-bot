@@ -1,6 +1,5 @@
 # Standard libraries
 import datetime
-from math import log, floor
 
 # > Discord dependencies
 import discord
@@ -12,14 +11,7 @@ from util.vars import config
 from util.disc_util import get_channel
 from util.tv_data import get_tv_data
 from util.afterhours import afterHours
-
-def human_format(number):
-    """ https://stackoverflow.com/questions/579310/formatting-long-numbers-as-strings-in-python/45846841 """
-    units = ['', 'K', 'M', 'G', 'T', 'P']
-    k = 1000.0
-    magnitude = int(floor(log(number, k)))
-    return '%.2f%s' % (number / k**magnitude, units[magnitude])
-
+from util.formatting import human_format
 
 class Indices(commands.Cog):
     def __init__(self, bot):
@@ -105,7 +97,13 @@ class Indices(commands.Cog):
             price, change, _, exchange = tv_data
             change = round(change, 2)
             change = f" (+{change}% 📈)" if change > 0 else f"({change}% 📉)"
-            price = f"{round(price, 2)} {change}"           
+            
+            if index in ['SPY', 'NDX']:
+                price = f"${round(price, 2)} {change}"
+            elif index == 'USD10Y':
+                price = f"{round(price, 2)}% {change}"
+            else:
+                price = f"{round(price, 2)} {change}"
             
             ticker.append(f"[{index}](https://www.tradingview.com/symbols/{exchange}-{index}/)")
             prices.append(price)
@@ -118,7 +116,7 @@ class Indices(commands.Cog):
         )
 
         e.add_field(
-            name="Price", value=prices, inline=True,
+            name="Value", value=prices, inline=True,
         )
 
         e.set_footer(

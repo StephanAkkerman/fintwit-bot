@@ -13,7 +13,7 @@ from discord.ext.tasks import loop
 from util.vars import config
 from util.disc_util import get_channel
 from util.afterhours import afterHours
-
+from util.formatting import human_format
 
 class Losers(commands.Cog):
     def __init__(self, bot):
@@ -44,10 +44,12 @@ class Losers(commands.Cog):
         
         losers['% Change'] = losers['% Change'].apply(lambda x: f" (+{x}% 📈)" if x > 0 else f"({x}% 📉)")
         losers['Price'] = losers['Price (Intraday)'].astype(str) + losers['% Change']
+        losers['Price'] = losers['Price'].apply(lambda x: '$' + x)
+        losers['Volume'] = losers['Volume'].apply(lambda x: '$' + human_format(x))
         
         ticker = "\n".join(losers["Symbol"].tolist())
         prices = "\n".join(losers["Price"].tolist())
-        vol = "\n".join(losers['Volume'].astype(int).astype(str).tolist())
+        vol = "\n".join(losers['Volume'].astype(str).tolist())
        
         if len(ticker) > 1024 or len(prices) > 1024 or len(vol) > 1024:
             # Drop the last
@@ -60,11 +62,11 @@ class Losers(commands.Cog):
         )
 
         e.add_field(
-            name="Price ($)", value=prices, inline=True,
+            name="Price", value=prices, inline=True,
         )
 
         e.add_field(
-            name="Volume ($)", value=vol, inline=True,
+            name="Volume", value=vol, inline=True,
         )
 
         e.set_footer(

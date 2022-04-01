@@ -13,6 +13,7 @@ from discord.ext.tasks import loop
 from util.vars import config
 from util.disc_util import get_channel
 from util.afterhours import afterHours
+from util.formatting import human_format
 
 
 class Gainers(commands.Cog):
@@ -41,10 +42,12 @@ class Gainers(commands.Cog):
         
         gainers['% Change'] = gainers['% Change'].apply(lambda x: f" (+{x}% 📈)" if x > 0 else f"({x}% 📉)")
         gainers['Price'] = gainers['Price (Intraday)'].astype(str) + gainers['% Change']
+        gainers['Price'] = gainers['Price'].apply(lambda x: '$' + x)
+        gainers['Volume'] = gainers['Volume'].apply(lambda x: '$' + human_format(x))
         
         ticker = "\n".join(gainers["Symbol"].tolist())
         prices = "\n".join(gainers["Price"].tolist())
-        vol = "\n".join(gainers['Volume'].astype(int).astype(str).tolist())
+        vol = "\n".join(gainers['Volume'].astype(str).tolist())
        
         if len(ticker) > 1024 or len(prices) > 1024 or len(vol) > 1024:
             # Drop the last
@@ -57,11 +60,11 @@ class Gainers(commands.Cog):
         )
 
         e.add_field(
-            name="Price ($)", value=prices, inline=True,
+            name="Price", value=prices, inline=True,
         )
 
         e.add_field(
-            name="Volume ($)", value=vol, inline=True,
+            name="Volume", value=vol, inline=True,
         )
 
 

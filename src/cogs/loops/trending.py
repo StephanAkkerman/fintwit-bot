@@ -9,12 +9,13 @@ import yahoo_fin.stock_info as si
 import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
+from util.formatting import human_format
 
 # Local dependencies
 from util.vars import config
 from util.disc_util import get_channel
 from util.afterhours import afterHours
-
+from util.formatting import human_format
 
 class Trending(commands.Cog):
     def __init__(self, bot):
@@ -49,25 +50,25 @@ class Trending(commands.Cog):
             price_change = coin_dict["market_data"]["price_change_percentage_24h"]
 
             ticker.append(f"[{coin['item']['symbol']}]({website})")
-            vol.append(str(coin_dict["market_data"]["total_volume"]["usd"]))
+            vol.append('$'+human_format(coin_dict["market_data"]["total_volume"]["usd"]))
 
             if price_change != None:
                 change = round(price_change, 2)
                 price_change = f"(+{change}% 📈)" if change > 0 else f"({change}% 📉)"
-                prices.append(f"{price} {price_change}")
+                prices.append(f"${price} {price_change}")
             else:
-                prices.append(price)
+                prices.append('$'+price)
 
         e.add_field(
             name="Coin", value="\n".join(ticker), inline=True,
         )
 
         e.add_field(
-            name="Price ($)", value="\n".join(prices), inline=True,
+            name="Price", value="\n".join(prices), inline=True,
         )
 
         e.add_field(
-            name="Volume ($)", value="\n".join(vol), inline=True,
+            name="Volume", value="\n".join(vol), inline=True,
         )
 
         e.set_footer(
@@ -98,6 +99,8 @@ class Trending(commands.Cog):
         #active['Symbol'] = active['Symbol'].apply(lambda x: f"[{x}](https://finance.yahoo.com/quote/{x}/)")
         active['% Change'] = active['% Change'].apply(lambda x: f" (+{x}% 📈)" if x > 0 else f"({x}% 📉)")
         active['Price'] = active['Price (Intraday)'].astype(str) + active['% Change']
+        active['Price'] = active['Price'].apply(lambda x: '$' + x)
+        active['Volume'] = active['Volume'].apply(lambda x: '$'+human_format(x))
         
         ticker = "\n".join(active["Symbol"].tolist())
         prices = "\n".join(active["Price"].tolist())
@@ -114,11 +117,11 @@ class Trending(commands.Cog):
         )
 
         e.add_field(
-            name="Price ($)", value=prices, inline=True,
+            name="Price", value=prices, inline=True,
         )
 
         e.add_field(
-            name="Volume ($)", value=vol, inline=True,
+            name="Volume", value=vol, inline=True,
         )
 
 
