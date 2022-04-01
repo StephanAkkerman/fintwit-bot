@@ -79,7 +79,7 @@ class Losers(commands.Cog):
             icon_url="https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png",
         )
 
-        channel = get_channel(self.bot, config["LOSERS"]["CHANNEL"])
+        channel = get_channel(self.bot, config["LOSERS"]["STOCKS"]["CHANNEL"])
 
         await channel.send(embed=e)
 

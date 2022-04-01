@@ -109,7 +109,7 @@ class Trending(commands.Cog):
 
         ticker = "\n".join(active["Symbol"].tolist())
         prices = "\n".join(active["Price"].tolist())
-        vol = "\n".join(active["Volume"].astype(int).astype(str).tolist())
+        vol = "\n".join(active["Volume"].tolist())
 
         if len(ticker) > 1024 or len(prices) > 1024 or len(vol) > 1024:
             # Drop the last
