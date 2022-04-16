@@ -39,8 +39,18 @@ class Gainers(commands.Cog):
         # Cast to dataframe
         df = pd.DataFrame(binance_data)
         
+        # Keep only the USDT pairs
+        df = df[df['symbol'].str.contains('USDT')]
+        
+        # Remove USDT from the symbol
+        df['symbol'] = df['symbol'].str.replace('USDT', '')
+        
+        df[["priceChangePercent", "weightedAvgPrice", "volume"]] = df[["priceChangePercent", "weightedAvgPrice", "volume"]].apply(pd.to_numeric)
+        
         # Sort on priceChangePercent
         sorted = df.sort_values(by="priceChangePercent", ascending=False)
+        
+        print(sorted)
                 
         sorted.rename(columns={'symbol' : 'Symbol', 
                                'priceChangePercent' : '% Change', 

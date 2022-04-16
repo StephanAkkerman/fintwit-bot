@@ -110,7 +110,11 @@ class Streamer(AsyncStream):
     @loop(minutes=15)
     async def get_following_ids(self):
         # Get user ids of people who we are following
-        self.following_ids = api.get_friend_ids()
+        try:
+            self.following_ids = api.get_friend_ids()
+        except Exception as e:
+            print(e)
+            print("Failed to get following ids")
 
     async def on_data(self, raw_data):
         """

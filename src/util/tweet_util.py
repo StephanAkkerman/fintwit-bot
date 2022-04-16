@@ -214,10 +214,11 @@ async def add_financials(e, tickers, hashtags, text, user, bot):
         title = f"${ticker}"
 
         # Determine if this is a crypto or stock
-        if "coingecko" in website:
-            crypto += 1
-        if "yahoo" in website:
-            stocks += 1
+        if website:
+            if "coingecko" in website:
+                crypto += 1
+            if "yahoo" in website:
+                stocks += 1
 
         # Format change
         if type(change) == list:

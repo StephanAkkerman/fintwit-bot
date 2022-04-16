@@ -13,7 +13,11 @@ def human_format(number):
     # https://idlechampions.fandom.com/wiki/Large_number_abbreviations
     units = ["", "K", "M", "B", "t", "q"]
     k = 1000.0
-    magnitude = int(floor(log(number, k)))
+    try:
+        magnitude = int(floor(log(number, k)))
+    except ValueError:
+        magnitude = 0
+        print("Could not get magnitude for number:", number)
     return "%.2f%s" % (number / k ** magnitude, units[magnitude])
 
 # Used in gainers, losers loops

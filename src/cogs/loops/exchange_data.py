@@ -230,7 +230,7 @@ class Binance:
                                 uri=f'wss://stream.binance.com:9443/ws/{listen_key["listenKey"]}',
                                 ping_interval=60 * 3,
                             ) as self.ws:
-                                print("Succesfully connected with Binance socket")
+                                print(f"Succesfully connected {self.user} with Binance socket")
                                 while True:
                                     # listener loop
                                     try:
@@ -339,7 +339,9 @@ class KuCoin:
                 side = data["side"]
                 orderType = data["orderType"]
                 quantity = data["filledSize"] + data["remainSize"]
+                # matchPrice does not always work
                 execPrice = data["matchPrice"]
+                print(data)
 
                 base = sym.split("-")[0]
                 if base not in stables:
@@ -458,7 +460,7 @@ class KuCoin:
                                         }
                                     )
                                 )
-                                print("Succesfully connected with KuCoin socket")
+                                print(f"Succesfully connected {self.user} with KuCoin socket")
                                 while True:
                                     # listener loop
                                     try:
