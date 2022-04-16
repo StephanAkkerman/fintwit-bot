@@ -35,8 +35,6 @@ class Losers(commands.Cog):
             color=0x720E9E,
         )
 
-        e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
-
         try:
             losers = si.get_day_losers()[
                 ["Symbol", "Price (Intraday)", "% Change", "Volume"]

@@ -144,8 +144,6 @@ class Streamer(AsyncStream):
             title = title[:253] + "..."
 
         e = discord.Embed(title=title, url=url, description=text, color=0x1DA1F2,)
-
-        e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
         e.set_thumbnail(url=profile_pic)
 
         # Max 25 fields

@@ -41,7 +41,6 @@ class Reddit(commands.Cog):
             color=0xFF3F18,
             timestamp=datetime.datetime.utcnow(),
         )
-        em.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
         em.set_thumbnail(
             url="https://styles.redditmedia.com/t5_2th52/styles/communityIcon_wzrl8s0hx8a81.png?width=256&s=dcbf830170c1e8237335a3f046b36f723c5d55e7"
         )
@@ -90,7 +89,6 @@ class Reddit(commands.Cog):
             if img_url:
                 e.set_image(url=img_url[0])
 
-            e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
             e.set_thumbnail(
                 url="https://styles.redditmedia.com/t5_2th52/styles/communityIcon_wzrl8s0hx8a81.png?width=256&s=dcbf830170c1e8237335a3f046b36f723c5d55e7"
             )

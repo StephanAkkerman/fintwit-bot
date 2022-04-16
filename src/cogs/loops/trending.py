@@ -37,7 +37,6 @@ class Trending(commands.Cog):
             description="",
             color=0x8CC63F,
         )
-        e.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
 
         ticker = []
         prices = []
