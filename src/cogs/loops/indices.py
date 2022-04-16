@@ -32,9 +32,9 @@ class Indices(commands.Cog):
                     yesterday = int(response["data"][1]["value"])
 
                     change = round((today - yesterday) / yesterday * 100, 2)
-                    change = f" (+{change}% 📈)" if change > 0 else f"({change}% 📉)"
+                    change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
 
-                    return f"{today} {change}"
+                    return today, change
 
     @loop(hours=12)
     async def crypto(self):
@@ -46,6 +46,7 @@ class Indices(commands.Cog):
 
         ticker = []
         prices = []
+        changes = []
 
         for index in crypto_indices:
             tv_data = get_tv_data(index, "crypto")
@@ -53,28 +54,31 @@ class Indices(commands.Cog):
                 continue
             price, change, _, exchange = tv_data
             change = round(change, 2)
-            change = f" (+{change}% 📈)" if change > 0 else f"({change}% 📉)"
+            change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
 
             if index == "TOTAL":
-                price = f"{human_format(price)} {change}"
+                price = f"{human_format(price)}"
             else:
-                price = f"{round(price, 2)}% {change}"
+                price = f"{round(price, 2)}%"
 
             ticker.append(
                 f"[{index}](https://www.tradingview.com/symbols/{exchange}-{index}/)"
             )
             prices.append(price)
+            changes.append(change)
 
-        value = await self.get_feargread()
+        value, change = await self.get_feargread()
 
         if value:
             ticker.append(
                 f"[Fear&Greed](https://alternative.me/crypto/fear-and-greed-index/)"
             )
-            prices.append(value)
+            prices.append(str(value))
+            changes.append(change)
 
         ticker = "\n".join(ticker)
         prices = "\n".join(prices)
+        changes = "\n".join(changes)
 
         e.add_field(
             name="Index", value=ticker, inline=True,
@@ -82,6 +86,10 @@ class Indices(commands.Cog):
 
         e.add_field(
             name="Value", value=prices, inline=True,
+        )
+        
+        e.add_field(
+            name="% Change", value=changes, inline=True,
         )
 
         e.set_footer(
@@ -114,14 +122,14 @@ class Indices(commands.Cog):
                 continue
             price, change, _, exchange = tv_data
             change = round(change, 2)
-            change = f" (+{change}% 📈)" if change > 0 else f"({change}% 📉)"
+            change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
 
             if index in ["SPY", "NDX"]:
-                price = f"${round(price, 2)} {change}"
+                price = f"${round(price, 2)}"
             elif index == "USD10Y":
-                price = f"{round(price, 2)}% {change}"
+                price = f"{round(price, 2)}%"
             else:
-                price = f"{round(price, 2)} {change}"
+                price = f"{round(price, 2)}"
 
             ticker.append(
                 f"[{index}](https://www.tradingview.com/symbols/{exchange}-{index}/)"
@@ -130,6 +138,7 @@ class Indices(commands.Cog):
 
         ticker = "\n".join(ticker)
         prices = "\n".join(prices)
+        changes = "\n".join(changes)
 
         e.add_field(
             name="Index", value=ticker, inline=True,
@@ -137,6 +146,9 @@ class Indices(commands.Cog):
 
         e.add_field(
             name="Value", value=prices, inline=True,
+        )
+        e.add_field(
+            name="% Change", value=changes, inline=True,
         )
 
         e.set_footer(
