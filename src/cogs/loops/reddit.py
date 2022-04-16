@@ -68,6 +68,7 @@ class Reddit(commands.Cog):
             video = False
             if not submission.is_self:
                 url = submission.url
+                print(url)
                 if url.endswith(".jpg") or url.endswith(".png") or url.endswith(".gif"):
                     img_url.append(url)
                 elif "gallery" in url:
@@ -75,7 +76,7 @@ class Reddit(commands.Cog):
                     for image_item in image_dict.values():
                         largest_image = image_item["s"]
                         img_url.append(largest_image["u"])
-                else:
+                elif "v.redd.it" in url:
                     video = True
                     descr = "See video below."
 

@@ -49,9 +49,7 @@ class Gainers(commands.Cog):
         
         # Sort on priceChangePercent
         sorted = df.sort_values(by="priceChangePercent", ascending=False)
-        
-        print(sorted)
-                
+                        
         sorted.rename(columns={'symbol' : 'Symbol', 
                                'priceChangePercent' : '% Change', 
                                'weightedAvgPrice' : 'Price', 
