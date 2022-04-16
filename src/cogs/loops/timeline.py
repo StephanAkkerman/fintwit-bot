@@ -179,8 +179,9 @@ class Streamer(AsyncStream):
         ].tolist()
         unique_users = list(set(matching_users))
 
-        for user in unique_users:
-            await channel.send(f"<@{user}>", reference=msg)
+        # Make it one message for all the users
+        tagged_msg = " ".join([f'<@!{user}>' for user in unique_users])
+        await channel.send(tagged_msg, reference=msg)
 
     async def upload_tweet(self, e, category, images, user, retweeted_user):
         """ Upload tweet in the dedicated discord channel """
