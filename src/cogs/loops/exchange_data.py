@@ -334,15 +334,14 @@ class KuCoin:
         msg = json.loads(msg)
         
         if "topic" in msg.keys():
-            if msg["topic"] == "/spotMarket/tradeOrders" and msg["data"]["type"] != "canceled":
+            if msg["topic"] == "/spotMarket/tradeOrders" and msg["data"]["type"] != "canceled" and "matchPrice" in msg["data"].keys():
                 data = msg["data"]
                 sym = data["symbol"]
                 side = data["side"]
                 orderType = data["orderType"]
                 quantity = float(data["filledSize"]) + float(data["remainSize"])
-                # matchPrice does not always work
                 execPrice = float(data["matchPrice"])
-
+                
                 base = sym.split("-")[0]
                 if base not in stables:
                     usd = await self.get_quote_price(base + "-" + "USDT")
