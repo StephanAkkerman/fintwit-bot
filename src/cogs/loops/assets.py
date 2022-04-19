@@ -121,6 +121,8 @@ class Assets(commands.Cog):
 
             # Stables is always the same in USD
             if row["asset"] in stables:
+                if row['owned'] < 1:
+                    assets_db.drop(index, inplace=True)
                 continue
 
             # Remove small quantities, 0.005 btc is 20 usd
@@ -148,21 +150,8 @@ class Assets(commands.Cog):
         sorted_df = sorted_df.round({"owned": 3})
         exchange_df = sorted_df.drop(sorted_df[sorted_df.owned == 0].index)
 
-        assets = "\n".join(exchange_df["asset"].to_list())
-        owned_floats = exchange_df["owned"].to_list()
-        owned = "\n".join(str(x) for x in owned_floats)
-
-        if len(assets) > 1024:
-            assets = assets[:1024].split("\n")[:-1]
-            owned = "\n".join(owned.split("\n")[: len(assets)])
-            assets = "\n".join(assets)
-        elif len(owned) > 1024:
-            owned = owned[:1024].split("\n")[:-1]
-            assets = "\n".join(assets.split("\n")[: len(owned)])
-            owned = "\n".join(owned)
-
         usd_values = []
-        for sym in assets.split("\n"):
+        for sym in exchange_df["asset"].to_list():
             if sym not in stables:
                 usd_val = 0
                 if exchange == "Binance":
@@ -181,8 +170,46 @@ class Assets(commands.Cog):
             else:
                 usd_values.append(1)
 
-        values = ["$" + str(round(x * y, 2)) for x, y in zip(owned_floats, usd_values)]
-        values = "\n".join(values)
+        # Add new column for usd values
+        exchange_df['usd_value'] = usd_values
+        
+        # Multiply it with the owned amount
+        exchange_df['usd_value'] = exchange_df['usd_value'] * exchange_df['owned']
+        
+        # Round it to 2 decimals
+        exchange_df = exchange_df.round({"usd_value": 2})
+                
+        # Sort by usd value
+        final_df = exchange_df.sort_values(by=["usd_value"], ascending=False)
+        
+        # Add $ in front of it
+        final_df['usd_value'] = '$' + final_df['usd_value'].astype(str)
+        
+        # Convert owned to string
+        final_df['owned'] = final_df['owned'].astype(str)
+                
+        # Create the list of string values
+        assets = "\n".join(final_df["asset"].to_list())
+        owned = "\n".join(final_df["owned"].to_list())
+        values = "\n".join(final_df["usd_value"].to_list())
+        
+        # Ensure that the length is not bigger than allowed
+        # This can be improved
+        if len(assets) > 1024:
+            assets = assets[:1024].split("\n")[:-1]
+            owned = "\n".join(owned.split("\n")[: len(assets)])
+            values = "\n".join(values.split("\n")[: len(assets)])
+            assets = "\n".join(assets)
+        elif len(owned) > 1024:
+            owned = owned[:1024].split("\n")[:-1]
+            assets = "\n".join(assets.split("\n")[: len(owned)])
+            values = "\n".join(values.split("\n")[: len(owned)])
+            owned = "\n".join(owned)
+        elif len(values) > 1024:
+            values = values[:1024].split("\n")[:-1]
+            assets = "\n".join(assets.split("\n")[: len(values)])
+            owned = "\n".join(owned.split("\n")[: len(values)])
+            values = "\n".join(values)
 
         e.add_field(name=exchange, value=assets, inline=True)
         e.add_field(name="Quantity", value=owned, inline=True)
