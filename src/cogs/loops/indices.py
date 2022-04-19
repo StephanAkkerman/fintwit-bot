@@ -111,6 +111,7 @@ class Indices(commands.Cog):
 
         ticker = []
         prices = []
+        changes = []
 
         for index in stock_indices:
             tv_data = get_tv_data(index, "stock")
@@ -131,6 +132,7 @@ class Indices(commands.Cog):
                 f"[{index}](https://www.tradingview.com/symbols/{exchange}-{index}/)"
             )
             prices.append(price)
+            changes.append(change)
 
         ticker = "\n".join(ticker)
         prices = "\n".join(prices)
