@@ -66,14 +66,9 @@ async def format_embed(df, type, source):
         df = df.round({"Price": 3,"% Change": 2, "Volume":0})
         
         # Format the percentage change
-        if len(df) > 15:
-            df["% Change"] = df["% Change"].apply(
-            lambda x: f" (+{x}%)" if x > 0 else f"({x}%)"
-        )  
-        else:
-            df["% Change"] = df["% Change"].apply(
-                lambda x: f" (+{x}% 📈)" if x > 0 else f"({x}% 📉)"
-            )        
+        df["% Change"] = df["% Change"].apply(
+            lambda x: f" (+{x}% 📈)" if x > 0 else f" ({x}% 📉)"
+        )        
         
         # Post symbol, current price (weightedAvgPrice) + change, volume
         df['Price'] = df['Price'].astype(str) + df['% Change']
@@ -100,7 +95,7 @@ async def format_embed(df, type, source):
             name="Volume", value=vol, inline=True,
         )
         
-        # Set datetime and binance icon
+        # Set datetime and icon
         e.set_footer(text=f"Today at {datetime.datetime.now().strftime('%H:%M')}",
                     icon_url=icon_url
         )
