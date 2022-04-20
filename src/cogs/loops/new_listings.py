@@ -168,7 +168,6 @@ class CoinBase(commands.Cog):
                 # Get the symbols
                 symbols = [x["id"] for x in response]
                 
-                print(symbols)
                 return symbols
                     
     @loop(hours=6)
