@@ -23,9 +23,14 @@ class On_raw_reaction_add(commands.Cog):
         try:
             # Load necessary variables
             channel = self.bot.get_channel(reaction.channel_id)
-            message = discord.utils.get(
-                await channel.history(limit=100).flatten(), id=reaction.message_id
-            )
+            try:
+                message = discord.utils.get(
+                    await channel.history(limit=100).flatten(), id=reaction.message_id
+                )
+            except Exception as e:
+                print(f"Error getting channel.history for {channel}. Error:", e)
+                return
+                
             if reaction.user_id != self.bot.user.id:
                 if (
                     str(reaction.emoji) == "🐻"

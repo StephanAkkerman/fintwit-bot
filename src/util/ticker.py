@@ -1,4 +1,6 @@
 ##> Imports
+import traceback
+
 # > 3rd Party Dependencies
 import yfinance as yf
 
@@ -79,24 +81,29 @@ def get_coin_info(ticker):
 
     # Get the information of this coin
     try:
-        total_vol = coin_dict["market_data"]["total_volume"]["usd"]
         website = f"https://coingecko.com/en/coins/{id}"
+        
+        # For tokens that are previewed but not yet live
+        if "usd" in coin_dict["market_data"]["total_volume"].keys():
+            total_vol = coin_dict["market_data"]["total_volume"]["usd"]
+        else:
+            return 1, website, None, 0, "Preview Only"
+        
         price = coin_dict["market_data"]["current_price"]["usd"]
-
         price_change = coin_dict["market_data"]["price_change_percentage_24h"]
 
         if price_change != None:
             change = round(price_change, 2)
         else:
-            return 0, None, None, None, None
+            return total_vol, website, None, price, "?"
 
         formatted_change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
 
         # Get the exchanges
         exchanges = [exchange["market"]["name"] for exchange in coin_dict["tickers"]]
     except Exception as e:
-        print(e)
-        print("CoinGecko API error:", ticker)
+        print(traceback.format_exc())
+        print(f"CoinGecko API error for {ticker}. Error:", e)
         return 0, None, None, None, None
 
     # Get the exchanges

@@ -20,6 +20,21 @@ def human_format(number):
         print("Could not get magnitude for number:", number)
     return "%.2f%s" % (number / k ** magnitude, units[magnitude])
 
+def format_embed_length(data):
+    # Data is a list containing lists of strings divided by white spaces
+    
+    for x in range(len(data)):
+        if len(data[x]) > 1024:
+            data[x] = data[x][:1024].split("\n")[:-1]
+            # Fix everything that is not x
+            for y in range(len(data)):
+                if x != y:
+                    data[y] = "\n".join(data[y].split("\n")[:len(data[x])])
+                    
+            data[x] = "\n".join(data[x])
+            
+    return data
+
 # Used in gainers, losers loops
 async def format_embed(df, type, source):
         """
@@ -51,9 +66,14 @@ async def format_embed(df, type, source):
         df = df.round({"Price": 3,"% Change": 2, "Volume":0})
         
         # Format the percentage change
-        df["% Change"] = df["% Change"].apply(
-            lambda x: f" (+{x}% 📈)" if x > 0 else f"({x}% 📉)"
-        )        
+        if len(df) > 15:
+            df["% Change"] = df["% Change"].apply(
+            lambda x: f" (+{x}%)" if x > 0 else f"({x}%)"
+        )  
+        else:
+            df["% Change"] = df["% Change"].apply(
+                lambda x: f" (+{x}% 📈)" if x > 0 else f"({x}% 📉)"
+            )        
         
         # Post symbol, current price (weightedAvgPrice) + change, volume
         df['Price'] = df['Price'].astype(str) + df['% Change']
@@ -65,12 +85,8 @@ async def format_embed(df, type, source):
         prices = "\n".join(df["Price"].tolist())
         vol = "\n".join(df["Volume"].astype(str).tolist())
         
-        # Prevent possible overflow
-        if len(ticker) > 1024 or len(prices) > 1024 or len(vol) > 1024:
-            # Drop the last
-            ticker = "\n".join(ticker[:1024].split("\n")[:-1])
-            prices = "\n".join(prices[:1024].split("\n")[:-1])
-            vol = "\n".join(vol[:1024].split("\n")[:-1])
+        # Prevent possible overflow        
+        ticker, prices, vol = format_embed_length([ticker, prices, vol])
         
         e.add_field(
             name="Coin", value=ticker, inline=True,

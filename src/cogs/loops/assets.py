@@ -14,7 +14,7 @@ from util.disc_util import get_channel, get_user
 from util.vars import config, stables, cg_coins, cg
 from util.disc_util import get_guild
 from util.tv_data import get_tv_data
-
+from util.formatting import format_embed_length
 
 class Assets(commands.Cog):
     def __init__(self, bot, db=get_db("portfolio")):
@@ -194,22 +194,7 @@ class Assets(commands.Cog):
         values = "\n".join(final_df["usd_value"].to_list())
         
         # Ensure that the length is not bigger than allowed
-        # This can be improved
-        if len(assets) > 1024:
-            assets = assets[:1024].split("\n")[:-1]
-            owned = "\n".join(owned.split("\n")[: len(assets)])
-            values = "\n".join(values.split("\n")[: len(assets)])
-            assets = "\n".join(assets)
-        elif len(owned) > 1024:
-            owned = owned[:1024].split("\n")[:-1]
-            assets = "\n".join(assets.split("\n")[: len(owned)])
-            values = "\n".join(values.split("\n")[: len(owned)])
-            owned = "\n".join(owned)
-        elif len(values) > 1024:
-            values = values[:1024].split("\n")[:-1]
-            assets = "\n".join(assets.split("\n")[: len(values)])
-            owned = "\n".join(owned.split("\n")[: len(values)])
-            values = "\n".join(values)
+        assets, owned, values = format_embed_length([assets, owned, values])
 
         e.add_field(name=exchange, value=assets, inline=True)
         e.add_field(name="Quantity", value=owned, inline=True)
