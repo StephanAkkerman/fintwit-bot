@@ -60,6 +60,7 @@ class Gainers(commands.Cog):
                  
         # Post the top 10 lowest
         losers = sorted.tail(10)
+        losers = losers.iloc[::-1]
 
         # Format the embed
         e_gainers = await format_embed(gainers, 'Gainers', 'binance')

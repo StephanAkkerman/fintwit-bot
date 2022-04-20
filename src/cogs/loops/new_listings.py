@@ -180,14 +180,11 @@ class CoinBase(commands.Cog):
         
         if self.old_symbols == []:
             await self.set_old_symbols()
-                
-        new_symbols.append("TESTUDT")
-                
+                                
         # If there is a new symbol, send a message
         if len(new_symbols) > len(self.old_symbols):
             new_listings = list(set(new_symbols) - set(self.old_symbols))
-            print(new_listings)
-        
+
         # If symbols got removed do nothing
         if len(new_symbols) < len(self.old_symbols):
             # Update old_symbols

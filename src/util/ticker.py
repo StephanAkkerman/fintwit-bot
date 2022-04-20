@@ -27,13 +27,17 @@ def get_coin_info(ticker):
             best_vol = 0
             coin_dict = None
             for symbol in ids.values:
-                coin_info = cg.get_coin_by_id(symbol)
-                if "usd" in coin_info["market_data"]["total_volume"]:
-                    volume = coin_info["market_data"]["total_volume"]["usd"]
-                    if volume > best_vol:
-                        best_vol = volume
-                        id = symbol
-                        coin_dict = coin_info
+                # Catch potential errors
+                try:
+                    coin_info = cg.get_coin_by_id(symbol)
+                    if "usd" in coin_info["market_data"]["total_volume"]:
+                        volume = coin_info["market_data"]["total_volume"]["usd"]
+                        if volume > best_vol:
+                            best_vol = volume
+                            id = symbol
+                            coin_dict = coin_info
+                except Exception as e:
+                    pass
         else:
             id = ids.values[0]
             coin_dict = cg.get_coin_by_id(id)
