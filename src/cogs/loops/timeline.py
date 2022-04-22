@@ -37,7 +37,10 @@ class Timeline(commands.Cog):
             consumer_key, consumer_secret, access_token, access_token_secret, self.bot
         )
 
-        following = api.get_friend_ids()
+        try:
+            following = api.get_friend_ids()
+        except Exception as e:
+            print("Could not get following ids on startup. Error: ", e)
 
         await printer.filter(follow=following)
 
