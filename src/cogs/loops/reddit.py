@@ -49,6 +49,7 @@ class Reddit(commands.Cog):
 
         subreddit = await reddit.subreddit("WallStreetBets")
         try:
+            counter = 1
             async for submission in subreddit.hot(limit=10):
                 if submission.stickied:
                     continue
@@ -102,7 +103,7 @@ class Reddit(commands.Cog):
                 )
 
                 e.set_footer(
-                    text="Hottest posts on r/wallstreetbets",
+                    text=f"#{counter} Hottest Post On r/wallstreetbets",
                     icon_url="https://external-preview.redd.it/iDdntscPf-nfWKqzHRGFmhVxZm4hZgaKe5oyFws-yzA.png?width=640&crop=smart&auto=webp&s=bfd318557bf2a5b3602367c9c4d9cd84d917ccd5",
                 )
 
@@ -114,6 +115,8 @@ class Reddit(commands.Cog):
 
                 if video:
                     await channel.send(reference=msg, content=url + "/DASH_360.mp4")
+                    
+                counter += 1
                     
         except Exception as e:
             print("Error getting reddit posts", e)
