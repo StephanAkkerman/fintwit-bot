@@ -1,16 +1,50 @@
 ##> Imports
+import datetime
+
 # > 3rd Party Dependencies
 import pandas as pd
-from discord.ext import commands
 import yfinance as yf
 
-# Local dependencies
-from util.db import get_db, update_db
+# Discord imports
+import discord
+from discord.ext import commands
 
+
+# Local dependencies
+from util.vars import config
+from util.db import get_db, update_db
+from util.disc_util import get_channel
 
 class Stock(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.channel = get_channel(self.bot, config["TRADES"]["CHANNEL"])
+        
+    async def stock_trade_msg(self, user, side, stock_name, price, quantity):
+        e = discord.Embed(
+            title=f"{side} {quantity} {stock_name} for ${price}",
+            description="",
+            color=0x720E9E,
+        )
+
+        e.set_author(name=user.name, icon_url=user.avatar_url)
+
+        e.add_field(
+            name="Price", value=f"${price}", inline=True,
+        )
+
+        e.add_field(name="Amount", value=quantity, inline=True)
+        
+        e.add_field(
+            name="$ Worth", value=f"${float(quantity)*float(price)}", inline=True,
+        )
+
+        e.set_footer(
+            text=f"Today at {datetime.datetime.now().strftime('%H:%M')}",
+            icon_url="https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png"
+        )
+        
+        await self.channel.send(embed=e)
 
     @commands.command()
     async def stock(self, ctx, *input):
@@ -82,6 +116,10 @@ class Stock(commands.Cog):
                         ] += int(amount)
                         update_db(old_db, "assets")
                     await ctx.send("Succesfully added your stock to the database!")
+                    
+                    # Send message in trades channel
+                    await self.stock_trade_msg(ctx.message.author, "Bought", ticker, stock_info.info['regularMarketPrice'], amount)
+                    
                 else:
                     await ctx.send("Please specify a ticker and amount!")
 
@@ -133,6 +171,10 @@ class Stock(commands.Cog):
                             await ctx.send(
                                 f"Succesfully removed {amount} {ticker.upper()} from your owned stocks!"
                             )
+                            
+                        # Send message in trades channel
+                        await self.stock_trade_msg(ctx.message.author, "Sold", ticker, yf.Ticker(ticker).info['regularMarketPrice'], amount)
+                    
                     else:
                         await ctx.send("You do not own this stock!")
                 else:

@@ -37,6 +37,9 @@ class StockTwits(commands.Cog):
         full_df = pd.merge(stocks, table, on="stock_id")
         full_df.sort_values(by="val", ascending=False, inplace=True)
         
+        # Fill all NaN / None values with 0, in case the price is not known
+        full_df = full_df.fillna(0)
+        
         # Format % change
         full_df["change"] = full_df["change"].apply(
                 lambda x: f" (+{round(x,2)}% 📈)" if x > 0 else f" ({round(x,2)}% 📉)"
