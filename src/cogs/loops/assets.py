@@ -196,7 +196,7 @@ class Assets(commands.Cog):
         # Compare with the old df
         final_df = pd.merge(final_df, old_df, on="asset")
         final_df["worth_change"] = final_df["usd_value"] - final_df["old_worth"]
-        final_df["worth_display"] = final_df["worth_change"].apply(lambda row: " 🔻" if row < 0 else (" 💤" if row == 0 else " 🔺"))
+        final_df["worth_display"] = final_df["worth_change"].apply(lambda row: " 🔴" if row < 0 else (" 🔘" if row == 0 else " 🟢"))
         
         # Add $ in front of it
         final_df['usd_value'] = '$' + final_df['usd_value'].astype(str) + final_df["worth_display"]
