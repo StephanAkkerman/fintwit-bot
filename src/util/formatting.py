@@ -53,6 +53,14 @@ async def format_embed(df, type, source):
             url = "https://finance.yahoo.com/" + type
             color = 0x720E9E
             icon_url = "https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png"
+        elif source == "coingecko":
+            url = "https://www.coingecko.com/en/discover"
+            color = 0x8CC63F
+            icon_url = "https://static.coingecko.com/s/thumbnail-007177f3eca19695592f0b8b0eabbdae282b54154e1be912285c9034ea6cbaf2.png"
+        elif source == "coinmarketcap":
+            url = "https://coinmarketcap.com/trending-cryptocurrencies/"
+            color = 0x0d3efd
+            icon_url = "https://pbs.twimg.com/profile_images/1504868150403338269/MEQ_lC8P_400x400.jpg"
         
         e = discord.Embed(
             title=f"Top {len(df)} {type}",

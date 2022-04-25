@@ -4,6 +4,7 @@ import datetime
 # > 3rd party dependencies
 from pycoingecko import CoinGeckoAPI
 import yahoo_fin.stock_info as si
+import pandas as pd
 
 # > Discord dependencies
 import discord
@@ -12,22 +13,56 @@ from discord.ext.tasks import loop
 from util.formatting import human_format
 
 # Local dependencies
-from util.vars import config
+from util.vars import config, get_json_data
 from util.disc_util import get_channel
 from util.afterhours import afterHours
-from util.formatting import human_format
+from util.formatting import format_embed
 
 
 class Trending(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        self.crypto.start()
-        self.stocks.start()   
+        self.coingecko.start()
+        self.cmc.start()
+        
+        self.stocks.start()
+                
+    @loop(hours=12)
+    async def cmc(self):
+        cmc_data = await get_json_data("https://api.coinmarketcap.com/data-api/v3/topsearch/rank")
+        
+        # Convert to dataframe
+        cmc_df = pd.DataFrame(cmc_data["data"]["cryptoTopSearchRanks"])
+        
+        # Only save [[symbol, price + pricechange, volume]]
+        cmc_df = cmc_df[["symbol", "slug", "priceChange"]]
+        
+        # Rename symbol
+        cmc_df.rename(columns={"symbol" : "Symbol"}, inplace=True)
+        
+        # Add website to symbol
+        cmc_df["Website"] = "https://coinmarketcap.com/currencies/" + cmc_df["slug"]
+        # Format the symbol
+        cmc_df["Symbol"] = "[" + cmc_df["Symbol"] + "](" + cmc_df["Website"] + ")"
+        
+        # Get important information from priceChange dictionary
+        cmc_df["Price"] = cmc_df["priceChange"].apply(lambda x: x["price"])
+        cmc_df["% Change"] = cmc_df["priceChange"].apply(lambda x: x["priceChange24h"])
+        cmc_df["Volume"] = cmc_df["priceChange"].apply(lambda x: x["volume24h"])
+        
+        print("Formatting embed")
+        e = await format_embed(cmc_df, "Trending On CoinMarketCap", "coinmarketcap")
+
+        print("Getting channel")
+        channel = get_channel(self.bot, config["TRENDING"]["CRYPTO"]["CHANNEL"])
+
+        await channel.send(embed=e)
+        print("Send cmc embed")
 
     @loop(hours=12)
-    async def crypto(self):
-        """Print the top 7 trending cryptocurrencies in dedicated channel"""
+    async def coingecko(self):
+        """Prints the top 7 trending cryptocurrencies in dedicated channel"""
 
         cg = CoinGeckoAPI()
 
@@ -40,6 +75,7 @@ class Trending(commands.Cog):
 
         ticker = []
         prices = []
+        price_changes = []
         vol = []
 
         for coin in cg.get_search_trending()["coins"]:
@@ -50,33 +86,21 @@ class Trending(commands.Cog):
             price_change = coin_dict["market_data"]["price_change_percentage_24h"]
 
             ticker.append(f"[{coin['item']['symbol']}]({website})")
-            vol.append(
-                "$" + human_format(coin_dict["market_data"]["total_volume"]["usd"])
-            )
+            vol.append(coin_dict["market_data"]["total_volume"]["usd"])
+            prices.append(price)
+            price_changes.append(price_change)
 
-            if price_change != None:
-                change = round(price_change, 2)
-                price_change = f"(+{change}% 📈)" if change > 0 else f"({change}% 📉)"
-                prices.append(f"${price} {price_change}")
-            else:
-                prices.append("$" + price)
-
-        e.add_field(
-            name="Coin", value="\n".join(ticker), inline=True,
+        # Convert to dataframe
+        df = pd.DataFrame(
+            {
+                "Symbol": ticker,
+                "Price": prices,
+                "% Change": price_changes,
+                "Volume": vol,
+            }
         )
-
-        e.add_field(
-            name="Price", value="\n".join(prices), inline=True,
-        )
-
-        e.add_field(
-            name="Volume", value="\n".join(vol), inline=True,
-        )
-
-        e.set_footer(
-            text=f"Today at {datetime.datetime.now().strftime('%H:%M')}",
-            icon_url="https://static.coingecko.com/s/thumbnail-007177f3eca19695592f0b8b0eabbdae282b54154e1be912285c9034ea6cbaf2.png",
-        )
+        
+        e = await format_embed(df, "Trending On CoinGecko", "coingecko")
 
         channel = get_channel(self.bot, config["TRENDING"]["CRYPTO"]["CHANNEL"])
 

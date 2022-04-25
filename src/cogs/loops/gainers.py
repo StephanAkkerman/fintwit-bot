@@ -9,7 +9,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
-from util.vars import config
+from util.vars import config, get_json_data
 from util.disc_util import get_channel
 from util.afterhours import afterHours
 from util.formatting import format_embed
@@ -19,18 +19,10 @@ class Gainers(commands.Cog):
 
         self.stocks.start()
         self.crypto.start()
-        
-    async def binance_data(self):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                "https://api.binance.com/api/v3/ticker/24hr"
-            ) as r:
-                response = await r.json()
-                return response
-        
+                
     @loop(hours=2)
     async def crypto(self):
-        binance_data = await self.binance_data()
+        binance_data = await get_json_data("https://api.binance.com/api/v3/ticker/24hr")
         
         # If the call did not work
         if not binance_data:

@@ -8,7 +8,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
-from util.vars import config
+from util.vars import config, get_json_data
 from util.disc_util import get_channel
 from util.tv_data import get_tv_data
 from util.afterhours import afterHours
@@ -23,18 +23,16 @@ class Indices(commands.Cog):
         self.stock.start()
 
     async def get_feargread(self):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"https://api.alternative.me/fng/?limit=2") as r:
-                response = await r.json()
+        response = await get_json_data("https://api.alternative.me/fng/?limit=2")
 
-                if "data" in response.keys():
-                    today = int(response["data"][0]["value"])
-                    yesterday = int(response["data"][1]["value"])
+        if "data" in response.keys():
+            today = int(response["data"][0]["value"])
+            yesterday = int(response["data"][1]["value"])
 
-                    change = round((today - yesterday) / yesterday * 100, 2)
-                    change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
+            change = round((today - yesterday) / yesterday * 100, 2)
+            change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
 
-                    return today, change
+            return today, change
 
     @loop(hours=12)
     async def crypto(self):
