@@ -9,6 +9,7 @@ import hashlib
 import websockets
 import datetime
 import hmac
+import threading
 
 # > 3rd Party Dependencies
 import discord
@@ -21,7 +22,8 @@ from util.db import get_db, update_db
 from util.disc_util import get_channel, get_user
 from util.vars import config, stables
 
-
+# Used to keep track of sent messages
+messages = []
 async def trades_msg(
     exchange, channel, user, symbol, side, orderType, price, quantity, usd
 ):
@@ -31,6 +33,15 @@ async def trades_msg(
         description="",
         color=0xF0B90B if exchange == "binance" else 0x24AE8F,
     )
+    
+    # Check if this message has been send already
+    check = f"{user.name} {symbol} {side}"
+    if check in messages:
+        return
+    else:
+        messages.append(check)
+        # Remove it after 60 sec
+        threading.Timer(60, messages.pop()).start()        
 
     e.set_author(name=user.name, icon_url=user.avatar_url)
 
@@ -156,6 +167,7 @@ class Binance:
     async def on_msg(self, msg):
         # Convert the message to a json object (dict)
         msg = json.loads(msg)
+        print(msg)
 
         if msg["e"] == "executionReport":
             sym = msg["s"]  # ie 'YFIUSDT'
@@ -185,7 +197,7 @@ class Binance:
                     orderType,
                     price,
                     quantity,
-                    round(usd * price, 2),
+                    round(usd * quantity, 2),
                 )
 
             # Assets db: asset, owned (quantity), exchange, id, user

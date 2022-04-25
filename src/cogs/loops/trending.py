@@ -51,14 +51,11 @@ class Trending(commands.Cog):
         cmc_df["% Change"] = cmc_df["priceChange"].apply(lambda x: x["priceChange24h"])
         cmc_df["Volume"] = cmc_df["priceChange"].apply(lambda x: x["volume24h"])
         
-        print("Formatting embed")
         e = await format_embed(cmc_df, "Trending On CoinMarketCap", "coinmarketcap")
 
-        print("Getting channel")
         channel = get_channel(self.bot, config["TRENDING"]["CRYPTO"]["CHANNEL"])
 
         await channel.send(embed=e)
-        print("Send cmc embed")
 
     @loop(hours=12)
     async def coingecko(self):
