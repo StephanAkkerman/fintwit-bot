@@ -23,7 +23,7 @@ class Trending(commands.Cog):
         self.bot = bot
 
         self.crypto.start()
-        self.stocks.start()
+        self.stocks.start()   
 
     @loop(hours=12)
     async def crypto(self):
@@ -32,7 +32,7 @@ class Trending(commands.Cog):
         cg = CoinGeckoAPI()
 
         e = discord.Embed(
-            title=f"Trending Crypto",
+            title=f"Trending Crypto on CoinGecko",
             url="https://www.coingecko.com/en/discover",
             description="",
             color=0x8CC63F,
@@ -81,7 +81,7 @@ class Trending(commands.Cog):
         channel = get_channel(self.bot, config["TRENDING"]["CRYPTO"]["CHANNEL"])
 
         await channel.send(embed=e)
-
+        
     @loop(hours=2)
     async def stocks(self):
         """Print the most activaly traded stocks in dedicated channel"""

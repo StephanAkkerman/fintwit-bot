@@ -240,10 +240,12 @@ class Binance:
                                     except (websockets.exceptions.ConnectionClosed):
                                         print("Binance: Connection Closed")
                                         await self.restart_sockets()
+                                        return
 
                         except ConnectionRefusedError:
                             print("Binance: Connection Refused")
                             await self.restart_sockets()
+                            return
 
                         # For some reason this always happens at startup, so ignore it
                         except asyncio.TimeoutError:
@@ -477,14 +479,18 @@ class KuCoin:
                                 print("KuCoin: Connection Closed")
                                 # Close the websocket and restart
                                 await self.restart_sockets()
+                                # Return so that we do not restart multiple times
+                                return
 
                 except websockets.exceptions.InvalidStatusCode:
                     print("KuCoin: Server rejected connection")
                     await self.restart_sockets()
+                    return
 
                 except ConnectionRefusedError:
                     print("KuCoin: Connection Refused")
                     await self.restart_sockets()
+                    return
 
                 # For some reason this always happens at startup, so ignore it
                 except asyncio.TimeoutError:
