@@ -245,7 +245,7 @@ class Assets(commands.Cog):
 
             if not assets.empty:
                 # Get the old message
-                last_msg = await channel.history(limit=1).find(lambda m: m.author.id == self.bot.user.id)
+                last_msg = await channel.history().find(lambda m: m.author.id == self.bot.user.id)
                 
                 try:
                     old_fields = last_msg.embeds[0].to_dict()["fields"]
@@ -274,6 +274,7 @@ class Assets(commands.Cog):
                         
                 except Exception as e:
                     print(e)
+                    return
                 
                 e = discord.Embed(title="", description="", color=0x1DA1F2,)
 
