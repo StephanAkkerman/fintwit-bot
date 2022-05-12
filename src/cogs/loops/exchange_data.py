@@ -31,12 +31,10 @@ def clear_messages():
     if messages != []:
         	messages.pop()
          
-# Otherwise we create many threads
-threading_timer = threading.Timer(60, clear_messages)
-
 async def trades_msg(
     exchange, channel, user, symbol, side, orderType, price, quantity, usd
 ):
+    global messages
 
     e = discord.Embed(
         title=f"{orderType.capitalize()} {side.lower()} {quantity} {symbol}",
@@ -46,42 +44,43 @@ async def trades_msg(
     
     # Check if this message has been send already
     check = f"{user.name} {symbol} {side}"
-    if check in messages:
-        return
-    else:
+    
+    if check not in messages:
+        # Add it to the list
         messages.append(check)
+        
         # Remove it after 60 sec
-        threading_timer.start()        
+        threading.Timer(60, clear_messages).start()
 
-    e.set_author(name=user.name, icon_url=user.avatar_url)
+        # Set the embed fields
+        e.set_author(name=user.name, icon_url=user.avatar_url)
 
-    if symbol.endswith("USDT") or symbol.endswith("USD") or symbol.endswith("BUSD"):
-        price = f"${price}"
+        if symbol.endswith("USDT") or symbol.endswith("USD") or symbol.endswith("BUSD"):
+            price = f"${price}"
 
-    e.add_field(
-        name="Price", value=price, inline=True,
-    )
-
-    e.add_field(name="Amount", value=quantity, inline=True)
-
-    if usd != 0:
         e.add_field(
-            name="$ Worth", value=f"${usd}", inline=True,
+            name="Price", value=price, inline=True,
         )
 
-    e.set_footer(
-        text=f"Today at {datetime.datetime.now().strftime('%H:%M')}",
-        icon_url="https://public.bnbstatic.com/20190405/eb2349c3-b2f8-4a93-a286-8f86a62ea9d8.png"
-        if exchange == "binance"
-        else "https://yourcryptolibrary.com/wp-content/uploads/2021/12/Kucoin-exchange-logo-1.png",
-    )
+        e.add_field(name="Amount", value=quantity, inline=True)
 
-    await channel.send(embed=e)
+        if usd != 0:
+            e.add_field(
+                name="$ Worth", value=f"${usd}", inline=True,
+            )
 
-    # Tag the person
-    if orderType.upper() != "MARKET":
-        await channel.send(f"<@{user.id}>")
+        e.set_footer(
+            text=f"Today at {datetime.datetime.now().strftime('%H:%M')}",
+            icon_url="https://public.bnbstatic.com/20190405/eb2349c3-b2f8-4a93-a286-8f86a62ea9d8.png"
+            if exchange == "binance"
+            else "https://yourcryptolibrary.com/wp-content/uploads/2021/12/Kucoin-exchange-logo-1.png",
+        )
 
+        await channel.send(embed=e)
+
+        # Tag the person
+        if orderType.upper() != "MARKET":
+            await channel.send(f"<@{user.id}>")
 
 class Binance:
     def __init__(self, bot, row, trades_channel):
@@ -261,7 +260,7 @@ class Binance:
                                             reply = await self.ws.recv()
                                             await self.on_msg(reply)
                                         except RuntimeError:
-                                            print("Waiting for another coroutine to get the next message")
+                                            print("Binance ws.recv(): Waiting for another coroutine to get the next message")
                                     except (websockets.exceptions.ConnectionClosed):
                                         print("Binance: Connection Closed")
                                         await self.restart_sockets()
@@ -420,6 +419,8 @@ class KuCoin:
             ) as r:
                 response = await r.json()
                 return response
+            
+            
 
     async def start_sockets(self):
         # From documentation: https://docs.kucoin.com/
@@ -498,11 +499,11 @@ class KuCoin:
                         while True:
                             # listener loop
                             try:
-                                try:
-                                    reply = await self.ws.recv()
-                                    await self.on_msg(reply)
-                                except RuntimeError:
-                                    print("Waiting for another coroutine to get the next message")
+                                #try:
+                                reply = await self.ws.recv()
+                                await self.on_msg(reply)
+                                #except RuntimeError:
+                                #    print("KuCoin ws.recv(): Waiting for another coroutine to get the next message")
                             except (websockets.exceptions.ConnectionClosed):
                                 print("KuCoin: Connection Closed")
                                 # Close the websocket and restart
@@ -526,6 +527,11 @@ class KuCoin:
         else:
             print("Error getting KuCoin response")
             self.restart_sockets()
+            
+    async def ws_recv(self):
+        reply = await self.ws.recv()
+        await self.on_msg(reply)
+        return
                         
 class Exchanges(commands.Cog):
     def __init__(self, bot, db=get_db("portfolio")):
