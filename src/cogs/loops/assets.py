@@ -1,5 +1,4 @@
 import asyncio
-from typing import final
 
 # > 3rd Party Dependencies
 import discord

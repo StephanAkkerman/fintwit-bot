@@ -24,6 +24,16 @@ from util.vars import config, stables
 
 # Used to keep track of sent messages
 messages = []
+
+def clear_messages():
+    global messages
+    
+    if messages != []:
+        	messages.pop()
+         
+# Otherwise we create many threads
+threading_timer = threading.Timer(60, clear_messages)
+
 async def trades_msg(
     exchange, channel, user, symbol, side, orderType, price, quantity, usd
 ):
@@ -41,7 +51,7 @@ async def trades_msg(
     else:
         messages.append(check)
         # Remove it after 60 sec
-        threading.Timer(60, messages.pop()).start()        
+        threading_timer.start()        
 
     e.set_author(name=user.name, icon_url=user.avatar_url)
 
@@ -247,8 +257,11 @@ class Binance:
                                 while True:
                                     # listener loop
                                     try:
-                                        reply = await self.ws.recv()
-                                        await self.on_msg(reply)
+                                        try:
+                                            reply = await self.ws.recv()
+                                            await self.on_msg(reply)
+                                        except RuntimeError:
+                                            print("Waiting for another coroutine to get the next message")
                                     except (websockets.exceptions.ConnectionClosed):
                                         print("Binance: Connection Closed")
                                         await self.restart_sockets()
@@ -356,7 +369,7 @@ class KuCoin:
                 quantity = float(data["filledSize"]) + float(data["remainSize"])
                 execPrice = float(data["matchPrice"])
                 
-                base = sym.split("-")[0]
+                base = sym.split("-")[1]
                 if base not in stables:
                     usd = await self.get_quote_price(base + "-" + "USDT")
                 else:
@@ -485,8 +498,11 @@ class KuCoin:
                         while True:
                             # listener loop
                             try:
-                                reply = await self.ws.recv()
-                                await self.on_msg(reply)
+                                try:
+                                    reply = await self.ws.recv()
+                                    await self.on_msg(reply)
+                                except RuntimeError:
+                                    print("Waiting for another coroutine to get the next message")
                             except (websockets.exceptions.ConnectionClosed):
                                 print("KuCoin: Connection Closed")
                                 # Close the websocket and restart

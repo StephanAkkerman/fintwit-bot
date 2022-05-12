@@ -1,6 +1,5 @@
 # > 3rd party dependencies
 import yahoo_fin.stock_info as si
-import aiohttp
 import pandas as pd
 
 # > Discord dependencies

@@ -1,6 +1,5 @@
 # Standard libraries
 import datetime
-import aiohttp
 
 # > Discord dependencies
 import discord

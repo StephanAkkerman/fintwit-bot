@@ -2,7 +2,6 @@ import asyncio
 
 # > 3rd party dependencies
 import aiohttp
-import pandas as pd
 import datetime
 
 # > Discord dependencies

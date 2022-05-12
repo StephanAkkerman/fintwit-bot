@@ -170,7 +170,7 @@ class Streamer(AsyncStream):
             e, category, images, user, retweeted_user
         )
 
-        if len(tickers + hashtags) > 0:
+        if len(tickers + hashtags) > 0 and msg is not None:
             await self.tag_user(msg, channel, tickers + hashtags)
 
     async def tag_user(self, msg, channel, tickers):
@@ -218,19 +218,24 @@ class Streamer(AsyncStream):
         else:
             channel = self.stocks_charts_channel
 
-        msg = await channel.send(embed=e)
+        try:
+            msg = await channel.send(embed=e)
 
-        # Send all the other images as a reply
-        for i in range(len(images)):
-            if i > 0:
-                await channel.send(reference=msg, content=images[i])
+            # Send all the other images as a reply
+            for i in range(len(images)):
+                if i > 0:
+                    await channel.send(reference=msg, content=images[i])
 
-        # Do this for every message
-        await msg.add_reaction("💸")
+            # Do this for every message
+            await msg.add_reaction("💸")
 
-        if category != None:
-            await msg.add_reaction("🐂")
-            await msg.add_reaction("🦆")
-            await msg.add_reaction("🐻")
+            if category != None:
+                await msg.add_reaction("🐂")
+                await msg.add_reaction("🦆")
+                await msg.add_reaction("🐻")
 
-        return msg, channel
+            return msg, channel
+        
+        except Exception as e:
+            print("Error posting tweet on timeline", e)
+            return None, None            
