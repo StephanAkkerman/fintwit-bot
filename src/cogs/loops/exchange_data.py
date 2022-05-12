@@ -6,6 +6,7 @@ import hmac
 import base64
 import json
 import hashlib
+from pyppeteer import executablePath
 import websockets
 import datetime
 import hmac
@@ -256,15 +257,18 @@ class Binance:
                                 while True:
                                     # listener loop
                                     try:
-                                        try:
-                                            reply = await self.ws.recv()
-                                            await self.on_msg(reply)
-                                        except RuntimeError:
-                                            print("Binance ws.recv(): Waiting for another coroutine to get the next message")
+                                        reply = await self.ws.recv()
+                                        
+                                    except RuntimeError as e:
+                                        print("Binance ws.recv(): Waiting for another coroutine to get the next message.", e)
+                                        
                                     except (websockets.exceptions.ConnectionClosed):
                                         print("Binance: Connection Closed")
                                         await self.restart_sockets()
                                         return
+                                    
+                                    if reply:
+                                        await self.on_msg(reply)
 
                         except ConnectionRefusedError:
                             print("Binance: Connection Refused")
@@ -365,14 +369,22 @@ class KuCoin:
                 sym = data["symbol"]
                 side = data["side"]
                 orderType = data["orderType"]
-                quantity = float(data["filledSize"]) + float(data["remainSize"])
-                execPrice = float(data["matchPrice"])
+                execPrice = float(data["matchPrice"])                
+                # "funds" is only available if side == 'buy'
+                if side == "buy":
+                    quantity = float(data["funds"]) / execPrice
+                else:
+                    quantity = float(data["size"])
                 
                 base = sym.split("-")[1]
                 if base not in stables:
                     usd = await self.get_quote_price(base + "-" + "USDT")
+                    worth = round(usd * quantity, 2)
                 else:
-                    usd = execPrice
+                    if side == "buy":
+                        worth = round(float(data["funds"]),2)
+                    else:
+                        worth = round(float(data["size"]) * execPrice,2)
 
                 await trades_msg(
                     "KuCoin",
@@ -383,7 +395,7 @@ class KuCoin:
                     orderType,
                     execPrice,
                     quantity,
-                    round(usd * quantity, 2),
+                    worth,
                 )
 
                 # Assets db: asset, owned (quantity), exchange, id, user
@@ -499,25 +511,28 @@ class KuCoin:
                         while True:
                             # listener loop
                             try:
-                                #try:
                                 reply = await self.ws.recv()
-                                await self.on_msg(reply)
-                                #except RuntimeError:
-                                #    print("KuCoin ws.recv(): Waiting for another coroutine to get the next message")
-                            except (websockets.exceptions.ConnectionClosed):
-                                print("KuCoin: Connection Closed")
+                                
+                            except RuntimeError as e:
+                                print("KuCoin ws.recv(): Waiting for another coroutine to get the next message.", e)
+                                
+                            except websockets.exceptions.ConnectionClosed as e:
+                                print("KuCoin: Connection Closed", e)
                                 # Close the websocket and restart
                                 await self.restart_sockets()
                                 # Return so that we do not restart multiple times
                                 return
+                            
+                            if reply:
+                                await self.on_msg(reply)
 
-                except websockets.exceptions.InvalidStatusCode:
-                    print("KuCoin: Server rejected connection")
+                except websockets.exceptions.InvalidStatusCode as e:
+                    print("KuCoin: Server rejected connection", e)
                     await self.restart_sockets()
                     return
 
-                except ConnectionRefusedError:
-                    print("KuCoin: Connection Refused")
+                except ConnectionRefusedError as e:
+                    print("KuCoin: Connection Refused", e)
                     await self.restart_sockets()
                     return
 
