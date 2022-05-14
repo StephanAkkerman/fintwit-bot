@@ -20,8 +20,7 @@ from util.vars import (
     api,
 )
 
-from util.disc_util import get_channel
-from util.db import get_db
+from util.disc_util import get_channel, tag_user
 from util.tweet_util import format_tweet, add_financials
 
 
@@ -89,13 +88,6 @@ class Streamer(AsyncStream):
 
         # Set following ids
         self.get_following_ids.start()
-
-        self.assets_db = None
-        self.get_assets_db.start()
-
-    @loop(minutes=60)
-    async def get_assets_db(self):
-        self.assets_db = get_db("assets")
 
     @loop(minutes=60)
     async def all_txt_channels(self):
@@ -171,19 +163,7 @@ class Streamer(AsyncStream):
         )
 
         if len(tickers + hashtags) > 0 and msg is not None:
-            await self.tag_user(msg, channel, tickers + hashtags)
-
-    async def tag_user(self, msg, channel, tickers):
-        # Get the stored db
-        matching_users = self.assets_db[self.assets_db["asset"].isin(tickers)][
-            "id"
-        ].tolist()
-        unique_users = list(set(matching_users))
-
-        if unique_users:
-            # Make it one message for all the users
-            tagged_msg = " ".join([f'<@!{user}>' for user in unique_users])
-            await channel.send(tagged_msg, reference=msg)
+            await tag_user(msg, channel, tickers + hashtags)
 
     async def upload_tweet(self, e, category, images, user, retweeted_user):
         """ Upload tweet in the dedicated discord channel """

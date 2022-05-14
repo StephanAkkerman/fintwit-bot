@@ -1,3 +1,4 @@
+# Standard libraries
 import datetime
 import pandas as pd
 import time
@@ -10,7 +11,7 @@ from discord.ext.tasks import loop
 
 # Local dependencies
 from util.vars import config, get_json_data
-from util.disc_util import get_channel
+from util.disc_util import get_channel, tag_user
 from util.afterhours import afterHours
 
 class UW(commands.Cog):
@@ -83,11 +84,7 @@ class UW(commands.Cog):
             
             emojis = ""
             for tag in row['tags']:
-                try:
-                    emojis += self.emoji_dict[tag]['emoji']
-                except KeyError:
-                    print(tag)
-                    print(row['id'])
+                emojis += self.emoji_dict[tag]['emoji']
             
             # Create the embed
             e = discord.Embed(
@@ -114,7 +111,9 @@ class UW(commands.Cog):
             icon_url="https://blog.unusualwhales.com/content/images/2021/08/logo.8f570f66-1.png",
             )
             
-            await self.channel.send(embed=e)
+            msg = await self.channel.send(embed=e)
+            
+            tag_user(msg, self.channel, [row['ticker_symbol']])
                 
 def setup(bot):
     bot.add_cog(UW(bot))
