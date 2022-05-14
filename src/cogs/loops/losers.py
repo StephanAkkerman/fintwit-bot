@@ -21,6 +21,7 @@ class Losers(commands.Cog):
         self.bot = bot
 
         self.losers.start()
+        self.channel = get_channel(self.bot, config["LOSERS"]["STOCKS"]["CHANNEL"])        
 
     @loop(hours=2)
     async def losers(self):
@@ -77,9 +78,7 @@ class Losers(commands.Cog):
             icon_url="https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png",
         )
 
-        channel = get_channel(self.bot, config["LOSERS"]["STOCKS"]["CHANNEL"])
-
-        await channel.send(embed=e)
+        await self.channel.send(embed=e)
 
 
 def setup(bot):
