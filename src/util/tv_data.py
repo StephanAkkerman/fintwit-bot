@@ -78,11 +78,16 @@ def ws_data(ws):
             jsonRes = json.loads(Res[0].split("~m~")[0])
             if "m" in jsonRes.keys():
                 if jsonRes["m"] == "qsd":
-                    # symbol = jsonRes['p'][1]['n']
-                    price = jsonRes["p"][1]["v"]["lp"]
-                    change = jsonRes["p"][1]["v"]["ch"]
+                    try:
+                        price = jsonRes["p"][1]["v"]["lp"]
+                        change = jsonRes["p"][1]["v"]["ch"]
+                        volume = jsonRes["p"][1]["v"]["volume"]
+                    except KeyError:
+                        print("KeyError in TradingView ws_data")
+                        return None
+                    
                     perc_change = round((change / price) * 100, 2)
-                    volume = jsonRes["p"][1]["v"]["volume"]
+                    
                     return price, perc_change, volume
         else:
             # ping packet

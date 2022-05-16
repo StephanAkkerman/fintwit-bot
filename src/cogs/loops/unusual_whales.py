@@ -1,5 +1,6 @@
 # Standard libraries
 import datetime
+from weakref import KeyedRef
 import pandas as pd
 import time
 import asyncio
@@ -84,7 +85,11 @@ class UW(commands.Cog):
             
             emojis = ""
             for tag in row['tags']:
-                emojis += self.emoji_dict[tag]['emoji']
+                try:
+                    emojis += self.emoji_dict[tag]['emoji']
+                # In case emoji_dict is empty
+                except KeyError:
+                    print(f"Could not find emoji for {tag}")
             
             # Create the embed
             e = discord.Embed(
@@ -113,7 +118,7 @@ class UW(commands.Cog):
             
             msg = await self.channel.send(embed=e)
             
-            tag_user(msg, self.channel, [row['ticker_symbol']])
+            await tag_user(msg, self.channel, [row['ticker_symbol']])
                 
 def setup(bot):
     bot.add_cog(UW(bot))
