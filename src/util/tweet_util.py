@@ -46,7 +46,7 @@ async def get_tweet(as_json):
 
         # Add > to show it's a quote
         text = "\n".join(map(lambda line: "> " + line, text.split("\n")))
-        
+
         text = f"{user_text}\n\n> [@{retweeted_user}](https://twitter.com/{retweeted_user}):\n{text}"
 
     # If retweeted check the extended tweet

@@ -85,9 +85,9 @@ def ws_data(ws):
                     except KeyError:
                         print("KeyError in TradingView ws_data")
                         return None
-                    
+
                     perc_change = round((change / price) * 100, 2)
-                    
+
                     return price, perc_change, volume
         else:
             # ping packet

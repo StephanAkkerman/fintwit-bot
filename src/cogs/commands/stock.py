@@ -15,11 +15,12 @@ from util.vars import config
 from util.db import get_db, update_db
 from util.disc_util import get_channel
 
+
 class Stock(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.channel = get_channel(self.bot, config["TRADES"]["CHANNEL"])
-        
+        self.channel = get_channel(self.bot, config["LOOPS"]["TRADES"]["CHANNEL"])
+
     async def stock_trade_msg(self, user, side, stock_name, price, quantity):
         e = discord.Embed(
             title=f"{side} {quantity} {stock_name} for ${price}",
@@ -34,16 +35,16 @@ class Stock(commands.Cog):
         )
 
         e.add_field(name="Amount", value=quantity, inline=True)
-        
+
         e.add_field(
             name="$ Worth", value=f"${float(quantity)*float(price)}", inline=True,
         )
 
         e.set_footer(
             text=f"Today at {datetime.datetime.now().strftime('%H:%M')}",
-            icon_url="https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png"
+            icon_url="https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png",
         )
-        
+
         await self.channel.send(embed=e)
 
     @commands.command()
@@ -60,17 +61,21 @@ class Stock(commands.Cog):
             if input[0] == "add":
                 if len(input) == 3:
                     _, ticker, amount = input
-                    
+
                     # Check if this ticker exists
                     stock_info = yf.Ticker(ticker)
-                    
+
                     # If it does not exist let the user know
-                    if stock_info.info['regularMarketPrice'] == None:
-                        confirm_msg = await ctx.send((f"Are you sure {ticker} is correct? We could not find it on Yahoo Finance.\n"
-                                                       "Click on \N{WHITE HEAVY CHECK MARK} to continue and on \N{CROSS MARK} to cancel.")) 
+                    if stock_info.info["regularMarketPrice"] == None:
+                        confirm_msg = await ctx.send(
+                            (
+                                f"Are you sure {ticker} is correct? We could not find it on Yahoo Finance.\n"
+                                "Click on \N{WHITE HEAVY CHECK MARK} to continue and on \N{CROSS MARK} to cancel."
+                            )
+                        )
                         await confirm_msg.add_reaction("\N{WHITE HEAVY CHECK MARK}")
                         await confirm_msg.add_reaction("\N{CROSS MARK}")
-                        
+
                         # Handle preview accept/deny using reactions
                         reaction = await self.bot.wait_for(
                             "reaction_add",
@@ -80,7 +85,7 @@ class Stock(commands.Cog):
                             )
                             and u == ctx.author,
                         )
-                        
+
                         if reaction[0].emoji == "\N{CROSS MARK}":
                             await ctx.send(f"Did not add {ticker} to the database.")
                             return
@@ -116,10 +121,16 @@ class Stock(commands.Cog):
                         ] += int(amount)
                         update_db(old_db, "assets")
                     await ctx.send("Succesfully added your stock to the database!")
-                    
+
                     # Send message in trades channel
-                    await self.stock_trade_msg(ctx.message.author, "Bought", ticker, stock_info.info['regularMarketPrice'], amount)
-                    
+                    await self.stock_trade_msg(
+                        ctx.message.author,
+                        "Bought",
+                        ticker,
+                        stock_info.info["regularMarketPrice"],
+                        amount,
+                    )
+
                 else:
                     await ctx.send("Please specify a ticker and amount!")
 
@@ -171,10 +182,16 @@ class Stock(commands.Cog):
                             await ctx.send(
                                 f"Succesfully removed {amount} {ticker.upper()} from your owned stocks!"
                             )
-                            
+
                         # Send message in trades channel
-                        await self.stock_trade_msg(ctx.message.author, "Sold", ticker, yf.Ticker(ticker).info['regularMarketPrice'], amount)
-                    
+                        await self.stock_trade_msg(
+                            ctx.message.author,
+                            "Sold",
+                            ticker,
+                            yf.Ticker(ticker).info["regularMarketPrice"],
+                            amount,
+                        )
+
                     else:
                         await ctx.send("You do not own this stock!")
                 else:

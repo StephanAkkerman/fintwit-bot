@@ -14,12 +14,17 @@ from util.afterhours import afterHours
 from util.formatting import human_format
 
 
-class Indices(commands.Cog):
+class Index(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        self.crypto.start()
-        self.stock.start()
+        if config["LOOPS"]["INDEX"]["CRYPTO"]["ENABLED"]:
+            self.crypto.start()
+            self.crypto_channel = get_channel(self.bot, config["LOOPS"]["INDEX"]["CRYPTO"]["CHANNEL"])
+            
+        if config["LOOPS"]["INDEX"]["STOCKS"]["ENABLED"]:
+            self.stocks.start()
+            self.stocks_channel = get_channel(self.bot, config["LOOPS"]["INDEX"]["STOCKS"]["CHANNEL"])
 
     async def get_feargread(self):
         response = await get_json_data("https://api.alternative.me/fng/?limit=2")
@@ -35,7 +40,10 @@ class Indices(commands.Cog):
 
     @loop(hours=12)
     async def crypto(self):
-        e = discord.Embed(title=f"Crypto Indices", description="", color=0x131722,)
+        e = discord.Embed(title=f"Crypto Indices", 
+                          description="",
+                          color=0x131722,
+                          timestamp = datetime.datetime.utcnow())
 
         crypto_indices = ["TOTAL", "BTC.D", "OTHERS.D", "TOTALDEFI.D", "USDT.D"]
 
@@ -82,27 +90,27 @@ class Indices(commands.Cog):
         e.add_field(
             name="Value", value=prices, inline=True,
         )
-        
+
         e.add_field(
             name="% Change", value=changes, inline=True,
         )
 
         e.set_footer(
-            text=f"Today at {datetime.datetime.now().strftime('%H:%M')}",
             icon_url="https://s3.tradingview.com/userpics/6171439-Hlns_orig.png",
         )
-
-        channel = get_channel(self.bot, config["INDEX"]["CRYPTO"]["CHANNEL"])
-
-        await channel.send(embed=e)
+        
+        await self.crypto_channel.send(embed=e)
 
     @loop(hours=2)
-    async def stock(self):
+    async def stocks(self):
         # Dont send if the market is closed
         if afterHours():
             return
 
-        e = discord.Embed(title=f"Stock Indices", description="", color=0x131722,)
+        e = discord.Embed(title=f"Stock Indices", 
+                          description="", 
+                          color=0x131722,
+                          timestamp=datetime.datetime.utcnow())
 
         stock_indices = ["SPY", "NDX", "DXY", "PCC", "PCCE", "US10Y", "VIX"]
 
@@ -151,10 +159,8 @@ class Indices(commands.Cog):
             icon_url="https://s3.tradingview.com/userpics/6171439-Hlns_orig.png",
         )
 
-        channel = get_channel(self.bot, config["INDEX"]["STOCKS"]["CHANNEL"])
-
-        await channel.send(embed=e)
+        await self.stocks_channel.send(embed=e)
 
 
 def setup(bot):
-    bot.add_cog(Indices(bot))
+    bot.add_cog(Index(bot))

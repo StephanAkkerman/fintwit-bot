@@ -30,7 +30,7 @@ class On_raw_reaction_add(commands.Cog):
             except Exception as e:
                 print(f"Error getting channel.history for {channel}. Error:", e)
                 return
-                
+
             if reaction.user_id != self.bot.user.id:
                 if (
                     str(reaction.emoji) == "🐻"

@@ -26,12 +26,14 @@ from util.vars import config, stables
 # Used to keep track of sent messages
 messages = []
 
+
 def clear_messages():
     global messages
-    
+
     if messages != []:
-        	messages.pop()
-         
+        messages.pop()
+
+
 async def trades_msg(
     exchange, channel, user, symbol, side, orderType, price, quantity, usd
 ):
@@ -42,14 +44,14 @@ async def trades_msg(
         description="",
         color=0xF0B90B if exchange == "binance" else 0x24AE8F,
     )
-    
+
     # Check if this message has been send already
     check = f"{user.name} {symbol} {side}"
-    
+
     if check not in messages:
         # Add it to the list
         messages.append(check)
-        
+
         # Remove it after 60 sec
         threading.Timer(60, clear_messages).start()
 
@@ -82,6 +84,7 @@ async def trades_msg(
         # Tag the person
         if orderType.upper() != "MARKET":
             await channel.send(f"<@{user.id}>")
+
 
 class Binance:
     def __init__(self, bot, row, trades_channel):
@@ -197,7 +200,7 @@ class Binance:
                     usd = await self.get_usd_price(base)
                 else:
                     usd = price
-                    
+
                 await trades_msg(
                     "binance",
                     self.trades_channel,
@@ -253,20 +256,25 @@ class Binance:
                                 uri=f'wss://stream.binance.com:9443/ws/{listen_key["listenKey"]}',
                                 ping_interval=60 * 3,
                             ) as self.ws:
-                                print(f"Succesfully connected {self.user} with Binance socket")
+                                print(
+                                    f"Succesfully connected {self.user} with Binance socket"
+                                )
                                 while True:
                                     # listener loop
                                     try:
                                         reply = await self.ws.recv()
-                                        
+
                                     except RuntimeError as e:
-                                        print("Binance ws.recv(): Waiting for another coroutine to get the next message.", e)
-                                        
+                                        print(
+                                            "Binance ws.recv(): Waiting for another coroutine to get the next message.",
+                                            e,
+                                        )
+
                                     except (websockets.exceptions.ConnectionClosed):
                                         print("Binance: Connection Closed")
                                         await self.restart_sockets()
                                         return
-                                    
+
                                     if reply:
                                         await self.on_msg(reply)
 
@@ -362,29 +370,33 @@ class KuCoin:
     ### From here are the websocket functions ###
     async def on_msg(self, msg):
         msg = json.loads(msg)
-        
+
         if "topic" in msg.keys():
-            if msg["topic"] == "/spotMarket/tradeOrders" and msg["data"]["type"] != "canceled" and "matchPrice" in msg["data"].keys():
+            if (
+                msg["topic"] == "/spotMarket/tradeOrders"
+                and msg["data"]["type"] != "canceled"
+                and "matchPrice" in msg["data"].keys()
+            ):
                 data = msg["data"]
                 sym = data["symbol"]
                 side = data["side"]
                 orderType = data["orderType"]
-                execPrice = float(data["matchPrice"])                
+                execPrice = float(data["matchPrice"])
                 # "funds" is only available if side == 'buy'
                 if side == "buy":
                     quantity = float(data["funds"]) / execPrice
                 else:
                     quantity = float(data["size"])
-                
+
                 base = sym.split("-")[1]
                 if base not in stables:
                     usd = await self.get_quote_price(base + "-" + "USDT")
                     worth = round(usd * quantity, 2)
                 else:
                     if side == "buy":
-                        worth = round(float(data["funds"]),2)
+                        worth = round(float(data["funds"]), 2)
                     else:
-                        worth = round(float(data["size"]) * execPrice,2)
+                        worth = round(float(data["size"]) * execPrice, 2)
 
                 await trades_msg(
                     "KuCoin",
@@ -423,7 +435,7 @@ class KuCoin:
             self.ws = None
             await asyncio.sleep(60)
             await self.start_sockets()
-            
+
     async def get_token(self, api_request, headers):
         async with aiohttp.ClientSession() as session:
             async with session.post(
@@ -431,8 +443,6 @@ class KuCoin:
             ) as r:
                 response = await r.json()
                 return response
-            
-            
 
     async def start_sockets(self):
         # From documentation: https://docs.kucoin.com/
@@ -481,12 +491,10 @@ class KuCoin:
 
             # Set ping
             ping_interval = (
-                int(response["data"]["instanceServers"][0]["pingInterval"])
-                // 1000
+                int(response["data"]["instanceServers"][0]["pingInterval"]) // 1000
             )
             ping_timeout = (
-                int(response["data"]["instanceServers"][0]["pingTimeout"])
-                // 1000
+                int(response["data"]["instanceServers"][0]["pingTimeout"]) // 1000
             )
 
             while True:
@@ -512,17 +520,20 @@ class KuCoin:
                             # listener loop
                             try:
                                 reply = await self.ws.recv()
-                                
+
                             except RuntimeError as e:
-                                print("KuCoin ws.recv(): Waiting for another coroutine to get the next message.", e)
-                                
+                                print(
+                                    "KuCoin ws.recv(): Waiting for another coroutine to get the next message.",
+                                    e,
+                                )
+
                             except websockets.exceptions.ConnectionClosed as e:
                                 print("KuCoin: Connection Closed", e)
                                 # Close the websocket and restart
                                 await self.restart_sockets()
                                 # Return so that we do not restart multiple times
                                 return
-                            
+
                             if reply:
                                 await self.on_msg(reply)
 
@@ -542,16 +553,17 @@ class KuCoin:
         else:
             print("Error getting KuCoin response")
             self.restart_sockets()
-            
+
     async def ws_recv(self):
         reply = await self.ws.recv()
         await self.on_msg(reply)
         return
-                        
+
+
 class Exchanges(commands.Cog):
     def __init__(self, bot, db=get_db("portfolio")):
         self.bot = bot
-        self.trades_channel = get_channel(self.bot, config["TRADES"]["CHANNEL"])
+        self.trades_channel = get_channel(self.bot, config["LOOPS"]["TRADES"]["CHANNEL"])
 
         # Start getting trades
         asyncio.create_task(self.trades(db))

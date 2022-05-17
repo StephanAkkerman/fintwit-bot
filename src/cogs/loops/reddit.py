@@ -25,15 +25,18 @@ class Reddit(commands.Cog):
             username=config["REDDIT"]["USERNAME"],
             password=config["REDDIT"]["PASSWORD"],
         )
+        
+        if config["LOOPS"]["REDDIT"]["WALLSTREETBETS"]["ENABLED"]:
+        
+            self.channel = get_channel(
+                self.bot, config["LOOPS"]["REDDIT"]["WALLSTREETBETS"]["CHANNEL"]
+            )
 
-        self.wsb.start(reddit)
+            self.wsb.start(reddit)
 
     @loop(hours=12)
     async def wsb(self, reddit):
-        channel = get_channel(
-            self.bot, config["SUBREDDIT"]["WALLSTREETBETS"]["CHANNEL"]
-        )
-
+        
         em = discord.Embed(
             title="Hottest r/wallstreetbets posts of the last 24 hours",
             url="https://www.reddit.com/r/wallstreetbets/",
@@ -45,7 +48,7 @@ class Reddit(commands.Cog):
             url="https://styles.redditmedia.com/t5_2th52/styles/communityIcon_wzrl8s0hx8a81.png?width=256&s=dcbf830170c1e8237335a3f046b36f723c5d55e7"
         )
 
-        await channel.send(embed=em)
+        await self.channel.send(embed=em)
 
         subreddit = await reddit.subreddit("WallStreetBets")
         try:
@@ -69,7 +72,11 @@ class Reddit(commands.Cog):
                 video = False
                 if not submission.is_self:
                     url = submission.url
-                    if url.endswith(".jpg") or url.endswith(".png") or url.endswith(".gif"):
+                    if (
+                        url.endswith(".jpg")
+                        or url.endswith(".png")
+                        or url.endswith(".gif")
+                    ):
                         img_url.append(url)
                     elif "gallery" in url:
                         image_dict = submission.media_metadata
@@ -85,7 +92,9 @@ class Reddit(commands.Cog):
                     url="https://www.reddit.com" + submission.permalink,
                     description=descr,
                     color=0xFF3F18,
-                    timestamp=datetime.datetime.utcfromtimestamp(submission.created_utc),
+                    timestamp=datetime.datetime.utcfromtimestamp(
+                        submission.created_utc
+                    ),
                 )
                 if img_url:
                     e.set_image(url=img_url[0])
@@ -107,19 +116,20 @@ class Reddit(commands.Cog):
                     icon_url="https://external-preview.redd.it/iDdntscPf-nfWKqzHRGFmhVxZm4hZgaKe5oyFws-yzA.png?width=640&crop=smart&auto=webp&s=bfd318557bf2a5b3602367c9c4d9cd84d917ccd5",
                 )
 
-                msg = await channel.send(embed=e)
+                msg = await self.channel.send(embed=e)
 
                 for i in range(len(img_url)):
                     if i > 0:
-                        await channel.send(reference=msg, content=img_url[i])
+                        await self.channel.send(reference=msg, content=img_url[i])
 
                 if video:
-                    await channel.send(reference=msg, content=url + "/DASH_360.mp4")
-                    
+                    await self.channel.send(reference=msg, content=url + "/DASH_360.mp4")
+
                 counter += 1
-                    
+
         except Exception as e:
             print("Error getting reddit posts", e)
+
 
 def setup(bot):
     bot.add_cog(Reddit(bot))

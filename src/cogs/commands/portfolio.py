@@ -7,7 +7,7 @@ import pandas as pd
 
 # Local dependencies
 from util.db import get_db, update_db
-from cogs.loops.exchange_data import Exchanges
+from cogs.loops.trades import Exchanges
 from cogs.loops.assets import Assets
 
 

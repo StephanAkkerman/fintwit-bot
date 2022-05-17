@@ -41,10 +41,8 @@ cg_coins = pd.DataFrame(cg.get_coins_list())
 cg_coins["symbol"] = cg_coins["symbol"].str.upper()
 
 # Simple function to get website json info
-async def get_json_data(url, headers = None):
+async def get_json_data(url, headers=None):
     async with aiohttp.ClientSession(headers=headers) as session:
-        async with session.get(
-            url,
-        ) as r:
+        async with session.get(url,) as r:
             response = await r.json()
             return response

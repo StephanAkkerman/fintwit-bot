@@ -23,7 +23,7 @@ def afterHours():
     now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=-5), "EST"))
     openTime = datetime.time(hour=9, minute=30, second=0)
     closeTime = datetime.time(hour=16, minute=0, second=0)
-    
+
     # If a holiday
     if now.strftime("%Y-%m-%d") in us_holidays:
         return True

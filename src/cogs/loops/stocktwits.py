@@ -12,9 +12,11 @@ from discord.ext.tasks import loop
 from util.vars import config
 from util.disc_util import get_channel
 
+
 class StockTwits(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.channel = get_channel(self.bot, config["LOOPS"]["STOCKTWITS"]["CHANNEL"])
 
         self.stocktwits.start()
 
@@ -26,29 +28,29 @@ class StockTwits(commands.Cog):
             ) as r:
                 response = await r.json()
                 return response
-            
+
     async def get_data(self, e, keyword):
         # Keyword can be "ts", "m_day", "wl_ct_day"
         data = await self.stocktwits_data(keyword)
-        
+
         table = pd.DataFrame(data["table"][keyword])
         stocks = pd.DataFrame(data["stocks"]).T
         stocks["stock_id"] = stocks.index.astype(int)
         full_df = pd.merge(stocks, table, on="stock_id")
         full_df.sort_values(by="val", ascending=False, inplace=True)
-        
+
         # Fill all NaN / None values with 0, in case the price is not known
         full_df = full_df.fillna(0)
-        
+
         # Format % change
         full_df["change"] = full_df["change"].apply(
-                lambda x: f" (+{round(x,2)}% 📈)" if x > 0 else f" ({round(x,2)}% 📉)"
-            )
-        
+            lambda x: f" (+{round(x,2)}% 📈)" if x > 0 else f" ({round(x,2)}% 📉)"
+        )
+
         # Format price
-        full_df["price"] = full_df["price"].apply(lambda x: round(x,3))
-        full_df['price'] = full_df['price'].astype(str) + full_df['change']
-        
+        full_df["price"] = full_df["price"].apply(lambda x: round(x, 3))
+        full_df["price"] = full_df["price"].astype(str) + full_df["change"]
+
         # Show Symbol, Price + change, Score / Count
         if keyword == "ts":
             name = "Trending"
@@ -59,21 +61,21 @@ class StockTwits(commands.Cog):
         else:
             name = "Most Watched"
             val = "Count"
-            
+
         # Set values as string
         full_df["val"] = full_df["val"].astype(str)
-            
+
         # Get the values as string
         assets = "\n".join(full_df["symbol"].to_list())
         prices = "\n".join(full_df["price"].to_list())
         values = "\n".join(full_df["val"].to_list())
-            
+
         e.add_field(name=name, value=assets, inline=True)
         e.add_field(name="Price", value=prices, inline=True)
         e.add_field(name=val, value=values, inline=True)
-        
+
         return e
-        
+
     @loop(hours=6)
     async def stocktwits(self):
 
@@ -82,20 +84,20 @@ class StockTwits(commands.Cog):
             url="https://stocktwits.com/rankings/trending",
             description="",
             color=0xFFFFFF,
+            timestamp=datetime.datetime.utcnow(),
         )
-        
+
         e = await self.get_data(e, "ts")
         e = await self.get_data(e, "m_day")
         e = await self.get_data(e, "wl_ct_day")
-        
-        # Set datetime and binance icon
-        e.set_footer(text=f"Today at {datetime.datetime.now().strftime('%H:%M')}",
-                    icon_url="https://pbs.twimg.com/profile_images/1464337316965720069/bZ4-cEg3_400x400.jpg"
-        )
-        
-        channel = get_channel(self.bot, config["STOCKTWITS"]["CHANNEL"])
 
-        await channel.send(embed=e)
+        # Set datetime and binance icon
+        e.set_footer(
+            icon_url="https://pbs.twimg.com/profile_images/1464337316965720069/bZ4-cEg3_400x400.jpg",
+        )
+
+        await self.channel.send(embed=e)
+
 
 def setup(bot):
     bot.add_cog(StockTwits(bot))

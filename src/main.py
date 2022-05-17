@@ -41,13 +41,32 @@ async def on_ready():
     print(f"{bot.user} is connected to {guild.name} (id: {guild.id}) \n")
 
 
-def load_folder(foldername):
-    # Currently not yet the option to enable or disable
+def load_folder(foldername : str):
+    
+    
+    # Get enabled cogs
+    enabled_cogs = []
+    
+    # Check each file in the folder
+    for file in config[foldername.upper()]:
+        # Check the contents of the file in the folder
+        if config[foldername.upper()][file]:
+            # If the file type is not a boolean, check if it is enabled
+            if not type(config[foldername.upper()][file]) == bool:
+                # Check if the ENABLED key exists
+                if "ENABLED" in config[foldername.upper()][file]:
+                    # Append if enabled == True
+                    if config[foldername.upper()][file]["ENABLED"]:
+                        enabled_cogs.append(file.lower() + ".py")
+            else:
+                # Append the file to enabled cogs, if its value is True
+                if config[foldername.upper()][file]:
+                    enabled_cogs.append(file.lower() + ".py")
 
-    # Load all commands
+    # Load all cogs
     print(f"Loading {foldername} ...")
     for filename in os.listdir(f"./src/cogs/{foldername}"):
-        if filename.endswith(".py"):
+        if filename.endswith(".py") and filename in enabled_cogs:
             try:
                 print("Loading:", filename)
                 bot.load_extension(f"cogs.{foldername}.{filename[:-3]}")

@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 
 # > 3rd Party Dependencies
 import discord
@@ -7,19 +8,19 @@ from discord.ext.tasks import loop
 import pandas as pd
 
 # Local dependencies
-from cogs.loops.exchange_data import Binance, KuCoin
+from cogs.loops.trades import Binance, KuCoin
 from util.ticker import get_stock_info
 from util.db import get_db, update_db
 from util.disc_util import get_channel, get_user
-from util.vars import config, stables, cg_coins, cg
+from util.vars import stables, cg_coins, cg
 from util.disc_util import get_guild
 from util.tv_data import get_tv_data
 from util.formatting import format_embed_length
 
+
 class Assets(commands.Cog):
     def __init__(self, bot, db=get_db("portfolio")):
         self.bot = bot
-        self.trades_channel = get_channel(self.bot, config["TRADES"]["CHANNEL"])
 
         # Refresh assets
         asyncio.create_task(self.assets(db))
@@ -121,7 +122,7 @@ class Assets(commands.Cog):
 
             # Stables is always the same in USD
             if row["asset"] in stables:
-                if row['owned'] < 1:
+                if row["owned"] < 1:
                     assets_db.drop(index, inplace=True)
                 continue
 
@@ -143,16 +144,16 @@ class Assets(commands.Cog):
         self.post_assets.start()
 
     async def format_exchange(self, exchange_df, exchange, e, old_worth, old_assets):
-        
+
         old_assets = old_assets.split("\n")
         old_worth = old_worth.replace("$", "")
         old_worth = old_worth.split("\n")
         # Remove the emoji + whitespace
         old_worth = [x[:-2] for x in old_worth]
-        
+
         old_df = pd.DataFrame({"asset": old_assets, "old_worth": old_worth})
         old_df["old_worth"] = pd.to_numeric(old_df["old_worth"])
-        
+
         # Sort and clean the data
         sorted_df = exchange_df.sort_values(by=["owned"], ascending=False)
 
@@ -181,33 +182,37 @@ class Assets(commands.Cog):
                 usd_values.append(1)
 
         # Add new column for usd values
-        exchange_df['usd_value'] = usd_values
-        
+        exchange_df["usd_value"] = usd_values
+
         # Multiply it with the owned amount
-        exchange_df['usd_value'] = exchange_df['usd_value'] * exchange_df['owned']
-        
+        exchange_df["usd_value"] = exchange_df["usd_value"] * exchange_df["owned"]
+
         # Round it to 2 decimals
         exchange_df = exchange_df.round({"usd_value": 2})
-                
+
         # Sort by usd value
         final_df = exchange_df.sort_values(by=["usd_value"], ascending=False)
-        
+
         # Compare with the old df
         final_df = pd.merge(final_df, old_df, on="asset")
         final_df["worth_change"] = final_df["usd_value"] - final_df["old_worth"]
-        final_df["worth_display"] = final_df["worth_change"].apply(lambda row: " 🔴" if row < 0 else (" 🔘" if row == 0 else " 🟢"))
-        
+        final_df["worth_display"] = final_df["worth_change"].apply(
+            lambda row: " 🔴" if row < 0 else (" 🔘" if row == 0 else " 🟢")
+        )
+
         # Add $ in front of it
-        final_df['usd_value'] = '$' + final_df['usd_value'].astype(str) + final_df["worth_display"]
-        
+        final_df["usd_value"] = (
+            "$" + final_df["usd_value"].astype(str) + final_df["worth_display"]
+        )
+
         # Convert owned to string
-        final_df['owned'] = final_df['owned'].astype(str)
-                
+        final_df["owned"] = final_df["owned"].astype(str)
+
         # Create the list of string values
         assets = "\n".join(final_df["asset"].to_list())
         owned = "\n".join(final_df["owned"].to_list())
         values = "\n".join(final_df["usd_value"].to_list())
-        
+
         # Ensure that the length is not bigger than allowed
         assets, owned, values = format_embed_length([assets, owned, values])
 
@@ -244,38 +249,44 @@ class Assets(commands.Cog):
 
             if not assets.empty:
                 # Get the old message
-                last_msg = await channel.history().find(lambda m: m.author.id == self.bot.user.id)
-                
+                last_msg = await channel.history().find(
+                    lambda m: m.author.id == self.bot.user.id
+                )
+
                 try:
                     old_fields = last_msg.embeds[0].to_dict()["fields"]
-                    if old_fields[0]['name'] == "Binance":
+                    if old_fields[0]["name"] == "Binance":
                         binance_worth = old_fields[2]["value"]
                         binance_coins = old_fields[0]["value"]
-                    elif old_fields[0]['name'] == "KuCoin":
+                    elif old_fields[0]["name"] == "KuCoin":
                         kucoin_worth = old_fields[2]["value"]
                         kucoin_coins = old_fields[0]["value"]
-                    elif old_fields[0]['name'] == "Stocks":
+                    elif old_fields[0]["name"] == "Stocks":
                         stocks_worth = old_fields[2]["value"]
                         stocks_owned = old_fields[0]["value"]
-                    
+
                     if len(old_fields) > 3:
-                        if old_fields[3]['name'] == "KuCoin":
+                        if old_fields[3]["name"] == "KuCoin":
                             kucoin_worth = old_fields[5]["value"]
                             kucoin_coins = old_fields[3]["value"]
-                        elif old_fields[3]['name'] == "Stocks":
+                        elif old_fields[3]["name"] == "Stocks":
                             stocks_worth = old_fields[5]["value"]
                             stocks_owned = old_fields[3]["value"]
-                    
+
                     if len(old_fields) > 6:
-                        if old_fields[6]['name'] == "Stocks":
+                        if old_fields[6]["name"] == "Stocks":
                             stocks_worth = old_fields[8]["value"]
                             stocks_owned = old_fields[6]["value"]
-                        
+
                 except Exception as e:
                     print(e)
                     return
-                
-                e = discord.Embed(title="", description="", color=0x1DA1F2,)
+
+                e = discord.Embed(title="", 
+                                  description="", 
+                                  color=0x1DA1F2,
+                                  timestamp=datetime.datetime.utcnow()
+                                  )
 
                 e.set_author(
                     name=disc_user.name + "'s Assets", icon_url=disc_user.avatar_url
@@ -287,11 +298,17 @@ class Assets(commands.Cog):
                 stocks = assets.loc[assets["exchange"] == "stock"]
 
                 if not binance.empty:
-                    e = await self.format_exchange(binance, "Binance", e, binance_worth, binance_coins)
+                    e = await self.format_exchange(
+                        binance, "Binance", e, binance_worth, binance_coins
+                    )
                 if not kucoin.empty:
-                    e = await self.format_exchange(kucoin, "KuCoin", e, kucoin_worth, kucoin_coins)
+                    e = await self.format_exchange(
+                        kucoin, "KuCoin", e, kucoin_worth, kucoin_coins
+                    )
                 if not stocks.empty:
-                    e = await self.format_exchange(stocks, "Stocks", e, stocks_worth, stocks_owned)
+                    e = await self.format_exchange(
+                        stocks, "Stocks", e, stocks_worth, stocks_owned
+                    )
 
                 await channel.send(embed=e)
 
