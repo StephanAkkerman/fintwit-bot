@@ -1,3 +1,5 @@
+## > Imports
+# > Standard libraries
 import asyncio
 import datetime
 
@@ -7,7 +9,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 import pandas as pd
 
-# Local dependencies
+# > Local dependencies
 from cogs.loops.trades import Binance, KuCoin
 from util.ticker import get_stock_info
 from util.db import get_db, update_db
@@ -19,14 +21,47 @@ from util.formatting import format_embed_length
 
 
 class Assets(commands.Cog):
-    def __init__(self, bot, db=get_db("portfolio")):
+    """
+    The class is responsible for posting the assets of Discord users.
+    You can enabled / disable it in config under ["LOOPS"]["ASSETS"].
+
+    Methods
+    ----------
+    usd_value( asset : str, owned : float, exchange : str) -> float:
+        Get the USD value of an asset, based on the exchange.
+    assets(db : pd.DataFrame) -> None:
+        Checks the account balances of accounts saved in portfolio db, then updates the assets db.
+    format_exchange(exchange_df : pd.DataFrame, exchange : str, e : discord.Embed, old_worth : str, old_assets : str) -> discord.Embed:
+        Formats the embed used for updating user's assets.
+    post_assets() -> None:
+        Posts the assets of the users that added their portfolio.
+    """
+    
+    def __init__(self, bot : commands.bot.Bot, db : pd.DataFrame = get_db("portfolio")) -> None:
         self.bot = bot
 
         # Refresh assets
         asyncio.create_task(self.assets(db))
 
-    async def usd_value(self, asset, owned, exchange):
+    async def usd_value(self, asset : str, owned : float, exchange : str) -> float:
+        """
+        Get the USD value of an asset, based on the exchange.
 
+        Parameters
+        ----------
+        asset : str
+            The ticker of the asset, i.e. 'BTC'.
+        owned : float
+            The amount of the asset owned.
+        exchange : str
+            The exchange the asset is on, currently only 'binance' and 'kucoin' are supported.
+
+        Returns
+        -------
+        float
+            The worth of this asset in USD.
+        """
+        
         usd_val = 0
 
         # Check the corresponding exchange
@@ -66,11 +101,19 @@ class Assets(commands.Cog):
         else:
             return usd_val * owned
 
-    async def assets(self, db):
+    async def assets(self, db : pd.DataFrame) -> None:
         """ 
-        Only do this function at startup and if a new portfolio has been added
-        Checks the account balances of accounts saved in portfolio db, then updates the assets db
-        Posts an overview of everyone's assets in their asset channel
+        Only do this function at startup and if a new portfolio has been added.
+        Checks the account balances of accounts saved in portfolio db, then updates the assets db.
+        
+        Parameters
+        ----------
+        db : pd.DataFrame
+            The portfolio db or the db for a new user.
+            
+        Returns
+        -------
+        None
         """
 
         if db.equals(get_db("portfolio")):
@@ -143,7 +186,34 @@ class Assets(commands.Cog):
 
         self.post_assets.start()
 
-    async def format_exchange(self, exchange_df, exchange, e, old_worth, old_assets):
+    async def format_exchange(self, 
+                              exchange_df : pd.DataFrame,
+                              exchange : str,
+                              e : discord.Embed,
+                              old_worth : str, 
+                              old_assets : str
+                             ) -> discord.Embed:
+        """
+        Formats the embed used for updating user's assets.
+
+        Parameters
+        ----------
+        exchange_df : pd.DataFrame
+            The dataframe of assets owned by a user.
+        exchange : str
+            The exchange the assets are on, currently only 'binance' and 'kucoin' are supported.
+        e : discord.Embed
+            The embed to be formatted.
+        old_worth : str
+            The worth of the user's assets before the update.
+        old_assets : str
+            The assets of the user before the update.
+
+        Returns
+        -------
+        discord.Embed
+            The new embed.
+        """
 
         old_assets = old_assets.split("\n")
         old_worth = old_worth.replace("$", "")
@@ -216,6 +286,7 @@ class Assets(commands.Cog):
         # Ensure that the length is not bigger than allowed
         assets, owned, values = format_embed_length([assets, owned, values])
 
+        # These are the new fields added to the embed
         e.add_field(name=exchange, value=assets, inline=True)
         e.add_field(name="Quantity", value=owned, inline=True)
         e.add_field(name="Worth", value=values, inline=True)
@@ -223,7 +294,15 @@ class Assets(commands.Cog):
         return e
 
     @loop(hours=12)
-    async def post_assets(self):
+    async def post_assets(self) -> None:
+        """
+        Posts the assets of the users that added their portfolio.
+        
+        Returns
+        -------
+        None
+        """
+        
         assets_db = get_db("assets")
         guild = get_guild(self.bot)
 
@@ -247,12 +326,14 @@ class Assets(commands.Cog):
             if disc_user == None:
                 disc_user = await get_user(self.bot, id)
 
+            # Only post if there are assets
             if not assets.empty:
                 # Get the old message
                 last_msg = await channel.history().find(
                     lambda m: m.author.id == self.bot.user.id
                 )
 
+                # Gets the old values so we can compare with the new ones
                 try:
                     old_fields = last_msg.embeds[0].to_dict()["fields"]
                     if old_fields[0]["name"] == "Binance":
@@ -297,6 +378,7 @@ class Assets(commands.Cog):
                 kucoin = assets.loc[assets["exchange"] == "kucoin"]
                 stocks = assets.loc[assets["exchange"] == "stock"]
 
+                # Finally, format the embed before posting it
                 if not binance.empty:
                     e = await self.format_exchange(
                         binance, "Binance", e, binance_worth, binance_coins

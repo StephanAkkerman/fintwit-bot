@@ -12,18 +12,36 @@ from cogs.loops.assets import Assets
 
 
 class Portfolio(commands.Cog):
+    """
+    This class is used to handle the portfolio command.
+
+    Methods
+    ----------
+    portfolio(ctx : commands.context.Context, *input : tuple) -> None:
+        Adds or removes your portfolio to the database.
+    portfolio_error(ctx : commands.context.Context, *input : tuple) -> None:
+        Handles the errors when using the `!portfolio` command.
+    """
+    
     def __init__(self, bot):
         self.bot = bot
 
     @commands.command()
     @commands.dm_only()
-    async def portfolio(self, ctx, *input):
+    async def portfolio(self, ctx : commands.context.Context, *input : tuple) -> None:
         """
-        Adds or removes your portfolio to the database
+        Adds or removes your portfolio to the database.
         Usage: 
-        `!portfolio add <exchange> <key> <secret> (<passphrase>)` to add your portfolio to the database
-        `!portfolio remove (<exchange>)` if exchange is not specified, all your portfolio(s) will be removed
-        `!portfolio show` to show your portfolio(s) in our database
+        `!portfolio add <exchange> <key> <secret> (<passphrase>)` to add your portfolio to the database.
+        `!portfolio remove (<exchange>)` if exchange is not specified, all your portfolio(s) will be removed.
+        `!portfolio show` to show your portfolio(s) in our database.
+        
+        Parameters
+        ----------
+        ctx : commands.context.Context
+            The context of the command, for instance the user who used it.
+        input : tuple
+            The information specified after `!portfolio`.
         """
 
         if input:
@@ -99,7 +117,7 @@ class Portfolio(commands.Cog):
             raise commands.UserInputError()
 
     @portfolio.error
-    async def portfolio_error(self, ctx, error):
+    async def portfolio_error(self, ctx : commands.context.Context, error : Exception) -> None:
         print(traceback.format_exc())
         if isinstance(error, commands.BadArgument):
             await ctx.send(

@@ -2,19 +2,49 @@
 # > 3rd Party Dependencies
 from discord.ext import commands
 
+# Local dependencies
 from util.vars import api
 
 
 class Follow(commands.Cog):
+    """
+    This class is used to handle the follow command.
+    You can enable / disable this command in the config, under ["COMMANDS"]["FOLLOW"].
+    
+    Methods
+    -------
+    follow(ctx : commands.context.Context, *input : tuple) -> None:
+        This method is used to handle the follow command.
+    unfollow(ctx : commands.context.Context, *input : tuple) -> None:
+        This method is used to handle the unfollow command.
+    follow_error(ctx : commands.context.Context, error : Exception) -> None:
+        This method is used to handle the errors when using the `!follow` command.
+    unfollow_error(ctx : commands.context.Context, error : Exception) -> None:
+        This method is used to handle the errors when using the `!unfollow` command.
+    """
+    
     def __init__(self, bot):
         self.bot = bot
 
     @commands.command()
-    async def follow(self, ctx, *input):
-        """Follow Twitter user(s), using their screen name (without @ in front).
-
-        Usage: `!follow [<username>]`
+    async def follow(self, ctx : commands.context.Context, *input : tuple) -> None:
         """
+        Follow Twitter user(s), using their screen name (without @ in front).
+        Usage: `!follow [<username>]`.
+        
+        Parameters
+        ----------
+        ctx : commands.context.Context
+            The context of the command.
+        input : tuple
+            The names specified after `!follow`.
+        
+        Returns
+        -------
+        None
+        """
+        
+        print(type(input))
 
         if input:
             for user in input:
@@ -27,10 +57,20 @@ class Follow(commands.Cog):
             raise commands.UserInputError()
 
     @commands.command()
-    async def unfollow(self, ctx, *input):
+    async def unfollow(self, ctx : commands.context.Context, *input : tuple) -> None:
         """Unfollow Twitter user(s), using their screen name (without @ in front).
-
-        Usage: `!unfollow [<username>]`
+        Usage: `!unfollow [<username>]`.
+        
+        Parameters
+        ----------
+        ctx : commands.context.Context
+            The context of the command.
+        input : tuple
+            The names specified after `!unfollow`.
+        
+        Returns
+        -------
+        None
         """
 
         if input:
@@ -46,7 +86,7 @@ class Follow(commands.Cog):
             raise commands.UserInputError()
 
     @follow.error
-    async def follow_error(self, ctx, error):
+    async def follow_error(self, ctx : commands.context.Context, error : Exception) -> None:
         if isinstance(error, commands.UserNotFound):
             await ctx.send(f"{ctx.author.mention} {error}")
         elif isinstance(error, commands.UserInputError):
@@ -57,7 +97,7 @@ class Follow(commands.Cog):
             )
 
     @unfollow.error
-    async def unfollow_error(self, ctx, error):
+    async def unfollow_error(self, ctx : commands.context.Context, error : Exception) -> None:
         if isinstance(error, commands.UserNotFound):
             await ctx.send(f"{ctx.author.mention} {error}")
         elif isinstance(error, commands.UserInputError):

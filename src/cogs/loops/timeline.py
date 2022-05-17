@@ -314,7 +314,7 @@ class Streamer(AsyncStream):
         elif user.lower() in self.text_channel_names:
             channel = self.text_channels[self.text_channel_names.index(user.lower())]
 
-        elif user in config["LOOPS"]["TIMELINE"]["NEWS"]["USERS"]:
+        elif user in config["LOOPS"]["TIMELINE"]["NEWS"]["FOLLOWING"]:
             channel = self.news_channel
 
         elif category == None and not images:

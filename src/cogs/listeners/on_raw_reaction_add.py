@@ -1,20 +1,30 @@
 ##> Imports
+# > Standard libraries
+from csv import writer
+
 # > Discord dependencies
 import discord
 from discord.ext import commands
 
-# > Standard libraries
-from csv import writer
-
+# > Local dependencies
 from util.disc_util import get_channel
-
+from util.vars import config
 
 class On_raw_reaction_add(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.channel = get_channel(self.bot, config["LISTENERS"]["ON_RAW_REACTION_ADD"]["CHANNEL"])
 
     @commands.Cog.listener()
-    async def on_raw_reaction_add(self, reaction):
+    async def on_raw_reaction_add(self, reaction : discord.RawReactionActionEvent):
+        """
+        This function is called when a reaction is added to a message.
+
+        Parameters
+        ----------
+        reaction : discord.RawReactionActionEvent
+            The information about the reaction that was added.
+        """
 
         # Ignore private messages
         if reaction.guild_id is None:
@@ -44,7 +54,19 @@ class On_raw_reaction_add(commands.Cog):
         except commands.CommandError as e:
             print(e)
 
-    async def classify_reaction(self, reaction, message):
+    async def classify_reaction(self, 
+                                reaction : discord.RawReactionActionEvent, 
+                                message : discord.Message):
+        """
+        This function gets called if a reaction was used for classifying a tweet.
+
+        Parameters
+        ----------
+        reaction : discord.RawReactionActionEvent
+            The information about the reaction that was added.
+        message : discord.Message
+            The message that the reaction was added to.
+        """
 
         with open("data/sentiment_data.csv", "a", newline="") as file:
             writer_object = writer(file)
@@ -61,18 +83,31 @@ class On_raw_reaction_add(commands.Cog):
                     [message.embeds[0].description.replace("\n", " "), 0]
                 )
 
-    async def highlight(self, message, user):
-        channel = get_channel(self.bot, "💸┃highlights")
+    async def highlight(self, 
+                        message : discord.Message, 
+                        user : discord.User):
+        """
+        This function gets called if a reaction was used for highlighting a tweet.
+
+        Parameters
+        ----------
+        message : discord.Message
+            The tweet that should be posted in the highlight channel.
+        user : discord.User
+            The user that added this reaction to the tweet.
+        """
 
         # Get the old embed
         e = message.embeds[0]
 
+        # Get the Discord name of the user
         user = str(user).split("#")[0]
+        
         e.set_footer(
             text=f"{e.footer.text} | Highlighted by {user}", icon_url=e.footer.icon_url
         )
 
-        await channel.send(embed=e)
+        await self.channel.send(embed=e)
 
 
 def setup(bot):
