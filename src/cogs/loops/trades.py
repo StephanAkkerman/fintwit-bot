@@ -560,7 +560,17 @@ class KuCoin:
         return
 
 
-class Exchanges(commands.Cog):
+class Trades(commands.Cog):
+    """
+    This class contains the cog for posting new trades done by users.
+    It can be enabled / disabled in the config under ["LOOPS"]["TRADES"].
+    
+    Methods
+    -------
+    function() -> None:
+        _description_
+    """
+    
     def __init__(self, bot, db=get_db("portfolio")):
         self.bot = bot
         self.trades_channel = get_channel(self.bot, config["LOOPS"]["TRADES"]["CHANNEL"])
@@ -590,4 +600,4 @@ class Exchanges(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Exchanges(bot))
+    bot.add_cog(Trades(bot))

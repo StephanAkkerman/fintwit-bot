@@ -10,28 +10,38 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
-from util.vars import config
+from util.vars import config, get_json_data
 from util.disc_util import get_channel
 
 
 class Funding(commands.Cog):
-    def __init__(self, bot):
+    """
+    This class is used to handle the funding loop, this can be enabled / disabled in the config, under ["LOOPS"]["FUNDING"].
+
+    Methods
+    -------
+    funding() -> None:
+        This function gets the data from the funding API and posts it in the funding channel.
+    """
+    
+    def __init__(self, bot : commands.bot.Bot) -> None:
         self.bot = bot
-
-        self.funding.start()
         self.channel = get_channel(self.bot, config["LOOPS"]["FUNDING"]["CHANNEL"])
-
-    async def binance_data(self):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                "https://fapi.binance.com/fapi/v1/premiumIndex"
-            ) as r:
-                response = await r.json()
-                return response
+        
+        self.funding.start()
 
     @loop(hours=4)
-    async def funding(self):
-        binance_data = await self.binance_data()
+    async def funding(self) -> None:
+        """
+        This function gets the data from the funding API and posts it in the funding channel.
+        
+        Returns
+        -------
+        None
+        """
+        
+        # Get the JSON data from the Binance API
+        binance_data = await get_json_data("https://fapi.binance.com/fapi/v1/premiumIndex")
 
         # If the call did not work
         if not binance_data:

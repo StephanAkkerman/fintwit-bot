@@ -16,7 +16,18 @@ from util.formatting import format_embed
 
 
 class Gainers(commands.Cog):
-    def __init__(self, bot):
+    """
+    This class contains the cog for Gainers loop, this can be enabled / disabled in the config under ["LOOPS"]["GAINERS"].
+
+    Methods
+    -------
+    crypto() -> None:
+        This function will check the gainers and losers on Binance, using USDT as the base currency.
+    stocks() -> None:
+        This function uses the yahoo_fin.stock_info module to get the gainers for todays stocks.
+    """
+    
+    def __init__(self, bot : commands.bot.Bot) -> None:
         self.bot = bot
 
         if config["LOOPS"]["GAINERS"]["STOCKS"]["ENABLED"]:
@@ -33,10 +44,14 @@ class Gainers(commands.Cog):
             self.crypto.start()
 
     @loop(hours=2)
-    async def crypto(self):
+    async def crypto(self) -> None:
         """
-        This loop will check the gainers and losers on Binance, using USDT as the base currency.
+        This function will check the gainers and losers on Binance, using USDT as the base currency.
         To prevent too many calls the losers are also done in this section.
+        
+        Returns
+        -------
+        None
         """
         
         binance_data = await get_json_data("https://api.binance.com/api/v3/ticker/24hr")
@@ -90,7 +105,14 @@ class Gainers(commands.Cog):
             await self.crypto_losers_channel.send(embed=e_losers)
 
     @loop(hours=2)
-    async def stocks(self):
+    async def stocks(self) -> None:
+        """
+        This function uses the yahoo_fin.stock_info module to get the gainers for todays stocks.
+        
+        Returns
+        -------
+        None
+        """
 
         # Dont send if the market is closed
         if afterHours():

@@ -17,7 +17,8 @@ from util.formatting import format_embed
 
 class Trending(commands.Cog):
     """
-    This class contains the cog for Trending loop.
+    This class contains the cog for posting the top trending crypto and stocks.
+    It can be enabled / disabled in the config under ["LOOPS"]["TRENDING"].
     
     Methods
     -------

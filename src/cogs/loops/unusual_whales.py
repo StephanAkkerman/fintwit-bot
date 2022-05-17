@@ -18,7 +18,8 @@ from util.afterhours import afterHours
 
 class UW(commands.Cog):
     """
-    This class contains the cog for Unusual Whales loop.
+    This class contains the cog for posting the latest Unusual Whales alerts.
+    It can be enabled / disabled in the config under ["LOOPS"]["UNUSUAL_WHALES"].
 
     Methods
     -------

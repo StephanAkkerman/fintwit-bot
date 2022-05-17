@@ -15,6 +15,16 @@ from util.disc_util import get_channel
 
 
 class Reddit(commands.Cog):
+    """
+    This class contains the cog for posting the top reddit posts.
+    It can be enabled / disabled in the config under ["LOOPS"]["REDDIT"].
+    
+    Methods
+    -------
+    function() -> None:
+        _description_
+    """
+    
     def __init__(self, bot):
         self.bot = bot
 

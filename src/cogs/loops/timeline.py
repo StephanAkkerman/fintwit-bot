@@ -29,6 +29,7 @@ class Timeline(commands.Cog):
     """
     A class to stream tweets from the Twitter API.
     Necessary to inherit commands.Cog to use this class as a Discord cog.
+    It can be enabled / disabled in the config under ["LOOPS"]["TIMELINE"].
     
     Methods
     -------

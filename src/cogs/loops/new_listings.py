@@ -15,6 +15,16 @@ from util.disc_util import get_channel
 
 
 class Binance(commands.Cog):
+    """
+    This class contains the cog for posting the new Binance listings 
+    It can be enabled / disabled in the config under ["LOOPS"]["NEW_LISTINGS"].
+    
+    Methods
+    -------
+    function() -> None:
+        _description_
+    """
+    
     def __init__(self, bot):
         self.bot = bot
         self.old_symbols = []
@@ -80,6 +90,16 @@ class Binance(commands.Cog):
 
 
 class KuCoin(commands.Cog):
+    """
+    This class contains the cog for posting the new KuCoin listings 
+    It can be enabled / disabled in the config under ["LOOPS"]["NEW_LISTINGS"].
+    
+    Methods
+    -------
+    function() -> None:
+        _description_
+    """
+    
     def __init__(self, bot):
         self.bot = bot
         self.old_symbols = []
@@ -145,6 +165,16 @@ class KuCoin(commands.Cog):
 
 
 class CoinBase(commands.Cog):
+    """
+    This class contains the cog for posting the new CoinBase listings 
+    It can be enabled / disabled in the config under ["LOOPS"]["NEW_LISTINGS"].
+    
+    Methods
+    -------
+    function() -> None:
+        _description_
+    """
+    
     def __init__(self, bot):
         self.bot = bot
         self.old_symbols = []

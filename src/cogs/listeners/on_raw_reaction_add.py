@@ -11,12 +11,26 @@ from util.disc_util import get_channel
 from util.vars import config
 
 class On_raw_reaction_add(commands.Cog):
+    """
+    This class is used to handle the on_raw_reaction_add event.
+    You can enable / disable this command in the config, under ["LISTENERS"]["ON_RAW_REACTION_ADD"].
+
+    Methods
+    ----------
+    on_raw_reaction_add(reaction : discord.RawReactionActionEvent) -> None:
+        This function is called when a reaction is added to a message.
+    classify_reaction(reaction : discord.RawReactionActionEvent, message : discord.Message) -> None:
+        This function gets called if a reaction was used for classifying a tweet.
+    highlight(message : discord.Message, user : discord.User) -> None:
+        This function gets called if a reaction was used for highlighting a tweet.
+    """
+    
     def __init__(self, bot):
         self.bot = bot
         self.channel = get_channel(self.bot, config["LISTENERS"]["ON_RAW_REACTION_ADD"]["CHANNEL"])
 
     @commands.Cog.listener()
-    async def on_raw_reaction_add(self, reaction : discord.RawReactionActionEvent):
+    async def on_raw_reaction_add(self, reaction : discord.RawReactionActionEvent) -> None:
         """
         This function is called when a reaction is added to a message.
 
@@ -24,6 +38,10 @@ class On_raw_reaction_add(commands.Cog):
         ----------
         reaction : discord.RawReactionActionEvent
             The information about the reaction that was added.
+            
+        Returns
+        -------
+        None
         """
 
         # Ignore private messages
@@ -56,7 +74,8 @@ class On_raw_reaction_add(commands.Cog):
 
     async def classify_reaction(self, 
                                 reaction : discord.RawReactionActionEvent, 
-                                message : discord.Message):
+                                message : discord.Message
+                               ) -> None:
         """
         This function gets called if a reaction was used for classifying a tweet.
 
@@ -66,6 +85,10 @@ class On_raw_reaction_add(commands.Cog):
             The information about the reaction that was added.
         message : discord.Message
             The message that the reaction was added to.
+            
+        Returns
+        -------
+        None
         """
 
         with open("data/sentiment_data.csv", "a", newline="") as file:
@@ -85,7 +108,8 @@ class On_raw_reaction_add(commands.Cog):
 
     async def highlight(self, 
                         message : discord.Message, 
-                        user : discord.User):
+                        user : discord.User
+                       ) -> None:
         """
         This function gets called if a reaction was used for highlighting a tweet.
 
@@ -95,6 +119,10 @@ class On_raw_reaction_add(commands.Cog):
             The tweet that should be posted in the highlight channel.
         user : discord.User
             The user that added this reaction to the tweet.
+            
+        Returns
+        -------
+        None
         """
 
         # Get the old embed
