@@ -1,6 +1,7 @@
 ## > Imports
 # > Standard libraries
 import datetime
+from tkinter import N
 
 # > 3rd party dependencies
 import pandas as pd
@@ -23,16 +24,34 @@ class StockTwits(commands.Cog):
     Methods
     -------
     function() -> None:
-        _description_
+        Gets the data and formats it into an embed.
+    stocktwits() -> None:
+        The function posts the StockTwits embeds in the configured channel.
     """
 
-    def __init__(self, bot: commands.bot.Bot) -> None:
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.channel = get_channel(self.bot, config["LOOPS"]["STOCKTWITS"]["CHANNEL"])
 
         self.stocktwits.start()
 
-    async def get_data(self, e: discord.Embed, keyword):
+    async def get_data(self, e: discord.Embed, keyword: str) -> discord.Embed:
+        """
+        Gets the data from StockTwits based on the passed keywords and returns a discord.Embed.
+
+        Parameters
+        ----------
+        e : discord.Embed
+            The discord.Embed where the data will be added to.
+        keyword : str
+            The specific keyword to get the data for. Options are: ts, m_day, wl_ct_day.
+
+        Returns
+        -------
+        discord.Embed
+            The discord.Embed with the data added to it.
+        """
+
         # Keyword can be "ts", "m_day", "wl_ct_day"
         data = await get_json_data("https://api.stocktwits.com/api/2/charts/" + keyword)
 
@@ -80,7 +99,14 @@ class StockTwits(commands.Cog):
         return e
 
     @loop(hours=6)
-    async def stocktwits(self):
+    async def stocktwits(self) -> None:
+        """
+        The function posts the StockTwits embeds in the configured channel.
+
+        Returns
+        -------
+        None
+        """
 
         e = discord.Embed(
             title=f"StockTwits Rankings",

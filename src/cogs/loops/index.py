@@ -111,9 +111,11 @@ class Index(commands.Cog):
             prices.append(price)
             changes.append(change)
 
-        value, change = await self.get_feargread()
+        succes = await self.get_feargread()
 
-        if value:
+        if succes is not None:
+            value, change = succes
+
             ticker.append(
                 f"[Fear&Greed](https://alternative.me/crypto/fear-and-greed-index/)"
             )
@@ -152,6 +154,10 @@ class Index(commands.Cog):
     async def stocks(self) -> None:
         """
         Posts the stock indices in the configured channel, only posts if the market is open.
+
+        Returns
+        -------
+        None
         """
 
         # Dont send if the market is closed

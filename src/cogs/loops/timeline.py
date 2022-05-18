@@ -1,6 +1,8 @@
 ##> Imports
+# > Standard libraries
+from __future__ import annotations
 import asyncio
-from typing import Union, List, Iterable, Optional # Use Optional if it can also return None
+from typing import List
 import datetime
 
 # > 3rd Party Dependencies
@@ -20,7 +22,6 @@ from util.vars import (
     access_token_secret,
     api,
 )
-
 from util.disc_util import get_channel, tag_user
 from util.tweet_util import format_tweet, add_financials
 
@@ -30,14 +31,14 @@ class Timeline(commands.Cog):
     A class to stream tweets from the Twitter API.
     Necessary to inherit commands.Cog to use this class as a Discord cog.
     It can be enabled / disabled in the config under ["LOOPS"]["TIMELINE"].
-    
+
     Methods
     -------
     start()
-        Readies the custom Tweepy async stream and starts it. 
+        Readies the custom Tweepy async stream and starts it.
     """
 
-    def __init__(self, bot : commands.bot.Bot) -> None:
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
         # Call start() to start the stream
@@ -55,20 +56,31 @@ class Timeline(commands.Cog):
 
         try:
             following = api.get_friend_ids()
+            await printer.filter(follow=following)
+
         except Exception as e:
             print("Could not get following ids on startup. Error: ", e)
 
-        await printer.filter(follow=following)
+            # Wait 5 min and try again
+            asyncio.sleep(60 * 5)
+            await self.start()
 
 
-def setup(bot : commands.bot.Bot) -> None:
-    """ This is a necessary method to make the cog loadable. """
+def setup(bot: commands.Bot) -> None:
+    """
+    This is a necessary method to make the cog loadable.
+
+    Returns
+    -------
+    None
+    """
     bot.add_cog(Timeline(bot))
 
 
 class Streamer(AsyncStream):
     """
     The main Class of this project. This class is responsible for streaming tweets from the Twitter API.
+
     Methods
     -------
     all_txt_channels()
@@ -78,13 +90,19 @@ class Streamer(AsyncStream):
     on_data(raw_data : str)
         This method is called whenever data is received from the stream.
     post_tweet(text, user, profile_pic, url, images, tickers, hashtags, retweeted_user)
-
+        Formats the tweet and passes it to upload_tweet().
     upload_tweet(e, category, images, user, retweeted_user)
+        Uploads the tweet to the correct channel.
     """
 
     def __init__(
-        self, consumer_key : str, consumer_secret : str, access_token : str, access_token_secret : str, bot
-    ):
+        self,
+        consumer_key: str,
+        consumer_secret: str,
+        access_token: str,
+        access_token_secret: str,
+        bot: commands.Bot,
+    ) -> None:
 
         # Init the parent class
         AsyncStream.__init__(
@@ -110,13 +128,19 @@ class Streamer(AsyncStream):
             self.crypto_text_channel = get_channel(
                 self.bot, config["LOOPS"]["TIMELINE"]["CRYPTO"]["TEXT_CHANNEL"]
             )
-            
+
         if config["LOOPS"]["TIMELINE"]["IMAGES"]["ENABLED"]:
-            self.images_channel = get_channel(self.bot, config["LOOPS"]["TIMELINE"]["IMAGES"]["CHANNEL"])
+            self.images_channel = get_channel(
+                self.bot, config["LOOPS"]["TIMELINE"]["IMAGES"]["CHANNEL"]
+            )
         if config["LOOPS"]["TIMELINE"]["OTHER"]["ENABLED"]:
-            self.other_channel = get_channel(self.bot, config["LOOPS"]["TIMELINE"]["OTHER"]["CHANNEL"])
+            self.other_channel = get_channel(
+                self.bot, config["LOOPS"]["TIMELINE"]["OTHER"]["CHANNEL"]
+            )
         if config["LOOPS"]["TIMELINE"]["NEWS"]["ENABLED"]:
-            self.news_channel = get_channel(self.bot, config["LOOPS"]["TIMELINE"]["NEWS"]["CHANNEL"])
+            self.news_channel = get_channel(
+                self.bot, config["LOOPS"]["TIMELINE"]["NEWS"]["CHANNEL"]
+            )
 
         # Get all text channels
         self.all_txt_channels.start()
@@ -125,10 +149,10 @@ class Streamer(AsyncStream):
         self.get_following_ids.start()
 
     @loop(minutes=60)
-    async def all_txt_channels(self):
+    async def all_txt_channels(self) -> None:
         """
         Gets all the text channels as Discord object and the names of the channels.
-        
+
         Returns
         -------
         None
@@ -149,10 +173,10 @@ class Streamer(AsyncStream):
         self.text_channel_names = text_channel_names
 
     @loop(minutes=15)
-    async def get_following_ids(self):
+    async def get_following_ids(self) -> None:
         """
-        Gets the Twitters IDs of the accounts that the bot is following.
-        
+        Gets and sets the Twitters IDs of the accounts that the bot is following.
+
         Returns
         -------
         None
@@ -163,16 +187,16 @@ class Streamer(AsyncStream):
             print(e)
             print("Failed to get following ids")
 
-    async def on_data(self, raw_data: str):
+    async def on_data(self, raw_data: str) -> None:
         """
         This method is called whenever data is received from the stream.
         The name of this method cannot be changed, since it is called by the Tweepy stream automatically.
-        
+
         Parameters
         ----------
         raw_data : str
             The raw data received from the stream in json text format.
-        
+
         Returns
         -------
         None
@@ -195,7 +219,7 @@ class Streamer(AsyncStream):
         tickers: List[str],
         hashtags: List[str],
         retweeted_user: str,
-    ):
+    ) -> None:
         """
         Pre-processing the tweet data before uploading it to the Discord channels.
         This function creates the embed object and tags the user after it is correctly uploaded.
@@ -218,7 +242,7 @@ class Streamer(AsyncStream):
                 The hashtags contained in this tweet.
             retweeted_user : str
                 The user that was retweeted by this tweet.
-            
+
         Returns
         -------
         None
@@ -263,12 +287,11 @@ class Streamer(AsyncStream):
         )
 
         # Upload the tweet to the Discord.
-        msg, channel = await self.upload_tweet(
-            e, category, images, user, retweeted_user
-        )
+        succes = await self.upload_tweet(e, category, images, user, retweeted_user)
 
         # Tag the users that have this ticker in their portfolio
-        if len(tickers + hashtags) > 0 and msg is not None:
+        if len(tickers + hashtags) > 0 and succes is not None:
+            msg, channel = succes
             await tag_user(msg, channel, tickers + hashtags)
 
     async def upload_tweet(
@@ -278,10 +301,10 @@ class Streamer(AsyncStream):
         images: List[str],
         user: str,
         retweeted_user: str,
-    ) -> Iterable[Optional[Union[discord.Message, discord.TextChannel]]]:
+    ) -> tuple[discord.Message, discord.TextChannel] | None:
         """
         Uploads tweet in the dedicated Discord channel.
-        
+
         Parameters
         ----------
             e : discord.Embed
@@ -294,7 +317,7 @@ class Streamer(AsyncStream):
                 The user that posted this tweet.
             retweeted_user : str
                 The user that was retweeted by this tweet.
-        
+
         Returns
         -------
         discord.Message
@@ -353,4 +376,4 @@ class Streamer(AsyncStream):
 
         except Exception as error:
             print("Error posting tweet on timeline", error)
-            return None, None
+            return
