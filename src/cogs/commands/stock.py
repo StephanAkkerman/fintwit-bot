@@ -29,17 +29,14 @@ class Stock(commands.Cog):
     stock_error(ctx : commands.context.Context, error : Exception) -> None:
         Reports the errors when using the `!stock` command.
     """
-    
-    def __init__(self, bot : commands.bot.Bot) -> None:
+
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.channel = get_channel(self.bot, config["LOOPS"]["TRADES"]["CHANNEL"])
 
-    async def stock_trade_msg(self, 
-                              user : discord.User, 
-                              side : str, 
-                              stock_name : str, 
-                              price : str, 
-                              quantity : str) -> None:
+    async def stock_trade_msg(
+        self, user: discord.User, side: str, stock_name: str, price: str, quantity: str
+    ) -> None:
         """
         Posts a message in the trades channel specifying a user's trade.
 
@@ -55,24 +52,25 @@ class Stock(commands.Cog):
             The price of the traded stock.
         quantity : str
             The amount bought or sold.
-            
+
         Returns
         -------
         None
         """
-        
-        
+
         e = discord.Embed(
             title=f"{side} {quantity} {stock_name} for ${price}",
             description="",
             color=0x720E9E,
-            timestamp=datetime.datetime.utcnow()
+            timestamp=datetime.datetime.utcnow(),
         )
 
         e.set_author(name=user.name, icon_url=user.avatar_url)
         e.add_field(name="Price", value=f"${price}", inline=True)
         e.add_field(name="Amount", value=quantity, inline=True)
-        e.add_field(name="$ Worth", value=f"${float(quantity)*float(price)}", inline=True)
+        e.add_field(
+            name="$ Worth", value=f"${float(quantity)*float(price)}", inline=True
+        )
 
         e.set_footer(
             icon_url="https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png",
@@ -81,21 +79,21 @@ class Stock(commands.Cog):
         await self.channel.send(embed=e)
 
     @commands.command()
-    async def stock(self, ctx : commands.context.Context, *input : tuple) -> None:
+    async def stock(self, ctx: commands.Context, *input: tuple) -> None:
         """
         Add stocks to your portfolio.
         Usage: `!stock <keyword> <amount> [<ticker>]`
         `!stock add <ticker> <amount>` to add a stock to your portfolio
         `!stock remove <ticker>` to remove a stock from your portfolio
         `!stock show` to show your portfolio
-        
+
         Parameters
         ----------
         ctx : commands.context.Context
             The context of the command, such as the user who used it.
         input : tuple
             The keywords used following the `!stock` command.
-            
+
         Returns
         -------
         None
@@ -262,9 +260,9 @@ class Stock(commands.Cog):
             raise commands.UserInputError()
 
     @stock.error
-    async def stock_error(self, ctx : commands.context.Context, error : Exception) -> None:        
+    async def stock_error(self, ctx: commands.Context, error: Exception) -> None:
         print(error)
-        
+
         if isinstance(error, commands.UserInputError):
             await ctx.send(
                 f"{ctx.author.mention} Please use one of the following keywords: 'add', 'remove', 'show' followed by stock ticker and amount!"
@@ -275,5 +273,5 @@ class Stock(commands.Cog):
             )
 
 
-def setup(bot):
+def setup(bot: commands.Bot) -> None:
     bot.add_cog(Stock(bot))

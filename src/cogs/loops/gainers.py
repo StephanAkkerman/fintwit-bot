@@ -1,10 +1,8 @@
 # > 3rd party dependencies
 import yahoo_fin.stock_info as si
 import pandas as pd
-import datetime
 
 # > Discord dependencies
-import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
 
@@ -17,7 +15,8 @@ from util.formatting import format_embed
 
 class Gainers(commands.Cog):
     """
-    This class contains the cog for Gainers loop, this can be enabled / disabled in the config under ["LOOPS"]["GAINERS"].
+    This class contains the cog for posting the top crypto and stocks gainers.
+    It can be enabled / disabled in the config under ["LOOPS"]["GAINERS"].
 
     Methods
     -------
@@ -26,21 +25,30 @@ class Gainers(commands.Cog):
     stocks() -> None:
         This function uses the yahoo_fin.stock_info module to get the gainers for todays stocks.
     """
-    
-    def __init__(self, bot : commands.bot.Bot) -> None:
+
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
         if config["LOOPS"]["GAINERS"]["STOCKS"]["ENABLED"]:
-            self.stocks_channel = get_channel(self.bot, config["LOOPS"]["GAINERS"]["STOCKS"]["CHANNEL"])
+            self.stocks_channel = get_channel(
+                self.bot, config["LOOPS"]["GAINERS"]["STOCKS"]["CHANNEL"]
+            )
             self.stocks.start()
-            
+
         if config["LOOPS"]["GAINERS"]["CRYPTO"]["ENABLED"]:
-            self.crypto_gainers_channel = get_channel(self.bot, config["LOOPS"]["GAINERS"]["CRYPTO"]["CHANNEL"])
-            
+            self.crypto_gainers_channel = get_channel(
+                self.bot, config["LOOPS"]["GAINERS"]["CRYPTO"]["CHANNEL"]
+            )
+
         if config["LOOPS"]["LOSERS"]["CRYPTO"]["ENABLED"]:
-            self.crypto_losers_channel = get_channel(self.bot, config["LOOPS"]["LOSERS"]["CRYPTO"]["CHANNEL"])
-            
-        if config["LOOPS"]["GAINERS"]["CRYPTO"]["ENABLED"] or config["LOOPS"]["LOSERS"]["CRYPTO"]["ENABLED"]:
+            self.crypto_losers_channel = get_channel(
+                self.bot, config["LOOPS"]["LOSERS"]["CRYPTO"]["CHANNEL"]
+            )
+
+        if (
+            config["LOOPS"]["GAINERS"]["CRYPTO"]["ENABLED"]
+            or config["LOOPS"]["LOSERS"]["CRYPTO"]["ENABLED"]
+        ):
             self.crypto.start()
 
     @loop(hours=2)
@@ -48,12 +56,12 @@ class Gainers(commands.Cog):
         """
         This function will check the gainers and losers on Binance, using USDT as the base currency.
         To prevent too many calls the losers are also done in this section.
-        
+
         Returns
         -------
         None
         """
-        
+
         binance_data = await get_json_data("https://api.binance.com/api/v3/ticker/24hr")
 
         # If the call did not work
@@ -100,7 +108,7 @@ class Gainers(commands.Cog):
         # Post the embed in the channel
         if config["LOOPS"]["GAINERS"]["CRYPTO"]["ENABLED"]:
             await self.crypto_gainers_channel.send(embed=e_gainers)
-        
+
         if config["LOOPS"]["LOSERS"]["CRYPTO"]["ENABLED"]:
             await self.crypto_losers_channel.send(embed=e_losers)
 
@@ -108,7 +116,7 @@ class Gainers(commands.Cog):
     async def stocks(self) -> None:
         """
         This function uses the yahoo_fin.stock_info module to get the gainers for todays stocks.
-        
+
         Returns
         -------
         None
@@ -129,5 +137,5 @@ class Gainers(commands.Cog):
         await self.stocks_channel.send(embed=e)
 
 
-def setup(bot):
+def setup(bot: commands.Bot) -> None:
     bot.add_cog(Gainers(bot))

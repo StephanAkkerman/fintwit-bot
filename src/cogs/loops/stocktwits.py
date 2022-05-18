@@ -1,7 +1,9 @@
-# > 3rd party dependencies
-import aiohttp
-import pandas as pd
+## > Imports
+# > Standard libraries
 import datetime
+
+# > 3rd party dependencies
+import pandas as pd
 
 # > Discord dependencies
 import discord
@@ -9,29 +11,30 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
-from util.vars import config
+from util.vars import config, get_json_data
 from util.disc_util import get_channel
 
 
 class StockTwits(commands.Cog):
-    def __init__(self, bot):
+    """
+    This class contains the cog for posting the most discussed StockTwits tickers.
+    It can be enabled / disabled in the config under ["LOOPS"]["STOCKTWITS"].
+
+    Methods
+    -------
+    function() -> None:
+        _description_
+    """
+
+    def __init__(self, bot: commands.bot.Bot) -> None:
         self.bot = bot
         self.channel = get_channel(self.bot, config["LOOPS"]["STOCKTWITS"]["CHANNEL"])
 
         self.stocktwits.start()
 
-    async def stocktwits_data(self, keyword):
+    async def get_data(self, e: discord.Embed, keyword):
         # Keyword can be "ts", "m_day", "wl_ct_day"
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                "https://api.stocktwits.com/api/2/charts/" + keyword
-            ) as r:
-                response = await r.json()
-                return response
-
-    async def get_data(self, e, keyword):
-        # Keyword can be "ts", "m_day", "wl_ct_day"
-        data = await self.stocktwits_data(keyword)
+        data = await get_json_data("https://api.stocktwits.com/api/2/charts/" + keyword)
 
         table = pd.DataFrame(data["table"][keyword])
         stocks = pd.DataFrame(data["stocks"]).T
@@ -99,5 +102,5 @@ class StockTwits(commands.Cog):
         await self.channel.send(embed=e)
 
 
-def setup(bot):
+def setup(bot: commands.bot.Bot) -> None:
     bot.add_cog(StockTwits(bot))

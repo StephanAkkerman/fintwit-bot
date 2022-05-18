@@ -1,7 +1,6 @@
 import datetime
 
 # > 3rd party dependencies
-import aiohttp
 import pandas as pd
 
 # > Discord dependencies
@@ -23,25 +22,27 @@ class Funding(commands.Cog):
     funding() -> None:
         This function gets the data from the funding API and posts it in the funding channel.
     """
-    
-    def __init__(self, bot : commands.bot.Bot) -> None:
+
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.channel = get_channel(self.bot, config["LOOPS"]["FUNDING"]["CHANNEL"])
-        
+
         self.funding.start()
 
     @loop(hours=4)
     async def funding(self) -> None:
         """
         This function gets the data from the funding API and posts it in the funding channel.
-        
+
         Returns
         -------
         None
         """
-        
+
         # Get the JSON data from the Binance API
-        binance_data = await get_json_data("https://fapi.binance.com/fapi/v1/premiumIndex")
+        binance_data = await get_json_data(
+            "https://fapi.binance.com/fapi/v1/premiumIndex"
+        )
 
         # If the call did not work
         if not binance_data:
@@ -103,16 +104,20 @@ class Funding(commands.Cog):
         lowest_rates = "\n".join(lowest["lastFundingRate"].tolist())
 
         e.add_field(
-            name="Coin", value=lowest_tickers, inline=True,
+            name="Coin",
+            value=lowest_tickers,
+            inline=True,
         )
 
         e.add_field(
-            name="Funding Rate", value=lowest_rates, inline=True,
+            name="Funding Rate",
+            value=lowest_rates,
+            inline=True,
         )
 
         # Post the embed in the channel
         await self.channel.send(embed=e)
 
 
-def setup(bot):
+def setup(bot: commands.Bot) -> None:
     bot.add_cog(Funding(bot))

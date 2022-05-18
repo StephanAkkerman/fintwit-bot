@@ -1,4 +1,5 @@
 # Standard libraries
+from __future__ import annotations
 import datetime
 
 # > Discord dependencies
@@ -15,18 +16,48 @@ from util.formatting import human_format
 
 
 class Index(commands.Cog):
-    def __init__(self, bot):
+    """
+    This class contains the cog for posting the crypto and stocks indices.
+    It can be enabled / disabled in the config under ["LOOPS"]["INDEX"].
+
+    Methods
+    -------
+    get_feargread() -> tuple[int, str] | None:
+        Gets the last 2 Fear and Greed indices from the API.
+    crypto() -> None:
+        This function will get the current prices of crypto indices on TradingView and the Fear and Greed index.
+        It will then post the prices in the configured channel.
+    stocks() -> None:
+        Posts the stock indices in the configured channel, only posts if the market is open.
+    """
+
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
         if config["LOOPS"]["INDEX"]["CRYPTO"]["ENABLED"]:
+            self.crypto_channel = get_channel(
+                self.bot, config["LOOPS"]["INDEX"]["CRYPTO"]["CHANNEL"]
+            )
             self.crypto.start()
-            self.crypto_channel = get_channel(self.bot, config["LOOPS"]["INDEX"]["CRYPTO"]["CHANNEL"])
-            
-        if config["LOOPS"]["INDEX"]["STOCKS"]["ENABLED"]:
-            self.stocks.start()
-            self.stocks_channel = get_channel(self.bot, config["LOOPS"]["INDEX"]["STOCKS"]["CHANNEL"])
 
-    async def get_feargread(self):
+        if config["LOOPS"]["INDEX"]["STOCKS"]["ENABLED"]:
+            self.stocks_channel = get_channel(
+                self.bot, config["LOOPS"]["INDEX"]["STOCKS"]["CHANNEL"]
+            )
+            self.stocks.start()
+
+    async def get_feargread(self) -> tuple[int, str] | None:
+        """
+        Gets the last 2 Fear and Greed indices from the API.
+
+        Returns
+        -------
+        int
+            Today's Fear and Greed index.
+        str
+            The percentual change compared to yesterday's Fear and Greed index.
+        """
+
         response = await get_json_data("https://api.alternative.me/fng/?limit=2")
 
         if "data" in response.keys():
@@ -39,11 +70,21 @@ class Index(commands.Cog):
             return today, change
 
     @loop(hours=12)
-    async def crypto(self):
-        e = discord.Embed(title=f"Crypto Indices", 
-                          description="",
-                          color=0x131722,
-                          timestamp = datetime.datetime.utcnow())
+    async def crypto(self) -> None:
+        """
+        This function will get the current prices of crypto indices on TradingView and the Fear and Greed index.
+        It will then post the prices in the configured channel.
+
+        Returns
+        -------
+        None
+        """
+        e = discord.Embed(
+            title=f"Crypto Indices",
+            description="",
+            color=0x131722,
+            timestamp=datetime.datetime.utcnow(),
+        )
 
         crypto_indices = ["TOTAL", "BTC.D", "OTHERS.D", "TOTALDEFI.D", "USDT.D"]
 
@@ -84,33 +125,45 @@ class Index(commands.Cog):
         changes = "\n".join(changes)
 
         e.add_field(
-            name="Index", value=ticker, inline=True,
+            name="Index",
+            value=ticker,
+            inline=True,
         )
 
         e.add_field(
-            name="Value", value=prices, inline=True,
+            name="Value",
+            value=prices,
+            inline=True,
         )
 
         e.add_field(
-            name="% Change", value=changes, inline=True,
+            name="% Change",
+            value=changes,
+            inline=True,
         )
 
         e.set_footer(
             icon_url="https://s3.tradingview.com/userpics/6171439-Hlns_orig.png",
         )
-        
+
         await self.crypto_channel.send(embed=e)
 
     @loop(hours=2)
-    async def stocks(self):
+    async def stocks(self) -> None:
+        """
+        Posts the stock indices in the configured channel, only posts if the market is open.
+        """
+
         # Dont send if the market is closed
         if afterHours():
             return
 
-        e = discord.Embed(title=f"Stock Indices", 
-                          description="", 
-                          color=0x131722,
-                          timestamp=datetime.datetime.utcnow())
+        e = discord.Embed(
+            title=f"Stock Indices",
+            description="",
+            color=0x131722,
+            timestamp=datetime.datetime.utcnow(),
+        )
 
         stock_indices = ["SPY", "NDX", "DXY", "PCC", "PCCE", "US10Y", "VIX"]
 
@@ -144,23 +197,28 @@ class Index(commands.Cog):
         changes = "\n".join(changes)
 
         e.add_field(
-            name="Index", value=ticker, inline=True,
+            name="Index",
+            value=ticker,
+            inline=True,
         )
 
         e.add_field(
-            name="Value", value=prices, inline=True,
+            name="Value",
+            value=prices,
+            inline=True,
         )
         e.add_field(
-            name="% Change", value=changes, inline=True,
+            name="% Change",
+            value=changes,
+            inline=True,
         )
 
         e.set_footer(
-            text=f"Today at {datetime.datetime.now().strftime('%H:%M')}",
             icon_url="https://s3.tradingview.com/userpics/6171439-Hlns_orig.png",
         )
 
         await self.stocks_channel.send(embed=e)
 
 
-def setup(bot):
+def setup(bot: commands.Bot) -> None:
     bot.add_cog(Index(bot))

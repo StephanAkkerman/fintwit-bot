@@ -6,7 +6,6 @@ import hmac
 import base64
 import json
 import hashlib
-from pyppeteer import executablePath
 import websockets
 import datetime
 import hmac
@@ -62,14 +61,18 @@ async def trades_msg(
             price = f"${price}"
 
         e.add_field(
-            name="Price", value=price, inline=True,
+            name="Price",
+            value=price,
+            inline=True,
         )
 
         e.add_field(name="Amount", value=quantity, inline=True)
 
         if usd != 0:
             e.add_field(
-                name="$ Worth", value=f"${usd}", inline=True,
+                name="$ Worth",
+                value=f"${usd}",
+                inline=True,
             )
 
         e.set_footer(
@@ -87,7 +90,7 @@ async def trades_msg(
 
 
 class Binance:
-    def __init__(self, bot, row, trades_channel):
+    def __init__(self, bot: commands.bot.Bot, row, trades_channel):
         self.bot = bot
         self.trades_channel = trades_channel
         self.ws = None
@@ -289,7 +292,7 @@ class Binance:
 
 
 class KuCoin:
-    def __init__(self, bot, row, trades_channel):
+    def __init__(self, bot: commands.bot.Bot, row, trades_channel):
         self.bot = bot
         self.trades_channel = trades_channel
         self.ws = None
@@ -564,16 +567,18 @@ class Trades(commands.Cog):
     """
     This class contains the cog for posting new trades done by users.
     It can be enabled / disabled in the config under ["LOOPS"]["TRADES"].
-    
+
     Methods
     -------
     function() -> None:
         _description_
     """
-    
-    def __init__(self, bot, db=get_db("portfolio")):
+
+    def __init__(self, bot: commands.bot.Bot, db=get_db("portfolio")) -> None:
         self.bot = bot
-        self.trades_channel = get_channel(self.bot, config["LOOPS"]["TRADES"]["CHANNEL"])
+        self.trades_channel = get_channel(
+            self.bot, config["LOOPS"]["TRADES"]["CHANNEL"]
+        )
 
         # Start getting trades
         asyncio.create_task(self.trades(db))
@@ -599,5 +604,5 @@ class Trades(commands.Cog):
                     )
 
 
-def setup(bot):
+def setup(bot: commands.bot.Bot) -> None:
     bot.add_cog(Trades(bot))

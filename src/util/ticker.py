@@ -95,6 +95,10 @@ def get_coin_info(ticker):
         website = f"https://coingecko.com/en/coins/{id}"
         
         # For tokens that are previewed but not yet live
+        if coin_dict["market_data"] is None:
+            print(f"Could not get coingecko info for {ticker}")
+            return 0, None, None, None, None
+            
         if "usd" in coin_dict["market_data"]["total_volume"].keys():
             total_vol = coin_dict["market_data"]["total_volume"]["usd"]
         else:

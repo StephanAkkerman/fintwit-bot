@@ -36,14 +36,16 @@ class Assets(commands.Cog):
     post_assets() -> None:
         Posts the assets of the users that added their portfolio.
     """
-    
-    def __init__(self, bot : commands.bot.Bot, db : pd.DataFrame = get_db("portfolio")) -> None:
+
+    def __init__(
+        self, bot: commands.Bot, db: pd.DataFrame = get_db("portfolio")
+    ) -> None:
         self.bot = bot
 
         # Refresh assets
         asyncio.create_task(self.assets(db))
 
-    async def usd_value(self, asset : str, owned : float, exchange : str) -> float:
+    async def usd_value(self, asset: str, owned: float, exchange: str) -> float:
         """
         Get the USD value of an asset, based on the exchange.
 
@@ -61,7 +63,7 @@ class Assets(commands.Cog):
         float
             The worth of this asset in USD.
         """
-        
+
         usd_val = 0
 
         # Check the corresponding exchange
@@ -101,16 +103,16 @@ class Assets(commands.Cog):
         else:
             return usd_val * owned
 
-    async def assets(self, db : pd.DataFrame) -> None:
-        """ 
+    async def assets(self, db: pd.DataFrame) -> None:
+        """
         Only do this function at startup and if a new portfolio has been added.
         Checks the account balances of accounts saved in portfolio db, then updates the assets db.
-        
+
         Parameters
         ----------
         db : pd.DataFrame
             The portfolio db or the db for a new user.
-            
+
         Returns
         -------
         None
@@ -186,13 +188,14 @@ class Assets(commands.Cog):
 
         self.post_assets.start()
 
-    async def format_exchange(self, 
-                              exchange_df : pd.DataFrame,
-                              exchange : str,
-                              e : discord.Embed,
-                              old_worth : str, 
-                              old_assets : str
-                             ) -> discord.Embed:
+    async def format_exchange(
+        self,
+        exchange_df: pd.DataFrame,
+        exchange: str,
+        e: discord.Embed,
+        old_worth: str,
+        old_assets: str,
+    ) -> discord.Embed:
         """
         Formats the embed used for updating user's assets.
 
@@ -297,12 +300,12 @@ class Assets(commands.Cog):
     async def post_assets(self) -> None:
         """
         Posts the assets of the users that added their portfolio.
-        
+
         Returns
         -------
         None
         """
-        
+
         assets_db = get_db("assets")
         guild = get_guild(self.bot)
 
@@ -363,11 +366,12 @@ class Assets(commands.Cog):
                     print(e)
                     return
 
-                e = discord.Embed(title="", 
-                                  description="", 
-                                  color=0x1DA1F2,
-                                  timestamp=datetime.datetime.utcnow()
-                                  )
+                e = discord.Embed(
+                    title="",
+                    description="",
+                    color=0x1DA1F2,
+                    timestamp=datetime.datetime.utcnow(),
+                )
 
                 e.set_author(
                     name=disc_user.name + "'s Assets", icon_url=disc_user.avatar_url
@@ -395,5 +399,5 @@ class Assets(commands.Cog):
                 await channel.send(embed=e)
 
 
-def setup(bot):
+def setup(bot: commands.Bot) -> None:
     bot.add_cog(Assets(bot))

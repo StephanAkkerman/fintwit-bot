@@ -18,14 +18,14 @@ class Reddit(commands.Cog):
     """
     This class contains the cog for posting the top reddit posts.
     It can be enabled / disabled in the config under ["LOOPS"]["REDDIT"].
-    
+
     Methods
     -------
     function() -> None:
         _description_
     """
-    
-    def __init__(self, bot):
+
+    def __init__(self, bot: commands.bot.Bot) -> None:
         self.bot = bot
 
         reddit = asyncpraw.Reddit(
@@ -35,9 +35,9 @@ class Reddit(commands.Cog):
             username=config["REDDIT"]["USERNAME"],
             password=config["REDDIT"]["PASSWORD"],
         )
-        
+
         if config["LOOPS"]["REDDIT"]["WALLSTREETBETS"]["ENABLED"]:
-        
+
             self.channel = get_channel(
                 self.bot, config["LOOPS"]["REDDIT"]["WALLSTREETBETS"]["CHANNEL"]
             )
@@ -45,10 +45,22 @@ class Reddit(commands.Cog):
             self.wsb.start(reddit)
 
     @loop(hours=12)
-    async def wsb(self, reddit):
-        
+    async def wsb(self, reddit: asyncpraw.Reddit) -> None:
+        """
+        Scrapes the top reddit posts from the wallstreetbets subreddit and posts them in the wallstreetbets channel.
+
+        Parameters
+        ----------
+        reddit : asyncpraw.Reddit
+            The reddit instance using the bot's credentials.
+
+        Returns
+        -------
+        None
+        """
+
         em = discord.Embed(
-            title="Hottest r/wallstreetbets posts of the last 24 hours",
+            title="Current hottest r/wallstreetbets posts",
             url="https://www.reddit.com/r/wallstreetbets/",
             description="The 10 hottest posts of the last 12 hours on r/wallstreetbets are posted below!",
             color=0xFF3F18,
@@ -114,11 +126,15 @@ class Reddit(commands.Cog):
                 )
 
                 e.add_field(
-                    name="Score", value=submission.score, inline=True,
+                    name="Score",
+                    value=submission.score,
+                    inline=True,
                 )
 
                 e.add_field(
-                    name="Comments", value=submission.num_comments, inline=True,
+                    name="Comments",
+                    value=submission.num_comments,
+                    inline=True,
                 )
 
                 e.set_footer(
@@ -133,7 +149,9 @@ class Reddit(commands.Cog):
                         await self.channel.send(reference=msg, content=img_url[i])
 
                 if video:
-                    await self.channel.send(reference=msg, content=url + "/DASH_360.mp4")
+                    await self.channel.send(
+                        reference=msg, content=url + "/DASH_360.mp4"
+                    )
 
                 counter += 1
 
@@ -141,5 +159,5 @@ class Reddit(commands.Cog):
             print("Error getting reddit posts", e)
 
 
-def setup(bot):
+def setup(bot: commands.bot.Bot) -> None:
     bot.add_cog(Reddit(bot))

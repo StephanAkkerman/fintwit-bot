@@ -7,7 +7,7 @@ import pandas as pd
 
 # Local dependencies
 from util.db import get_db, update_db
-from cogs.loops.trades import Exchanges
+from cogs.loops.trades import Trades
 from cogs.loops.assets import Assets
 
 
@@ -22,20 +22,20 @@ class Portfolio(commands.Cog):
     portfolio_error(ctx : commands.context.Context, *input : tuple) -> None:
         Handles the errors when using the `!portfolio` command.
     """
-    
-    def __init__(self, bot):
+
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
     @commands.command()
     @commands.dm_only()
-    async def portfolio(self, ctx : commands.context.Context, *input : tuple) -> None:
+    async def portfolio(self, ctx: commands.Context, *input: tuple) -> None:
         """
         Adds or removes your portfolio to the database.
-        Usage: 
+        Usage:
         `!portfolio add <exchange> <key> <secret> (<passphrase>)` to add your portfolio to the database.
         `!portfolio remove (<exchange>)` if exchange is not specified, all your portfolio(s) will be removed.
         `!portfolio show` to show your portfolio(s) in our database.
-        
+
         Parameters
         ----------
         ctx : commands.context.Context
@@ -78,7 +78,7 @@ class Portfolio(commands.Cog):
                 await ctx.send("Succesfully added your portfolio to the database!")
 
                 # Init Exchanges to start websockets
-                Exchanges(self.bot, new_data)
+                Trades(self.bot, new_data)
                 # Post the assets
                 Assets(self.bot, new_data)
 
@@ -117,7 +117,7 @@ class Portfolio(commands.Cog):
             raise commands.UserInputError()
 
     @portfolio.error
-    async def portfolio_error(self, ctx : commands.context.Context, error : Exception) -> None:
+    async def portfolio_error(self, ctx: commands.Context, error: Exception) -> None:
         print(traceback.format_exc())
         if isinstance(error, commands.BadArgument):
             await ctx.send(
@@ -137,5 +137,5 @@ class Portfolio(commands.Cog):
             )
 
 
-def setup(bot):
+def setup(bot: commands.Bot) -> None:
     bot.add_cog(Portfolio(bot))

@@ -30,11 +30,14 @@ class UW(commands.Cog):
     alerts()
         This function posts the Unusual Whales alerts on Discord.
     """
-    def __init__(self, bot):
+
+    def __init__(self, bot: commands.bot.Bot) -> None:
         self.bot = bot
         self.emoji_dict = {}
 
-        self.channel = get_channel(self.bot, config["LOOPS"]["UNUSUAL_WHALES"]["CHANNEL"])
+        self.channel = get_channel(
+            self.bot, config["LOOPS"]["UNUSUAL_WHALES"]["CHANNEL"]
+        )
         asyncio.create_task(self.set_emojis())
 
         self.alerts.start()
@@ -43,19 +46,19 @@ class UW(commands.Cog):
         """
         This function gets and sets the emojis for the UW alerts.
         It gets the emojis used by Unusual Whales and stores them in a dictionary.
-        
+
         Returns
         -------
         None
         """
-        
+
         # Use https://phx.unusualwhales.com/api/tags/all to get the emojis
 
         # Necessary header
         headers = {
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36"
         }
-        
+
         # Get the emojis and store them in emoji_dict
         self.emoji_dict = await get_json_data(
             "https://phx.unusualwhales.com/api/tags/all", headers
@@ -70,7 +73,7 @@ class UW(commands.Cog):
         dict
             Dictionary object of the JSON data from the Unusual Whales API.
         """
-        
+
         # start_date and expiry_start_data depends on how often the function is called
         last_5_min = int((time.time() - (5 * 60)) * 1000)
 
@@ -89,7 +92,7 @@ class UW(commands.Cog):
     async def alerts(self):
         """
         This function posts the Unusual Whales alerts on Discord.
-        
+
         Returns
         -------
         None
@@ -133,7 +136,7 @@ class UW(commands.Cog):
 
             # Only use the first letter of the option type
             option_type = row["option_type"][0].upper()
-            
+
             # Calculate the percentual difference between current price and strike price
             difference = round(
                 (float(row["stock_price"]) - float(row["strike_price"]))
@@ -180,5 +183,5 @@ class UW(commands.Cog):
             await tag_user(msg, self.channel, [row["ticker_symbol"]])
 
 
-def setup(bot):
+def setup(bot: commands.bot.Bot) -> None:
     bot.add_cog(UW(bot))

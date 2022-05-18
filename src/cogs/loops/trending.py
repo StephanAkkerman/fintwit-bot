@@ -19,7 +19,7 @@ class Trending(commands.Cog):
     """
     This class contains the cog for posting the top trending crypto and stocks.
     It can be enabled / disabled in the config under ["LOOPS"]["TRENDING"].
-    
+
     Methods
     -------
     cmc()
@@ -29,25 +29,30 @@ class Trending(commands.Cog):
     stocks()
         Gets the data from the yahoo_fin API and posts in the trending stocks channel.
     """
-    def __init__(self, bot):
+
+    def __init__(self, bot: commands.bot.Bot) -> None:
         self.bot = bot
 
         if config["LOOPS"]["TRENDING"]["CRYPTO"]["ENABLED"]:
-            self.crypto_channel = get_channel(self.bot, config["LOOPS"]["TRENDING"]["CRYPTO"]["CHANNEL"])
-            
+            self.crypto_channel = get_channel(
+                self.bot, config["LOOPS"]["TRENDING"]["CRYPTO"]["CHANNEL"]
+            )
+
             self.coingecko.start()
             self.cmc.start()
 
         if config["LOOPS"]["TRENDING"]["STOCKS"]["ENABLED"]:
-            self.stocks_channel = get_channel(self.bot, config["LOOPS"]["TRENDING"]["STOCKS"]["CHANNEL"])
-            
+            self.stocks_channel = get_channel(
+                self.bot, config["LOOPS"]["TRENDING"]["STOCKS"]["CHANNEL"]
+            )
+
             self.stocks.start()
 
     @loop(hours=12)
     async def cmc(self):
         """
-        Gets the data from the CoinMarketCap API and posts in the trending crypto channel.      
-        
+        Gets the data from the CoinMarketCap API and posts in the trending crypto channel.
+
         Returns
         -------
         None
@@ -76,14 +81,14 @@ class Trending(commands.Cog):
         cmc_df["Volume"] = cmc_df["priceChange"].apply(lambda x: x["volume24h"])
 
         e = await format_embed(cmc_df, "Trending On CoinMarketCap", "coinmarketcap")
-        
+
         await self.crypto_channel.send(embed=e)
 
     @loop(hours=12)
     async def coingecko(self):
         """
         Posts the top 7 trending cryptocurrencies in trending crypto channel
-        
+
         Returns
         -------
         None
@@ -126,7 +131,7 @@ class Trending(commands.Cog):
     async def stocks(self):
         """
         Posts the most actively traded stocks in the trending stocks channel.
-        
+
         Returns
         -------
         None
@@ -137,14 +142,14 @@ class Trending(commands.Cog):
 
         # Only use the top 50 stocks
         active = si.get_day_most_active().head(50)
-        
+
         # Format the data
-        active["Price"] = '$' + active["Price (Intraday)"].astype(str)
-        
+        active["Price"] = "$" + active["Price (Intraday)"].astype(str)
+
         e = await format_embed(active, "most-active", "yahoo")
 
         await self.stocks_channel.send(embed=e)
 
 
-def setup(bot):
+def setup(bot: commands.bot.Bot) -> None:
     bot.add_cog(Trending(bot))

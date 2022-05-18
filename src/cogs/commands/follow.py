@@ -23,11 +23,11 @@ class Follow(commands.Cog):
         This method is used to handle the errors when using the `!unfollow` command.
     """
     
-    def __init__(self, bot):
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
 
     @commands.command()
-    async def follow(self, ctx : commands.context.Context, *input : tuple) -> None:
+    async def follow(self, ctx : commands.Context, *input : tuple) -> None:
         """
         Follow Twitter user(s), using their screen name (without @ in front).
         Usage: `!follow [<username>]`.
@@ -57,7 +57,7 @@ class Follow(commands.Cog):
             raise commands.UserInputError()
 
     @commands.command()
-    async def unfollow(self, ctx : commands.context.Context, *input : tuple) -> None:
+    async def unfollow(self, ctx : commands.Context, *input : tuple) -> None:
         """Unfollow Twitter user(s), using their screen name (without @ in front).
         Usage: `!unfollow [<username>]`.
         
@@ -108,5 +108,5 @@ class Follow(commands.Cog):
             )
 
 
-def setup(bot):
+def setup(bot : commands.Bot) -> None:
     bot.add_cog(Follow(bot))

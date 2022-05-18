@@ -1,6 +1,6 @@
 ##> Imports
 import asyncio
-from typing import Union, List
+from typing import Union, List, Iterable, Optional # Use Optional if it can also return None
 import datetime
 
 # > 3rd Party Dependencies
@@ -37,7 +37,7 @@ class Timeline(commands.Cog):
         Readies the custom Tweepy async stream and starts it. 
     """
 
-    def __init__(self, bot):
+    def __init__(self, bot : commands.bot.Bot) -> None:
         self.bot = bot
 
         # Call start() to start the stream
@@ -61,7 +61,7 @@ class Timeline(commands.Cog):
         await printer.filter(follow=following)
 
 
-def setup(bot):
+def setup(bot : commands.bot.Bot) -> None:
     """ This is a necessary method to make the cog loadable. """
     bot.add_cog(Timeline(bot))
 
@@ -278,7 +278,7 @@ class Streamer(AsyncStream):
         images: List[str],
         user: str,
         retweeted_user: str,
-    ) -> Union[discord.Message, discord.TextChannel]:
+    ) -> Iterable[Optional[Union[discord.Message, discord.TextChannel]]]:
         """
         Uploads tweet in the dedicated Discord channel.
         
@@ -297,9 +297,9 @@ class Streamer(AsyncStream):
         
         Returns
         -------
-        msg : discord.Message
+        discord.Message
             The message that was uploaded to the Discord channel.
-        channel : discord.TextChannel
+        discord.TextChannel
             The channel that the message was uploaded to.
         """
 
@@ -351,6 +351,6 @@ class Streamer(AsyncStream):
 
             return msg, channel
 
-        except Exception as e:
-            print("Error posting tweet on timeline", e)
+        except Exception as error:
+            print("Error posting tweet on timeline", error)
             return None, None
