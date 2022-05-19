@@ -22,15 +22,15 @@ class Trending(commands.Cog):
 
     Methods
     -------
-    cmc()
+    cmc() -> None
         Gets the data from the CoinMarketCap API and posts in the trending crypto channel.
-    coingecko()
+    coingecko() -> None
         Gets the data from the CoinGecko API and posts in the trending crypto channel.
-    stocks()
+    stocks() -> None
         Gets the data from the yahoo_fin API and posts in the trending stocks channel.
     """
 
-    def __init__(self, bot: commands.bot.Bot) -> None:
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
         if config["LOOPS"]["TRENDING"]["CRYPTO"]["ENABLED"]:
@@ -49,7 +49,7 @@ class Trending(commands.Cog):
             self.stocks.start()
 
     @loop(hours=12)
-    async def cmc(self):
+    async def cmc(self) -> None:
         """
         Gets the data from the CoinMarketCap API and posts in the trending crypto channel.
 
@@ -85,7 +85,7 @@ class Trending(commands.Cog):
         await self.crypto_channel.send(embed=e)
 
     @loop(hours=12)
-    async def coingecko(self):
+    async def coingecko(self) -> None:
         """
         Posts the top 7 trending cryptocurrencies in trending crypto channel
 
@@ -128,7 +128,7 @@ class Trending(commands.Cog):
         await self.crypto_channel.send(embed=e)
 
     @loop(hours=2)
-    async def stocks(self):
+    async def stocks(self) -> None:
         """
         Posts the most actively traded stocks in the trending stocks channel.
 
@@ -151,5 +151,5 @@ class Trending(commands.Cog):
         await self.stocks_channel.send(embed=e)
 
 
-def setup(bot: commands.bot.Bot) -> None:
+def setup(bot: commands.Bot) -> None:
     bot.add_cog(Trending(bot))

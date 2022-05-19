@@ -23,15 +23,15 @@ class UW(commands.Cog):
 
     Methods
     -------
-    set_emojis()
+    set_emojis() -> None
         This function gets and sets the emojis for the UW alerts.
-    UW_data()
+    UW_data() -> dict:
         Get the alerts data of the last 5 minutes.
-    alerts()
+    alerts() -> None
         This function posts the Unusual Whales alerts on Discord.
     """
 
-    def __init__(self, bot: commands.bot.Bot) -> None:
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.emoji_dict = {}
 
@@ -42,7 +42,7 @@ class UW(commands.Cog):
 
         self.alerts.start()
 
-    async def set_emojis(self):
+    async def set_emojis(self) -> None:
         """
         This function gets and sets the emojis for the UW alerts.
         It gets the emojis used by Unusual Whales and stores them in a dictionary.
@@ -89,7 +89,7 @@ class UW(commands.Cog):
         return await get_json_data(url, headers)
 
     @loop(minutes=5)
-    async def alerts(self):
+    async def alerts(self) -> None:
         """
         This function posts the Unusual Whales alerts on Discord.
 
@@ -183,5 +183,5 @@ class UW(commands.Cog):
             await tag_user(msg, self.channel, [row["ticker_symbol"]])
 
 
-def setup(bot: commands.bot.Bot) -> None:
+def setup(bot: commands.Bot) -> None:
     bot.add_cog(UW(bot))

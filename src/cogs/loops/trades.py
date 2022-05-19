@@ -1,6 +1,6 @@
 ##> Imports
+from __future__ import annotations
 import asyncio
-import aiohttp
 import time
 import hmac
 import base64
@@ -20,13 +20,21 @@ import pandas as pd
 # Local dependencies
 from util.db import get_db, update_db
 from util.disc_util import get_channel, get_user
-from util.vars import config, stables
+from util.vars import config, stables, get_json_data
 
 # Used to keep track of sent messages
 messages = []
 
 
-def clear_messages():
+def clear_messages() -> None:
+    """
+    Clears the messages list
+
+    Returns
+    -------
+    None
+    """
+
     global messages
 
     if messages != []:
@@ -34,14 +42,53 @@ def clear_messages():
 
 
 async def trades_msg(
-    exchange, channel, user, symbol, side, orderType, price, quantity, usd
-):
+    exchange: str,
+    channel: discord.TextChannel,
+    user: discord.User,
+    symbol: str,
+    side: str,
+    orderType: str,
+    price: float,
+    quantity: float,
+    usd: float,
+) -> None:
+    """
+    Formats the Discord embed that will be send to the dedicated trades channel.
+
+    Parameters
+    ----------
+    exchange : str
+        The name of the exchange, currently only supports "binance" and "kucoin".
+    channel : discord.TextChannel
+        The channel that the message will be sent to.
+    user : discord.User
+        The user that the message will be sent from.
+    symbol : str
+        The symbol that has been traded.
+    side : str
+        The side of the trade, either "BUY" or "SELL".
+    orderType : str
+        The type of order, for instance "LIMIT" or "MARKET".
+    price : float
+        The price of the trade.
+    quantity : float
+        The amount traded.
+    usd : float
+        The worth of the trade in US dollar.
+
+    Returns
+    -------
+    None
+    """
+
+    # Use messages list to prevent spamming
     global messages
 
     e = discord.Embed(
         title=f"{orderType.capitalize()} {side.lower()} {quantity} {symbol}",
         description="",
         color=0xF0B90B if exchange == "binance" else 0x24AE8F,
+        timestamp=datetime.datetime.utcnow(),
     )
 
     # Check if this message has been send already
@@ -57,6 +104,7 @@ async def trades_msg(
         # Set the embed fields
         e.set_author(name=user.name, icon_url=user.avatar_url)
 
+        # If the quote is USD, then the price is the USD value
         if symbol.endswith("USDT") or symbol.endswith("USD") or symbol.endswith("BUSD"):
             price = f"${price}"
 
@@ -68,6 +116,7 @@ async def trades_msg(
 
         e.add_field(name="Amount", value=quantity, inline=True)
 
+        # If we know the USD value, then add it
         if usd != 0:
             e.add_field(
                 name="$ Worth",
@@ -76,7 +125,6 @@ async def trades_msg(
             )
 
         e.set_footer(
-            text=f"Today at {datetime.datetime.now().strftime('%H:%M')}",
             icon_url="https://public.bnbstatic.com/20190405/eb2349c3-b2f8-4a93-a286-8f86a62ea9d8.png"
             if exchange == "binance"
             else "https://yourcryptolibrary.com/wp-content/uploads/2021/12/Kucoin-exchange-logo-1.png",
@@ -90,7 +138,35 @@ async def trades_msg(
 
 
 class Binance:
-    def __init__(self, bot: commands.bot.Bot, row, trades_channel):
+    def __init__(
+        self,
+        bot: commands.Bot,
+        row: pd.Series | None,
+        trades_channel: discord.TextChannel,
+    ) -> None:
+        """
+        This class handles the Binance websocket connection.
+
+        Methods
+        -------
+        hashing(query_string: str) -> str
+            Necessary to send a signed request to the binance API.
+        send_signed_request(url_path: str) -> dict:
+            Sends the signed request to the binance API.
+        get_data() -> pd.DataFrame:
+            This function is used to get the account information from the binance API and convert it to a pandas dataframe.
+        get_base_sym(sym: str) -> str:
+            This function is used to get the base symbol of a symbol.
+        get_usd_price(symbol: str) -> float:
+            Gets the USD price of a symbol.
+        on_msg(msg: str | bytes) -> None:
+            This function is used to handle the incoming messages from the binance websocket.
+        restart_sockets() -> None:
+            Every 24 hours this function will restart the websockets.
+         start_sockets() -> None:
+            This function will start the websockets.
+        """
+
         self.bot = bot
         self.trades_channel = trades_channel
         self.ws = None
@@ -104,13 +180,43 @@ class Binance:
 
         self.restart_sockets.start()
 
-    def hashing(self, query_string):
+    # Necessary for sending a signed request
+    def hashing(self, query_string: str) -> str:
+        """
+        This code has been taken from the binance documentation.
+        It is necessary to send a signed request to the binance API.
+
+        Parameters
+        ----------
+        query_string : str
+            A string containing the timestamp in ms + recvWindow.
+
+        Returns
+        -------
+        str
+            String of hexadecimal characters.
+        """
+
         return hmac.new(
             self.secret.encode("utf-8"), query_string.encode("utf-8"), hashlib.sha256
         ).hexdigest()
 
-    # used for sending request requires the signature
-    async def send_signed_request(self, url_path):
+    async def send_signed_request(self, url_path: str) -> dict:
+        """
+        Sends the signed request to the binance API.
+        Necessary to show that you own this account.
+
+        Parameters
+        ----------
+        url_path : str
+            The path following the base url, for instance "/api/v3/account".
+
+        Returns
+        -------
+        dict
+            Dictionary containing the response from the API.
+        """
+
         query_string = f"timestamp={int(time.time() * 1000)}&recvWindow=60000"
         url = (
             "https://api.binance.com"
@@ -125,13 +231,19 @@ class Binance:
             "X-MBX-APIKEY": self.key,
         }
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers) as r:
-                response = await r.json()
-                return response
+        return await get_json_data(url, headers)
 
-    async def get_data(self):
-        # https://binance-docs.github.io/apidocs/spot/en/#account-information-user_data
+    async def get_data(self) -> pd.DataFrame:
+        """
+        This code and above has been inspired by https://binance-docs.github.io/apidocs/spot/en/#account-information-user_data.
+        This function is used to get the account information from the binance API and convert it to a pandas dataframe.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing the account balance.
+        """
+
         response = await self.send_signed_request("/api/v3/account")
         balances = response["balances"]
 
@@ -139,6 +251,7 @@ class Binance:
         if self.user is None:
             self.user = await get_user(self.bot, self.id)
 
+        # Create a list of dictionaries
         owned = [
             {
                 "asset": asset["asset"],
@@ -147,43 +260,90 @@ class Binance:
                 "id": self.id,
                 "user": self.user.name.split("#")[0],
             }
+            # Loop over the balances
             for asset in balances
+            # Only add them if they are not 0
             if float(asset["free"]) > 0 or float(asset["locked"]) > 0
         ]
+
+        # Convert this list to a dataframe
         return pd.DataFrame(owned)
 
-    async def get_base_sym(self, sym):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                f"https://api.binance.com/api/v3/exchangeInfo?symbol={sym}"
-            ) as r:
-                response = await r.json()
+    async def get_base_sym(self, sym: str) -> str:
+        """
+        This function is used to get the base symbol of a symbol.
+        For instance "BTCUDST" will return "BTC".
 
-                if "symbols" in response.keys():
-                    return response["symbols"][0]["baseAsset"]
-                else:
-                    return sym
+        Parameters
+        ----------
+        sym : str
+            The symbol to get the base symbol of.
 
-    async def get_usd_price(self, symbol):
-        """Symbol should be in the format of 'BTCUSDT'"""
+        Returns
+        -------
+        str
+            The base symbol of the symbol sent as input.
+        """
+
+        # Use the Binance API to get the correct base symbol
+        response = await get_json_data(
+            f"https://api.binance.com/api/v3/exchangeInfo?symbol={sym}"
+        )
+
+        if "symbols" in response.keys():
+            return response["symbols"][0]["baseAsset"]
+        else:
+            # Otherwise return the symbol given
+            return sym
+
+    async def get_usd_price(self, symbol: str) -> float:
+        """
+        Gets the USD price of a symbol.
+        Symbol must only be usign the base symbol, for instance "BTC" will return the price of BTCUSD.
+
+        Parameters
+        ----------
+        symbol : str
+            The base symbol that we want to know the USD price of.
+
+        Returns
+        -------
+        float
+            The USD price of the symbol given.
+        """
+
         # Use for-loop using USDT, USD, BUSD, DAI
         for usd in stables:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f"https://api.binance.com/api/v3/avgPrice?symbol={symbol+usd}"
-                ) as r:
-                    response = await r.json()
+            response = await get_json_data(
+                f"https://api.binance.com/api/v3/avgPrice?symbol={symbol+usd}"
+            )
 
-                    if "price" in response.keys():
-                        return round(float(response["price"]), 2)
+            if "price" in response.keys():
+                return round(float(response["price"]), 2)
 
+        # If the symbol is quoted in USDT, USD, BUSD, DAI, then return 0
         return 0
 
-    ### From here are the websocket functions ###
-    async def on_msg(self, msg):
+    #################################
+    ### WEBSOCKET FUNCTIONS BELOW ###
+    #################################
+
+    async def on_msg(self, msg: str | bytes) -> None:
+        """
+        This function is used to handle the incoming messages from the binance websocket.
+
+        Parameters
+        ----------
+        msg : str | bytes
+            The message that is received from the binance websocket.
+
+        Returns
+        -------
+        None
+        """
+
         # Convert the message to a json object (dict)
         msg = json.loads(msg)
-        print(msg)
 
         if msg["e"] == "executionReport":
             sym = msg["s"]  # ie 'YFIUSDT'
@@ -204,6 +364,7 @@ class Binance:
                 else:
                     usd = price
 
+                # Send it in the discord channel
                 await trades_msg(
                     "binance",
                     self.trades_channel,
@@ -231,68 +392,104 @@ class Binance:
             ).reset_index(drop=True)
 
             update_db(assets_db, "assets")
-            # Maybe post the assets of this user as well
+            # Maybe post the updated assets of this user as well
 
     @loop(hours=24)
-    async def restart_sockets(self):
+    async def restart_sockets(self) -> None:
+        """
+        Every 24 hours this function will restart the websockets.
+        This is necessary otherwise the websockets will timeout.
+
+        Returns
+        -------
+        None
+        """
+
         if self.ws != None:
             await self.ws.close()
             self.ws = None
             await asyncio.sleep(60)
             await self.start_sockets()
 
-    async def start_sockets(self):
-        # Documentation: https://github.com/binance/binance-spot-api-docs/blob/master/user-data-stream.md
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                url="https://api.binance.com/api/v3/userDataStream",
-                headers={"X-MBX-APIKEY": self.key},
-            ) as r:
-                listen_key = await r.json()
+    async def start_sockets(self) -> None:
+        """
+        This function will start the websockets.
+        Documentation used for this websocket: https://github.com/binance/binance-spot-api-docs/blob/master/user-data-stream.md.
+        Implementation of websockets inspired by: https://gist.github.com/pgrandinetti/964747a9f2464e576b8c6725da12c1eb.
 
-                if "listenKey" in listen_key.keys():
-                    # Implementation inspired by: https://gist.github.com/pgrandinetti/964747a9f2464e576b8c6725da12c1eb
-                    while True:
-                        # outer loop restarted every time the connection fails
-                        try:
-                            async with websockets.connect(
-                                uri=f'wss://stream.binance.com:9443/ws/{listen_key["listenKey"]}',
-                                ping_interval=60 * 3,
-                            ) as self.ws:
+        Returns
+        -------
+        None
+        """
+
+        # Documentation:
+        listen_key = await get_json_data(
+            url="https://api.binance.com/api/v3/userDataStream",
+            headers={"X-MBX-APIKEY": self.key},
+        )
+
+        if "listenKey" in listen_key.keys():
+            while True:
+                # outer loop restarted every time the connection fails
+                try:
+                    async with websockets.connect(
+                        uri=f'wss://stream.binance.com:9443/ws/{listen_key["listenKey"]}',
+                        ping_interval=60 * 3,
+                    ) as self.ws:
+                        print(f"Succesfully connected {self.user} with Binance socket")
+                        while True:
+                            # listener loop
+                            try:
+                                reply = await self.ws.recv()
+
+                            except RuntimeError as e:
                                 print(
-                                    f"Succesfully connected {self.user} with Binance socket"
+                                    "Binance ws.recv(): Waiting for another coroutine to get the next message.",
+                                    e,
                                 )
-                                while True:
-                                    # listener loop
-                                    try:
-                                        reply = await self.ws.recv()
 
-                                    except RuntimeError as e:
-                                        print(
-                                            "Binance ws.recv(): Waiting for another coroutine to get the next message.",
-                                            e,
-                                        )
+                            except (websockets.exceptions.ConnectionClosed):
+                                print("Binance: Connection Closed")
+                                await self.restart_sockets()
+                                return
 
-                                    except (websockets.exceptions.ConnectionClosed):
-                                        print("Binance: Connection Closed")
-                                        await self.restart_sockets()
-                                        return
+                            if reply:
+                                await self.on_msg(reply)
 
-                                    if reply:
-                                        await self.on_msg(reply)
+                except ConnectionRefusedError:
+                    print("Binance: Connection Refused")
+                    await self.restart_sockets()
+                    return
 
-                        except ConnectionRefusedError:
-                            print("Binance: Connection Refused")
-                            await self.restart_sockets()
-                            return
-
-                        # For some reason this always happens at startup, so ignore it
-                        except asyncio.TimeoutError:
-                            continue
+                # For some reason this always happens at startup, so ignore it
+                except asyncio.TimeoutError:
+                    continue
 
 
 class KuCoin:
-    def __init__(self, bot: commands.bot.Bot, row, trades_channel):
+    """
+    This class handles the KuCoin websocket connection.
+
+    Methods
+    -------
+    get_data() -> pd.DataFrame:
+        Gets the KuCoin assets of the user
+    get_quote_price(self, symbol: str) -> float:
+        Gets the quote price of a symbol.
+    on_msg(msg: str | bytes) -> None:
+        This function is used to handle the incoming messages from the KuCoin websocket.
+    restart_sockets() -> None:
+        Every 24 hours this function will restart the websockets.
+    start_sockets() -> None:
+        This function will start the websockets.
+    get_token(api_request: str, headers: dict) -> dict:
+        Gets the token necessary for starting the websocket.
+    """
+
+    def __init__(
+        self, bot: commands.bot.Bot, row: pd.Series, trades_channel: discord.TextChannel
+    ) -> None:
+
         self.bot = bot
         self.trades_channel = trades_channel
         self.ws = None
@@ -306,12 +503,20 @@ class KuCoin:
 
         self.restart_sockets.start()
 
-    async def get_data(self):
+    async def get_data(self) -> pd.DataFrame:
+        """
+        Gets the KuCoin assets of the user, documentation used: https://docs.kucoin.com/#get-an-account.
+
+        Returns
+        -------
+        pd.DataFrame
+            The dataframe of the assets of the user.
+        """
+
         # Ensure that the user is set
         if self.user is None:
             self.user = await get_user(self.bot, self.id)
 
-        # https://docs.kucoin.com/#get-an-account
         url = "https://api.kucoin.com/api/v1/accounts"
         now = int(time.time() * 1000)
         str_to_sign = str(now) + "GET" + "/api/v1/accounts"
@@ -335,43 +540,68 @@ class KuCoin:
             "KC-API-KEY-VERSION": "2",
             "Content-Type": "application/json",
         }
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers) as r:
-                response = await r.json()
-                response = response["data"]
 
-                owned = [
-                    {
-                        "asset": sym["currency"],
-                        "owned": float(sym["balance"]),
-                        "exchange": "kucoin",
-                        "id": self.id,
-                        "user": self.user.name.split("#")[0],
-                    }
-                    for sym in response
-                    if float(sym["balance"]) > 0
-                ]
-                return pd.DataFrame(owned)
+        response = await get_json_data(url, headers=headers)
+        response = response["data"]
 
-    async def get_quote_price(self, symbol):
+        owned = [
+            {
+                "asset": sym["currency"],
+                "owned": float(sym["balance"]),
+                "exchange": "kucoin",
+                "id": self.id,
+                "user": self.user.name.split("#")[0],
+            }
+            # Loop over all the symbols
+            for sym in response
+            # Only add them if they are not 0
+            if float(sym["balance"]) > 0
+        ]
+
+        return pd.DataFrame(owned)
+
+    async def get_quote_price(self, symbol: str) -> float:
         """
-        Symbol should be in the format of 'BTC-USDT'
-        Returns the value of BTC in USDT
+        Gets the quote price of a symbol.
+
+        Parameters
+        ----------
+        symbol: str
+                Symbol should be in the format of 'BASE-QUOTE, i.e. 'BTC-USDT'.
+
+        Returns
+        -------
+        float
+            Returns the value of a symbol in USD
         """
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                f"https://api.kucoin.com/api/v1/market/stats?symbol={symbol}"
-            ) as r:
-                response = await r.json()
 
-                data = response["data"]
-                if data["averagePrice"] != None:
-                    return round(float(data["averagePrice"]), 2)
-                else:
-                    return 0
+        response = await get_json_data(
+            f"https://api.kucoin.com/api/v1/market/stats?symbol={symbol}"
+        )
+        data = response["data"]
+        if data["averagePrice"] != None:
+            return round(float(data["averagePrice"]), 2)
+        else:
+            return 0
 
-    ### From here are the websocket functions ###
-    async def on_msg(self, msg):
+    #################################
+    ### WEBSOCKET FUNCTIONS BELOW ###
+    #################################
+
+    async def on_msg(self, msg: str | bytes) -> None:
+        """
+        This function is used to handle the incoming messages from the KuCoin websocket.
+
+        Parameters
+        ----------
+        msg : str | bytes
+            The message that is received from the KuCoin websocket.
+
+        Returns
+        -------
+        None
+        """
+
         msg = json.loads(msg)
 
         if "topic" in msg.keys():
@@ -432,26 +662,54 @@ class KuCoin:
                 # Maybe post the assets of this user as well
 
     @loop(hours=24)
-    async def restart_sockets(self):
+    async def restart_sockets(self) -> None:
+        """
+        Every 24 hours this function will restart the websockets.
+        This is necessary otherwise the websockets will timeout.
+
+        Returns
+        -------
+        None
+        """
+
         if self.ws != None:
             await self.ws.close()
             self.ws = None
             await asyncio.sleep(60)
             await self.start_sockets()
 
-    async def get_token(self, api_request, headers):
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                url="https://api.kucoin.com" + api_request, headers=headers
-            ) as r:
-                response = await r.json()
-                return response
+    async def get_token(self, api_request: str, headers: dict) -> dict:
+        """
+        Gets the token necessary for starting the websocket.
 
-    async def start_sockets(self):
-        # From documentation: https://docs.kucoin.com/
-        # For the GET, DELETE request, all query parameters need to be included in the request url. (e.g. /api/v1/accounts?currency=BTC)
-        # For the POST, PUT request, all query parameters need to be included in the request body with JSON. (e.g. {"currency":"BTC"}).
-        # Do not include extra spaces in JSON strings.
+        Parameters
+        ----------
+        api_request : str
+            The request sent to the kucoin api.
+        headers : dict
+            The provided headers necessary for this request.
+
+        Returns
+        -------
+        dict
+            The response from the kucoin api.
+        """
+
+        return await get_json_data(
+            url="https://api.kucoin.com" + api_request, headers=headers
+        )
+
+    async def start_sockets(self) -> None:
+        """
+        This function starts the websockets, documentation used: https://docs.kucoin.com/
+        For the GET, DELETE request, all query parameters need to be included in the request url. (e.g. /api/v1/accounts?currency=BTC)
+        For the POST, PUT request, all query parameters need to be included in the request body with JSON. (e.g. {"currency":"BTC"}).
+        Do not include extra spaces in JSON strings.
+
+        Returns
+        -------
+        None
+        """
 
         # From https://docs.kucoin.com/#authentication
         now_time = int(time.time()) * 1000
@@ -557,11 +815,6 @@ class KuCoin:
             print("Error getting KuCoin response")
             self.restart_sockets()
 
-    async def ws_recv(self):
-        reply = await self.ws.recv()
-        await self.on_msg(reply)
-        return
-
 
 class Trades(commands.Cog):
     """
@@ -570,11 +823,13 @@ class Trades(commands.Cog):
 
     Methods
     -------
-    function() -> None:
-        _description_
+    trades(db : pd.DataFrame) -> None:
+        Starts the websockets for each user in the database.
     """
 
-    def __init__(self, bot: commands.bot.Bot, db=get_db("portfolio")) -> None:
+    def __init__(
+        self, bot: commands.Bot, db: pd.DataFrame = get_db("portfolio")
+    ) -> None:
         self.bot = bot
         self.trades_channel = get_channel(
             self.bot, config["LOOPS"]["TRADES"]["CHANNEL"]
@@ -583,7 +838,16 @@ class Trades(commands.Cog):
         # Start getting trades
         asyncio.create_task(self.trades(db))
 
-    async def trades(self, db):
+    async def trades(self, db: pd.DataFrame) -> None:
+        """
+        Starts the websockets for each user in the database.
+
+        Parameters
+        ----------
+        db : pd.DataFrame
+            The database containing all users.
+        """
+
         if not db.empty:
 
             # Divide per exchange
@@ -604,5 +868,5 @@ class Trades(commands.Cog):
                     )
 
 
-def setup(bot: commands.bot.Bot) -> None:
+def setup(bot: commands.Bot) -> None:
     bot.add_cog(Trades(bot))
