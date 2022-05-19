@@ -7,12 +7,22 @@ import pandas as pd
 import discord
 
 
-def human_format(number):
-    """ 
-    Takes a number and returns a human readable string
-    
-    https://stackoverflow.com/questions/579310/formatting-long-numbers-as-strings-in-python/45846841
+def human_format(number: float) -> str:
     """
+    Takes a number and returns a human readable string.
+    Taken from: https://stackoverflow.com/questions/579310/formatting-long-numbers-as-strings-in-python/45846841.
+
+    Parameters
+    ----------
+    number : float
+        The number to be formatted.
+
+    Returns
+    -------
+    str
+        The formatted number as a string.
+    """
+
     # https://idlechampions.fandom.com/wiki/Large_number_abbreviations
     units = ["", "K", "M", "B", "t", "q"]
     k = 1000.0
@@ -21,11 +31,23 @@ def human_format(number):
     except ValueError:
         magnitude = 0
         print("Could not get magnitude for number:", number)
-    return "%.2f%s" % (number / k ** magnitude, units[magnitude])
+    return "%.2f%s" % (number / k**magnitude, units[magnitude])
 
 
-def format_embed_length(data):
-    # Data is a list containing lists of strings divided by white spaces
+def format_embed_length(data: list) -> list:
+    """
+    If the length of the data is greater than 1024 characters, it will be shortened to that amount.
+
+    Parameters
+    ----------
+    data : list
+        The list containing the description for an embed.
+
+    Returns
+    -------
+    list
+        The shortened description.
+    """
 
     for x in range(len(data)):
         if len(data[x]) > 1024:
@@ -41,7 +63,7 @@ def format_embed_length(data):
 
 
 # Used in gainers, losers loops
-async def format_embed(df : pd.DataFrame, type : str, source : str) -> discord.Embed:
+async def format_embed(df: pd.DataFrame, type: str, source: str) -> discord.Embed:
     """
     Formats the dataframe to an embed.
 
@@ -88,11 +110,11 @@ async def format_embed(df : pd.DataFrame, type : str, source : str) -> discord.E
         name = "Coin"
 
     e = discord.Embed(
-        title=f"Top {len(df)} {type}", 
-        url=url, 
-        description="", 
+        title=f"Top {len(df)} {type}",
+        url=url,
+        description="",
         color=color,
-        timestamp=datetime.datetime.utcnow()
+        timestamp=datetime.datetime.utcnow(),
     )
 
     df = df.astype({"Symbol": str, "Price": float, "% Change": float, "Volume": float})
@@ -118,20 +140,24 @@ async def format_embed(df : pd.DataFrame, type : str, source : str) -> discord.E
     ticker, prices, vol = format_embed_length([ticker, prices, vol])
 
     e.add_field(
-        name=name, value=ticker, inline=True,
+        name=name,
+        value=ticker,
+        inline=True,
     )
 
     e.add_field(
-        name="Price", value=prices, inline=True,
+        name="Price",
+        value=prices,
+        inline=True,
     )
 
     e.add_field(
-        name="Volume", value=vol, inline=True,
+        name="Volume",
+        value=vol,
+        inline=True,
     )
 
     # Set datetime and icon
-    e.set_footer(
-        icon_url=icon_url
-    )
+    e.set_footer(icon_url=icon_url)
 
     return e

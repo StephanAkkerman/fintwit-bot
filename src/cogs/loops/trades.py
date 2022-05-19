@@ -20,7 +20,7 @@ import pandas as pd
 # Local dependencies
 from util.db import get_db, update_db
 from util.disc_util import get_channel, get_user
-from util.vars import config, stables, get_json_data
+from util.vars import config, stables, get_json_data, post_json_data
 
 # Used to keep track of sent messages
 messages = []
@@ -423,7 +423,7 @@ class Binance:
         """
 
         # Documentation:
-        listen_key = await get_json_data(
+        listen_key = await post_json_data(
             url="https://api.binance.com/api/v3/userDataStream",
             headers={"X-MBX-APIKEY": self.key},
         )
@@ -695,7 +695,7 @@ class KuCoin:
             The response from the kucoin api.
         """
 
-        return await get_json_data(
+        return await post_json_data(
             url="https://api.kucoin.com" + api_request, headers=headers
         )
 

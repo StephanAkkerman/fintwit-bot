@@ -2,13 +2,22 @@ import pandas as pd
 import sqlite3
 
 
-def get_db(database_name):
-    """ 
-    @param database_name: string, name of the database to get
-    
-    Get the database saved under data/database_name.pkl
-    If it does not exist return an empty dataframe
+def get_db(database_name: str) -> pd.DataFrame:
     """
+    Get the database saved under data/<database_name>.pkl.
+    If it does not exist return an empty dataframe.
+
+    Parameters
+    ----------
+    str
+        Name of the database to get.
+
+    Returns
+    -------
+    pd.DataFrame
+        Database saved under data/<database_name>.pkl.
+    """
+
     db_loc = f"data/{database_name}.db"
     cnx = sqlite3.connect(db_loc)
 
@@ -19,12 +28,20 @@ def get_db(database_name):
         return pd.DataFrame()
 
 
-def update_db(db, database_name):
-    """ 
-    @param db: pandas dataframe, database to use for updating old database
-    @param database_nameable: string, name of the database to update
-    
-    Update the database saved under data/database_name.pkl using db as the new database
+def update_db(db: pd.DataFrame, database_name: str) -> None:
+    """
+    Update the database saved under data/database_name.pkl using db as the new database.
+
+    Parameters
+    ----------
+    pd.DatFrame
+        Database to use for updating old database.
+    str
+        Name of the database to update.
+
+    Returns
+    -------
+    None
     """
 
     db_loc = f"data/{database_name}.db"

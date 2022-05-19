@@ -4,7 +4,6 @@ import yahoo_fin.stock_info as si
 import pandas as pd
 
 # > Discord dependencies
-import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
 

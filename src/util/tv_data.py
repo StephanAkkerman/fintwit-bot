@@ -1,3 +1,7 @@
+## > Imports
+# > Standard libaries
+from __future__ import annotations
+from typing import Optional, List
 import requests
 import json
 import random
@@ -7,7 +11,7 @@ import requests
 import traceback
 
 # > 3rd party dependencies
-from websocket import create_connection
+from websocket import create_connection, WebSocket
 from tradingview_ta import TA_Handler, Interval
 import pandas as pd
 
@@ -41,33 +45,42 @@ crypto_indices = [
 tv_crypto = pd.DataFrame(tv_crypto).drop(columns=["d"])
 tv_crypto = pd.concat([tv_crypto, pd.DataFrame(crypto_indices, columns=["s"])])
 tv_crypto[["exchange", "stock"]] = tv_crypto["s"].str.split(":", 1, expand=True)
-# Based on https://github.com/mohamadkhalaj/tradingView-API websocket implementation
 
 
-def generateSession():
+def generateSession() -> str:
     stringLength = 12
     letters = string.ascii_lowercase
     random_string = "".join(random.choice(letters) for i in range(stringLength))
     return "qs_" + random_string
 
 
-def prependHeader(st):
-    return "~m~" + str(len(st)) + "~m~" + st
+def sendMessage(ws: WebSocket, func: str, args: List[str]) -> None:
+    as_json = json.dumps({"m": func, "p": args}, separators=(",", ":"))
+    prepended = "~m~" + str(len(as_json)) + "~m~" + as_json
+    ws.send(prepended)
 
 
-def constructMessage(func, paramList):
-    return json.dumps({"m": func, "p": paramList}, separators=(",", ":"))
+def ws_data(ws: WebSocket) -> Optional[tuple[float, float, float]]:
+    """
+    Gets the current price, volume, and change from the websocket.
+    Based on https://github.com/mohamadkhalaj/tradingView-API websocket implementation.
 
+    Parameters
+    ----------
+    ws : WebSocket
+        The websocket to get the data from.
 
-def createMessage(func, paramList):
-    return prependHeader(constructMessage(func, paramList))
+    Returns
+    -------
+    Optional[tuple[float, float, float]]
+        float
+            The current price.
+        float
+            The current volume.
+        float
+            The current 24h percentual change.
+    """
 
-
-def sendMessage(ws, func, args):
-    ws.send(createMessage(func, args))
-
-
-def ws_data(ws):
     try:
         # Get the response
         result = ws.recv()
@@ -79,9 +92,9 @@ def ws_data(ws):
             if "m" in jsonRes.keys():
                 if jsonRes["m"] == "qsd":
                     try:
-                        price = jsonRes["p"][1]["v"]["lp"]
-                        change = jsonRes["p"][1]["v"]["ch"]
-                        volume = jsonRes["p"][1]["v"]["volume"]
+                        price = float(jsonRes["p"][1]["v"]["lp"])
+                        change = float(jsonRes["p"][1]["v"]["ch"])
+                        volume = float(jsonRes["p"][1]["v"]["volume"])
                     except KeyError:
                         print("KeyError in TradingView ws_data")
                         return None
@@ -101,7 +114,22 @@ def ws_data(ws):
         print(traceback.format_exc())
 
 
-def get_tv_TA(symbol, asset):
+def get_tv_TA(symbol: str, asset: str) -> Optional[str]:
+    """
+    Gets the current TA (technical analysis) data from the TradingView API.
+
+    Parameters
+    ----------
+    symbol : str
+        The ticker of the stock / crypto.
+    asset : str
+        The type of asset, either "stock" or "crypto".
+
+    Returns
+    -------
+    Optional[str]
+        The TA data as formatted string.
+    """
 
     if asset == "stock":
         stock = tv_stocks.loc[tv_stocks["stock"] == symbol]
@@ -157,12 +185,28 @@ def get_tv_TA(symbol, asset):
     return formatted_analysis
 
 
-def get_tv_data(symbol, asset):
+def get_tv_data(symbol: str, asset: str) -> Optional[tuple[float, float, float, str]]:
     """
-    Returns the current price and percent change of a stock based on TradingView websocket data
-    @param symbol: string (ex: 'AAPL', 'BTCUSDT')
-    @param asset: string (ex: 'stock', 'crypto')
-    @return: tuple (price, perc_change, volume, exchange)
+    Gets the current price, volume, 24h change, and TA data from the TradingView API.
+
+    Parameters
+    ----------
+    symbol: string
+        The ticker of the stock / crypto, e.g. "AAPL" or "BTCUSDT".
+    asset: string
+        The type of asset, either "stock" or "crypto".
+
+    Returns
+    -------
+    Optional[tuple[float, float, float, str]]
+        float
+            The current price.
+        float
+            The current 24h change.
+        float
+            The current volume.
+        str
+            The exchange that this symbol is listed on.
     """
 
     try:

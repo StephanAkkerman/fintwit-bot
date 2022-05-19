@@ -1,5 +1,8 @@
 ##> Imports
+# > Standard libaries
+from __future__ import annotations
 import traceback
+from typing import Optional, List
 
 # > 3rd Party Dependencies
 import yfinance as yf
@@ -9,17 +12,41 @@ from util.tv_data import get_tv_data, get_tv_TA
 from util.vars import stables, cg_coins, cg
 from util.afterhours import afterHours
 
-def get_coin_info(ticker):
-    """Free CoinGecko API allows 50 calls per mintue"""
-    
+
+def get_coin_info(
+    ticker: str,
+) -> Optional[tuple[float, str, List[str], float, str]]:
+    """
+    Gets the volume, website, exchanges, price, and change of the coin.
+    This can only be called maximum 50 times per minute.
+
+    Parameters
+    ----------
+    ticker : str
+        The ticker of the coin.
+
+    Returns
+    -------
+    float
+        The volume of the coin.
+    str
+        The website of the coin.
+    list[str]
+        The exchanges of the coin.
+    float
+        The price of the coin.
+    str
+        The 24h price change of the coin.
+    """
+
     # Remove formatting
     if ticker not in stables:
         for stable in stables:
             if ticker.endswith(stable):
-                ticker = ticker[:-len(stable)]
+                ticker = ticker[: -len(stable)]
 
     # Get the id of the ticker
-    # Check if the symbol exists    
+    # Check if the symbol exists
     if ticker in cg_coins["symbol"].values:
         ids = cg_coins[cg_coins["symbol"] == ticker]["id"]
         if len(ids) > 1:
@@ -42,13 +69,15 @@ def get_coin_info(ticker):
             id = ids.values[0]
             coin_dict = cg.get_coin_by_id(id)
         else:
-            return 0, None, None, None, None
+            return
     # As a second options check the TradingView data
-    elif tv_data := get_tv_data(ticker, 'crypto'):
+    elif tv_data := get_tv_data(ticker, "crypto"):
         price, perc_change, volume, exchange = tv_data
-        formatted_change = f"+{perc_change}% 📈" if perc_change > 0 else f"{perc_change}% 📉"
-        website = f"https://www.tradingview.com/symbols/{ticker}-{exchange}/?coingecko"    
-        return volume, website, exchange, price, formatted_change            
+        formatted_change = (
+            f"+{perc_change}% 📈" if perc_change > 0 else f"{perc_change}% 📉"
+        )
+        website = f"https://www.tradingview.com/symbols/{ticker}-{exchange}/?coingecko"
+        return volume, website, exchange, price, formatted_change
     elif ticker.lower() in cg_coins["id"].values:
         ids = cg_coins[cg_coins["id"] == ticker.lower()]["id"]
         if len(ids) > 1:
@@ -67,7 +96,7 @@ def get_coin_info(ticker):
             id = ids.values[0]
             coin_dict = cg.get_coin_by_id(id)
         else:
-            return 0, None, None, None, None
+            return
     elif ticker in cg_coins["name"].values:
         ids = cg_coins[cg_coins["name"] == ticker]["id"]
         if len(ids) > 1:
@@ -86,31 +115,31 @@ def get_coin_info(ticker):
             id = ids.values[0]
             coin_dict = cg.get_coin_by_id(id)
         else:
-            return 0, None, None, None, None
+            return
     else:
-        return 0, None, None, None, None
+        return
 
     # Get the information of this coin
     try:
         website = f"https://coingecko.com/en/coins/{id}"
-        
+
         # For tokens that are previewed but not yet live
         if coin_dict["market_data"] is None:
             print(f"Could not get coingecko info for {ticker}")
-            return 0, None, None, None, None
-            
+            return
+
         if "usd" in coin_dict["market_data"]["total_volume"].keys():
             total_vol = coin_dict["market_data"]["total_volume"]["usd"]
         else:
-            return 1, website, None, 0, "Preview Only"
-        
+            return 1, website, [], 0, "Preview Only"
+
         price = coin_dict["market_data"]["current_price"]["usd"]
         price_change = coin_dict["market_data"]["price_change_percentage_24h"]
 
         if price_change != None:
             change = round(price_change, 2)
         else:
-            return total_vol, website, None, price, "?"
+            return total_vol, website, [], price, "?"
 
         formatted_change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
 
@@ -119,22 +148,44 @@ def get_coin_info(ticker):
     except Exception as e:
         print(traceback.format_exc())
         print(f"CoinGecko API error for {ticker}. Error:", e)
-        return 0, None, None, None, None
+        return None
 
     # Get the exchanges
     exchanges = [exchange["market"]["name"] for exchange in coin_dict["tickers"]]
-    
+
     # Return the information
     return total_vol, website, exchanges, price, formatted_change
 
 
-def get_stock_info(ticker):
+def get_stock_info(ticker: str) -> Optional[tuple[float, str, List[str], float, str]]:
+    """
+    Gets the volume, website, exchanges, price, and change of the stock.
+
+    Parameters
+    ----------
+    ticker : str
+        The ticker of the stock.
+
+    Returns
+    -------
+    Optional[tuple[float, str, List[str], float, str]]
+        float
+            The volume of the stock.
+        str
+            The website of the stock.
+        list[str]
+            The exchanges of the stock.
+        float
+            The price of the stock.
+        str
+            The 24h price change of the stock.
+    """
 
     stock_info = yf.Ticker(ticker)
-    
+
     try:
-        if stock_info.info['regularMarketPrice'] != None:        
-        
+        if stock_info.info["regularMarketPrice"] != None:
+
             prices = []
             changes = []
 
@@ -175,50 +226,96 @@ def get_stock_info(ticker):
 
             # Return the important information
             # Could also try 'volume' or 'volume24Hr' (is None if market is closed)
-            volume = stock_info.info["regularMarketVolume"] * price            
-            
-            return volume, f"https://finance.yahoo.com/quote/{ticker}", stock_info.info["exchange"], prices, changes
+            volume = stock_info.info["regularMarketVolume"] * price
 
-    except Exception as e:
+            return (
+                volume,
+                f"https://finance.yahoo.com/quote/{ticker}",
+                stock_info.info["exchange"],
+                prices,
+                changes,
+            )
+
+    except Exception:
         pass
-        
+
     # Check TradingView data
-    if tv_data := get_tv_data(ticker, 'stock'):
+    if tv_data := get_tv_data(ticker, "stock"):
         price, perc_change, volume, exchange = tv_data
-        formatted_change = f"+{perc_change}% 📈" if perc_change > 0 else f"{perc_change}% 📉"
+        formatted_change = (
+            f"+{perc_change}% 📈" if perc_change > 0 else f"{perc_change}% 📉"
+        )
         website = f"https://www.tradingview.com/symbols/{ticker}-{exchange}/?yahoo"
-        
-        return volume, website, exchange, price, perc_change  
+
+        return volume, website, exchange, price, perc_change
 
     else:
-        return 0, None, None, None, None
+        return None
 
-def classify_ticker(ticker, majority):
-    """Main function to classify the ticker as crypto or stock
-    Returns 24h volume, website, and exchanges
+
+def classify_ticker(
+    ticker: str, majority: str
+) -> Optional[tuple[float, str, List[str], float, str, str]]:
+    """
+    Main function to classify the ticker as crypto or stock.
+
+    Parameters
+    ----------
+    ticker : str
+        The ticker of the coin or stock.
+    majority : str
+        The guessed majority of the ticker.
+
+    Returns
+    -------
+    Optional[tuple[float, str, List[str], float, str, str]]
+        float
+            The volume of the coin or stock.
+        str
+            The website of the coin or stock.
+        list[str]
+            The exchanges of the coin or stock.
+        float
+            The price of the coin or stock.
+        str
+            The 24h price change of the coin or stock.
+        str
+            The technical analysis using TradingView.
     """
 
-    if majority == 'crypto' or majority == '🤷‍♂️':
+    if majority == "crypto" or majority == "🤷‍♂️":
         coin = get_coin_info(ticker)
         # If volume of the crypto is bigger than 1,000,000, it is likely a crypto
         # Stupid Tessla Coin https://www.coingecko.com/en/coins/tessla-coin
-        if coin[0] > 1000000 or ticker.endswith('BTC'):
-            ta = get_tv_TA(ticker, 'crypto')
-            return *coin, ta
+        if coin is not None:
+            if coin[0] > 1000000 or ticker.endswith("BTC"):
+                ta = get_tv_TA(ticker, "crypto")
+                return *coin, ta
         stock = get_stock_info(ticker)
     else:
         stock = get_stock_info(ticker)
-        if stock[0] > 1000000:
-            ta = get_tv_TA(ticker, 'stock')
-            return *stock, ta
+        if stock is not None:
+            if stock[0] > 1000000:
+                ta = get_tv_TA(ticker, "stock")
+                return *stock, ta
         coin = get_coin_info(ticker)
 
     # First in tuple represents volume
-    if coin[0] > stock[0] and coin[0] > 50000:
-        ta = get_tv_TA(ticker, 'crypto')
+    if coin is None:
+        coin_vol = 0
+    else:
+        coin_vol = coin[0]
+
+    if stock is None:
+        stock_vol = 0
+    else:
+        stock_vol = stock[0]
+
+    if coin_vol > stock_vol and coin_vol > 50000:
+        ta = get_tv_TA(ticker, "crypto")
         return *coin, ta
-    elif coin[0] < stock[0]:
-        ta = get_tv_TA(ticker, 'stock')
+    elif coin_vol < stock_vol:
+        ta = get_tv_TA(ticker, "stock")
         return *stock, ta
     else:
-        return None, None, None, None, None, None
+        return None

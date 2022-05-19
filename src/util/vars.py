@@ -41,8 +41,65 @@ cg_coins = pd.DataFrame(cg.get_coins_list())
 cg_coins["symbol"] = cg_coins["symbol"].str.upper()
 
 # Simple function to get website json info
-async def get_json_data(url, headers=None) -> dict:
+async def get_json_data(url: str, headers: dict = None) -> dict:
+    """
+    Asynchronous function to get JSON data from a website.
+
+    Parameters
+    ----------
+    url : str
+        The URL to get the data from.
+    headers : dict, optional
+        The headers send with the get request, by default None.
+
+    Returns
+    -------
+    dict
+        The response as a dict.
+    """
+
     async with aiohttp.ClientSession(headers=headers) as session:
-        async with session.get(url,) as r:
-            response = await r.json()
+        async with session.get(
+            url,
+        ) as r:
+            try:
+                response = await r.json()
+            except Exception as e:
+                print(f"Error with get request for {url}.", "Error:", e)
+
+            # Close the connection
+            await session.close()
+
+            return response
+
+
+async def post_json_data(url: str, headers: dict = None) -> dict:
+    """
+    Asynchronous function to post JSON data from a website.
+
+    Parameters
+    ----------
+    url : str
+        The URL to get the data from.
+    headers : dict, optional
+        The headers send with the post request, by default None.
+
+    Returns
+    -------
+    dict
+        The response as a dict.
+    """
+
+    async with aiohttp.ClientSession(headers=headers) as session:
+        async with session.post(
+            url,
+        ) as r:
+            try:
+                response = await r.json()
+            except Exception as e:
+                print(f"Error with get request for {url}.", "Error:", e)
+
+            # Close the connection
+            await session.close()
+
             return response

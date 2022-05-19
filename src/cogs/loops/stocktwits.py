@@ -1,7 +1,6 @@
 ## > Imports
 # > Standard libraries
 import datetime
-from tkinter import N
 
 # > 3rd party dependencies
 import pandas as pd

@@ -12,12 +12,15 @@ us_holidays = cal.holidays(
 ).to_pydatetime()
 
 
-def afterHours():
+def afterHours() -> bool:
     """
     Simple code to check if the current time is after hours in the US.
-    return: True if after hours, False otherwise
+    Source: https://www.reddit.com/r/algotrading/comments/9x9xho/python_code_to_check_if_market_is_open_in_your/
 
-    source: https://www.reddit.com/r/algotrading/comments/9x9xho/python_code_to_check_if_market_is_open_in_your/
+    Return
+    ------
+    bool
+        True if it is currently after-hours, False otherwise.
     """
 
     now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=-5), "EST"))
