@@ -82,7 +82,7 @@ class UW(commands.Cog):
 
         # Use the token in the header
         headers = {
-            "authorization": config["UNUSUAL_WHALES"]["TOKEN"],
+            "authorization": config["LOOPS"]["UNUSUAL_WHALES"]["TOKEN"],
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36",
         }
 
@@ -166,7 +166,7 @@ class UW(commands.Cog):
                 Underlying: ${row['stock_price']}
                 Sector: {row['sector']}
                 Tier: {row['tier']}
-                "Recommended: {row['is_recommended']}
+                Recommended: {row['is_recommended']}
                 """,
                 color=0xE40414 if option_type == "P" else 0x3CC474,
                 timestamp=datetime.datetime.utcnow(),

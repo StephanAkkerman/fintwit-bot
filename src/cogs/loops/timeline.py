@@ -346,9 +346,10 @@ class Streamer(AsyncStream):
         elif category == None and images:
             channel = self.images_channel
 
-        elif category == "crypto" and not images:
+        # If we do not know what category it is, assume it is crypto
+        elif category == "crypto" or category == "🤷‍♂️" and not images:
             channel = self.crypto_text_channel
-        elif category == "crypto" and images:
+        elif category == "crypto" or category == "🤷‍♂️" and images:
             channel = self.crypto_charts_channel
 
         elif category == "stocks" and not images:

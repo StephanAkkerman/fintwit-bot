@@ -24,10 +24,8 @@ api = tweepy.API(auth)
 filter_dict = {
     "BITCOIN": "BTC",
     "ETHEREUM": "ETH",
-    "SPX": "^SPX",
     "ES_F": "ES=F",
     "ES": "ES=F",
-    "DXY": "DX-Y.NYB",
     "NQ": "NQ=F",
     "NQ_F": "NQ=F",
 }

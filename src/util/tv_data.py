@@ -27,6 +27,7 @@ stock_indices = [
     "TVC:DXY",
     "TVC:US10Y",
     "TVC:VIX",
+    "TVC:SPX"
 ]
 
 tv_stocks = pd.DataFrame(tv_stocks).drop(columns=["d"])

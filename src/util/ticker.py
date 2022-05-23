@@ -65,11 +65,18 @@ def get_coin_info(
                             coin_dict = coin_info
                 except Exception as e:
                     pass
+
         elif len(ids) == 1:
             id = ids.values[0]
-            coin_dict = cg.get_coin_by_id(id)
+            # Try in case the CoinGecko API does not work
+            try:
+                coin_dict = cg.get_coin_by_id(id)
+            except Exception:
+                return
+
         else:
             return
+
     # As a second options check the TradingView data
     elif tv_data := get_tv_data(ticker, "crypto"):
         price, perc_change, volume, exchange = tv_data
@@ -78,6 +85,7 @@ def get_coin_info(
         )
         website = f"https://www.tradingview.com/symbols/{ticker}-{exchange}/?coingecko"
         return volume, website, exchange, price, formatted_change
+
     elif ticker.lower() in cg_coins["id"].values:
         ids = cg_coins[cg_coins["id"] == ticker.lower()]["id"]
         if len(ids) > 1:
@@ -92,11 +100,17 @@ def get_coin_info(
                         best_vol = volume
                         id = symbol
                         coin_dict = coin_info
+
         elif len(ids) == 1:
             id = ids.values[0]
-            coin_dict = cg.get_coin_by_id(id)
+            try:
+                coin_dict = cg.get_coin_by_id(id)
+            except Exception:
+                return
+
         else:
             return
+
     elif ticker in cg_coins["name"].values:
         ids = cg_coins[cg_coins["name"] == ticker]["id"]
         if len(ids) > 1:
@@ -111,11 +125,17 @@ def get_coin_info(
                         best_vol = volume
                         id = symbol
                         coin_dict = coin_info
+
         elif len(ids) == 1:
             id = ids.values[0]
-            coin_dict = cg.get_coin_by_id(id)
+            try:
+                coin_dict = cg.get_coin_by_id(id)
+            except Exception:
+                return
+
         else:
             return
+
     else:
         return
 
@@ -245,9 +265,8 @@ def get_stock_info(ticker: str) -> Optional[tuple[float, str, List[str], float, 
         formatted_change = (
             f"+{perc_change}% 📈" if perc_change > 0 else f"{perc_change}% 📉"
         )
-        website = f"https://www.tradingview.com/symbols/{ticker}-{exchange}/?yahoo"
-
-        return volume, website, exchange, price, perc_change
+        website = f"https://www.tradingview.com/symbols/{ticker}-{exchange}"
+        return volume, website, exchange, price, formatted_change
 
     else:
         return None

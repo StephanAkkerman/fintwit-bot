@@ -322,11 +322,11 @@ async def add_financials(
         # Get the information about the ticker
         ticker_info = classify_ticker(ticker, majority)
 
-        if ticker is not None:
+        if ticker_info is not None:
             volume, website, exchanges, price, change, ta = ticker_info
         else:
             # Set everything to None
-            volume, website, exchanges, price, change, ta = None
+            volume = website = exchanges = price = change = ta = None
 
         # Check if there is any volume, and if it is a symbol
         if volume is None:
@@ -346,7 +346,7 @@ async def add_financials(
         if website:
             if "coingecko" in website:
                 crypto += 1
-            if "yahoo" in website:
+            if "tradingview" in website or "yahoo" in website:
                 stocks += 1
 
         # Format change
