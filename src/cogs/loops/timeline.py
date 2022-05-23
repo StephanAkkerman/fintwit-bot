@@ -62,7 +62,7 @@ class Timeline(commands.Cog):
             print("Could not get following ids on startup. Error: ", e)
 
             # Wait 5 min and try again
-            asyncio.sleep(60 * 5)
+            await asyncio.sleep(60 * 5)
             await self.start()
 
 

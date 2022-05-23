@@ -143,7 +143,7 @@ class Trending(commands.Cog):
         active = si.get_day_most_active().head(50)
 
         # Format the data
-        active["Price"] = "$" + active["Price (Intraday)"].astype(str)
+        active["Price"] = active["Price (Intraday)"]
 
         e = await format_embed(active, "most-active", "yahoo")
 
