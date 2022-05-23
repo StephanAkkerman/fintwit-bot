@@ -1,5 +1,6 @@
 ## > Imports
 # > Standard libraries
+from __future__ import annotations
 import asyncio
 import datetime
 
@@ -195,7 +196,7 @@ class Assets(commands.Cog):
         e: discord.Embed,
         old_worth: str,
         old_assets: str,
-    ) -> discord.Embed:
+    ) -> tuple[discord.Embed, bool]:
         """
         Formats the embed used for updating user's assets.
 
@@ -294,7 +295,11 @@ class Assets(commands.Cog):
         e.add_field(name="Quantity", value=owned, inline=True)
         e.add_field(name="Worth", value=values, inline=True)
 
-        return e
+        # If all rows end with 🔘 don't send the embed
+        if final_df["worth_display"].str.endswith("🔘").all():
+            return e, True
+
+        return e, False
 
     @loop(hours=12)
     async def post_assets(self) -> None:
@@ -382,19 +387,30 @@ class Assets(commands.Cog):
                 kucoin = assets.loc[assets["exchange"] == "kucoin"]
                 stocks = assets.loc[assets["exchange"] == "stock"]
 
+                no_changes = []
+
                 # Finally, format the embed before posting it
                 if not binance.empty:
-                    e = await self.format_exchange(
+                    e, no_change = await self.format_exchange(
                         binance, "Binance", e, binance_worth, binance_coins
                     )
+                    no_changes.append(no_change)
+
                 if not kucoin.empty:
-                    e = await self.format_exchange(
+                    e, no_change = await self.format_exchange(
                         kucoin, "KuCoin", e, kucoin_worth, kucoin_coins
                     )
+                    no_changes.append(no_change)
+
                 if not stocks.empty:
-                    e = await self.format_exchange(
+                    e, no_change = await self.format_exchange(
                         stocks, "Stocks", e, stocks_worth, stocks_owned
                     )
+                    no_changes.append(no_change)
+
+                # If all in no_changes is True do not send the embed
+                if all(no_changes):
+                    return
 
                 await channel.send(embed=e)
 
