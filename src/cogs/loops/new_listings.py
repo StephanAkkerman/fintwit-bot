@@ -94,7 +94,7 @@ class Exchange_Listings:
         )
 
         # Set datetime and binance icon
-        e.set_footer(icon_url=icon_url)
+        e.set_footer(text="\u200b", icon_url=icon_url)
 
         return e
 

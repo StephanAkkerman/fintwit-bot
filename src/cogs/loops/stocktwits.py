@@ -121,7 +121,8 @@ class StockTwits(commands.Cog):
 
         # Set datetime and binance icon
         e.set_footer(
-            icon_url="https://pbs.twimg.com/profile_images/1464337316965720069/bZ4-cEg3_400x400.jpg",
+            text="\u200b",
+            icon_url="https://miro.medium.com/max/400/1*Jp-O_IoMusXAlj1-KrYmrw.jpeg",
         )
 
         await self.channel.send(embed=e)

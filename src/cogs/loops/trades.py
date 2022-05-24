@@ -125,6 +125,7 @@ async def trades_msg(
             )
 
         e.set_footer(
+            text="\u200b",
             icon_url="https://public.bnbstatic.com/20190405/eb2349c3-b2f8-4a93-a286-8f86a62ea9d8.png"
             if exchange == "binance"
             else "https://yourcryptolibrary.com/wp-content/uploads/2021/12/Kucoin-exchange-logo-1.png",

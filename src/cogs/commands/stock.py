@@ -14,6 +14,7 @@ from discord.ext import commands
 from util.vars import config
 from util.db import get_db, update_db
 from util.disc_util import get_channel
+from util.confirm_stock import confirm_stock
 
 
 class Stock(commands.Cog):
@@ -104,33 +105,9 @@ class Stock(commands.Cog):
                 if len(input) == 3:
                     _, ticker, amount = input
 
-                    # Check if this ticker exists
-                    stock_info = yf.Ticker(ticker)
-
-                    # If it does not exist let the user know
-                    if stock_info.info["regularMarketPrice"] == None:
-                        confirm_msg = await ctx.send(
-                            (
-                                f"Are you sure {ticker} is correct? We could not find it on Yahoo Finance.\n"
-                                "Click on \N{WHITE HEAVY CHECK MARK} to continue and on \N{CROSS MARK} to cancel."
-                            )
-                        )
-                        await confirm_msg.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-                        await confirm_msg.add_reaction("\N{CROSS MARK}")
-
-                        # Handle preview accept/deny using reactions
-                        reaction = await self.bot.wait_for(
-                            "reaction_add",
-                            check=lambda r, u: (
-                                str(r.emoji) == "\N{WHITE HEAVY CHECK MARK}"
-                                or str(r.emoji) == "\N{CROSS MARK}"
-                            )
-                            and u == ctx.author,
-                        )
-
-                        if reaction[0].emoji == "\N{CROSS MARK}":
-                            await ctx.send(f"Did not add {ticker} to the database.")
-                            return
+                    # Make sure that the user is aware of this stock's existence
+                    if not await confirm_stock(self.bot, ctx, ticker):
+                        return
 
                     # Add ticker to database
                     new_data = pd.DataFrame(
@@ -163,6 +140,8 @@ class Stock(commands.Cog):
                         ] += int(amount)
                         update_db(old_db, "assets")
                     await ctx.send("Succesfully added your stock to the database!")
+
+                    stock_info = yf.Ticker(ticker)
 
                     # Send message in trades channel
                     await self.stock_trade_msg(

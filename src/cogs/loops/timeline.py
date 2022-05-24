@@ -283,6 +283,7 @@ class Streamer(AsyncStream):
 
         # Set the twitter icon as footer image
         e.set_footer(
+            text="\u200b",
             icon_url="https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
         )
 

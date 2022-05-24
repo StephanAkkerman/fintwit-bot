@@ -39,7 +39,7 @@ cg_coins = pd.DataFrame(cg.get_coins_list())
 cg_coins["symbol"] = cg_coins["symbol"].str.upper()
 
 # Simple function to get website json info
-async def get_json_data(url: str, headers: dict = None) -> dict:
+async def get_json_data(url: str, headers: dict = None, text: bool = False) -> dict:
     """
     Asynchronous function to get JSON data from a website.
 
@@ -61,7 +61,10 @@ async def get_json_data(url: str, headers: dict = None) -> dict:
             url,
         ) as r:
             try:
-                response = await r.json()
+                if text:
+                    response = await r.text()
+                else:
+                    response = await r.json()
             except Exception as e:
                 print(f"Error with get request for {url}.", "Error:", e)
 

@@ -15,9 +15,9 @@ class Follow(commands.Cog):
 
     Methods
     -------
-    follow(ctx : commands.context.Context, *input : tuple) -> None:
+    follow(ctx : commands.context.Context, *input : Union[str, tuple])) -> None:
         This method is used to handle the follow command.
-    unfollow(ctx : commands.context.Context, *input : tuple) -> None:
+    unfollow(ctx : commands.context.Context, *input : Union[str, tuple])) -> None:
         This method is used to handle the unfollow command.
     follow_error(ctx : commands.context.Context, error : Exception) -> None:
         This method is used to handle the errors when using the `!follow` command.
@@ -38,8 +38,8 @@ class Follow(commands.Cog):
         ----------
         ctx : commands.context.Context
             The context of the command.
-        input : tuple
-            The names specified after `!follow`.
+        input : Union[str, tuple])
+            The Twitter username(s) specified after `!follow`.
 
         Returns
         -------
@@ -65,8 +65,8 @@ class Follow(commands.Cog):
         ----------
         ctx : commands.context.Context
             The context of the command.
-        input : tuple
-            The names specified after `!unfollow`.
+        input : Union[str, tuple])
+            The Twitter username(s) specified after `!unfollow`.
 
         Returns
         -------

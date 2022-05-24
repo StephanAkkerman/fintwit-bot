@@ -145,6 +145,7 @@ class Index(commands.Cog):
         )
 
         e.set_footer(
+            text="\u200b",
             icon_url="https://s3.tradingview.com/userpics/6171439-Hlns_orig.png",
         )
 
@@ -220,6 +221,7 @@ class Index(commands.Cog):
         )
 
         e.set_footer(
+            text="\u200b",
             icon_url="https://s3.tradingview.com/userpics/6171439-Hlns_orig.png",
         )
 

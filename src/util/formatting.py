@@ -158,6 +158,6 @@ async def format_embed(df: pd.DataFrame, type: str, source: str) -> discord.Embe
     )
 
     # Set datetime and icon
-    e.set_footer(icon_url=icon_url)
+    e.set_footer(text="\u200b", icon_url=icon_url)
 
     return e
