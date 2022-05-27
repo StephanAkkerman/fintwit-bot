@@ -21,6 +21,7 @@ from util.disc_util import get_channel, tag_user
 async def scraper(type: str) -> pd.DataFrame:
     """
     Extract the front page of trading ideas on TradingView.
+    Written by: https://github.com/mnwato/tradingview-scraper.
 
     Parameters
     ----------
@@ -128,6 +129,20 @@ async def scraper(type: str) -> pd.DataFrame:
 
 
 class TradingView_Ideas(commands.Cog):
+    """
+    This class contains the cog for posting the latest Trading View ideas.
+    It can be enabled / disabled in the config under ["LOOPS"]["TV_IDEAS"].
+
+    Methods
+    -------
+    send_embed(df: pd.DataFrame, type: str) -> None:
+        This function creates and sends the embed with the latest ideas.
+    crypto_ideas() -> None:
+        Manages the loop for the crypto ideas.
+    stock_ideas() -> None
+        Manages the loop for the stock ideas.
+    """
+
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
@@ -145,7 +160,23 @@ class TradingView_Ideas(commands.Cog):
 
             self.stock_ideas.start()
 
-    async def send_embed(self, df, type):
+    async def send_embed(self, df: pd.DataFrame, type: str) -> None:
+        """
+        Creates an embed based on the given DataFrame and type.
+        Then sends this embed in the designated channel.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The dataframe with the ideas.
+        type : str
+            The type of ideas, either "stocks" or "crypto".
+
+        Returns
+        -------
+        None
+        """
+
         for _, row in df.iterrows():
 
             if row["Label"] == "Long":
@@ -185,11 +216,27 @@ class TradingView_Ideas(commands.Cog):
 
     @loop(hours=24)
     async def crypto_ideas(self) -> None:
+        """
+        This function posts the crypto Trading View ideas.
+
+        Returns
+        -------
+        None
+        """
+
         df = await scraper("crypto")
         await self.send_embed(df, "crypto")
 
     @loop(hours=24)
     async def stock_ideas(self) -> None:
+        """
+        This function posts the stocks Trading View ideas.
+
+        Returns
+        -------
+        None
+        """
+
         df = await scraper("stocks")
         await self.send_embed(df, "stocks")
 

@@ -3,6 +3,7 @@ import datetime
 import pandas as pd
 import time
 import asyncio
+import inspect
 
 # > Discord dependencies
 import discord
@@ -156,17 +157,21 @@ class UW(commands.Cog):
             e = discord.Embed(
                 title=f"${row['ticker_symbol']} {row['expires_at']} {option_type} ${row['strike_price']}",
                 url=f"https://unusualwhales.com/alerts/{row['id']}",
-                description=f"""{emojis}
-                Bid-Ask: ${row['bid']} - ${row['ask']}
-                Interest: {row['open_interest']}
-                Volume: {row['volume']}
-                IV: {row['implied_volatility']}
-                % Diff: {difference}
-                Underlying: ${row['stock_price']}
-                Sector: {row['sector']}
-                Tier: {row['tier']}
-                Recommended: {row['is_recommended']}
-                """,
+                # Use inspect.cleandoc() to remove the indentation
+                description=inspect.cleandoc(
+                    f"""
+                    {emojis}
+                    Bid-Ask: ${row['bid']} - ${row['ask']}
+                    Interest: {row['open_interest']}
+                    Volume: {row['volume']}
+                    IV: {row['implied_volatility']}
+                    % Diff: {difference}
+                    Underlying: ${row['stock_price']}
+                    Sector: {row['sector']}
+                    Tier: {row['tier']}
+                    Recommended: {row['is_recommended']}
+                    """
+                ),
                 color=0xE40414 if option_type == "P" else 0x3CC474,
                 timestamp=datetime.datetime.utcnow(),
             )
