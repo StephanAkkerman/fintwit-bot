@@ -95,8 +95,10 @@ class Assets(commands.Cog):
                     price = coin_dict["market_data"]["current_price"]["usd"]
                     return price * owned
                 except Exception as e:
-                    print(e)
-                    print("CoinGecko API error for asset:", asset)
+                    print(
+                        f"CoinGecko API error for asset: {asset} when requesting price in USD. Error:",
+                        e,
+                    )
                     return 0
 
             elif tv_data := get_tv_data(asset, "crypto"):
@@ -368,7 +370,7 @@ class Assets(commands.Cog):
                             stocks_owned = old_fields[6]["value"]
 
                 except Exception as e:
-                    print(e)
+                    print(f"Error getting old assets of {disc_user}. Error:", e)
                     return
 
                 e = discord.Embed(

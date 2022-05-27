@@ -147,7 +147,7 @@ class YahooEarningsCalendar:
 
         return earnings_data
 
-    def get_earnings_of(self, symbol : str) -> list:
+    def get_earnings_of(self, symbol: str) -> list:
         """Returns all the earnings dates of a symbol
         Args:
             symbol: A ticker symbol

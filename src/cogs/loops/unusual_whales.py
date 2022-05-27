@@ -1,6 +1,5 @@
 # Standard libraries
 import datetime
-from weakref import KeyedRef
 import pandas as pd
 import time
 import asyncio
