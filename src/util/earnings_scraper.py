@@ -1,6 +1,3 @@
-"""
-Yahoo! Earnings Calendar scraper built by https://github.com/wenboyu2.
-"""
 import datetime
 import json
 import requests
@@ -15,7 +12,7 @@ OFFSET_STEP = 100
 
 class YahooEarningsCalendar:
     """
-    This is the class for fetching earnings data from Yahoo! Finance
+    This is the class for fetching earnings data from Yahoo! Finance, built by https://github.com/wenboyu2.
     """
 
     def __init__(self, delay: float = SLEEP_BETWEEN_REQUESTS_S) -> None:

@@ -102,12 +102,13 @@ async def scraper(type: str) -> pd.DataFrame:
 
         labelList.append(label)
 
-        try:
-            sym = info_row.find("div", class_="tv-widget-idea__symbol-info").a.text
-        except Exception:
-            sym = None
+        symbol_info = info_row.find("div", class_="tv-widget-idea__symbol-info")
 
-        symbolList.append(sym)
+        if symbol_info:
+            symbolList.append(symbol_info.a.text)
+        else:
+            symbolList.append(None)
+
         timeFrameList.append(
             info_row.find_all("span", class_="tv-widget-idea__timeframe")[1].text
         )
@@ -196,7 +197,11 @@ class TradingView_Ideas(commands.Cog):
 
             e.set_image(url=row["ImageURL"])
 
-            e.add_field(name="Symbol", value=row["Symbol"], inline=True)
+            e.add_field(
+                name="Symbol",
+                value=row["Symbol"] if row["Symbol"] is not None else "None",
+                inline=True,
+            )
             e.add_field(name="Timeframe", value=row["Timeframe"], inline=True)
             e.add_field(name="Prediction", value=row["Label"], inline=True)
 
