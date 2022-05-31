@@ -100,7 +100,11 @@ def ws_data(ws: WebSocket) -> Optional[tuple[float, float, float]]:
                         print("KeyError in TradingView ws_data")
                         return None
 
-                    perc_change = round((change / price) * 100, 2)
+                    if price != 0:
+                        perc_change = round((change / price) * 100, 2)
+                    else:
+                        print("TradingView returns price=0")
+                        return None
 
                     return price, perc_change, volume
         else:
