@@ -84,6 +84,9 @@ class Exchange_Listings:
         elif self.exchange == "kucoin":
             color = 0x24AE8F
             icon_url = "https://yourcryptolibrary.com/wp-content/uploads/2021/12/Kucoin-exchange-logo-1.png"
+        else: # Coinbase
+            color = 0x245cfc
+            icon_url = "https://pbs.twimg.com/profile_images/1389350367977099264/S-pY13TJ_400x400.png"
 
         e = discord.Embed(
             title=f"{self.exchange.capitalize()} Lists {ticker}",
