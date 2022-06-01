@@ -1,12 +1,11 @@
 ##> Imports
-from __future__ import annotations
+from typing import Optional
 import asyncio
 import time
 import hmac
 import base64
 import json
 import hashlib
-import websockets
 import datetime
 import hmac
 import threading
@@ -16,6 +15,7 @@ import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
 import pandas as pd
+import aiohttp
 
 # Local dependencies
 from util.db import get_db, update_db
@@ -139,34 +139,35 @@ async def trades_msg(
 
 
 class Binance:
+    """
+    This class handles the Binance websocket connection.
+
+    Methods
+    -------
+    hashing(query_string: str) -> str
+        Necessary to send a signed request to the binance API.
+    send_signed_request(url_path: str) -> dict:
+        Sends the signed request to the binance API.
+    get_data() -> pd.DataFrame:
+        This function is used to get the account information from the binance API and convert it to a pandas dataframe.
+    get_base_sym(sym: str) -> str:
+        This function is used to get the base symbol of a symbol.
+    get_usd_price(symbol: str) -> float:
+        Gets the USD price of a symbol.
+    on_msg(msg: str) -> None:
+        This function is used to handle the incoming messages from the binance websocket.
+    restart_sockets() -> None:
+        Every 24 hours this function will restart the websockets.
+    start_sockets() -> None:
+        This function will start the websockets.
+    """
+
     def __init__(
         self,
         bot: commands.Bot,
-        row: pd.Series | None,
+        row: Optional[pd.Series],
         trades_channel: discord.TextChannel,
     ) -> None:
-        """
-        This class handles the Binance websocket connection.
-
-        Methods
-        -------
-        hashing(query_string: str) -> str
-            Necessary to send a signed request to the binance API.
-        send_signed_request(url_path: str) -> dict:
-            Sends the signed request to the binance API.
-        get_data() -> pd.DataFrame:
-            This function is used to get the account information from the binance API and convert it to a pandas dataframe.
-        get_base_sym(sym: str) -> str:
-            This function is used to get the base symbol of a symbol.
-        get_usd_price(symbol: str) -> float:
-            Gets the USD price of a symbol.
-        on_msg(msg: str | bytes) -> None:
-            This function is used to handle the incoming messages from the binance websocket.
-        restart_sockets() -> None:
-            Every 24 hours this function will restart the websockets.
-         start_sockets() -> None:
-            This function will start the websockets.
-        """
 
         self.bot = bot
         self.trades_channel = trades_channel
@@ -329,13 +330,13 @@ class Binance:
     ### WEBSOCKET FUNCTIONS BELOW ###
     #################################
 
-    async def on_msg(self, msg: str | bytes) -> None:
+    async def on_msg(self, msg: str) -> None:
         """
         This function is used to handle the incoming messages from the binance websocket.
 
         Parameters
         ----------
-        msg : str | bytes
+        msg : str
             The message that is received from the binance websocket.
 
         Returns
@@ -406,9 +407,13 @@ class Binance:
         None
         """
 
-        if self.ws != None:
+        if self.ws is not None:
             await self.ws.close()
-            self.ws = None
+            await self.session.close()
+
+            del self.ws
+            del self.session
+
             await asyncio.sleep(60)
             await self.start_sockets()
 
@@ -430,41 +435,21 @@ class Binance:
         )
 
         if "listenKey" in listen_key.keys():
-            while True:
-                # outer loop restarted every time the connection fails
-                try:
-                    async with websockets.connect(
-                        uri=f'wss://stream.binance.com:9443/ws/{listen_key["listenKey"]}',
-                        ping_interval=60 * 3,
-                    ) as self.ws:
-                        print(f"Succesfully connected {self.user} with Binance socket")
-                        while True:
-                            # listener loop
-                            try:
-                                reply = await self.ws.recv()
+            self.session = aiohttp.ClientSession()
+            async with self.session.ws_connect(
+                url=f'wss://stream.binance.com:9443/ws/{listen_key["listenKey"]}',
+                heartbeat=60 * 3,
+            ) as self.ws:
+                print(f"Succesfully connected {self.user} with Binance socket")
 
-                            except RuntimeError as e:
-                                print(
-                                    "Binance ws.recv(): Waiting for another coroutine to get the next message.",
-                                    e,
-                                )
-
-                            except (websockets.exceptions.ConnectionClosed):
-                                print("Binance: Connection Closed")
-                                await self.restart_sockets()
-                                return
-
-                            if reply:
-                                await self.on_msg(reply)
-
-                except ConnectionRefusedError:
-                    print("Binance: Connection Refused")
-                    await self.restart_sockets()
-                    return
-
-                # For some reason this always happens at startup, so ignore it
-                except asyncio.TimeoutError:
-                    continue
+                async for msg in self.ws:
+                    if msg.type == aiohttp.WSMsgType.TEXT:
+                        await self.on_msg(msg.data)
+                    elif msg.type == aiohttp.WSMsgType.ERROR:
+                        self.restart_sockets()
+                        break
+        else:
+            print(f"Failed to connect {self.user} with Binance socket")
 
 
 class KuCoin:
@@ -477,7 +462,7 @@ class KuCoin:
         Gets the KuCoin assets of the user
     get_quote_price(self, symbol: str) -> float:
         Gets the quote price of a symbol.
-    on_msg(msg: str | bytes) -> None:
+    on_msg(msg: str) -> None:
         This function is used to handle the incoming messages from the KuCoin websocket.
     restart_sockets() -> None:
         Every 24 hours this function will restart the websockets.
@@ -488,7 +473,10 @@ class KuCoin:
     """
 
     def __init__(
-        self, bot: commands.bot.Bot, row: pd.Series, trades_channel: discord.TextChannel
+        self,
+        bot: commands.bot.Bot,
+        row: Optional[pd.Series],
+        trades_channel: discord.TextChannel,
     ) -> None:
 
         self.bot = bot
@@ -589,13 +577,13 @@ class KuCoin:
     ### WEBSOCKET FUNCTIONS BELOW ###
     #################################
 
-    async def on_msg(self, msg: str | bytes) -> None:
+    async def on_msg(self, msg: str) -> None:
         """
         This function is used to handle the incoming messages from the KuCoin websocket.
 
         Parameters
         ----------
-        msg : str | bytes
+        msg : str
             The message that is received from the KuCoin websocket.
 
         Returns
@@ -603,6 +591,7 @@ class KuCoin:
         None
         """
 
+        # Convert the string to dict
         msg = json.loads(msg)
 
         if "topic" in msg.keys():
@@ -673,9 +662,13 @@ class KuCoin:
         None
         """
 
-        if self.ws != None:
+        if self.ws is not None:
             await self.ws.close()
-            self.ws = None
+            await self.session.close()
+
+            del self.ws
+            del self.session
+
             await asyncio.sleep(60)
             await self.start_sockets()
 
@@ -759,59 +752,30 @@ class KuCoin:
                 int(response["data"]["instanceServers"][0]["pingTimeout"]) // 1000
             )
 
-            while True:
-                # outer loop restarted every time the connection fails
-                try:
-                    async with websockets.connect(
-                        uri=f"wss://ws-api.kucoin.com/endpoint?token={token}",
-                        ping_interval=ping_interval,
-                        ping_timeout=ping_timeout,
-                    ) as self.ws:
-                        await self.ws.send(
-                            json.dumps(
-                                {
-                                    "type": "subscribe",
-                                    "topic": "/spotMarket/tradeOrders",
-                                    "privateChannel": "true",
-                                    "response": "true",
-                                }
-                            )
-                        )
-                        print(f"Succesfully connected {self.user} with KuCoin socket")
-                        while True:
-                            # listener loop
-                            try:
-                                reply = await self.ws.recv()
+            self.session = aiohttp.ClientSession()
+            async with self.session.ws_connect(
+                url=f"wss://ws-api.kucoin.com/endpoint?token={token}",
+                heartbeat=ping_interval,
+                timeout=ping_timeout,
+            ) as self.ws:
+                await self.ws.send_str(
+                    json.dumps(
+                        {
+                            "type": "subscribe",
+                            "topic": "/spotMarket/tradeOrders",
+                            "privateChannel": "true",
+                            "response": "true",
+                        }
+                    )
+                )
+                print(f"Succesfully connected {self.user} with KuCoin socket")
 
-                            except RuntimeError as e:
-                                print(
-                                    "KuCoin ws.recv(): Waiting for another coroutine to get the next message.",
-                                    e,
-                                )
-
-                            except websockets.exceptions.ConnectionClosed as e:
-                                print("KuCoin: Connection Closed", e)
-                                # Close the websocket and restart
-                                await self.restart_sockets()
-                                # Return so that we do not restart multiple times
-                                return
-
-                            if reply:
-                                await self.on_msg(reply)
-
-                except websockets.exceptions.InvalidStatusCode as e:
-                    print("KuCoin: Server rejected connection", e)
-                    await self.restart_sockets()
-                    return
-
-                except ConnectionRefusedError as e:
-                    print("KuCoin: Connection Refused", e)
-                    await self.restart_sockets()
-                    return
-
-                # For some reason this always happens at startup, so ignore it
-                except asyncio.TimeoutError:
-                    continue
+                async for msg in self.ws:
+                    if msg.type == aiohttp.WSMsgType.TEXT:
+                        await self.on_msg(msg.data)
+                    elif msg.type == aiohttp.WSMsgType.ERROR:
+                        self.restart_sockets()
+                        break
         else:
             print("Error getting KuCoin response")
             self.restart_sockets()
