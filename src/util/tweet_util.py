@@ -320,7 +320,7 @@ async def add_financials(
             majority = "🤷‍♂️"
 
         # Get the information about the ticker
-        ticker_info = classify_ticker(ticker, majority)
+        ticker_info = await classify_ticker(ticker, majority)
 
         if ticker_info is not None:
             volume, website, exchanges, price, change, ta = ticker_info

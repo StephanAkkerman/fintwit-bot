@@ -10,7 +10,7 @@ from discord.ext.tasks import loop
 # Local dependencies
 from util.vars import config, get_json_data
 from util.disc_util import get_channel
-from util.tv_data import get_tv_data
+from util.tv_data import TV_data
 from util.afterhours import afterHours
 from util.formatting import human_format
 
@@ -33,6 +33,7 @@ class Index(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+        self.tv = TV_data()
 
         if config["LOOPS"]["INDEX"]["CRYPTO"]["ENABLED"]:
             self.crypto_channel = get_channel(
@@ -93,7 +94,7 @@ class Index(commands.Cog):
         changes = []
 
         for index in crypto_indices:
-            tv_data = get_tv_data(index, "crypto")
+            tv_data = await self.tv.get_tv_data(index, "crypto")
             if tv_data == False:
                 continue
             price, change, _, exchange = tv_data
@@ -179,7 +180,7 @@ class Index(commands.Cog):
         changes = []
 
         for index in stock_indices:
-            tv_data = get_tv_data(index, "stock")
+            tv_data = await self.tv.get_tv_data(index, "stock")
             if tv_data == False:
                 continue
             price, change, _, exchange = tv_data

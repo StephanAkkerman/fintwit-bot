@@ -8,12 +8,14 @@ from typing import Optional, List
 import yfinance as yf
 
 # Local dependencies
-from util.tv_data import get_tv_data, get_tv_TA
+from util.tv_data import TV_data
 from util.vars import stables, cg_coins, cg
 from util.afterhours import afterHours
 
+tv = TV_data()
 
-def get_coin_info(
+
+async def get_coin_info(
     ticker: str,
 ) -> Optional[tuple[float, str, List[str], float, str]]:
     """
@@ -78,7 +80,7 @@ def get_coin_info(
             return
 
     # As a second options check the TradingView data
-    elif tv_data := get_tv_data(ticker, "crypto"):
+    elif tv_data := await tv.get_tv_data(ticker, "crypto"):
         price, perc_change, volume, exchange = tv_data
         formatted_change = (
             f"+{perc_change}% 📈" if perc_change > 0 else f"{perc_change}% 📉"
@@ -177,7 +179,9 @@ def get_coin_info(
     return total_vol, website, exchanges, price, formatted_change
 
 
-def get_stock_info(ticker: str) -> Optional[tuple[float, str, List[str], float, str]]:
+async def get_stock_info(
+    ticker: str,
+) -> Optional[tuple[float, str, List[str], float, str]]:
     """
     Gets the volume, website, exchanges, price, and change of the stock.
 
@@ -260,7 +264,7 @@ def get_stock_info(ticker: str) -> Optional[tuple[float, str, List[str], float, 
         pass
 
     # Check TradingView data
-    if tv_data := get_tv_data(ticker, "stock"):
+    if tv_data := await tv.get_tv_data(ticker, "stock"):
         price, perc_change, volume, exchange = tv_data
         formatted_change = (
             f"+{perc_change}% 📈" if perc_change > 0 else f"{perc_change}% 📉"
@@ -272,7 +276,7 @@ def get_stock_info(ticker: str) -> Optional[tuple[float, str, List[str], float, 
         return None
 
 
-def classify_ticker(
+async def classify_ticker(
     ticker: str, majority: str
 ) -> Optional[tuple[float, str, List[str], float, str, str]]:
     """
@@ -303,21 +307,21 @@ def classify_ticker(
     """
 
     if majority == "crypto" or majority == "🤷‍♂️":
-        coin = get_coin_info(ticker)
+        coin = await get_coin_info(ticker)
         # If volume of the crypto is bigger than 1,000,000, it is likely a crypto
         # Stupid Tessla Coin https://www.coingecko.com/en/coins/tessla-coin
         if coin is not None:
             if coin[0] > 1000000 or ticker.endswith("BTC"):
-                ta = get_tv_TA(ticker, "crypto")
+                ta = tv.get_tv_TA(ticker, "crypto")
                 return *coin, ta
-        stock = get_stock_info(ticker)
+        stock = await get_stock_info(ticker)
     else:
-        stock = get_stock_info(ticker)
+        stock = await get_stock_info(ticker)
         if stock is not None:
             if stock[0] > 1000000:
-                ta = get_tv_TA(ticker, "stock")
+                ta = tv.get_tv_TA(ticker, "stock")
                 return *stock, ta
-        coin = get_coin_info(ticker)
+        coin = await get_coin_info(ticker)
 
     # First in tuple represents volume
     if coin is None:
@@ -331,10 +335,10 @@ def classify_ticker(
         stock_vol = stock[0]
 
     if coin_vol > stock_vol and coin_vol > 50000:
-        ta = get_tv_TA(ticker, "crypto")
+        ta = tv.get_tv_TA(ticker, "crypto")
         return *coin, ta
     elif coin_vol < stock_vol:
-        ta = get_tv_TA(ticker, "stock")
+        ta = tv.get_tv_TA(ticker, "stock")
         return *stock, ta
     else:
         return None

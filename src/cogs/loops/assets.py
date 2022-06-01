@@ -17,7 +17,7 @@ from util.db import get_db, update_db
 from util.disc_util import get_channel, get_user
 from util.vars import stables, cg_coins, cg
 from util.disc_util import get_guild
-from util.tv_data import get_tv_data
+from util.tv_data import TV_data
 from util.formatting import format_embed_length
 
 
@@ -42,6 +42,7 @@ class Assets(commands.Cog):
         self, bot: commands.Bot, db: pd.DataFrame = get_db("portfolio")
     ) -> None:
         self.bot = bot
+        self.tv = TV_data()
 
         # Refresh assets
         asyncio.create_task(self.assets(db))
@@ -101,7 +102,7 @@ class Assets(commands.Cog):
                     )
                     return 0
 
-            elif tv_data := get_tv_data(asset, "crypto"):
+            elif tv_data := await self.tv.get_tv_data(asset, "crypto"):
                 return tv_data[0] * owned
         else:
             return usd_val * owned
@@ -248,7 +249,8 @@ class Assets(commands.Cog):
                         sym + "-USDT"
                     )
                 elif exchange == "Stocks":
-                    usd_val = get_stock_info(sym)[3][0]
+                    usd_val = await get_stock_info(sym)
+                    usd_val = usd_val[3][0]
 
                 if usd_val == 0 and exchange != "Stocks":
                     # Exchange is None, because it is not on this exchange

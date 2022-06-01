@@ -38,7 +38,6 @@ class UW(commands.Cog):
         self.channel = get_channel(
             self.bot, config["LOOPS"]["UNUSUAL_WHALES"]["CHANNEL"]
         )
-        asyncio.create_task(self.set_emojis())
 
         self.alerts.start()
 
@@ -101,6 +100,10 @@ class UW(commands.Cog):
         # Check if the market is open
         if afterHours():
             return
+
+        # Get the emojis if not already done
+        if self.emoji_dict == {}:
+            await self.set_emojis()
 
         df = pd.DataFrame(await self.UW_data())
 
