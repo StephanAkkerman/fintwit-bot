@@ -53,21 +53,24 @@ class Earnings(commands.Cog):
                 for date in dates:
                     date_df = earnings_df.loc[earnings_df["date"] == date]
 
+                    # Necessary for using .replace()
+                    date_df_copy = date_df.copy()
+
                     # Create lists of the important info
                     tickers = "\n".join(date_df["ticker"].to_list())
                     # AMC after market close (After-hours)
                     # BMO before market open (Pre-market)
                     # TNS Time not supplied (Unknown)
-                    date_df["startdatetimetype"].replace(
+                    date_df_copy["startdatetimetype"].replace(
                         {"AMC": "After-hours", "BMO": "Pre-market", "TNS": "Unknown"},
                         inplace=True,
                     )
-                    time_type = "\n".join(date_df["startdatetimetype"].to_list())
+                    time_type = "\n".join(date_df_copy["startdatetimetype"].to_list())
 
                     date_df = date_df.astype({"epsestimate": str})
 
                     epsestimate = "\n".join(
-                        date_df["epsestimate"].replace("None", "N/A").to_list()
+                        date_df["epsestimate"].replace("nan", "N/A").to_list()
                     )
 
                     # Make an embed with these tickers and their earnings date + estimation

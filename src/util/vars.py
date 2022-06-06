@@ -23,6 +23,7 @@ api = tweepy.API(auth)
 # Replace key by value
 filter_dict = {
     "BITCOIN": "BTC",
+    "BTCD": "BTC.D",
     "ETHEREUM": "ETH",
     "ES_F": "ES=F",
     "ES": "ES=F",

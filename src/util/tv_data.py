@@ -53,6 +53,10 @@ class TV_data:
             "TVC:SPX",
         ]
 
+        self.stock_indices_without_exch = [
+            sym.split(":")[1] for sym in self.stock_indices
+        ]
+
         tv_stocks = pd.DataFrame(tv_stocks).drop(columns=["d"])
         self.tv_stocks = pd.concat(
             [tv_stocks, pd.DataFrame(self.stock_indices, columns=["s"])]
@@ -304,7 +308,7 @@ class TV_data:
         """
 
         # There is no TA for stock indices
-        if symbol in self.stock_indices:
+        if symbol in self.stock_indices_without_exch:
             return
 
         symbol_data = self.get_symbol_data(symbol, asset)
@@ -334,5 +338,4 @@ class TV_data:
                 return formatted_analysis
 
         except Exception as e:
-            print(f"Error getting TradingView TA for {symbol}")
-            print(e)
+            print(f"TradingView TA error for {symbol}.", e)
