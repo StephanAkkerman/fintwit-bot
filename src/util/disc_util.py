@@ -1,5 +1,6 @@
 # Standard libraries
 import sys
+from typing import Optional
 import threading
 
 # Third party libraries
@@ -109,12 +110,12 @@ assets_db = pd.DataFrame()
 def get_assets_db() -> None:
     """
     Updates the assets_db global variable with the data from the database every hour.
-    
+
     Returns
     -------
     None
     """
-    
+
     global assets_db
     assets_db = get_db("assets")
 
@@ -125,29 +126,25 @@ def get_assets_db() -> None:
 get_assets_db()
 
 
-async def tag_user(
-    msg: discord.Message, 
-    channel: discord.TextChannel, 
-    tickers: list
-    ) -> None:
+def get_tagged_users(tickers: list) -> Optional[str]:
     """
     Tags the users with the tickers in their portfolio that are mentioned in the message.
 
     Parameters
     ----------
-    msg : discord.Message
-        The message object.
-    channel : discord.TextChannel
-        The channel object.
     tickers : list
         The list of tickers mentioned in the message.
+
+    Returns
+    -------
+    Optional[str]
+        The message of the users that need to be tagged.
     """
-    
+
     # Get the stored db
     matching_users = assets_db[assets_db["asset"].isin(tickers)]["id"].tolist()
     unique_users = list(set(matching_users))
 
     if unique_users:
         # Make it one message for all the users
-        tagged_msg = " ".join([f"<@!{user}>" for user in unique_users])
-        await channel.send(tagged_msg, reference=msg)
+        return " ".join([f"<@!{user}>" for user in unique_users])

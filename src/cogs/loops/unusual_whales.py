@@ -12,7 +12,7 @@ from discord.ext.tasks import loop
 
 # Local dependencies
 from util.vars import config, get_json_data
-from util.disc_util import get_channel, tag_user
+from util.disc_util import get_channel, get_tagged_users
 from util.afterhours import afterHours
 
 
@@ -185,10 +185,8 @@ class UW(commands.Cog):
                 icon_url="https://blog.unusualwhales.com/content/images/2021/08/logo.8f570f66-1.png",
             )
 
-            msg = await self.channel.send(embed=e)
-
-            await tag_user(msg, self.channel, [row["ticker_symbol"]])
-
+            tags = get_tagged_users([row["ticker_symbol"]])
+            await self.channel.send(content=tags, embed=e)
 
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(UW(bot))

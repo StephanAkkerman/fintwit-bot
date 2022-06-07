@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 from typing import List
 import datetime
+import traceback
 
 # > 3rd Party Dependencies
 from tweepy.asynchronous import AsyncStream
@@ -22,7 +23,7 @@ from util.vars import (
     access_token_secret,
     api,
 )
-from util.disc_util import get_channel, tag_user
+from util.disc_util import get_channel, get_tagged_users
 from util.tweet_util import format_tweet, add_financials
 
 
@@ -288,12 +289,9 @@ class Streamer(AsyncStream):
         )
 
         # Upload the tweet to the Discord.
-        succes = await self.upload_tweet(e, category, images, user, retweeted_user)
-
-        # Tag the users that have this ticker in their portfolio
-        if len(tickers + hashtags) > 0 and succes is not None:
-            msg, channel = succes
-            await tag_user(msg, channel, tickers + hashtags)
+        await self.upload_tweet(
+            e, category, images, user, retweeted_user, tickers + hashtags
+        )
 
     async def upload_tweet(
         self,
@@ -302,7 +300,8 @@ class Streamer(AsyncStream):
         images: List[str],
         user: str,
         retweeted_user: str,
-    ) -> tuple[discord.Message, discord.TextChannel] | None:
+        tickers: List[str],
+    ) -> None:
         """
         Uploads tweet in the dedicated Discord channel.
 
@@ -318,13 +317,12 @@ class Streamer(AsyncStream):
                 The user that posted this tweet.
             retweeted_user : str
                 The user that was retweeted by this tweet.
+            tickers : List[str]
+                The list of tickers contained in this tweet.
 
         Returns
         -------
-        discord.Message
-            The message that was uploaded to the Discord channel.
-        discord.TextChannel
-            The channel that the message was uploaded to.
+        None
         """
 
         # Default channel
@@ -358,13 +356,42 @@ class Streamer(AsyncStream):
         else:
             channel = self.stocks_charts_channel
 
-        try:
-            msg = await channel.send(embed=e)
+        # Tag the users that have this ticker in their portfolio
+        if tickers:
+            tagged_users = get_tagged_users(tickers)
 
-            # Send all the other images as a reply
-            for i in range(len(images)):
+        try:
+            # Create a list of image embeds
+            image_e = [e]
+            for i in range(len(images[:10])):
                 if i > 0:
-                    await channel.send(reference=msg, content=images[i])
+                    # Create a new embed object for each image
+                    image_e.append(discord.Embed(url=e.url).set_image(url=images[i]))
+
+            # If there are multiple images to be sent, use a webhook to send them all at once
+            if len(image_e) > 1:
+
+                # Get the webhook of this channel
+                webhook = await channel.webhooks()
+
+                if not webhook:
+                    webhook = await channel.create_webhook(name=channel.name)
+                    print(f"Created webhook for {channel.name}")
+                else:
+                    webhook = webhook[0]
+
+                # Wait so we can use this message as reference
+                msg = await webhook.send(
+                    content=tagged_users,
+                    embeds=image_e,
+                    username="FinTwit",
+                    wait=True,
+                    avatar_url=self.bot.user.avatar_url,
+                )
+
+            else:
+                # Use the normal send function
+                msg = await channel.send(content=tagged_users, embed=e)
 
             # Do this for every message
             await msg.add_reaction("💸")
@@ -378,4 +405,5 @@ class Streamer(AsyncStream):
 
         except Exception as error:
             print("Error posting tweet on timeline", error)
+            print(traceback.format_exc())
             return

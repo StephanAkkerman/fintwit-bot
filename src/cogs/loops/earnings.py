@@ -11,7 +11,7 @@ from discord.ext.tasks import loop
 
 # Local dependencies
 from util.vars import config
-from util.disc_util import get_channel, tag_user
+from util.disc_util import get_channel, get_tagged_users
 
 
 class Earnings(commands.Cog):
@@ -91,9 +91,8 @@ class Earnings(commands.Cog):
                         icon_url="https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png",
                     )
 
-                    msg = await self.channel.send(embed=e)
-
-                    await tag_user(msg, self.channel, date_df["ticker"].to_list())
+                    tags = get_tagged_users(date_df["ticker"].to_list())
+                    await self.channel.send(content=tags, embed=e)
 
 
 def setup(bot: commands.Bot) -> None:

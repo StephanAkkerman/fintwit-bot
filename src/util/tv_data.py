@@ -280,11 +280,13 @@ class TV_data:
                             return resp[0], resp[1], resp[2], exchange
 
                         elif counter == 3:
+                            await session.close()
                             return False
 
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         # self.restart_sockets()
                         print("Error")
+                        await session.close()
                         return False
 
         except Exception:

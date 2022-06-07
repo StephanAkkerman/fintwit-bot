@@ -15,7 +15,7 @@ from discord.ext.tasks import loop
 
 # > Local dependencies
 from util.vars import get_json_data, config
-from util.disc_util import get_channel, tag_user
+from util.disc_util import get_channel, get_tagged_users
 
 
 async def scraper(type: str) -> pd.DataFrame:
@@ -215,9 +215,8 @@ class TradingView_Ideas(commands.Cog):
             else:
                 channel = self.crypto_channel
 
-            msg = await channel.send(embed=e)
-
-            await tag_user(msg, channel, [row["Symbol"]])
+            tags = get_tagged_users([row["Symbol"]])
+            await channel.send(content=tags, embed=e)
 
     @loop(hours=24)
     async def crypto_ideas(self) -> None:
