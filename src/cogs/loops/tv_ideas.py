@@ -215,8 +215,7 @@ class TradingView_Ideas(commands.Cog):
             else:
                 channel = self.crypto_channel
 
-            tags = get_tagged_users([row["Symbol"]])
-            await channel.send(content=tags, embed=e)
+            await channel.send(content=get_tagged_users([row["Symbol"]]), embed=e)
 
     @loop(hours=24)
     async def crypto_ideas(self) -> None:

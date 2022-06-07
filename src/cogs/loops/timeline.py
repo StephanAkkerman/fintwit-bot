@@ -356,10 +356,6 @@ class Streamer(AsyncStream):
         else:
             channel = self.stocks_charts_channel
 
-        # Tag the users that have this ticker in their portfolio
-        if tickers:
-            tagged_users = get_tagged_users(tickers)
-
         try:
             # Create a list of image embeds
             image_e = [e]
@@ -382,7 +378,7 @@ class Streamer(AsyncStream):
 
                 # Wait so we can use this message as reference
                 msg = await webhook.send(
-                    content=tagged_users,
+                    content=get_tagged_users(tickers),
                     embeds=image_e,
                     username="FinTwit",
                     wait=True,
@@ -391,7 +387,7 @@ class Streamer(AsyncStream):
 
             else:
                 # Use the normal send function
-                msg = await channel.send(content=tagged_users, embed=e)
+                msg = await channel.send(content=get_tagged_users(tickers), embed=e)
 
             # Do this for every message
             await msg.add_reaction("💸")
