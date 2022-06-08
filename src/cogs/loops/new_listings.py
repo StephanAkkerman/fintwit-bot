@@ -81,16 +81,19 @@ class Exchange_Listings:
         if self.exchange == "binance":
             color = 0xF0B90B
             icon_url = "https://public.bnbstatic.com/20190405/eb2349c3-b2f8-4a93-a286-8f86a62ea9d8.png"
+            url=f"https://www.{self.exchange}.com/en/trade/{ticker}"
         elif self.exchange == "kucoin":
             color = 0x24AE8F
             icon_url = "https://yourcryptolibrary.com/wp-content/uploads/2021/12/Kucoin-exchange-logo-1.png"
+            url=f"https://www.{self.exchange}.com/trade/{ticker}"
         else: # Coinbase
             color = 0x245cfc
             icon_url = "https://pbs.twimg.com/profile_images/1389350367977099264/S-pY13TJ_400x400.png"
+            url=f"https://www.pro.{self.exchange}.com/trade/{ticker}"
 
         e = discord.Embed(
             title=f"{self.exchange.capitalize()} Lists {ticker}",
-            url=f"https://www.{self.exchange}.com/en/trade/{ticker}",
+            url=url,
             description="",
             color=color,
             timestamp=datetime.datetime.utcnow(),
