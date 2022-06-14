@@ -146,6 +146,10 @@ async def get_coin_info(
         website = f"https://coingecko.com/en/coins/{id}"
 
         # For tokens that are previewed but not yet live
+        if coin_dict is None:
+            print(f"Could not get coingecko info for {ticker}")
+            return
+
         if coin_dict["market_data"] is None:
             print(f"Could not get coingecko info for {ticker}")
             return
