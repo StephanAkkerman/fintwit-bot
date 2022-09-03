@@ -102,7 +102,7 @@ async def trades_msg(
         threading.Timer(60, clear_messages).start()
 
         # Set the embed fields
-        e.set_author(name=user.name, icon_url=user.avatar_url)
+        e.set_author(name=user.name, icon_url=user.display_avatar.url)
 
         # If the quote is USD, then the price is the USD value
         if symbol.endswith("USDT") or symbol.endswith("USD") or symbol.endswith("BUSD"):

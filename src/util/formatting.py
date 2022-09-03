@@ -157,7 +157,7 @@ async def format_embed(df: pd.DataFrame, type: str, source: str) -> discord.Embe
         inline=True,
     )
 
-    # Set datetime and icon
+    # Set empty text as footer, so we can see the icon
     e.set_footer(text="\u200b", icon_url=icon_url)
 
     return e

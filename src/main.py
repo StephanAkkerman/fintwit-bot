@@ -13,40 +13,42 @@ from discord.ext import commands
 
 # Import local dependencies
 from util.vars import config
+from util.disc_util import get_guild
 
 bot = commands.Bot(command_prefix=config["PREFIX"], intents=discord.Intents.all())
 bot.remove_command("help")
 
 
 @bot.event
-async def on_ready():
+async def on_ready() -> None:
     """This gets printed on boot up"""
 
-    guild = discord.utils.get(
-        bot.guilds,
-        name=config["DEBUG"]["GUILD_NAME"]
-        if len(sys.argv) > 1 and sys.argv[1] == "-test"
-        else config["DISCORD"]["GUILD_NAME"],
-    )
-
-    # Load commands
-    load_folder("commands")
-
-    # Load all loops
+    # Load the loops and listeners
     load_folder("loops")
-
-    # Load all listeners
     load_folder("listeners")
 
+    guild = get_guild(bot)
     print(f"{bot.user} is connected to {guild.name} (id: {guild.id}) \n")
 
 
-def load_folder(foldername : str):
-    
-    
+def load_folder(foldername: str) -> None:
+    """
+    Loads all the cogs in the given folder.
+    Only loads the cogs if the config allows it.
+
+    Parameters
+    ----------
+    foldername: str
+        The name of the folder to load the cogs from.
+
+    Returns
+    -------
+    None
+    """
+
     # Get enabled cogs
     enabled_cogs = []
-    
+
     # Check each file in the folder
     for file in config[foldername.upper()]:
         # Check the contents of the file in the folder
@@ -70,15 +72,19 @@ def load_folder(foldername : str):
             try:
                 print("Loading:", filename)
                 bot.load_extension(f"cogs.{foldername}.{filename[:-3]}")
-            except commands.ExtensionAlreadyLoaded:
+            except discord.ExtensionAlreadyLoaded:
                 pass
-            except commands.ExtensionNotFound:
+            except discord.ExtensionNotFound:
                 print("Cog not found:", filename)
     print()
 
 
 if __name__ == "__main__":
 
+    # Load commands
+    load_folder("commands")
+
+    # Read the token from the config
     TOKEN = (
         config["DEBUG"]["TOKEN"]
         if len(sys.argv) > 1 and sys.argv[1] == "-test"

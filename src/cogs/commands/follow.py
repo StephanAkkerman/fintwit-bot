@@ -1,8 +1,7 @@
 ##> Imports
-from typing import Union
-
 # > 3rd Party Dependencies
 from discord.ext import commands
+from discord.commands import Option, slash_command
 
 # Local dependencies
 from util.vars import api
@@ -28,8 +27,12 @@ class Follow(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-    @commands.command()
-    async def follow(self, ctx: commands.Context, *input: Union[str, tuple]) -> None:
+    @slash_command(name="follow", description="Follow a user on Twitter.")
+    async def follow(
+        self,
+        ctx,
+        input: Option(str, description="The user you want to follow.", required=True),
+    ) -> None:
         """
         Follow Twitter user(s), using their screen name (without @ in front).
         Usage: `!follow [<username>]`.
@@ -38,7 +41,7 @@ class Follow(commands.Cog):
         ----------
         ctx : commands.context.Context
             The context of the command.
-        input : Union[str, tuple])
+        input : str
             The Twitter username(s) specified after `!follow`.
 
         Returns
@@ -47,17 +50,23 @@ class Follow(commands.Cog):
         """
 
         if input:
-            for user in input:
+            for user in input.split(" "):
                 try:
                     api.create_friendship(screen_name=user)
-                    await ctx.send(f"You are now following: https://twitter.com/{user}")
+                    await ctx.respond(
+                        f"You are now following: https://twitter.com/{user}"
+                    )
                 except Exception as e:
                     raise commands.UserNotFound(user)
         else:
             raise commands.UserInputError()
 
-    @commands.command()
-    async def unfollow(self, ctx: commands.Context, *input: Union[str, tuple]) -> None:
+    @slash_command(description="Unfollow a user on Twitter.")
+    async def unfollow(
+        self,
+        ctx: commands.Context,
+        input: Option(str, description="The user you want to unfollow.", required=True),
+    ) -> None:
         """Unfollow Twitter user(s), using their screen name (without @ in front).
         Usage: `!unfollow [<username>]`.
 
@@ -65,7 +74,7 @@ class Follow(commands.Cog):
         ----------
         ctx : commands.context.Context
             The context of the command.
-        input : Union[str, tuple])
+        input : str
             The Twitter username(s) specified after `!unfollow`.
 
         Returns
@@ -74,10 +83,10 @@ class Follow(commands.Cog):
         """
 
         if input:
-            for user in input:
+            for user in input.split(" "):
                 try:
                     api.destroy_friendship(screen_name=user)
-                    await ctx.send(
+                    await ctx.respond(
                         f"You are no longer following: https://twitter.com/{user}"
                     )
                 except Exception:
@@ -90,28 +99,24 @@ class Follow(commands.Cog):
         self, ctx: commands.context.Context, error: Exception
     ) -> None:
         if isinstance(error, commands.UserNotFound):
-            await ctx.send(f"{ctx.author.mention} {error}")
+            await ctx.respond(f"{error}")
         elif isinstance(error, commands.UserInputError):
-            await ctx.send(f"{ctx.author.mention} You must specify a user to follow!")
+            await ctx.respond(f"You must specify a user to follow!")
         else:
             print(error)
-            await ctx.send(
-                f"{ctx.author.mention} An error has occurred. Please try again later."
-            )
+            await ctx.respond(f"An error has occurred. Please try again later.")
 
     @unfollow.error
     async def unfollow_error(
         self, ctx: commands.context.Context, error: Exception
     ) -> None:
         if isinstance(error, commands.UserNotFound):
-            await ctx.send(f"{ctx.author.mention} {error}")
+            await ctx.respond(f"{error}")
         elif isinstance(error, commands.UserInputError):
-            await ctx.send(f"{ctx.author.mention} You must specify a user to follow!")
+            await ctx.respond(f"You must specify a user to follow!")
         else:
             print(error)
-            await ctx.send(
-                f"{ctx.author.mention} An error has occurred. Please try again later."
-            )
+            await ctx.respond(f"An error has occurred. Please try again later.")
 
 
 def setup(bot: commands.Bot) -> None:

@@ -63,7 +63,7 @@ async def scraper(type: str) -> pd.DataFrame:
     # Save the Timestamps
     for time_upd in content.find_all("span", class_="tv-card-stats__time js-time-upd"):
         timestampList.append(
-            datetime.datetime.fromtimestamp(float(time_upd["data-timestamp"]))
+            datetime.datetime.fromtimestamp(float(time_upd["data-timestamp"]), tz=datetime.timezone.utc)
         )
 
     for img_row in content.find_all("div", class_="tv-widget-idea__cover-wrap"):

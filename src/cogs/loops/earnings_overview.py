@@ -14,10 +14,19 @@ from util.vars import config
 from util.disc_util import get_channel, get_tagged_users
 
 
-class Earnings(commands.Cog):
+class Earnings_Overview(commands.Cog):
+    """
+    This class is responsible for sending weekly overview of upcoming earnings.
+
+    Methods
+    ----------
+    earnings() -> None:
+        Sends the earnings overview to the channel.
+    """
+
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.channel = get_channel(self.bot, config["LOOPS"]["EARNINGS"]["CHANNEL"])
+        self.channel = get_channel(self.bot, config["LOOPS"]["EARNINGS_OVERVIEW"]["CHANNEL"])
 
         self.nasdaq_tickers = tickers_nasdaq()
 
@@ -25,6 +34,14 @@ class Earnings(commands.Cog):
 
     @loop(hours=1)
     async def earnings(self) -> None:
+        """
+        Checks every hour if today is a friday and if the market is closed.
+        If that is the case a overview will be posted with the upcoming earnings.
+
+        Returns
+        ----------
+        None
+        """
 
         # Send this message every friday at 23:00 UTC
         if datetime.datetime.today().weekday() == 4:
@@ -96,4 +113,4 @@ class Earnings(commands.Cog):
 
 
 def setup(bot: commands.Bot) -> None:
-    bot.add_cog(Earnings(bot))
+    bot.add_cog(Earnings_Overview(bot))

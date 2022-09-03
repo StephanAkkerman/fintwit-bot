@@ -28,7 +28,7 @@ class Assets(commands.Cog):
 
     Methods
     ----------
-    usd_value( asset : str, owned : float, exchange : str) -> float:
+    usd_value(asset : str, owned : float, exchange : str) -> float:
         Get the USD value of an asset, based on the exchange.
     assets(db : pd.DataFrame) -> None:
         Checks the account balances of accounts saved in portfolio db, then updates the assets db.
@@ -383,7 +383,7 @@ class Assets(commands.Cog):
                 )
 
                 e.set_author(
-                    name=disc_user.name + "'s Assets", icon_url=disc_user.avatar_url
+                    name=disc_user.name + "'s Assets", icon_url=disc_user.display_avatar.url
                 )
 
                 # Divide it per exchange

@@ -366,8 +366,6 @@ class Streamer(AsyncStream):
 
             # If there are multiple images to be sent, use a webhook to send them all at once
             if len(image_e) > 1:
-
-                # Get the webhook of this channel
                 webhook = await channel.webhooks()
 
                 if not webhook:
