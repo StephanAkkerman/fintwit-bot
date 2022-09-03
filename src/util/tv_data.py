@@ -74,6 +74,8 @@ class TV_data:
             "CRYPTOCAP:USDT.D",
         ]
 
+        self.crypto_indices_without_exch = [sym.split(":")[1] for sym in crypto_indices]
+
         tv_crypto = pd.DataFrame(tv_crypto).drop(columns=["d"])
         self.tv_crypto = pd.concat(
             [tv_crypto, pd.DataFrame(crypto_indices, columns=["s"])]
@@ -309,8 +311,11 @@ class TV_data:
             The TA data as formatted string.
         """
 
-        # There is no TA for stock indices
-        if symbol in self.stock_indices_without_exch:
+        # There is no TA for stock or crypto indices
+        if (
+            symbol in self.stock_indices_without_exch
+            or symbol in self.crypto_indices_without_exch
+        ):
             return
 
         symbol_data = self.get_symbol_data(symbol, asset)
@@ -340,4 +345,4 @@ class TV_data:
                 return formatted_analysis
 
         except Exception as e:
-            print(f"TradingView TA error for {symbol}.", e)
+            print(f"TradingView TA error for ticker: {symbol}, error:", e)
