@@ -3,8 +3,8 @@ numpy==1.23.2
 yfinance==0.1.74
 py-cord==2.1.1
 tweepy==4.10.1
-pycoingecko==2.2.0
-pandas==1.4.3
+pycoingecko==3.0.0
+pandas==1.4.4
 requests==2.28.1
 discord==2.0.0
 PyYAML==6.0
