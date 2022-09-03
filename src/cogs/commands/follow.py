@@ -1,7 +1,7 @@
 ##> Imports
 # > 3rd Party Dependencies
 from discord.ext import commands
-from discord.commands import Option, slash_command
+from discord.commands import Option
 
 # Local dependencies
 from util.vars import api
@@ -27,7 +27,7 @@ class Follow(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-    @slash_command(name="follow", description="Follow a user on Twitter.")
+    @commands.slash_command(name="follow", description="Follow a user on Twitter.")
     async def follow(
         self,
         ctx,
@@ -56,12 +56,12 @@ class Follow(commands.Cog):
                     await ctx.respond(
                         f"You are now following: https://twitter.com/{user}"
                     )
-                except Exception as e:
+                except Exception:
                     raise commands.UserNotFound(user)
         else:
             raise commands.UserInputError()
 
-    @slash_command(description="Unfollow a user on Twitter.")
+    @commands.slash_command(description="Unfollow a user on Twitter.")
     async def unfollow(
         self,
         ctx: commands.Context,

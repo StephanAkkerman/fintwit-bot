@@ -176,7 +176,7 @@ class UW(commands.Cog):
                     """
                 ),
                 color=0xE40414 if option_type == "P" else 0x3CC474,
-                timestamp=datetime.datetime.utcnow(),
+                timestamp=datetime.datetime.now(datetime.timezone.utc),
             )
 
             e.set_footer(

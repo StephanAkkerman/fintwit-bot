@@ -2,7 +2,9 @@
 
 # > 3rd Party Dependencies
 import yfinance as yf
+import discord
 from discord.ext import commands
+from discord.ui import Button, View
 
 
 async def confirm_stock(bot: commands.Bot, ctx: commands.Context, ticker: str) -> bool:
@@ -12,38 +14,38 @@ async def confirm_stock(bot: commands.Bot, ctx: commands.Context, ticker: str) -
 
     # If it does not exist let the user know
     if stock_info.info["regularMarketPrice"] == None:
-        confirm_msg = await ctx.send(
+
+        confirm_button = Button(
+            label="Confirm",
+            style=discord.ButtonStyle.green,
+            emoji="✅",
+            custom_id="confirm",
+        )
+        cancel_button = Button(
+            label="Cancel", style=discord.ButtonStyle.red, emoji="❌", custom_id="cancel"
+        )
+
+        view = View()
+        view.add_item(confirm_button)
+        view.add_item(cancel_button)
+
+        # Can also use ctx.followup.send
+        await ctx.respond(
             (
-                f"Are you sure {ticker} is correct? We could not find it on Yahoo Finance.\n"
+                f"Are you sure {ticker.upper()} is correct? We could not find it on Yahoo Finance.\n"
                 "Click on \N{WHITE HEAVY CHECK MARK} to continue and on \N{CROSS MARK} to cancel."
-            )
-        )
-        await confirm_msg.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-        await confirm_msg.add_reaction("\N{CROSS MARK}")
-
-        # Handle preview accept/deny using reactions
-        reaction = await bot.wait_for(
-            "reaction_add",
-            check=lambda r, u: (
-                str(r.emoji) == "\N{WHITE HEAVY CHECK MARK}"
-                or str(r.emoji) == "\N{CROSS MARK}"
-            )
-            and u == ctx.author,
+            ),
+            view=view,
         )
 
-        if reaction[0].emoji == "\N{CROSS MARK}":
-            # Delete the messages
-            await ctx.message.delete()
-            await confirm_msg.delete()
-            return False
-        elif reaction[0].emoji == "\N{WHITE HEAVY CHECK MARK}":
-            await confirm_msg.delete()
+        res = await bot.wait_for(
+            "interaction", check=lambda i: i.custom_id == "confirm"
+        )
+
+        # If the confirm button was pressed, return True
+        if res.data["custom_id"] == "confirm":
             return True
         else:
-            # Delete the messages
-            await ctx.message.delete()
-            await confirm_msg.delete()
-            await ctx.send("Something went wrong, please try again.")
-            return False
-    else:
-        return True
+           return False
+    
+    return True

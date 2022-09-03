@@ -265,7 +265,7 @@ class Streamer(AsyncStream):
             url=url,
             description=text,
             color=0x1DA1F2,
-            timestamp=datetime.datetime.utcnow(),
+            timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
         e.set_thumbnail(url=profile_pic)
 
@@ -380,7 +380,7 @@ class Streamer(AsyncStream):
                     embeds=image_e,
                     username="FinTwit",
                     wait=True,
-                    avatar_url=self.bot.user.avatar_url,
+                    avatar_url=self.bot.user.avatar.url,
                 )
 
             else:

@@ -84,7 +84,7 @@ class Index(commands.Cog):
             title=f"Crypto Indices",
             description="",
             color=0x131722,
-            timestamp=datetime.datetime.utcnow(),
+            timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
 
         crypto_indices = ["TOTAL", "BTC.D", "OTHERS.D", "TOTALDEFI.D", "USDT.D"]
@@ -170,7 +170,7 @@ class Index(commands.Cog):
             title=f"Stock Indices",
             description="",
             color=0x131722,
-            timestamp=datetime.datetime.utcnow(),
+            timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
 
         stock_indices = ["SPY", "NDX", "DXY", "PCC", "PCCE", "US10Y", "VIX"]

@@ -96,7 +96,7 @@ class Earnings_Overview(commands.Cog):
                         url=f"https://finance.yahoo.com/calendar/earnings?day={date}",
                         description="",
                         color=0x720E9E,
-                        timestamp=datetime.datetime.utcnow(),
+                        timestamp=datetime.datetime.now(datetime.timezone.utc),
                     )
 
                     e.add_field(name="Stock", value=tickers, inline=True)

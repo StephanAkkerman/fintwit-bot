@@ -63,7 +63,7 @@ class Stock(commands.Cog):
             title=f"{side} {quantity} {stock_name} for ${price}",
             description="",
             color=0x720E9E,
-            timestamp=datetime.datetime.utcnow(),
+            timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
 
         e.set_author(name=user.name, icon_url=user.avatar_url)

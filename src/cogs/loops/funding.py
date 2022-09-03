@@ -84,7 +84,7 @@ class Funding(commands.Cog):
             url="",
             description="",
             color=0xF0B90B,
-            timestamp=datetime.datetime.utcnow(),
+            timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
 
         # Get time to next funding, unix is in milliseconds

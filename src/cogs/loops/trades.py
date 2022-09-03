@@ -88,7 +88,7 @@ async def trades_msg(
         title=f"{orderType.capitalize()} {side.lower()} {quantity} {symbol}",
         description="",
         color=0xF0B90B if exchange == "binance" else 0x24AE8F,
-        timestamp=datetime.datetime.utcnow(),
+        timestamp=datetime.datetime.now(datetime.timezone.utc),
     )
 
     # Check if this message has been send already

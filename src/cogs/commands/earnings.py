@@ -1,6 +1,7 @@
 ##> Imports
 # > 3rd Party Dependencies
 from discord.ext import commands
+from discord.commands import Option
 
 # Local dependencies
 from util.earnings_scraper import YahooEarningsCalendar
@@ -23,10 +24,11 @@ class Earnings(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-    @commands.command()
-    async def earnings(self, ctx: commands.Context, stock: str) -> None:
+    @commands.slash_command(name="earnings", description="Gets next earnings date for a given stock.")
+    async def earnings(self, ctx: commands.Context, stock: Option(str, description="The requested stock.", required=True)) -> None:
         """
         Gets next earnings date for a given stock.
+        For instance `/earnings AAPL` will return the next earnings date for Apple.
 
         Parameters
         ----------
@@ -54,7 +56,7 @@ class Earnings(commands.Cog):
             msg = (
                 f"The next earnings date for {stock.upper()} is <t:{next_earnings}:R>."
             )
-            await ctx.send(msg)
+            await ctx.respond(msg)
         else:
             raise commands.UserInputError()
 

@@ -379,7 +379,7 @@ class Assets(commands.Cog):
                     title="",
                     description="",
                     color=0x1DA1F2,
-                    timestamp=datetime.datetime.utcnow(),
+                    timestamp=datetime.datetime.now(datetime.timezone.utc),
                 )
 
                 e.set_author(

@@ -2,8 +2,11 @@
 import traceback
 
 # > 3rd Party Dependencies
-from discord.ext import commands
 import pandas as pd
+
+# > Discord dependencies
+from discord.ext import commands
+from discord.commands import SlashCommandGroup, Option
 
 # Local dependencies
 from util.db import get_db, update_db
@@ -26,15 +29,25 @@ class Portfolio(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-    @commands.command()
+    # Create a slash command group
+    portfolios = SlashCommandGroup("portfolio", description="Manage your portfolio.")
+
     @commands.dm_only()
-    async def portfolio(self, ctx: commands.Context, *input: tuple) -> None:
+    @portfolios.command(name="add", description="Add a portfolio to the database.")
+    async def add(
+        self,
+        ctx: commands.Context,
+        input: Option(
+            str,
+            description="Provide the follow information: <exchange> <key> <secret> (<passphrase>).",
+            required=True,
+        ),
+    ) -> None:
         """
-        Adds or removes your portfolio to the database.
+        Adds your portfolio to the database.
+
         Usage:
         `!portfolio add <exchange> <key> <secret> (<passphrase>)` to add your portfolio to the database.
-        `!portfolio remove (<exchange>)` if exchange is not specified, all your portfolio(s) will be removed.
-        `!portfolio show` to show your portfolio(s) in our database.
 
         Parameters
         ----------
@@ -44,97 +57,143 @@ class Portfolio(commands.Cog):
             The information specified after `!portfolio`.
         """
 
-        if input:
-            if input[0] == "add":
-                if len(input) == 4:
-                    if input[1].lower() == "binance":
-                        _, exchange, key, secret = input
-                        passphrase = None
-                    else:
-                        raise commands.BadArgument()
-                elif len(input) == 5:
-                    if input[1].lower() == "kucoin":
-                        _, exchange, key, secret, passphrase = input
-                    else:
-                        raise commands.BadArgument()
-                elif len(input) < 4 or len(input) > 5:
-                    raise commands.UserInputError()
+        # Split the input using the spaces
+        input = input.split(" ")
 
-                new_data = pd.DataFrame(
-                    {
-                        "id": ctx.message.author.id,
-                        "user": ctx.message.author.name,
-                        "exchange": exchange.lower(),
-                        "key": key,
-                        "secret": secret,
-                        "passphrase": passphrase,
-                    },
-                    index=[0],
-                )
-                update_db(
-                    pd.concat([get_db("portfolio"), new_data], ignore_index=True),
-                    "portfolio",
-                )
-                await ctx.send("Succesfully added your portfolio to the database!")
-
-                # Init Exchanges to start websockets
-                Trades(self.bot, new_data)
-                # Post the assets
-                Assets(self.bot, new_data)
-
-            elif input[0] == "remove":
-                old_db = get_db("portfolio")
-                if len(input) == 1:
-                    rows = old_db.index[old_db["id"] == ctx.message.author.id].tolist()
-                elif len(input) > 2:
-                    rows = old_db.index[
-                        (old_db["id"] == ctx.message.author.id)
-                        & (old_db["exchange"] == input[1])
-                    ].tolist()
-
-                # Update database
-                update_db(old_db.drop(index=rows), "portfolio")
-                await ctx.send("Succesfully removed your portfolio from the database!")
-
-                # Maybe unsubribe from websockets
-
-            elif input[0] == "show":
-                db = get_db("portfolio")
-                rows = db.loc[db["id"] == ctx.message.author.id]
-                if not rows.empty:
-                    for _, row in rows.iterrows():
-                        await ctx.send(
-                            f"Exchange: {row['exchange']} \nKey: {row['key']} \nSecret: {row['secret']}"
-                        )
-                else:
-                    await ctx.send("Your portfolio could not be found")
-
-            else:
-                await ctx.send(
-                    "Please use one of the following keywords: 'add', 'remove', 'show'"
-                )
-        else:
+        if len(input) < 3 or len(input) > 4:
             raise commands.UserInputError()
 
-    @portfolio.error
-    async def portfolio_error(self, ctx: commands.Context, error: Exception) -> None:
+        exchange = input[0]
+        key = input[1]
+        secret = input[2]
+
+        # Check if the exchange is supported
+        if exchange.lower() not in ["binance", "kucoin"]:
+            raise commands.BadArgument()
+
+        # Set the passphrase if necessary
+        if exchange.lower() == "kucoin":
+            if len(input) == 4:
+                passphrase = input[3]
+            else:
+                raise commands.BadArgument()
+
+        if exchange.lower() == "binance":
+            if len(input) != 3:
+                raise commands.BadArgument()
+
+        new_data = pd.DataFrame(
+            {
+                "id": ctx.author.id,
+                "user": ctx.message.author.name,
+                "exchange": exchange.lower(),
+                "key": key,
+                "secret": secret,
+                "passphrase": passphrase,
+            },
+            index=[0],
+        )
+        update_db(
+            pd.concat([get_db("portfolio"), new_data], ignore_index=True),
+            "portfolio",
+        )
+        await ctx.respond("Succesfully added your portfolio to the database!")
+
+        # Init Exchanges to start websockets
+        Trades(self.bot, new_data)
+        # Post the assets
+        Assets(self.bot, new_data)
+
+    @commands.dm_only()
+    @portfolios.command(
+        name="remove", description="Remove a portfolio to the database."
+    )
+    async def remove(
+        self,
+        ctx: commands.Context,
+        input: Option(
+            str,
+            description="The name of the exchange that you want to remove, if left empty all will be removed.",
+            required=True,
+        ),
+    ) -> None:
+        """
+        `!portfolio remove (<exchange>)` if exchange is not specified, all your portfolio(s) will be removed.
+        """
+
+        old_db = get_db("portfolio")
+        if len(input) == 1:
+            rows = old_db.index[old_db["id"] == ctx.author.id].tolist()
+        elif len(input) > 2:
+            rows = old_db.index[
+                (old_db["id"] == ctx.author.id) & (old_db["exchange"] == input[1])
+            ].tolist()
+
+        # Update database
+        update_db(old_db.drop(index=rows), "portfolio")
+        await ctx.respond("Succesfully removed your portfolio from the database!")
+
+        # Maybe unsubribe from websockets
+
+    @commands.dm_only()
+    @portfolios.command(
+        name="show", description="Show the portfolio(s) in the database."
+    )
+    async def show(
+        self,
+        ctx: commands.Context,
+    ) -> None:
+        """
+        `!portfolio show` to show your portfolio(s) in our database.
+        """
+
+        db = get_db("portfolio")
+        rows = db.loc[db["id"] == ctx.author.id]
+        if not rows.empty:
+            for _, row in rows.iterrows():
+                await ctx.respond(
+                    f"Exchange: {row['exchange']} \nKey: {row['key']} \nSecret: {row['secret']}"
+                )
+        else:
+            await ctx.respond("Your portfolio could not be found")
+
+    @add.error
+    async def add_error(self, ctx: commands.Context, error: Exception) -> None:
         print(traceback.format_exc())
         if isinstance(error, commands.BadArgument):
-            await ctx.send(
-                f"{ctx.author.mention} The exchange you specified is currently not supported! \nSupported exchanges: Kucoin, Binance"
+            await ctx.respond(
+                f"The exchange you specified is currently not supported! \nSupported exchanges: Kucoin, Binance"
             )
         elif isinstance(error, commands.UserInputError):
-            await ctx.send(
-                f"{ctx.author.mention} If using `portfolio add`, you must specify an exchange, key, secret, and optionally a passphrase!"
+            await ctx.respond(
+                f"If using `portfolio add`, you must specify an exchange, key, secret, and optionally a passphrase!"
             )
         elif isinstance(error, commands.PrivateMessageOnly):
-            await ctx.message.author.send(
+            await ctx.respond(
                 "Please only use the `!portfolio` command in private messages for security reasons."
             )
         else:
-            await ctx.send(
-                f"{ctx.author.mention} An error has occurred. Please try again later."
+            await ctx.respond(f"An error has occurred. Please try again later.")
+
+    @remove.error
+    async def remove_error(self, ctx: commands.Context, error: Exception) -> None:
+        print(traceback.format_exc())
+        if isinstance(error, commands.PrivateMessageOnly):
+            await ctx.respond(
+                "Please only use the `!portfolio` command in private messages for security reasons."
             )
+        else:
+            await ctx.respond(f"An error has occurred. Please try again later.")
+
+    @show.error
+    async def show_error(self, ctx: commands.Context, error: Exception) -> None:
+        print(traceback.format_exc())
+        if isinstance(error, commands.PrivateMessageOnly):
+            await ctx.respond(
+                "Please only use the `!portfolio` command in private messages for security reasons."
+            )
+        else:
+            await ctx.respond(f"An error has occurred. Please try again later.")
 
 
 def setup(bot: commands.Bot) -> None:

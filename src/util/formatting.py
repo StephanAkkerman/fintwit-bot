@@ -114,7 +114,7 @@ async def format_embed(df: pd.DataFrame, type: str, source: str) -> discord.Embe
         url=url,
         description="",
         color=color,
-        timestamp=datetime.datetime.utcnow(),
+        timestamp=datetime.datetime.now(datetime.timezone.utc),
     )
 
     df = df.astype({"Symbol": str, "Price": float, "% Change": float, "Volume": float})
