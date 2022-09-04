@@ -29,7 +29,7 @@ class TV_data:
     get_symbol_data(symbol: str, asset: str) -> Optional[tuple[str, str]]:
         Helper function to get the symbol data from the TradingView API.
 
-    get_tv_TA(symbol: str, asset: str) -> Optional[str]:
+    get_tv_TA(symbol: str, asset: str) -> Optional[tuple[str,str]]:
         Gets the current TA (technical analysis) data from the TradingView API.
     """
 
@@ -294,7 +294,10 @@ class TV_data:
         except Exception:
             print(traceback.format_exc())
 
-    def get_tv_TA(self, symbol: str, asset: str) -> Optional[str]:
+    def format_analysis(self, analysis: str) -> str:
+        return f"{analysis['RECOMMENDATION']}\n{analysis['BUY']}📈 {analysis['NEUTRAL']}⌛️ {analysis['SELL']}📉"
+
+    def get_tv_TA(self, symbol: str, asset: str) -> Optional[tuple[str, str]]:
         """
         Gets the current TA (technical analysis) data from the TradingView API.
 
@@ -307,8 +310,8 @@ class TV_data:
 
         Returns
         -------
-        Optional[str]
-            The TA data as formatted string.
+        Optional[tuple[str,str]]
+            The 4h and 1d TA data as formatted strings.
         """
 
         # There is no TA for stock or crypto indices
@@ -327,7 +330,7 @@ class TV_data:
                 exchange, market, symbol = symbol_data
 
                 # Wait max 5 sec
-                analysis = (
+                four_h_analysis = (
                     TA_Handler(
                         symbol=symbol,
                         screener=market,
@@ -339,10 +342,22 @@ class TV_data:
                     .summary
                 )
 
-                # Format the analysis
-                formatted_analysis = f"{analysis['RECOMMENDATION']}\n{analysis['BUY']}📈 {analysis['NEUTRAL']}⌛️ {analysis['SELL']}📉"
+                one_d_analysis = (
+                    TA_Handler(
+                        symbol=symbol,
+                        screener=market,
+                        exchange=exchange,
+                        interval=Interval.INTERVAL_1_DAY,
+                        timeout=5,
+                    )
+                    .get_analysis()
+                    .summary
+                )
 
-                return formatted_analysis
+                # Format the analysis
+                return self.format_analysis(four_h_analysis), self.format_analysis(
+                    one_d_analysis
+                )
 
         except Exception as e:
             print(f"TradingView TA error for ticker: {symbol}, error:", e)

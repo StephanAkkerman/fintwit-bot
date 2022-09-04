@@ -323,10 +323,10 @@ async def add_financials(
         ticker_info = await classify_ticker(ticker, majority)
 
         if ticker_info is not None:
-            volume, website, exchanges, price, change, ta = ticker_info
+            volume, website, exchanges, price, change, four_h_ta, one_d_ta = ticker_info
         else:
             # Set everything to None
-            volume = website = exchanges = price = change = ta = None
+            volume = website = exchanges = price = change = four_h_ta = one_d_ta = None
 
         # Check if there is any volume, and if it is a symbol
         if volume is None:
@@ -375,8 +375,11 @@ async def add_financials(
         # Add the field with hyperlink
         e.add_field(name=title, value=description, inline=True)
 
-        if ta is not None:
-            e.add_field(name="4h TA", value=ta, inline=True)
+        if four_h_ta is not None:
+            e.add_field(name="4h TA", value=four_h_ta, inline=True)
+
+        if one_d_ta is not None:
+            e.add_field(name="1d TA", value=one_d_ta, inline=True)
 
     # If there are any tickers
     if symbols:

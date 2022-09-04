@@ -316,15 +316,15 @@ async def classify_ticker(
         # Stupid Tessla Coin https://www.coingecko.com/en/coins/tessla-coin
         if coin is not None:
             if coin[0] > 1000000 or ticker.endswith("BTC"):
-                ta = tv.get_tv_TA(ticker, "crypto")
-                return *coin, ta
+                four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "crypto")
+                return *coin, four_h_ta, one_d_ta
         stock = await get_stock_info(ticker)
     else:
         stock = await get_stock_info(ticker)
         if stock is not None:
             if stock[0] > 1000000:
-                ta = tv.get_tv_TA(ticker, "stock")
-                return *stock, ta
+                four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "stock")
+                return *stock, four_h_ta, one_d_ta
         coin = await get_coin_info(ticker)
 
     # First in tuple represents volume
@@ -339,10 +339,10 @@ async def classify_ticker(
         stock_vol = stock[0]
 
     if coin_vol > stock_vol and coin_vol > 50000:
-        ta = tv.get_tv_TA(ticker, "crypto")
-        return *coin, ta
+        four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "crypto")
+        return *coin, four_h_ta, one_d_ta
     elif coin_vol < stock_vol:
-        ta = tv.get_tv_TA(ticker, "stock")
-        return *stock, ta
+        four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "stock")
+        return *stock, four_h_ta, one_d_ta
     else:
         return None
