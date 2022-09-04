@@ -15,7 +15,7 @@ from cogs.loops.trades import Binance, KuCoin
 from util.ticker import get_stock_info
 from util.db import get_db, update_db
 from util.disc_util import get_channel, get_user
-from util.vars import stables, cg_coins, cg
+from util.vars import stables, cg_coins, cg, config
 from util.disc_util import get_guild
 from util.tv_data import TV_data
 from util.formatting import format_embed_length
@@ -327,7 +327,7 @@ class Assets(commands.Cog):
             # If this channel does not exist make it
             channel = get_channel(self.bot, channel_name)
             if channel is None:
-                channel = await guild.create_text_channel(channel_name)
+                channel = await guild.create_text_channel(channel_name, category=config["LOOPS"]["ASSETS"]["CATEGORY"])
                 print(f"Created channel {channel_name}")
 
             # Get the data
