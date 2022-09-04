@@ -8,6 +8,7 @@ import traceback
 
 # > 3rd Party Dependencies
 from tweepy.asynchronous import AsyncStream
+import pandas as pd
 
 # > Discord dependencies
 import discord
@@ -25,6 +26,7 @@ from util.vars import (
 )
 from util.disc_util import get_channel, get_tagged_users
 from util.tweet_util import format_tweet, add_financials
+from util.db import get_db, update_db
 
 
 class Timeline(commands.Cog):
@@ -249,6 +251,9 @@ class Streamer(AsyncStream):
         None
         """
 
+        # Ensure the tickers are unique
+        tickers = list(set(tickers))
+
         title = (
             f"{user} tweeted about {', '.join(tickers)}"
             if retweeted_user == None
@@ -271,7 +276,7 @@ class Streamer(AsyncStream):
 
         # Max 25 fields
         if len(tickers + hashtags) < 26:
-            e, category = await add_financials(
+            e, category, sentiment = await add_financials(
                 e, tickers, hashtags, text, user, self.bot
             )
         else:
@@ -292,6 +297,52 @@ class Streamer(AsyncStream):
         await self.upload_tweet(
             e, category, images, user, retweeted_user, tickers + hashtags
         )
+
+        # Add ticker, user, sentiment to database
+        await self.tweet_db(tickers, user, sentiment)
+
+    async def tweet_db(self, tickers, user, sentiment):
+
+        # Prepare new data
+        dict_list = []
+        for ticker in tickers:
+            dict_list.append({"ticker": ticker, "user": user, "sentiment": sentiment})
+
+        # Convert it to a dataframe
+        tweet_db = pd.DataFrame(dict_list)
+
+        # Add current time
+        tweet_db["timestamp"] = datetime.datetime.now()
+
+        # Get the old database
+        old_db = get_db("tweets")
+
+        # Delete rows older than 24h
+        if not old_db.empty:
+
+            # Set the types
+            old_db = old_db.astype(
+                {
+                    "ticker": str,
+                    "user": str,
+                    "sentiment": str,
+                    "timestamp": "datetime64[ns]",
+                }
+            )
+
+            old_db = old_db[
+                old_db["timestamp"]
+                > datetime.datetime.now() - datetime.timedelta(hours=24)
+            ]
+
+            # Add tweet to database
+            tweet_db = pd.concat([old_db, tweet_db])
+
+        # Reset the index
+        tweet_db = tweet_db.reset_index(drop=True)
+
+        # Save database
+        update_db(tweet_db, "tweets")
 
     async def upload_tweet(
         self,

@@ -267,7 +267,7 @@ async def add_financials(
     text: str,
     user: str,
     bot: commands.Bot,
-) -> tuple[discord.Embed, str]:
+) -> tuple[discord.Embed, str, str]:
     """
     Adds the financial data to the embed and returns the corresponding category.
 
@@ -288,11 +288,13 @@ async def add_financials(
 
     Returns
     -------
-    tuple[discord.Embed, str]
+    tuple[discord.Embed, str, str]
         discord.Embed
             The embed with the data added.
         str
             The category of the tweet.
+        str
+            The sentiment of the tweet.
     """
 
     # In case multiple tickers get send
@@ -399,4 +401,5 @@ async def add_financials(
     elif crypto < stocks:
         category = "stocks"
 
-    return e, category
+    # Return just the prediction without emoji
+    return e, category, prediction.split(" - ")[1]
