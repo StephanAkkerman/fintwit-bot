@@ -299,14 +299,25 @@ class Streamer(AsyncStream):
         )
 
         # Add ticker, user, sentiment to database
-        await self.tweet_db(tickers, user, sentiment)
+        # Only do this if the tweet is a financial tweet
+        # WE NEED THE PROCESSED TICKERS + HASHTAGS FROM add_financials()
+        # ALSO NEED THE CATEGORY PER TICKER
+        if tickers + hashtags:
+            await self.tweet_db(tickers + hashtags, user, sentiment, category)
 
-    async def tweet_db(self, tickers, user, sentiment):
+    async def tweet_db(self, tickers, user, sentiment, category):
 
         # Prepare new data
         dict_list = []
         for ticker in tickers:
-            dict_list.append({"ticker": ticker, "user": user, "sentiment": sentiment})
+            dict_list.append(
+                {
+                    "ticker": ticker,
+                    "user": user,
+                    "sentiment": sentiment,
+                    "category": category,
+                }
+            )
 
         # Convert it to a dataframe
         tweet_db = pd.DataFrame(dict_list)
@@ -326,6 +337,7 @@ class Streamer(AsyncStream):
                     "ticker": str,
                     "user": str,
                     "sentiment": str,
+                    "category": str,
                     "timestamp": "datetime64[ns]",
                 }
             )

@@ -384,6 +384,7 @@ async def add_financials(
             e.add_field(name="1d TA", value=one_d_ta, inline=True)
 
     # If there are any tickers
+    prediction = None
     if symbols:
         sentiment = classify_sentiment(text)
         prediction = ("🐻 - Bearish", "🦆 - Neutral", "🐂 - Bullish")[np.argmax(sentiment)]
@@ -392,6 +393,7 @@ async def add_financials(
             value=f"{prediction} ({round(max(sentiment*100),2)}%)",
             inline=False,
         )
+        prediction.split(" - ")[0]
 
     # Decide the category of this tweet
     if crypto == 0 and stocks == 0:
@@ -402,4 +404,4 @@ async def add_financials(
         category = "stocks"
 
     # Return just the prediction without emoji
-    return e, category, prediction.split(" - ")[1]
+    return e, category, prediction
