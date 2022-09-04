@@ -2,7 +2,6 @@
 import datetime
 import pandas as pd
 import time
-import asyncio
 import inspect
 
 # > Discord dependencies

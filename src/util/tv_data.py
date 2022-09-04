@@ -14,7 +14,6 @@ import aiohttp
 import pandas as pd
 from tradingview_ta import TA_Handler, Interval
 
-
 class TV_data:
     """
     This class is used to get the current price, 24h change, and volume of a stock.
@@ -29,7 +28,7 @@ class TV_data:
     get_symbol_data(symbol: str, asset: str) -> Optional[tuple[str, str]]:
         Helper function to get the symbol data from the TradingView API.
 
-    get_tv_TA(symbol: str, asset: str) -> Optional[tuple[str,str]]:
+    get_tv_TA(symbol: str, asset: dict) -> Optional[tuple[str,str]]:
         Gets the current TA (technical analysis) data from the TradingView API.
     """
 
@@ -42,16 +41,54 @@ class TV_data:
             "data"
         ]
 
-        self.stock_indices = [
-            "AMEX:SPY",
-            "NASDAQ:NDX",
-            "USI:PCC",
-            "USI:PCCE",
-            "TVC:DXY",
+        self.US_bonds = [
+            "TVC:US01MY",
+            "TVC:US02MY",
+            "TVC:US03MY",
+            "TVC:US06MY",
+            "TVC:US01Y",
+            "TVC:US02Y",
+            "TVC:US03Y",
+            "TVC:US05Y",
+            "TVC:US07Y",
             "TVC:US10Y",
-            "TVC:VIX",
-            "TVC:SPX",
+            "TVC:US20Y",
+            "TVC:US30Y",
         ]
+
+        self.EU_bonds = [
+            "TVC:EU03MY",
+            "TVC:EU06MY",
+            "TVC:EU09MY",
+            "TVC:EU01Y",
+            "TVC:EU02Y",
+            "TVC:EU03Y",
+            "TVC:EU04Y",
+            "TVC:EU05Y",
+            "TVC:EU06Y",
+            "TVC:EU07Y",
+            "TVC:EU08Y",
+            "TVC:EU09Y",
+            "TVC:EU10Y",
+            "TVC:EU15Y",
+            "TVC:EU20Y",
+            "TVC:EU25Y",
+            "TVC:EU30Y",
+        ]
+
+        self.stock_indices = (
+            [
+                "AMEX:SPY",
+                "NASDAQ:NDX",
+                "USI:PCC",
+                "USI:PCCE",
+                "TVC:DXY",
+                "TVC:VIX",
+                "TVC:SPX",
+            ]
+            + self.US_bonds
+            + self.EU_bonds
+        )
 
         self.stock_indices_without_exch = [
             sym.split(":")[1] for sym in self.stock_indices
@@ -294,7 +331,21 @@ class TV_data:
         except Exception:
             print(traceback.format_exc())
 
-    def format_analysis(self, analysis: str) -> str:
+    def format_analysis(self, analysis: dict) -> str:
+        """
+        Simple helper function to format the TA data into one string.
+
+        Parameters
+        ----------
+        analysis : dict
+            The original TA data from the TradingView API.
+
+        Returns
+        -------
+        str
+            The formatted TA data.
+        """
+
         return f"{analysis['RECOMMENDATION']}\n{analysis['BUY']}📈 {analysis['NEUTRAL']}⌛️ {analysis['SELL']}📉"
 
     def get_tv_TA(self, symbol: str, asset: str) -> Optional[tuple[str, str]]:
