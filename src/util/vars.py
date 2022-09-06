@@ -2,7 +2,6 @@
 import yaml
 import aiohttp
 import tweepy
-import pandas as pd
 from pycoingecko import CoinGeckoAPI
 
 # Read config.yaml content
@@ -34,12 +33,12 @@ filter_dict = {
 # Stable coins
 stables = ["USDT", "USD", "BUSD", "DAI", "USDTPERP"]
 
-# Saves all CoinGecko coins, maybe refresh this daily
+# Used in util/ticker.py
 cg = CoinGeckoAPI()
-cg_coins = pd.DataFrame(cg.get_coins_list())
-cg_coins["symbol"] = cg_coins["symbol"].str.upper()
 
-# Simple function to get website json info
+def format_change(change: float) -> str:
+    return f"+{change}% 📈" if change > 0 else f"{change}% 📉"
+
 async def get_json_data(url: str, headers: dict = None, text: bool = False) -> dict:
     """
     Asynchronous function to get JSON data from a website.

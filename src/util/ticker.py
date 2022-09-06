@@ -9,10 +9,86 @@ import yfinance as yf
 
 # Local dependencies
 from util.tv_data import TV_data
-from util.vars import stables, cg_coins, cg
+from util.vars import stables, cg, format_change
 from util.afterhours import afterHours
+from util.db import get_db
 
 tv = TV_data()
+cg_coins = get_db("cg_crypto")
+
+
+def get_crypto_info(ids):
+
+    if len(ids) > 1:
+        id = None
+        best_vol = 0
+        coin_dict = None
+        for symbol in ids.values:
+            # Catch potential errors
+            try:
+                coin_info = cg.get_coin_by_id(symbol)
+                if "usd" in coin_info["market_data"]["total_volume"]:
+                    volume = coin_info["market_data"]["total_volume"]["usd"]
+                    if volume > best_vol:
+                        best_vol = volume
+                        id = symbol
+                        coin_dict = coin_info
+            except Exception:
+                pass
+
+    elif len(ids) == 1:
+        id = ids.values[0]
+        # Try in case the CoinGecko API does not work
+        try:
+            coin_dict = cg.get_coin_by_id(id)
+        except Exception:
+            return None, None
+
+    return coin_dict, id
+
+
+def get_coin_vol(coin_dict: dict) -> float:
+    if "total_volume" in coin_dict["market_data"].keys():
+        if "usd" in coin_dict["market_data"]["total_volume"].keys():
+            return coin_dict["market_data"]["total_volume"]["usd"]
+        else:
+            return 1
+
+
+def get_coin_price(coin_dict: dict) -> float:
+    if "current_price" in coin_dict["market_data"].keys():
+        if "usd" in coin_dict["market_data"]["current_price"].keys():
+            return coin_dict["market_data"]["current_price"]["usd"]
+        else:
+            return 0
+
+
+def get_coin_exchanges(coin_dict: dict) -> list:
+    if "tickers" in coin_dict.keys():
+        if "exchange" in coin_dict["tickers"][0].keys():
+            return [ticker["exchange"]["name"] for ticker in coin_dict["tickers"]]
+        else:
+            return []
+
+
+def get_info_from_dict(coin_dict: dict):
+    if coin_dict:
+        if "market_data" in coin_dict.keys():
+            volume = get_coin_vol(coin_dict)
+            price = get_coin_price(coin_dict)
+
+            if "price_change_percentage_24h" in coin_dict["market_data"].keys():
+                change = round(
+                    coin_dict["market_data"]["price_change_percentage_24h"], 2
+                )
+            else:
+                change = "N/A"
+
+            # Get the exchanges
+            exchanges = get_coin_exchanges(coin_dict)
+
+            return volume, price, change, exchanges
+    return None, None, None, None
 
 
 async def get_coin_info(
@@ -41,7 +117,7 @@ async def get_coin_info(
         The 24h price change of the coin.
     """
 
-    # Remove formatting
+    # Remove formatting from ticker input
     if ticker not in stables:
         for stable in stables:
             if ticker.endswith(stable):
@@ -50,137 +126,43 @@ async def get_coin_info(
     # Get the id of the ticker
     # Check if the symbol exists
     if ticker in cg_coins["symbol"].values:
-        ids = cg_coins[cg_coins["symbol"] == ticker]["id"]
-        if len(ids) > 1:
-            id = None
-            best_vol = 0
-            coin_dict = None
-            for symbol in ids.values:
-                # Catch potential errors
-                try:
-                    coin_info = cg.get_coin_by_id(symbol)
-                    if "usd" in coin_info["market_data"]["total_volume"]:
-                        volume = coin_info["market_data"]["total_volume"]["usd"]
-                        if volume > best_vol:
-                            best_vol = volume
-                            id = symbol
-                            coin_dict = coin_info
-                except Exception as e:
-                    pass
+        # Check coin by symbol, i.e. "BTC"
+        coin_dict, id = get_crypto_info(cg_coins[cg_coins["symbol"] == ticker]["id"])
 
-        elif len(ids) == 1:
-            id = ids.values[0]
-            # Try in case the CoinGecko API does not work
-            try:
-                coin_dict = cg.get_coin_by_id(id)
-            except Exception:
-                return
+    if coin_dict is None:
+        # As a second options check the TradingView data
+        if tv_data := await tv.get_tv_data(ticker, "crypto"):
+            # Unpack the data
+            price, perc_change, volume, exchange, website = tv_data
+            return (
+                volume,
+                website + "/?coingecko",
+                exchange,
+                price,
+                format_change(perc_change),
+            )
 
-        else:
-            return
+        # Third option is to check by id
+        elif ticker.lower() in cg_coins["id"].values:
+            coin_dict, id = get_crypto_info(
+                cg_coins[cg_coins["id"] == ticker.lower()]["id"]
+            )
 
-    # As a second options check the TradingView data
-    elif tv_data := await tv.get_tv_data(ticker, "crypto"):
-        price, perc_change, volume, exchange = tv_data
-        formatted_change = (
-            f"+{perc_change}% 📈" if perc_change > 0 else f"{perc_change}% 📉"
-        )
-        website = f"https://www.tradingview.com/symbols/{ticker}-{exchange}/?coingecko"
-        return volume, website, exchange, price, formatted_change
+        # Fourth option is to check by name, i.e. "Bitcoin"
+        elif ticker in cg_coins["name"].values:
+            coin_dict, id = get_crypto_info(cg_coins[cg_coins["name"] == ticker]["id"])
 
-    elif ticker.lower() in cg_coins["id"].values:
-        ids = cg_coins[cg_coins["id"] == ticker.lower()]["id"]
-        if len(ids) > 1:
-            id = None
-            best_vol = 0
-            coin_dict = None
-            for symbol in ids.values:
-                coin_info = cg.get_coin_by_id(symbol)
-                if "usd" in coin_info["market_data"]["total_volume"]:
-                    volume = coin_info["market_data"]["total_volume"]["usd"]
-                    if volume > best_vol:
-                        best_vol = volume
-                        id = symbol
-                        coin_dict = coin_info
-
-        elif len(ids) == 1:
-            id = ids.values[0]
-            try:
-                coin_dict = cg.get_coin_by_id(id)
-            except Exception:
-                return
-
-        else:
-            return
-
-    elif ticker in cg_coins["name"].values:
-        ids = cg_coins[cg_coins["name"] == ticker]["id"]
-        if len(ids) > 1:
-            id = None
-            best_vol = 0
-            coin_dict = None
-            for symbol in ids.values:
-                coin_info = cg.get_coin_by_id(symbol)
-                if "usd" in coin_info["market_data"]["total_volume"]:
-                    volume = coin_info["market_data"]["total_volume"]["usd"]
-                    if volume > best_vol:
-                        best_vol = volume
-                        id = symbol
-                        coin_dict = coin_info
-
-        elif len(ids) == 1:
-            id = ids.values[0]
-            try:
-                coin_dict = cg.get_coin_by_id(id)
-            except Exception:
-                return
-
-        else:
-            return
-
-    else:
-        return
-
-    # Get the information of this coin
-    try:
-        website = f"https://coingecko.com/en/coins/{id}"
-
-        # For tokens that are previewed but not yet live
-        if coin_dict is None:
-            print(f"Could not get coingecko info for {ticker}")
-            return
-
-        if coin_dict["market_data"] is None:
-            print(f"Could not get coingecko info for {ticker}")
-            return
-
-        if "usd" in coin_dict["market_data"]["total_volume"].keys():
-            total_vol = coin_dict["market_data"]["total_volume"]["usd"]
-        else:
-            return 1, website, [], 0, "Preview Only"
-
-        price = coin_dict["market_data"]["current_price"]["usd"]
-        price_change = coin_dict["market_data"]["price_change_percentage_24h"]
-
-        if price_change != None:
-            change = round(price_change, 2)
-        else:
-            return total_vol, website, [], price, "?"
-
-        formatted_change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
-
-        # Get the exchanges
-        exchanges = [exchange["market"]["name"] for exchange in coin_dict["tickers"]]
-    except Exception as e:
-        print(traceback.format_exc())
-        print(f"CoinGecko API error for {ticker}. Error:", e)
-        return None
-
-    # Get the exchanges
-    exchanges = [exchange["market"]["name"] for exchange in coin_dict["tickers"]]
+    # Get the information from the dictionary
+    total_vol, price, change, exchanges = get_info_from_dict(coin_dict)
 
     # Return the information
-    return total_vol, website, exchanges, price, formatted_change
+    return (
+        total_vol,
+        f"https://coingecko.com/en/coins/{id}",
+        exchanges,
+        price,
+        format_change(change),
+    )
 
 
 async def get_stock_info(
@@ -269,12 +251,8 @@ async def get_stock_info(
 
     # Check TradingView data
     if tv_data := await tv.get_tv_data(ticker, "stock"):
-        price, perc_change, volume, exchange = tv_data
-        formatted_change = (
-            f"+{perc_change}% 📈" if perc_change > 0 else f"{perc_change}% 📉"
-        )
-        website = f"https://www.tradingview.com/symbols/{ticker}-{exchange}"
-        return volume, website, exchange, price, formatted_change
+        price, perc_change, volume, exchange, website = tv_data
+        return volume, website, exchange, price, format_change(perc_change)
 
     else:
         return None

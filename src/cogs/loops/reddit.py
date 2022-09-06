@@ -42,6 +42,8 @@ class Reddit(commands.Cog):
                 self.bot, config["LOOPS"]["REDDIT"]["WALLSTREETBETS"]["CHANNEL"]
             )
 
+            # Get the subreddit database
+
             self.wsb.start(reddit)
 
     @loop(hours=12)
@@ -59,19 +61,6 @@ class Reddit(commands.Cog):
         None
         """
 
-        em = discord.Embed(
-            title="Current hottest r/wallstreetbets posts",
-            url="https://www.reddit.com/r/wallstreetbets/",
-            description="The 10 hottest posts of the last 12 hours on r/wallstreetbets are posted below!",
-            color=0xFF3F18,
-            timestamp=datetime.datetime.utcnow(),
-        )
-        em.set_thumbnail(
-            url="https://styles.redditmedia.com/t5_2th52/styles/communityIcon_wzrl8s0hx8a81.png?width=256&s=dcbf830170c1e8237335a3f046b36f723c5d55e7"
-        )
-
-        await self.channel.send(embed=em)
-
         subreddit = await reddit.subreddit("WallStreetBets")
         try:
             counter = 1
@@ -82,8 +71,8 @@ class Reddit(commands.Cog):
                 descr = submission.selftext
 
                 # Make sure the description and title are not too long
-                if len(descr) > 280:
-                    descr = descr[:280] + "..."
+                if len(descr) > 4000:
+                    descr = descr[:4000] + "..."
 
                 title = submission.title
                 if len(title) > 250:

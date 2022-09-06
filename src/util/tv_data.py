@@ -5,14 +5,17 @@ import re
 import json
 import random
 import string
-import requests
 import traceback
 from typing import Optional, List
 
 # > 3rd party dependencies
 import aiohttp
-import pandas as pd
 from tradingview_ta import TA_Handler, Interval
+
+# > Local dependencies
+from tv_symbols import stock_indices, crypto_indices
+from util.db import get_db
+
 
 class TV_data:
     """
@@ -33,93 +36,16 @@ class TV_data:
     """
 
     def __init__(self) -> None:
-        # Get the current symbols and exchanges on TradingView
-        tv_stocks = requests.get("https://scanner.tradingview.com/america/scan").json()[
-            "data"
-        ]
-        tv_crypto = requests.get("https://scanner.tradingview.com/crypto/scan").json()[
-            "data"
-        ]
 
-        self.US_bonds = [
-            "TVC:US01MY",
-            "TVC:US02MY",
-            "TVC:US03MY",
-            "TVC:US06MY",
-            "TVC:US01Y",
-            "TVC:US02Y",
-            "TVC:US03Y",
-            "TVC:US05Y",
-            "TVC:US07Y",
-            "TVC:US10Y",
-            "TVC:US20Y",
-            "TVC:US30Y",
-        ]
-
-        self.EU_bonds = [
-            "TVC:EU03MY",
-            "TVC:EU06MY",
-            "TVC:EU09MY",
-            "TVC:EU01Y",
-            "TVC:EU02Y",
-            "TVC:EU03Y",
-            "TVC:EU04Y",
-            "TVC:EU05Y",
-            "TVC:EU06Y",
-            "TVC:EU07Y",
-            "TVC:EU08Y",
-            "TVC:EU09Y",
-            "TVC:EU10Y",
-            "TVC:EU15Y",
-            "TVC:EU20Y",
-            "TVC:EU25Y",
-            "TVC:EU30Y",
-        ]
-
-        self.stock_indices = (
-            [
-                "AMEX:SPY",
-                "NASDAQ:NDX",
-                "USI:PCC",
-                "USI:PCCE",
-                "TVC:DXY",
-                "TVC:VIX",
-                "TVC:SPX",
-            ]
-            + self.US_bonds
-            + self.EU_bonds
-        )
-
-        self.stock_indices_without_exch = [
-            sym.split(":")[1] for sym in self.stock_indices
-        ]
-
-        tv_stocks = pd.DataFrame(tv_stocks).drop(columns=["d"])
-        self.tv_stocks = pd.concat(
-            [tv_stocks, pd.DataFrame(self.stock_indices, columns=["s"])]
-        )
-        self.tv_stocks[["exchange", "stock"]] = self.tv_stocks["s"].str.split(
-            ":", 1, expand=True
-        )
-
-        # Get all EXCHANGE:INDEX symbols
-        crypto_indices = [
-            "CRYPTOCAP:TOTAL",
-            "CRYPTOCAP:BTC.D",
-            "CRYPTOCAP:OTHERS.D",
-            "CRYPTOCAP:TOTALDEFI.D",
-            "CRYPTOCAP:USDT.D",
-        ]
+        self.stock_indices_without_exch = [sym.split(":")[1] for sym in stock_indices]
 
         self.crypto_indices_without_exch = [sym.split(":")[1] for sym in crypto_indices]
 
-        tv_crypto = pd.DataFrame(tv_crypto).drop(columns=["d"])
-        self.tv_crypto = pd.concat(
-            [tv_crypto, pd.DataFrame(crypto_indices, columns=["s"])]
-        )
-        self.tv_crypto[["exchange", "stock"]] = self.tv_crypto["s"].str.split(
-            ":", 1, expand=True
-        )
+        # Get the variables from the database
+        self.tv_stocks = get_db("tv_stocks")
+        self.tv_crypto = get_db("tv_crypto")
+        self.tv_forex = get_db("tv_forex")
+        self.tv_cfd = get_db("tv_cfd")
 
     async def on_msg(
         self, ws: aiohttp.ClientWebSocketResponse, msg
@@ -252,7 +178,7 @@ class TV_data:
 
     async def get_tv_data(
         self, symbol: str, asset: str
-    ) -> Optional[tuple[float, float, float]]:
+    ) -> Optional[tuple[float, float, float, str, str]]:
         """
         Gets the current price, volume, 24h change, and TA data from the TradingView API.
 
@@ -274,6 +200,8 @@ class TV_data:
                 The current volume.
             str
                 The exchange that this symbol is listed on.
+            str
+                The url to the TradingView chart for this symbol.
         """
 
         try:
@@ -316,7 +244,13 @@ class TV_data:
                         if resp is not None:
                             await ws.close()
                             await session.close()
-                            return resp[0], resp[1], resp[2], exchange
+                            return (
+                                resp[0],
+                                resp[1],
+                                resp[2],
+                                exchange,
+                                f"https://www.tradingview.com/symbols/{symbol}-{exchange}",
+                            )
 
                         elif counter == 3:
                             await session.close()
@@ -324,7 +258,7 @@ class TV_data:
 
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         # self.restart_sockets()
-                        print("Error")
+                        print("TradingView websocket Error")
                         await session.close()
                         return False
 
