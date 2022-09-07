@@ -2,7 +2,6 @@
 import yaml
 import aiohttp
 import tweepy
-from pycoingecko import CoinGeckoAPI
 
 # Read config.yaml content
 with open("config.yaml", "r", encoding="utf-8") as f:
@@ -33,11 +32,24 @@ filter_dict = {
 # Stable coins
 stables = ["USDT", "USD", "BUSD", "DAI", "USDTPERP"]
 
-# Used in util/ticker.py
-cg = CoinGeckoAPI()
 
 def format_change(change: float) -> str:
+    """
+    Converts a float to a string with a plus sign if the float is positive, and a minus sign if the float is negative.
+
+    Parameters
+    ----------
+    change : float
+        The percentual change of an asset.
+
+    Returns
+    -------
+    str
+        The formatted change.
+    """
+
     return f"+{change}% 📈" if change > 0 else f"{change}% 📉"
+
 
 async def get_json_data(url: str, headers: dict = None, text: bool = False) -> dict:
     """

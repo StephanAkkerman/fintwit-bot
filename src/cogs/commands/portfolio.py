@@ -9,7 +9,7 @@ from discord.ext import commands
 from discord.commands import SlashCommandGroup, Option
 
 # Local dependencies
-from util.db import get_db, update_db
+from util.db import update_db, DB_info
 from cogs.loops.trades import Trades
 from cogs.loops.assets import Assets
 
@@ -26,11 +26,19 @@ class Portfolio(commands.Cog):
         Handles the errors when using the `!portfolio` command.
     """
 
+    # Create a slash command group
+    portfolios = SlashCommandGroup("portfolio", description="Manage your portfolio.")
+
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-    # Create a slash command group
-    portfolios = SlashCommandGroup("portfolio", description="Manage your portfolio.")
+    def update_portfolio_db(self, new_db):
+
+        # Set the new portfolio so other functions can access it
+        DB_info.set_portfolio_db(new_db)
+
+        # Write to SQL database
+        update_db(new_db, "portfolio")
 
     @commands.dm_only()
     @portfolios.command(name="add", description="Add a portfolio to the database.")
@@ -93,10 +101,12 @@ class Portfolio(commands.Cog):
             },
             index=[0],
         )
-        update_db(
-            pd.concat([get_db("portfolio"), new_data], ignore_index=True),
-            "portfolio",
+
+        # Update the databse
+        self.update_portfolio_db(
+            pd.concat([DB_info.get_portfolio_db(), new_data], ignore_index=True)
         )
+
         await ctx.respond("Succesfully added your portfolio to the database!")
 
         # Init Exchanges to start websockets
@@ -121,7 +131,7 @@ class Portfolio(commands.Cog):
         `!portfolio remove (<exchange>)` if exchange is not specified, all your portfolio(s) will be removed.
         """
 
-        old_db = get_db("portfolio")
+        old_db = DB_info.get_portfolio_db()
         if len(input) == 1:
             rows = old_db.index[old_db["id"] == ctx.author.id].tolist()
         elif len(input) > 2:
@@ -130,10 +140,11 @@ class Portfolio(commands.Cog):
             ].tolist()
 
         # Update database
-        update_db(old_db.drop(index=rows), "portfolio")
+        self.update_portfolio_db(old_db.drop(rows))
+
         await ctx.respond("Succesfully removed your portfolio from the database!")
 
-        # Maybe unsubribe from websockets
+        # Maybe unsubscribe from websockets
 
     @commands.dm_only()
     @portfolios.command(
@@ -147,7 +158,7 @@ class Portfolio(commands.Cog):
         `!portfolio show` to show your portfolio(s) in our database.
         """
 
-        db = get_db("portfolio")
+        db = DB_info.get_portfolio_db()
         rows = db.loc[db["id"] == ctx.author.id]
         if not rows.empty:
             for _, row in rows.iterrows():

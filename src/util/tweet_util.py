@@ -14,8 +14,8 @@ import discord
 from discord.ext import commands
 
 # Local dependencies
-from util.sentimentanalyis import classify_sentiment
-from util.ticker import classify_ticker
+from util.sentiment_analyis import classify_sentiment
+from util.ticker_classifier import classify_ticker
 from util.vars import filter_dict
 from util.disc_util import get_emoji
 

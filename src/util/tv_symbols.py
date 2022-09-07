@@ -1,6 +1,5 @@
 # This file is used to store all the symbols used in the TV module.
-
-# Using the format EXCHANGE:INDEX for TradingView symbols
+# Use format EXCHANGE:INDEX for TradingView symbols
 crypto_indices = [
     "CRYPTOCAP:TOTAL",
     "CRYPTOCAP:BTC.D",

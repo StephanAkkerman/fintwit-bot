@@ -8,18 +8,18 @@ import yfinance as yf
 # Discord imports
 import discord
 from discord.ext import commands
-
+from discord.commands import SlashCommandGroup, Option
 
 # Local dependencies
 from util.vars import config
-from util.db import get_db, update_db
+from util.db import DB_info, update_db
 from util.disc_util import get_channel
 from util.confirm_stock import confirm_stock
 
 
 class Stock(commands.Cog):
     """
-    This class handles the `!stock` command.
+    This class handles the `/stock` command.
 
     Methods
     -------
@@ -31,9 +31,32 @@ class Stock(commands.Cog):
         Reports the errors when using the `!stock` command.
     """
 
+    # Create a slash command group
+    stocks = SlashCommandGroup("stock", description="Add stocks to your portfolio.")
+
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.channel = get_channel(self.bot, config["LOOPS"]["TRADES"]["CHANNEL"])
+
+    def update_assets_db(self, new_db):
+        """
+        Updates the assets database.
+
+        Parameters
+        ----------
+        new_db : pandas.DataFrame
+            The new database to be written to the assets database.
+
+        Returns
+        -------
+        None
+        """
+
+        # Set the new portfolio so other functions can access it
+        DB_info.set_assets_db(new_db)
+
+        # Write to SQL database
+        update_db(new_db, "assets")
 
     async def stock_trade_msg(
         self, user: discord.User, side: str, stock_name: str, price: str, quantity: str
@@ -79,14 +102,20 @@ class Stock(commands.Cog):
 
         await self.channel.send(embed=e)
 
-    @commands.command()
-    async def stock(self, ctx: commands.Context, *input: tuple) -> None:
+    @stocks.command(name="add", description="Add a stock to your portfolio.")
+    async def add(
+        self,
+        ctx: commands.Context,
+        input: Option(
+            str, description="Provide the following: <ticker> <amount>`", required=True
+        ),
+    ) -> None:
+
         """
         Add stocks to your portfolio.
-        Usage: `!stock <keyword> <amount> [<ticker>]`
-        `!stock add <ticker> <amount>` to add a stock to your portfolio
-        `!stock remove <ticker>` to remove a stock from your portfolio
-        `!stock show` to show your portfolio
+        Usage:
+        `/stock add <ticker> <amount>` to add a stock to your portfolio
+
 
         Parameters
         ----------
@@ -100,156 +129,156 @@ class Stock(commands.Cog):
         None
         """
 
-        if input:
-            if input[0] == "add":
-                if len(input) == 3:
-                    _, ticker, amount = input
+        # Split the input using the spaces
+        input = input.split(" ")
+        
+        if len(input) < 2 or len(input) >2:
+            await ctx.respond("Please provide a ticker and amount.")
+            return
 
-                    # Make sure that the user is aware of this stock's existence
-                    if not await confirm_stock(self.bot, ctx, ticker):
-                        return
+        ticker, amount = input
 
-                    # Add ticker to database
-                    new_data = pd.DataFrame(
-                        {
-                            "asset": ticker.upper(),
-                            "owned": int(amount),
-                            "exchange": "stock",
-                            "id": ctx.message.author.id,
-                            "user": ctx.message.author.name,
-                        },
-                        index=[0],
-                    )
+        # Make sure that the user is aware of this stock's existence
+        if not await confirm_stock(self.bot, ctx, ticker):
+            return
 
-                    old_db = get_db("assets")
+        # Add ticker to database
+        new_data = pd.DataFrame(
+            {
+                "asset": ticker.upper(),
+                "owned": int(amount),
+                "exchange": "stock",
+                "id": ctx.message.author.id,
+                "user": ctx.message.author.name,
+            },
+            index=[0],
+        )
 
-                    # Check if the user has this asset already
-                    owned_in_db = old_db.loc[
-                        (old_db["id"] == ctx.message.author.id)
-                        & (old_db["asset"] == ticker.upper())
-                    ]
-                    if owned_in_db.empty:
-                        update_db(
-                            pd.concat([old_db, new_data], ignore_index=True), "assets"
-                        )
-                    else:
-                        old_db.loc[
-                            (old_db["id"] == ctx.message.author.id)
-                            & (old_db["asset"] == ticker.upper()),
-                            "owned",
-                        ] += int(amount)
-                        update_db(old_db, "assets")
-                    await ctx.send("Succesfully added your stock to the database!")
+        old_db = DB_info.get_assets_db()
 
-                    stock_info = yf.Ticker(ticker)
+        # Check if the user has this asset already
+        owned_in_db = old_db.loc[
+            (old_db["id"] == ctx.message.author.id)
+            & (old_db["asset"] == ticker.upper())
+        ]
+        if owned_in_db.empty:
+            self.update_assets_db(
+                pd.concat([old_db, new_data], ignore_index=True)
+            )
+        else:
+            old_db.loc[
+                (old_db["id"] == ctx.message.author.id)
+                & (old_db["asset"] == ticker.upper()),
+                "owned",
+            ] += int(amount)
+            self.update_assets_db(old_db)
+        await ctx.send("Succesfully added your stock to the database!")
 
-                    # Send message in trades channel
-                    await self.stock_trade_msg(
-                        ctx.message.author,
-                        "Bought",
-                        ticker,
-                        stock_info.info["regularMarketPrice"],
-                        amount,
-                    )
+        stock_info = yf.Ticker(ticker)
 
-                else:
-                    await ctx.send("Please specify a ticker and amount!")
+        # Send message in trades channel
+        await self.stock_trade_msg(
+            ctx.message.author,
+            "Bought",
+            ticker,
+            stock_info.info["regularMarketPrice"],
+            amount,
+        )
 
-            elif input[0] == "remove":
-                if len(input) == 2:
-                    _, ticker = input
 
-                    old_db = get_db("assets")
-                    row = old_db.index[
-                        (old_db["id"] == ctx.message.author.id)
-                        & (old_db["asset"] == ticker)
-                    ]
+    @stocks.command(
+        name="remove", description="Remove a specific stock from your portfolio."
+    )
+    async def remove(self, ctx: commands.Context, input: Option(str, description="Provide the following information: <ticker> (<amount>)", required=True)) -> None:
+        """
+        Usage:
+        `!stock remove <ticker> (<amount>)` to remove a stock from your portfolio
+        """
+        
+        # Split the input using the spaces
+        input = input.split(" ")
+        ticker = input[0]
+        
+        if len(input) < 1 or len(input) > 2:
+            await ctx.respond("Please provide at least a ticker and possibly an amount.")
+            return
+                
+        if len(input) == 1:
+            old_db = DB_info.get_assets_db()
+            row = old_db.index[
+                (old_db["id"] == ctx.message.author.id)
+                & (old_db["asset"] == ticker)
+            ]
 
-                    # Update database
-                    if not row.empty:
-                        update_db(old_db.drop(index=row), "assets")
-                        await ctx.send(
-                            f"Succesfully removed all {ticker.upper()} from your owned stocks!"
-                        )
-                    else:
-                        await ctx.send("You do not own this stock!")
-
-                elif len(input) == 3:
-                    _, ticker, amount = input
-                    old_db = get_db("assets")
-
-                    row = old_db.loc[
-                        (old_db["id"] == ctx.message.author.id)
-                        & (old_db["asset"] == ticker)
-                    ]
-
-                    # Update database
-                    if not row.empty:
-                        # Check the amount owned
-                        owned_now = row["owned"].tolist()[0]
-                        # if it is equal to or greater than the amount to remove, remove all
-                        if int(amount) >= owned_now:
-                            update_db(old_db.drop(index=row.index), "assets")
-                            await ctx.send(
-                                f"Succesfully removed all {ticker.upper()} from your owned stocks!"
-                            )
-                        else:
-                            old_db.loc[
-                                (old_db["id"] == ctx.message.author.id)
-                                & (old_db["asset"] == ticker.upper()),
-                                "owned",
-                            ] -= int(amount)
-                            update_db(old_db, "assets")
-                            await ctx.send(
-                                f"Succesfully removed {amount} {ticker.upper()} from your owned stocks!"
-                            )
-
-                        # Send message in trades channel
-                        await self.stock_trade_msg(
-                            ctx.message.author,
-                            "Sold",
-                            ticker,
-                            yf.Ticker(ticker).info["regularMarketPrice"],
-                            amount,
-                        )
-
-                    else:
-                        await ctx.send("You do not own this stock!")
-                else:
-                    await ctx.send("Please specify a ticker!")
-
-            elif input[0] == "show":
-                db = get_db("assets")
-                rows = db.loc[
-                    (db["id"] == ctx.message.author.id) & (db["exchange"] == "stock")
-                ]
-                if not rows.empty:
-                    for _, row in rows.iterrows():
-                        # Maybe send this an embed
-                        await ctx.send(
-                            f"Stock: {row['asset'].upper()} \nAmount: {row['owned']}"
-                        )
-                else:
-                    await ctx.send("You do not have any stocks")
+            # Update database
+            if not row.empty:
+                self.update_assets_db(old_db.drop(index=row))
+                await ctx.respond(
+                    f"Succesfully removed all {ticker.upper()} from your owned stocks!"
+                )
             else:
-                await ctx.send(
-                    "Please use one of the following keywords: 'add', 'remove', 'show'"
+                await ctx.respond("You do not own this stock!")
+
+        elif len(input) == 2:
+            amount = input[1]
+            old_db = DB_info.get_assets_db()
+
+            row = old_db.loc[
+                (old_db["id"] == ctx.message.author.id)
+                & (old_db["asset"] == ticker)
+            ]
+
+            # Update database
+            if not row.empty:
+                # Check the amount owned
+                owned_now = row["owned"].tolist()[0]
+                # if it is equal to or greater than the amount to remove, remove all
+                if int(amount) >= owned_now:
+                    self.update_assets_db(old_db.drop(index=row.index))
+                    await ctx.respond(
+                        f"Succesfully removed all {ticker.upper()} from your owned stocks!"
+                    )
+                else:
+                    old_db.loc[
+                        (old_db["id"] == ctx.message.author.id)
+                        & (old_db["asset"] == ticker.upper()),
+                        "owned",
+                    ] -= int(amount)
+                    self.update_assets_db(old_db)
+                    await ctx.respond(
+                        f"Succesfully removed {amount} {ticker.upper()} from your owned stocks!"
+                    )
+
+                # Send message in trades channel
+                await self.stock_trade_msg(
+                    ctx.message.author,
+                    "Sold",
+                    ticker,
+                    yf.Ticker(ticker).info["regularMarketPrice"],
+                    amount,
+                )
+
+            else:
+                await ctx.respond("You do not own this stock!")
+
+    @stocks.command(name="show", description="Show the stocks in your portfolio.")
+    async def show(self, ctx: commands.Context) -> None:
+        """
+        Usage:
+        `!stock show` to show the stocks in your portfolio
+        """
+        db = DB_info.get_assets_db()
+        rows = db.loc[
+            (db["id"] == ctx.message.author.id) & (db["exchange"] == "stock")
+        ]
+        if not rows.empty:
+            for _, row in rows.iterrows():
+                # Maybe send this an embed
+                await ctx.respond(
+                    f"Stock: {row['asset'].upper()} \nAmount: {row['owned']}"
                 )
         else:
-            raise commands.UserInputError()
-
-    @stock.error
-    async def stock_error(self, ctx: commands.Context, error: Exception) -> None:
-        print(error)
-
-        if isinstance(error, commands.UserInputError):
-            await ctx.send(
-                f"{ctx.author.mention} Please use one of the following keywords: 'add', 'remove', 'show' followed by stock ticker and amount!"
-            )
-        else:
-            await ctx.send(
-                f"{ctx.author.mention} An error has occurred. Please try again later."
-            )
+            await ctx.respond("You do not have any stocks")
 
 
 def setup(bot: commands.Bot) -> None:

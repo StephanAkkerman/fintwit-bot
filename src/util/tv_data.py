@@ -14,7 +14,7 @@ from tradingview_ta import TA_Handler, Interval
 
 # > Local dependencies
 from tv_symbols import stock_indices, crypto_indices
-from util.db import get_db
+from util.db import DB_info
 
 
 class TV_data:
@@ -38,14 +38,7 @@ class TV_data:
     def __init__(self) -> None:
 
         self.stock_indices_without_exch = [sym.split(":")[1] for sym in stock_indices]
-
         self.crypto_indices_without_exch = [sym.split(":")[1] for sym in crypto_indices]
-
-        # Get the variables from the database
-        self.tv_stocks = get_db("tv_stocks")
-        self.tv_crypto = get_db("tv_crypto")
-        self.tv_forex = get_db("tv_forex")
-        self.tv_cfd = get_db("tv_cfd")
 
     async def on_msg(
         self, ws: aiohttp.ClientWebSocketResponse, msg
@@ -143,25 +136,24 @@ class TV_data:
             str
                 The symbol itself.
         """
+        db = DB_info()
+        tv_stocks = db.get_tv_stocks()
+        tv_crypto = db.get_tv_crypto()
 
         if asset == "stock":
-            stock = self.tv_stocks.loc[self.tv_stocks["stock"] == symbol]
+            stock = tv_stocks.loc[tv_stocks["stock"] == symbol]
             if not stock.empty:
                 return stock["exchange"].values[0], "america", symbol
         else:
-            crypto = self.tv_crypto.loc[self.tv_crypto["stock"] == symbol]
+            crypto = tv_crypto.loc[tv_crypto["stock"] == symbol]
             if not crypto.empty:
                 return crypto["exchange"].values[0], "crypto", symbol
             else:
                 if not symbol.endswith("USD") or not symbol.endswith("USDT"):
 
                     # If it crypto try adding USD or USDT
-                    crypto_USD = self.tv_crypto.loc[
-                        self.tv_crypto["stock"] == symbol + "USD"
-                    ]
-                    crypto_USDT = self.tv_crypto.loc[
-                        self.tv_crypto["stock"] == symbol + "USDT"
-                    ]
+                    crypto_USD = tv_crypto.loc[tv_crypto["stock"] == symbol + "USD"]
+                    crypto_USDT = tv_crypto.loc[tv_crypto["stock"] == symbol + "USDT"]
 
                     if not crypto_USD.empty:
                         return (
@@ -346,3 +338,6 @@ class TV_data:
 
         except Exception as e:
             print(f"TradingView TA error for ticker: {symbol}, error:", e)
+
+
+tv = TV_data()

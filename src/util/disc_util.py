@@ -1,16 +1,14 @@
 # Standard libraries
 import sys
 from typing import Optional
-import threading
 
 # Third party libraries
 import discord
 from discord.ext import commands
-import pandas as pd
 
 # Local dependencies
 from util.vars import config
-from util.db import get_db
+from util.db import DB_info
 
 
 def get_guild(bot: commands.Bot) -> discord.Guild:
@@ -104,28 +102,6 @@ async def get_user(bot: commands.Bot, user_id: int) -> discord.User:
     return await bot.fetch_user(user_id)
 
 
-assets_db = pd.DataFrame()
-
-
-def get_assets_db() -> None:
-    """
-    Updates the assets_db global variable with the data from the database every hour.
-
-    Returns
-    -------
-    None
-    """
-
-    global assets_db
-    assets_db = get_db("assets")
-
-    # Do this every hour
-    threading.Timer(60 * 60, get_assets_db).start()
-
-
-get_assets_db()
-
-
 def get_tagged_users(tickers: list) -> Optional[str]:
     """
     Tags the users with the tickers in their portfolio that are mentioned in the message.
@@ -142,6 +118,7 @@ def get_tagged_users(tickers: list) -> Optional[str]:
     """
 
     # Get the stored db
+    assets_db = DB_info.get_assets_db()
     matching_users = assets_db[assets_db["asset"].isin(tickers)]["id"].tolist()
     unique_users = list(set(matching_users))
 

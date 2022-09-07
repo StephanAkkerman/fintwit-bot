@@ -12,12 +12,12 @@ import pandas as pd
 
 # > Local dependencies
 from cogs.loops.trades import Binance, KuCoin
-from util.ticker import get_stock_info
-from util.db import get_db, update_db
+from util.yf_data import get_stock_info
+from util.cg_data import get_coin_info
+from util.db import update_db, DB_info
 from util.disc_util import get_channel, get_user
-from util.vars import stables, cg_coins, cg, config
+from util.vars import stables, config
 from util.disc_util import get_guild
-from util.tv_data import TV_data
 from util.formatting import format_embed_length
 
 
@@ -39,10 +39,9 @@ class Assets(commands.Cog):
     """
 
     def __init__(
-        self, bot: commands.Bot, db: pd.DataFrame = get_db("portfolio")
+        self, bot: commands.Bot, db: pd.DataFrame = DB_info.get_portfolio_db()
     ) -> None:
         self.bot = bot
-        self.tv = TV_data()
 
         # Refresh assets
         asyncio.create_task(self.assets(db))
@@ -77,33 +76,8 @@ class Assets(commands.Cog):
             )
 
         if usd_val == 0:
-            if asset in cg_coins["symbol"].values:
-                ids = cg_coins[cg_coins["symbol"] == asset]["id"]
-                if len(ids) > 1:
-                    best_vol = 0
-                    coin_dict = None
-                    for symbol in ids.values:
-                        coin_info = cg.get_coin_by_id(symbol)
-                        if "usd" in coin_info["market_data"]["total_volume"]:
-                            volume = coin_info["market_data"]["total_volume"]["usd"]
-                            if volume > best_vol:
-                                best_vol = volume
-                                coin_dict = coin_info
-                else:
-                    coin_dict = cg.get_coin_by_id(ids.values[0])
-
-                try:
-                    price = coin_dict["market_data"]["current_price"]["usd"]
-                    return price * owned
-                except Exception as e:
-                    print(
-                        f"CoinGecko API error for asset: {asset} when requesting price in USD. Error:",
-                        e,
-                    )
-                    return 0
-
-            elif tv_data := await self.tv.get_tv_data(asset, "crypto"):
-                return tv_data[0] * owned
+            _, _, _, price, _ = await get_coin_info(asset)
+            return price * owned
         else:
             return usd_val * owned
 
@@ -122,14 +96,14 @@ class Assets(commands.Cog):
         None
         """
 
-        if db.equals(get_db("portfolio")):
+        if db.equals(DB_info.get_portfolio_db()):
             # Drop all crypto assets
-            old_db = get_db("assets")
+            old_db = DB_info.get_assets_db()
             crypto_rows = old_db.index[old_db["exchange"] != "stock"].tolist()
             assets_db = old_db.drop(index=crypto_rows)
         else:
             # Add it to the old assets db, since this call is for a specific person
-            assets_db = get_db("assets")
+            assets_db = DB_info.get_assets_db()
 
         # Ensure that the db knows the right types
         assets_db = assets_db.astype(
@@ -188,6 +162,8 @@ class Assets(commands.Cog):
 
         # Update the assets db
         update_db(assets_db, "assets")
+        DB_info.set_assets_db(assets_db)
+        
         print("Updated assets database")
 
         self.post_assets.start()
@@ -315,7 +291,7 @@ class Assets(commands.Cog):
         None
         """
 
-        assets_db = get_db("assets")
+        assets_db = DB_info.get_assets_db()
         guild = get_guild(self.bot)
 
         # Use the user name as channel
@@ -327,7 +303,9 @@ class Assets(commands.Cog):
             # If this channel does not exist make it
             channel = get_channel(self.bot, channel_name)
             if channel is None:
-                channel = await guild.create_text_channel(channel_name, category=config["LOOPS"]["ASSETS"]["CATEGORY"])
+                channel = await guild.create_text_channel(
+                    channel_name, category=config["LOOPS"]["ASSETS"]["CATEGORY"]
+                )
                 print(f"Created channel {channel_name}")
 
             # Get the data
@@ -383,7 +361,8 @@ class Assets(commands.Cog):
                 )
 
                 e.set_author(
-                    name=disc_user.name + "'s Assets", icon_url=disc_user.display_avatar.url
+                    name=disc_user.name + "'s Assets",
+                    icon_url=disc_user.display_avatar.url,
                 )
 
                 # Divide it per exchange
