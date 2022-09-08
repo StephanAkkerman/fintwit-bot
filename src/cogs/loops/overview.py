@@ -2,15 +2,17 @@
 # > Standard libraries
 from collections import Counter
 import json
+import datetime
 
 # > Discord dependencies
 from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
+import util.vars
 from util.vars import config
 from util.disc_util import get_channel
-from util.db import get_db
+from util.db import update_db
 
 
 class Overview(commands.Cog):
@@ -37,16 +39,42 @@ class Overview(commands.Cog):
         ):
             self.overview.start()
 
+    def clean_db(self, tweet_db):
+        # Set the types
+        tweet_db = tweet_db.astype(
+            {
+                "ticker": str,
+                "user": str,
+                "sentiment": str,
+                "category": str,
+                "timestamp": "datetime64[ns]",
+            }
+        )
+
+        tweet_db = tweet_db[
+            tweet_db["timestamp"]
+            > datetime.datetime.now() - datetime.timedelta(hours=24)
+        ]
+
+        # Save the database
+        util.vars.tweets_db = tweet_db
+        update_db(tweet_db, "tweets")
+        
+        return tweet_db
+
     @loop(hours=1)
     async def overview(self):
         # Get the database
-        tweet_db = get_db("tweets")
+        tweet_db = util.vars.tweets_db
 
-        if tweet_db.empty:
-            return
+        # Remove all entries older than 24h
+        if not tweet_db.empty:
+            tweet_db = self.clean_db(tweet_db)
 
-        await self.make_overview(tweet_db, "stockS")
-        await self.make_overview(tweet_db, "crypto")
+        # Make sure that the new db is also not empty
+        if not tweet_db.empty:
+            await self.make_overview(tweet_db, "stockS")
+            await self.make_overview(tweet_db, "crypto")
 
     async def make_overview(self, tweet_db, keyword):
         # Post the overview for stocks and crypto

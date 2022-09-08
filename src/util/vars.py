@@ -36,6 +36,7 @@ stables = ["USDT", "USD", "BUSD", "DAI", "USDTPERP"]
 assets_db = None
 portfolio_db = None
 cg_db = None
+tweets_db = None
 
 # These variables save the TradingView tickers
 stocks = None

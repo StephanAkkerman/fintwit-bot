@@ -1,5 +1,5 @@
 # > Standard library
-import asyncio
+import datetime
 
 # > 3rd party dependencies
 import pandas as pd
@@ -20,23 +20,23 @@ class DB(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-        # Start the loops
-        # asyncio.run(self.set_cg_db())
-        # asyncio.run(self.set_tv_db())
-
-        # Start loops in 24h
+        # Start loops
         self.set_cg_db.start()
         self.set_tv_db.start()
 
         # Set the portfolio and assets db
         self.set_portfolio_db()
         self.set_assets_db()
+        self.set_tweets_db()
 
     def set_portfolio_db(self):
         util.vars.portfolio_db = get_db("portfolio")
 
     def set_assets_db(self):
         util.vars.assets_db = get_db("assets")
+
+    def set_tweets_db(self):
+        util.vars.tweets_db = get_db("tweets")
 
     # Set the important database variables on startup and refresh every 24 hours
     @loop(hours=24)
@@ -103,6 +103,43 @@ class DB(commands.Cog):
 
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(DB(bot))
+
+
+def update_tweet_db(tickers, user, sentiment, category):
+
+    # Prepare new data
+    dict_list = []
+    for ticker in tickers:
+        dict_list.append(
+            {
+                "ticker": ticker,
+                "user": user,
+                "sentiment": sentiment,
+                "category": category,
+            }
+        )
+
+    # Convert it to a dataframe
+    tweet_db = pd.DataFrame(dict_list)
+
+    # Add current time
+    tweet_db["timestamp"] = datetime.datetime.now()
+
+    # Get the old database
+    old_db = util.vars.tweets_db
+
+    # Merge with the old database
+    if not old_db.empty:
+
+        # Add tweet to database
+        tweet_db = pd.concat([old_db, tweet_db])
+
+    # Reset the index
+    tweet_db = tweet_db.reset_index(drop=True)
+
+    # Save database
+    update_db(tweet_db, "tweets")
+    util.vars.tweets_db = tweet_db
 
 
 def get_db(database_name: str) -> pd.DataFrame:
