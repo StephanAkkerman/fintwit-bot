@@ -11,8 +11,9 @@ from discord.ext import commands
 from discord.commands import SlashCommandGroup, Option
 
 # Local dependencies
+import util.vars
 from util.vars import config
-from util.db import DB_info, update_db
+from util.db import update_db
 from util.disc_util import get_channel
 from util.confirm_stock import confirm_stock
 
@@ -53,7 +54,7 @@ class Stock(commands.Cog):
         """
 
         # Set the new portfolio so other functions can access it
-        DB_info.set_assets_db(new_db)
+        util.vars.assets_db = new_db
 
         # Write to SQL database
         update_db(new_db, "assets")
@@ -154,7 +155,7 @@ class Stock(commands.Cog):
             index=[0],
         )
 
-        old_db = DB_info.get_assets_db()
+        old_db = util.vars.assets_db
 
         # Check if the user has this asset already
         owned_in_db = old_db.loc[
@@ -204,7 +205,7 @@ class Stock(commands.Cog):
             return
                 
         if len(input) == 1:
-            old_db = DB_info.get_assets_db()
+            old_db = util.vars.assets_db
             row = old_db.index[
                 (old_db["id"] == ctx.message.author.id)
                 & (old_db["asset"] == ticker)
@@ -221,7 +222,7 @@ class Stock(commands.Cog):
 
         elif len(input) == 2:
             amount = input[1]
-            old_db = DB_info.get_assets_db()
+            old_db = util.vars.assets_db
 
             row = old_db.loc[
                 (old_db["id"] == ctx.message.author.id)
@@ -267,7 +268,7 @@ class Stock(commands.Cog):
         Usage:
         `!stock show` to show the stocks in your portfolio
         """
-        db = DB_info.get_assets_db()
+        db = util.vars.assets_db
         rows = db.loc[
             (db["id"] == ctx.message.author.id) & (db["exchange"] == "stock")
         ]

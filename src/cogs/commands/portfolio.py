@@ -9,7 +9,8 @@ from discord.ext import commands
 from discord.commands import SlashCommandGroup, Option
 
 # Local dependencies
-from util.db import update_db, DB_info
+import util.vars
+from util.db import update_db
 from cogs.loops.trades import Trades
 from cogs.loops.assets import Assets
 
@@ -35,7 +36,7 @@ class Portfolio(commands.Cog):
     def update_portfolio_db(self, new_db):
 
         # Set the new portfolio so other functions can access it
-        DB_info.set_portfolio_db(new_db)
+        util.vars.portfolio_db = new_db
 
         # Write to SQL database
         update_db(new_db, "portfolio")
@@ -103,8 +104,8 @@ class Portfolio(commands.Cog):
         )
 
         # Update the databse
-        self.update_portfolio_db(
-            pd.concat([DB_info.get_portfolio_db(), new_data], ignore_index=True)
+        util.vars.portfolio_db = pd.concat(
+            [util.vars.portfolio_db, new_data], ignore_index=True
         )
 
         await ctx.respond("Succesfully added your portfolio to the database!")
@@ -131,7 +132,7 @@ class Portfolio(commands.Cog):
         `!portfolio remove (<exchange>)` if exchange is not specified, all your portfolio(s) will be removed.
         """
 
-        old_db = DB_info.get_portfolio_db()
+        old_db = util.vars.portfolio_db
         if len(input) == 1:
             rows = old_db.index[old_db["id"] == ctx.author.id].tolist()
         elif len(input) > 2:
@@ -158,7 +159,7 @@ class Portfolio(commands.Cog):
         `!portfolio show` to show your portfolio(s) in our database.
         """
 
-        db = DB_info.get_portfolio_db()
+        db = util.vars.portfolio_db
         rows = db.loc[db["id"] == ctx.author.id]
         if not rows.empty:
             for _, row in rows.iterrows():

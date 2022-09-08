@@ -13,8 +13,8 @@ import aiohttp
 from tradingview_ta import TA_Handler, Interval
 
 # > Local dependencies
-from tv_symbols import stock_indices, crypto_indices
-from util.db import DB_info
+import util.vars
+from util.tv_symbols import stock_indices, crypto_indices
 
 
 class TV_data:
@@ -136,9 +136,9 @@ class TV_data:
             str
                 The symbol itself.
         """
-        db = DB_info()
-        tv_stocks = db.get_tv_stocks()
-        tv_crypto = db.get_tv_crypto()
+
+        tv_stocks = util.vars.stocks
+        tv_crypto = util.vars.crypto
 
         if asset == "stock":
             stock = tv_stocks.loc[tv_stocks["stock"] == symbol]

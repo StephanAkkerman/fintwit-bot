@@ -81,6 +81,9 @@ def load_folder(foldername: str) -> None:
 
 if __name__ == "__main__":
 
+    # Start by loading the database
+    bot.load_extension("util.db")
+
     # Load commands
     load_folder("commands")
 

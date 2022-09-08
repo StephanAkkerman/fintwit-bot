@@ -11,10 +11,11 @@ from discord.ext.tasks import loop
 import pandas as pd
 
 # > Local dependencies
+import util.vars
 from cogs.loops.trades import Binance, KuCoin
 from util.yf_data import get_stock_info
 from util.cg_data import get_coin_info
-from util.db import update_db, DB_info
+from util.db import update_db, get_db
 from util.disc_util import get_channel, get_user
 from util.vars import stables, config
 from util.disc_util import get_guild
@@ -39,7 +40,7 @@ class Assets(commands.Cog):
     """
 
     def __init__(
-        self, bot: commands.Bot, db: pd.DataFrame = DB_info.get_portfolio_db()
+        self, bot: commands.Bot, db: pd.DataFrame = util.vars.portfolio_db
     ) -> None:
         self.bot = bot
 
@@ -96,14 +97,14 @@ class Assets(commands.Cog):
         None
         """
 
-        if db.equals(DB_info.get_portfolio_db()):
+        if db.equals(util.vars.portfolio_db):
             # Drop all crypto assets
-            old_db = DB_info.get_assets_db()
+            old_db = util.vars.assets_db
             crypto_rows = old_db.index[old_db["exchange"] != "stock"].tolist()
             assets_db = old_db.drop(index=crypto_rows)
         else:
             # Add it to the old assets db, since this call is for a specific person
-            assets_db = DB_info.get_assets_db()
+            assets_db = util.vars.assets_db
 
         # Ensure that the db knows the right types
         assets_db = assets_db.astype(
@@ -162,8 +163,8 @@ class Assets(commands.Cog):
 
         # Update the assets db
         update_db(assets_db, "assets")
-        DB_info.set_assets_db(assets_db)
-        
+        util.vars.assets_db = assets_db
+
         print("Updated assets database")
 
         self.post_assets.start()
@@ -291,7 +292,7 @@ class Assets(commands.Cog):
         None
         """
 
-        assets_db = DB_info.get_assets_db()
+        assets_db = util.vars.assets_db
         guild = get_guild(self.bot)
 
         # Use the user name as channel

@@ -32,6 +32,17 @@ filter_dict = {
 # Stable coins
 stables = ["USDT", "USD", "BUSD", "DAI", "USDTPERP"]
 
+# Init global database vars
+assets_db = None
+portfolio_db = None
+cg_db = None
+
+# These variables save the TradingView tickers
+stocks = None
+crypto = None
+forex = None
+cfd = None
+
 
 def format_change(change: float) -> str:
     """

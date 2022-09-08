@@ -13,8 +13,11 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
-from util.vars import config, tv
+from util.vars import config
 from util.disc_util import get_channel
+from util.tv_data import tv
+from util.tv_symbols import EU_bonds, US_bonds
+
 
 class Yield(commands.Cog):
     """
@@ -64,7 +67,7 @@ class Yield(commands.Cog):
     async def plot_US_yield(self):
 
         years = np.array([0.08, 0.15, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 30])
-        yield_percentage = await self.get_yield(tv.US_bonds)
+        yield_percentage = await self.get_yield(US_bonds)
 
         self.make_plot(years, yield_percentage, "b", "US")
 
@@ -72,7 +75,7 @@ class Yield(commands.Cog):
         years = np.array(
             [0.25, 0.5, 0.75, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30]
         )
-        yield_percentage = await self.get_yield(tv.EU_bonds)
+        yield_percentage = await self.get_yield(EU_bonds)
 
         self.make_plot(years, yield_percentage, "r", "EU")
 

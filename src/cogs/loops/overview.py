@@ -1,14 +1,9 @@
 ## > Imports
 # > Standard libraries
-import datetime
 from collections import Counter
 import json
 
-# > 3rd party dependencies
-import pandas as pd
-
 # > Discord dependencies
-import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
 

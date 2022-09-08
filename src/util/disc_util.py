@@ -7,8 +7,8 @@ import discord
 from discord.ext import commands
 
 # Local dependencies
+import util.vars
 from util.vars import config
-from util.db import DB_info
 
 
 def get_guild(bot: commands.Bot) -> discord.Guild:
@@ -118,7 +118,7 @@ def get_tagged_users(tickers: list) -> Optional[str]:
     """
 
     # Get the stored db
-    assets_db = DB_info.get_assets_db()
+    assets_db = util.vars.assets_db
     matching_users = assets_db[assets_db["asset"].isin(tickers)]["id"].tolist()
     unique_users = list(set(matching_users))
 

@@ -1,5 +1,4 @@
 ## > Imports
-
 # > 3rd Party Dependencies
 import yfinance as yf
 import discord

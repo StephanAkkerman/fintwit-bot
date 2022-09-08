@@ -7,9 +7,9 @@ from typing import Optional, List
 from pycoingecko import CoinGeckoAPI
 
 # Local dependencies
+import util.vars
 from util.vars import stables, format_change
-from util.db import DB_info
-from util.vars import tv
+from util.tv_data import tv
 
 cg = CoinGeckoAPI()
 
@@ -114,7 +114,7 @@ async def get_coin_info(
         The 24h price change of the coin.
     """
 
-    cg_coins = DB_info.get_cg_db()
+    cg_coins = util.vars.cg_db
 
     # Remove formatting from ticker input
     if ticker not in stables:
