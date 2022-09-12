@@ -1,5 +1,7 @@
 # > Standard library
 import datetime
+import asyncio
+import time
 
 # > 3rd party dependencies
 import pandas as pd
@@ -13,7 +15,7 @@ from discord.ext.tasks import loop
 # > Local dependencies
 import util.vars
 from util.tv_symbols import crypto_indices, stock_indices
-from util.vars import get_json_data
+from util.tv_data import get_tv_ticker_data
 
 
 class DB(commands.Cog):
@@ -21,8 +23,8 @@ class DB(commands.Cog):
         self.bot = bot
 
         # Start loops
-        self.set_cg_db.start()
         self.set_tv_db.start()
+        self.set_cg_db.start()
 
         # Set the portfolio and assets db
         self.set_portfolio_db()
@@ -52,36 +54,34 @@ class DB(commands.Cog):
         # Set cg_coins
         util.vars.cg_db = cg_coins
 
+    async def start_tv_loop(self):
+        """Start the TV loop after 24h"""
+        time.sleep(60 * 60 * 24)
+        self.set_tv_db.start()
+
     @loop(hours=24)
     async def set_tv_db(self):
         """
         Gets the data from TradingView and saves it to the database.
         """
 
-        print("Updating TradingView database...")
+        # In case the function below fails
+        util.vars.stocks = get_db("tv_stocks")
+        util.vars.crypto = get_db("tv_crypto")
+        util.vars.forex = get_db("tv_forex")
+        util.vars.cfd = get_db("tv_cfd")
 
         # Get the current symbols and exchanges on TradingView
-        tv_stocks = await get_json_data("https://scanner.tradingview.com/america/scan")
-        tv_crypto = await get_json_data("https://scanner.tradingview.com/crypto/scan")
-        tv_forex = await get_json_data("https://scanner.tradingview.com/forex/scan")
-        tv_cfd = await get_json_data("https://scanner.tradingview.com/cfd/scan")
-
-        # Convert the data to pandas dataframes
-        tv_stocks = pd.DataFrame(tv_stocks["data"]).drop(columns=["d"])
-        tv_stocks = pd.concat(
-            [tv_stocks, pd.DataFrame(stock_indices, columns=["s"])]
-        )  # Add the indices to the df
-        tv_stocks[["exchange", "stock"]] = tv_stocks["s"].str.split(":", 1, expand=True)
-
-        tv_crypto = pd.DataFrame(tv_crypto["data"]).drop(columns=["d"])
-        tv_crypto = pd.concat([tv_crypto, pd.DataFrame(crypto_indices, columns=["s"])])
-        tv_crypto[["exchange", "stock"]] = tv_crypto["s"].str.split(":", 1, expand=True)
-
-        tv_forex = pd.DataFrame(tv_forex["data"]).drop(columns=["d"])
-        tv_forex[["exchange", "stock"]] = tv_forex["s"].str.split(":", 1, expand=True)
-
-        tv_cfd = pd.DataFrame(tv_cfd["data"]).drop(columns=["d"])
-        tv_cfd[["exchange", "stock"]] = tv_cfd["s"].str.split(":", 1, expand=True)
+        tv_stocks = await get_tv_ticker_data(
+            "https://scanner.tradingview.com/america/scan", stock_indices
+        )
+        tv_crypto = await get_tv_ticker_data(
+            "https://scanner.tradingview.com/crypto/scan", crypto_indices
+        )
+        tv_forex = await get_tv_ticker_data(
+            "https://scanner.tradingview.com/forex/scan"
+        )
+        tv_cfd = await get_tv_ticker_data("https://scanner.tradingview.com/cfd/scan")
 
         # Save the data to the database
         for db, name in [
@@ -90,22 +90,24 @@ class DB(commands.Cog):
             (tv_forex, "tv_forex"),
             (tv_cfd, "tv_cfd"),
         ]:
-            update_db(db, name)
+            if not db.empty:
+                update_db(db, name)
 
-        # Set the data
-        util.vars.stocks = tv_stocks
-        util.vars.crypto = tv_crypto
-        util.vars.forex = tv_forex
-        util.vars.cfd = tv_cfd
-
-        print("Setting stock info")
+                if name == "tv_stocks":
+                    util.vars.stocks = db
+                elif name == "tv_crypto":
+                    util.vars.crypto = db
+                elif name == "tv_forex":
+                    util.vars.forex = db
+                elif name == "tv_cfd":
+                    util.vars.cfd = db
 
 
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(DB(bot))
 
 
-def update_tweet_db(tickers, user, sentiment, category):
+def update_tweet_db(tickers: list, user: str, sentiment: str, category: str) -> None:
 
     # Prepare new data
     dict_list = []
@@ -114,7 +116,7 @@ def update_tweet_db(tickers, user, sentiment, category):
             {
                 "ticker": ticker,
                 "user": user,
-                "sentiment": sentiment,
+                "sentiment": sentiment.split(" - ")[0],
                 "category": category,
             }
         )

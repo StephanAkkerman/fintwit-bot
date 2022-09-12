@@ -10,11 +10,32 @@ from typing import Optional, List
 
 # > 3rd party dependencies
 import aiohttp
+import pandas as pd
 from tradingview_ta import TA_Handler, Interval
 
 # > Local dependencies
 import util.vars
+from util.vars import get_json_data
 from util.tv_symbols import stock_indices, crypto_indices
+
+
+async def get_tv_ticker_data(url, append_to=None):
+    data = await get_json_data(url)
+
+    if not data or data == {} or "data" not in data.keys():
+        return pd.DataFrame()
+
+    # Convert data to pandas df
+    tv_data = pd.DataFrame(data["data"]).drop(columns=["d"])
+
+    if append_to:
+        # This adds additional information to the dataframe
+        tv_data = pd.concat([tv_data, pd.DataFrame(append_to, columns=["s"])])
+
+    # Split the information in exchange and stock
+    tv_data[["exchange", "stock"]] = tv_data["s"].str.split(":", 1, expand=True)
+
+    return tv_data
 
 
 class TV_data:
@@ -296,7 +317,7 @@ class TV_data:
             symbol in self.stock_indices_without_exch
             or symbol in self.crypto_indices_without_exch
         ):
-            return
+            return None, None
 
         symbol_data = self.get_symbol_data(symbol, asset)
 
@@ -338,6 +359,9 @@ class TV_data:
 
         except Exception as e:
             print(f"TradingView TA error for ticker: {symbol}, error:", e)
+            return None, None
+
+        return None, None
 
 
 tv = TV_data()

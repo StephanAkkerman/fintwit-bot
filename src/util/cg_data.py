@@ -124,6 +124,7 @@ async def get_coin_info(
 
     # Get the id of the ticker
     # Check if the symbol exists
+    coin_dict = None
     if ticker in cg_coins["symbol"].values:
         # Check coin by symbol, i.e. "BTC"
         coin_dict, id = get_crypto_info(cg_coins[cg_coins["symbol"] == ticker]["id"])

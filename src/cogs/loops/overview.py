@@ -1,10 +1,10 @@
 ## > Imports
 # > Standard libraries
 from collections import Counter
-import json
 import datetime
 
 # > Discord dependencies
+import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
 
@@ -59,7 +59,7 @@ class Overview(commands.Cog):
         # Save the database
         util.vars.tweets_db = tweet_db
         update_db(tweet_db, "tweets")
-        
+
         return tweet_db
 
     @loop(hours=1)
@@ -86,6 +86,11 @@ class Overview(commands.Cog):
         # Get the top 10 mentions
         top10 = db["ticker"].value_counts()[:10]
 
+        # Make the list for embeds
+        count_list = []
+        ticker_list = []
+        sentiment_list = []
+
         # Add overview of sentiment for each ticker
         for ticker, count in top10.items():
 
@@ -93,10 +98,47 @@ class Overview(commands.Cog):
             sentiment = db.loc[db["ticker"] == ticker]["sentiment"].tolist()
 
             # Convert sentiment into a single str, i.e. "6🐂 2🦆 2🐻"
-            sentiment = json.dumps(dict(Counter(sentiment)))
+            sentiment = dict(Counter(sentiment))
 
-            # Add count, symbol, sentiment to embed
-            print(count, ticker, sentiment)
+            formatted_sentiment = ""
+            for key, value in sentiment.items():
+                formatted_sentiment += f"{value}{key} "
+
+            # Add count, symbol, sentiment to embed lists
+            count_list.append(str(count))
+            ticker_list.append(ticker)
+            sentiment_list.append(formatted_sentiment)
+
+        # Make the embed
+        e = discord.Embed(
+            title=f"{keyword.capitalize()} Mentions Overview",
+            description="",
+            color=0x131722,
+            timestamp=datetime.datetime.now(datetime.timezone.utc),
+        )
+
+        e.add_field(
+            name="Mentions",
+            value="\n".join(count_list),
+            inline=True,
+        )
+
+        e.add_field(
+            name="Ticker",
+            value="\n".join(ticker_list),
+            inline=True,
+        )
+
+        e.add_field(
+            name="Sentiment",
+            value="\n".join(sentiment_list),
+            inline=True,
+        )
+
+        if keyword == "crypto":
+            await self.crypto_channel.send(embed=e)
+        else:
+            await self.stocks_channel.send(embed=e)
 
 
 def setup(bot: commands.bot.Bot) -> None:
