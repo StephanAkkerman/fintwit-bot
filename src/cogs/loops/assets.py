@@ -77,7 +77,7 @@ class Assets(commands.Cog):
             )
 
         if usd_val == 0:
-            _, _, _, price, _ = await get_coin_info(asset)
+            _, _, _, price, _, _ = await get_coin_info(asset)
             return price * owned
         else:
             return usd_val * owned

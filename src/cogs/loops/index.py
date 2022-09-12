@@ -182,7 +182,7 @@ class Index(commands.Cog):
             tv_data = await tv.get_tv_data(index, "stock")
             if tv_data == False:
                 continue
-            price, change, _, exchange = tv_data
+            price, change, _, exchange, _ = tv_data
             change = round(change, 2)
             change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
 

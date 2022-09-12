@@ -5,6 +5,7 @@ from typing import Optional, List
 import json
 import datetime
 from traceback import format_exc
+from webbrowser import get
 
 # > Third party depedencies
 import numpy as np
@@ -14,7 +15,7 @@ import discord
 from discord.ext import commands
 
 # Local dependencies
-from util.sentiment_analyis import classify_sentiment
+from util.sentiment_analyis import add_sentiment
 from util.ticker_classifier import classify_ticker
 from util.vars import filter_dict
 from util.disc_util import get_emoji
@@ -260,6 +261,51 @@ async def format_tweet(
                     return None
 
 
+def get_clean_symbols(tickers, hashtags):
+
+    # First remove the duplicates
+    symbols = list(set(tickers + hashtags))
+
+    clean_symbols = []
+
+    # Check the filter dict
+    for symbol in symbols:
+
+        # Filter beforehand
+        if symbol in filter_dict.keys():
+            clean_symbols.append(filter_dict[symbol])
+        else:
+            clean_symbols.append(symbol)
+
+    return clean_symbols
+
+
+def format_description(AH: bool, change, price, website, i):
+    if AH:
+        return f"[AH: ${price[i]}\n({change[i]})]({website})\n"
+    else:
+        return f"[${price[i]}\n({change[i]})]({website})"
+
+
+def get_description(change, price, website):
+    # Change can be a list (if the information is from Yahoo Finance) or a string
+    if type(change) == list:
+        # If the length is 2 then we know the after-hour prices
+        if len(change) == 2:
+            for i in range(len(change)):
+                if i == 0:
+                    description = format_description(True, change, price, website, i)
+                else:
+                    description += format_description(False, change, price, website, i)
+        else:
+            return format_description(False, change, price, website, 0)
+
+    else:
+        return format_description(False, [change], [price], website, 0)
+
+    return description
+
+
 async def add_financials(
     e: discord.Embed,
     tickers: List[str],
@@ -267,7 +313,7 @@ async def add_financials(
     text: str,
     user: str,
     bot: commands.Bot,
-) -> tuple[discord.Embed, str, str]:
+) -> tuple[discord.Embed, str, str, List[str], List[str]]:
     """
     Adds the financial data to the embed and returns the corresponding category.
 
@@ -295,6 +341,10 @@ async def add_financials(
             The category of the tweet.
         str
             The sentiment of the tweet.
+        List[str]
+            The base symbols of the tickers.
+        List[str]
+            The category of each ticker.
     """
 
     # In case multiple tickers get send
@@ -302,44 +352,49 @@ async def add_financials(
     stocks = 0
 
     # Get the unique values
-    symbols = list(set(tickers + hashtags))
+    symbols = get_clean_symbols(tickers, hashtags)
+
+    base_symbols = []
+    categories = []
 
     for ticker in symbols:
-
-        # Filter beforehand
-        if ticker in filter_dict.keys():
-            ticker = filter_dict[ticker]
-
-            # Skip doubles (for instance $BTC and #Bitocin)
-            if ticker in symbols:
-                continue
 
         if crypto > stocks:
             majority = "crypto"
         elif crypto < stocks:
             majority = "stocks"
         else:
-            majority = "🤷‍♂️"
+            majority = "Unknown"
 
         # Get the information about the ticker
         ticker_info = await classify_ticker(ticker, majority)
 
-        if ticker_info is not None:
-            volume, website, exchanges, price, change, four_h_ta, one_d_ta = ticker_info
-        else:
-            # Set everything to None
-            volume = website = exchanges = price = change = four_h_ta = one_d_ta = None
+        if ticker_info:
+            (
+                _,
+                website,
+                exchanges,
+                price,
+                change,
+                four_h_ta,
+                one_d_ta,
+                base_symbol,
+            ) = ticker_info
 
-        # Check if there is any volume, and if it is a symbol
-        if volume is None:
+            # Skip if this ticker has been done before, for instance in tweets containing Solana and SOL
+            if base_symbol in base_symbols:
+                continue
+
+        else:
             if ticker in tickers:
+                base_symbol = ticker
 
                 e.add_field(name=f"${ticker}", value=majority)
-
-                # Go to next in symbols
                 print(
                     f"No crypto or stock match found for ${ticker} in {user}'s tweet at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
                 )
+
+            # Go to next in symbols
             continue
 
         title = f"${ticker}"
@@ -348,34 +403,24 @@ async def add_financials(
         if website:
             if "coingecko" in website:
                 crypto += 1
-            if "tradingview" in website or "yahoo" in website:
+                categories.append("crypto")
+                if exchanges:
+                    if "Binance" in exchanges:
+                        title = f"{title} {get_emoji(bot, 'binance')}"
+                    if "KuCoin" in exchanges:
+                        title = f"{title} {get_emoji(bot, 'kucoin')}"
+
+            if "yahoo" in website:
                 stocks += 1
-
-        # Format change
-        if type(change) == list:
-            if len(change) == 2:
-                for i in range(len(change)):
-                    if i == 0:
-                        description = f"[AH: ${price[i]}\n({change[i]})]({website})\n"
-                    else:
-                        description += f"[${price[i]}\n({change[i]})]({website})"
-            else:
-                description = f"[${price[0]}\n({change[0]})]({website})"
-
+                categories.append("stocks")
         else:
-            description = f"[${price}\n({change})]({website})"
-
-            # Currently only adds emojis for crypto exchanges
-            if website:
-                if "coingecko" in website:
-                    if exchanges is not None:
-                        if "Binance" in exchanges:
-                            title = f"{title} {get_emoji(bot, 'binance')}"
-                        if "KuCoin" in exchanges:
-                            title = f"{title} {get_emoji(bot, 'kucoin')}"
+            # Default category is crypto
+            categories.append("crypto")
 
         # Add the field with hyperlink
-        e.add_field(name=title, value=description, inline=True)
+        e.add_field(
+            name=title, value=get_description(change, price, website), inline=True
+        )
 
         if four_h_ta is not None:
             e.add_field(name="4h TA", value=four_h_ta, inline=True)
@@ -383,17 +428,13 @@ async def add_financials(
         if one_d_ta is not None:
             e.add_field(name="1d TA", value=one_d_ta, inline=True)
 
-    # If there are any tickers
-    prediction = None
+        base_symbols.append(base_symbol)
+
+    # Finally add the sentiment to the embed
     if symbols:
-        sentiment = classify_sentiment(text)
-        prediction = ("🐻 - Bearish", "🦆 - Neutral", "🐂 - Bullish")[np.argmax(sentiment)]
-        e.add_field(
-            name="Sentiment",
-            value=f"{prediction} ({round(max(sentiment*100),2)}%)",
-            inline=False,
-        )
-        prediction.split(" - ")[0]
+        e, prediction = add_sentiment(e, text)
+    else:
+        prediction = None
 
     # Decide the category of this tweet
     if crypto == 0 and stocks == 0:
@@ -404,4 +445,4 @@ async def add_financials(
         category = "stocks"
 
     # Return just the prediction without emoji
-    return e, category, prediction
+    return e, category, prediction, base_symbols, categories

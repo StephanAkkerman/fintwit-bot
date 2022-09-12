@@ -26,6 +26,7 @@ from util.vars import (
 from util.disc_util import get_channel, get_tagged_users
 from util.tweet_util import format_tweet, add_financials
 from util.db import update_tweet_db
+from util.overview import Overview
 
 
 class Timeline(commands.Cog):
@@ -149,6 +150,8 @@ class Streamer(AsyncStream):
 
         # Set following ids
         self.get_following_ids.start()
+
+        self.tweet_overview = Overview(self.bot)
 
     @loop(minutes=60)
     async def all_txt_channels(self) -> None:
@@ -275,7 +278,7 @@ class Streamer(AsyncStream):
 
         # Max 25 fields
         if len(tickers + hashtags) < 26:
-            e, category, sentiment = await add_financials(
+            e, category, sentiment, base_symbols, categories = await add_financials(
                 e, tickers, hashtags, text, user, self.bot
             )
         else:
@@ -297,12 +300,11 @@ class Streamer(AsyncStream):
             e, category, images, user, retweeted_user, tickers + hashtags
         )
 
-        # Add ticker, user, sentiment to database
-        # Only do this if the tweet is a financial tweet
         # WE NEED THE PROCESSED TICKERS + HASHTAGS FROM add_financials()
         # ALSO NEED THE CATEGORY PER TICKER
         if tickers + hashtags:
-            update_tweet_db(tickers + hashtags, user, sentiment, category)
+            tweet_db = update_tweet_db(base_symbols, user, sentiment, categories)
+            await self.tweet_overview.overview(tweet_db, category)
 
     async def upload_tweet(
         self,

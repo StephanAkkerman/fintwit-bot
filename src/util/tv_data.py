@@ -224,7 +224,7 @@ class TV_data:
                 exchange = symbol_data[0]
                 symbol = f"{exchange}:{symbol_data[2]}"
             else:
-                return False
+                return 0, None, 0, None, f"https://www.tradingview.com/symbols/{symbol}"
 
             # Create a session
             session = aiohttp.ClientSession()
@@ -267,13 +267,13 @@ class TV_data:
 
                         elif counter == 3:
                             await session.close()
-                            return False
+                            return 0, None, 0, None, f"https://www.tradingview.com/symbols/{symbol}"
 
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         # self.restart_sockets()
                         print("TradingView websocket Error")
                         await session.close()
-                        return False
+                        return 0, None, 0, None, f"https://www.tradingview.com/symbols/{symbol}"
 
         except Exception:
             print(traceback.format_exc())

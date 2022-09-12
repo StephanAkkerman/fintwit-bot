@@ -8,9 +8,10 @@ from util.tv_data import tv
 from util.cg_data import get_coin_info
 from util.yf_data import get_stock_info
 
+
 async def classify_ticker(
     ticker: str, majority: str
-) -> Optional[tuple[float, str, List[str], float, str, str]]:
+) -> Optional[tuple[float, str, List[str], float, str, str, str]]:
     """
     Main function to classify the ticker as crypto or stock.
 
@@ -35,42 +36,99 @@ async def classify_ticker(
         str
             The 24h price change of the coin or stock.
         str
-            The technical analysis using TradingView.
+            The four hour technical analysis using TradingView.
+        str
+            The daily technical analysis using TradingView.
+        str
+            The base ticker.
     """
 
-    if majority == "crypto" or majority == "🤷‍♂️":
-        coin = await get_coin_info(ticker)
+    if majority == "crypto" or majority == "Unknown":
+        (
+            c_volume,
+            c_website,
+            c_exchange,
+            c_price,
+            c_change,
+            c_ticker,
+        ) = await get_coin_info(ticker)
         # If volume of the crypto is bigger than 1,000,000, it is likely a crypto
         # Stupid Tessla Coin https://www.coingecko.com/en/coins/tessla-coin
-        if coin is not None:
-            if coin[0] > 1000000 or ticker.endswith("BTC"):
-                four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "crypto")
-                return *coin, four_h_ta, one_d_ta
-        stock = await get_stock_info(ticker)
-    else:
-        stock = await get_stock_info(ticker)
-        if stock is not None:
-            if stock[0] > 1000000:
-                four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "stock")
-                return *stock, four_h_ta, one_d_ta
-        coin = await get_coin_info(ticker)
 
-    # First in tuple represents volume
-    if coin is None:
-        coin_vol = 0
-    else:
-        coin_vol = coin[0]
+        if c_volume > 1000000 or ticker.endswith("BTC"):
+            four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "crypto")
+            return (
+                c_volume,
+                c_website,
+                c_exchange,
+                c_price,
+                c_change,
+                four_h_ta,
+                one_d_ta,
+                c_ticker,
+            )
 
-    if stock is None:
-        stock_vol = 0
-    else:
-        stock_vol = stock[0]
+        (
+            s_volume,
+            s_website,
+            s_exchange,
+            s_price,
+            s_change,
+            s_ticker,
+        ) = await get_stock_info(ticker)
 
-    if coin_vol > stock_vol and coin_vol > 50000:
+    else:
+        (
+            s_volume,
+            s_website,
+            s_exchange,
+            s_price,
+            s_change,
+            s_ticker,
+        ) = await get_stock_info(ticker)
+        if s_volume > 1000000:
+            four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "stock")
+            return (
+                s_volume,
+                s_website,
+                s_exchange,
+                s_price,
+                s_change,
+                four_h_ta,
+                one_d_ta,
+                s_ticker,
+            )
+
+        (
+            c_volume,
+            c_website,
+            c_exchange,
+            c_price,
+            c_change,
+            c_ticker,
+        ) = await get_coin_info(ticker)
+
+    if c_volume > s_volume and c_volume > 50000:
         four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "crypto")
-        return *coin, four_h_ta, one_d_ta
-    elif coin_vol < stock_vol:
+        return (
+            c_volume,
+            c_website,
+            c_exchange,
+            c_price,
+            c_change,
+            four_h_ta,
+            one_d_ta,
+            c_ticker,
+        )
+    elif c_volume < s_volume:
         four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "stock")
-        return *stock, four_h_ta, one_d_ta
-    else:
-        return None
+        return (
+            s_volume,
+            s_website,
+            s_exchange,
+            s_price,
+            s_change,
+            four_h_ta,
+            one_d_ta,
+            s_ticker,
+        )

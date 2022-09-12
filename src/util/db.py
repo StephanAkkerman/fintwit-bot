@@ -107,17 +107,40 @@ def setup(bot: commands.Bot) -> None:
     bot.add_cog(DB(bot))
 
 
-def update_tweet_db(tickers: list, user: str, sentiment: str, category: str) -> None:
+def get_clean_tweet_db():
+
+    # Get the old database
+    old_db = util.vars.tweets_db
+
+    # Set the types
+    old_db = old_db.astype(
+        {
+            "ticker": str,
+            "user": str,
+            "sentiment": str,
+            "category": str,
+            "timestamp": "datetime64[ns]",
+        }
+    )
+
+    old_db = old_db[
+        old_db["timestamp"] > datetime.datetime.now() - datetime.timedelta(hours=24)
+    ]
+
+    return old_db
+
+
+def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list) -> None:
 
     # Prepare new data
     dict_list = []
-    for ticker in tickers:
+    for i in range(len(tickers)):
         dict_list.append(
             {
-                "ticker": ticker,
+                "ticker": tickers[i],
                 "user": user,
                 "sentiment": sentiment.split(" - ")[0],
-                "category": category,
+                "category": categories[i],
             }
         )
 
@@ -127,8 +150,7 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, category: str) -> 
     # Add current time
     tweet_db["timestamp"] = datetime.datetime.now()
 
-    # Get the old database
-    old_db = util.vars.tweets_db
+    old_db = get_clean_tweet_db()
 
     # Merge with the old database
     if not old_db.empty:
@@ -142,6 +164,8 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, category: str) -> 
     # Save database
     update_db(tweet_db, "tweets")
     util.vars.tweets_db = tweet_db
+    
+    return tweet_db
 
 
 def get_db(database_name: str) -> pd.DataFrame:

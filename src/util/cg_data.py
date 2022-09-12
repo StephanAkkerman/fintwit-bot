@@ -33,7 +33,7 @@ def get_crypto_info(ids):
             except Exception:
                 pass
 
-    elif len(ids) == 1:
+    else:
         id = ids.values[0]
         # Try in case the CoinGecko API does not work
         try:
@@ -60,12 +60,16 @@ def get_coin_price(coin_dict: dict) -> float:
             return 0
 
 
-def get_coin_exchanges(coin_dict: dict) -> list:
+def get_coin_exchanges(coin_dict: dict) -> tuple[str, list]:
+    base = "N/A"
+    exchanges = []
     if "tickers" in coin_dict.keys():
+        if "base" in coin_dict["tickers"][0].keys():
+            base = coin_dict["tickers"][0]["base"]
         if "exchange" in coin_dict["tickers"][0].keys():
-            return [ticker["exchange"]["name"] for ticker in coin_dict["tickers"]]
-        else:
-            return []
+            exchanges = [ticker["exchange"]["name"] for ticker in coin_dict["tickers"]]
+
+    return base, exchanges
 
 
 def get_info_from_dict(coin_dict: dict):
@@ -82,15 +86,15 @@ def get_info_from_dict(coin_dict: dict):
                 change = "N/A"
 
             # Get the exchanges
-            exchanges = get_coin_exchanges(coin_dict)
+            base, exchanges = get_coin_exchanges(coin_dict)
 
-            return volume, price, change, exchanges
-    return None, None, None, None
+            return volume, price, change, exchanges, base
+    return 0, None, None, None, None
 
 
 async def get_coin_info(
     ticker: str,
-) -> Optional[tuple[float, str, List[str], float, str]]:
+) -> Optional[tuple[float, str, List[str], float, str, str]]:
     """
     Gets the volume, website, exchanges, price, and change of the coin.
     This can only be called maximum 50 times per minute.
@@ -112,9 +116,12 @@ async def get_coin_info(
         The price of the coin.
     str
         The 24h price change of the coin.
+    str
+        The base symbol of the coin, e.g. BTC, ETH, etc.
     """
 
     cg_coins = util.vars.cg_db
+    id = change = None
 
     # Remove formatting from ticker input
     if ticker not in stables:
@@ -131,15 +138,17 @@ async def get_coin_info(
 
     if coin_dict is None:
         # As a second options check the TradingView data
-        if tv_data := await tv.get_tv_data(ticker, "crypto"):
-            # Unpack the data
-            price, perc_change, volume, exchange, website = tv_data
+        price, perc_change, volume, exchange, website = await tv.get_tv_data(
+            ticker, "crypto"
+        )
+        if volume != 0:
             return (
                 volume,
                 website + "/?coingecko",
                 exchange,
                 price,
-                format_change(perc_change),
+                format_change(perc_change) if perc_change else "N/A",
+                ticker,
             )
 
         # Third option is to check by id
@@ -153,13 +162,14 @@ async def get_coin_info(
             coin_dict, id = get_crypto_info(cg_coins[cg_coins["name"] == ticker]["id"])
 
     # Get the information from the dictionary
-    total_vol, price, change, exchanges = get_info_from_dict(coin_dict)
+    total_vol, price, change, exchanges, base = get_info_from_dict(coin_dict)
 
     # Return the information
     return (
         total_vol,
-        f"https://coingecko.com/en/coins/{id}",
+        f"https://coingecko.com/en/coins/{id}" if id else "N/A",
         exchanges,
         price,
-        format_change(change),
+        format_change(change) if change else "N/A",
+        base,
     )

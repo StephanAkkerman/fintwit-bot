@@ -13,7 +13,7 @@ from util.tv_data import tv
 
 async def get_stock_info(
     ticker: str,
-) -> Optional[tuple[float, str, List[str], float, str]]:
+) -> Optional[tuple[float, str, List[str], float, str, str]]:
     """
     Gets the volume, website, exchanges, price, and change of the stock.
 
@@ -35,6 +35,8 @@ async def get_stock_info(
             The price of the stock.
         str
             The 24h price change of the stock.
+        str
+            The ticker, to match the crypto function.
     """
 
     stock_info = yf.Ticker(ticker)
@@ -90,15 +92,13 @@ async def get_stock_info(
                 stock_info.info["exchange"],
                 prices,
                 changes,
+                ticker
             )
 
     except Exception:
         pass
 
     # Check TradingView data
-    if tv_data := await tv.get_tv_data(ticker, "stock"):
-        price, perc_change, volume, exchange, website = tv_data
-        return volume, website, exchange, price, format_change(perc_change)
-
-    else:
-        return None
+    tv_data = await tv.get_tv_data(ticker, "stock")
+    price, perc_change, volume, exchange, website = tv_data
+    return volume, website, exchange, price, format_change(perc_change), ticker

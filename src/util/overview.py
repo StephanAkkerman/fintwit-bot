@@ -5,80 +5,43 @@ import datetime
 
 # > Discord dependencies
 import discord
-from discord.ext import commands
-from discord.ext.tasks import loop
 
 # Local dependencies
-import util.vars
 from util.vars import config
 from util.disc_util import get_channel
-from util.db import update_db
 
 
-class Overview(commands.Cog):
+class Overview:
     def __init__(self, bot):
         self.bot = bot
-
-        self.do_crypto = self.do_stocks = False
 
         if config["LOOPS"]["OVERVIEW"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = get_channel(
                 self.bot, config["LOOPS"]["OVERVIEW"]["STOCKS"]["CHANNEL"]
             )
             self.do_stocks = True
+        else:
+            self.do_stocks = False
 
         if config["LOOPS"]["OVERVIEW"]["CRYPTO"]["ENABLED"]:
             self.crypto_channel = get_channel(
                 self.bot, config["LOOPS"]["OVERVIEW"]["CRYPTO"]["CHANNEL"]
             )
             self.do_crypto = True
+        else:
+            self.do_crypto = False
 
-        if (
-            config["LOOPS"]["OVERVIEW"]["STOCKS"]["ENABLED"]
-            or config["LOOPS"]["OVERVIEW"]["CRYPTO"]["ENABLED"]
-        ):
-            self.overview.start()
-
-    def clean_db(self, tweet_db):
-        # Set the types
-        tweet_db = tweet_db.astype(
-            {
-                "ticker": str,
-                "user": str,
-                "sentiment": str,
-                "category": str,
-                "timestamp": "datetime64[ns]",
-            }
-        )
-
-        tweet_db = tweet_db[
-            tweet_db["timestamp"]
-            > datetime.datetime.now() - datetime.timedelta(hours=24)
-        ]
-
-        # Save the database
-        util.vars.tweets_db = tweet_db
-        update_db(tweet_db, "tweets")
-
-        return tweet_db
-
-    @loop(hours=1)
-    async def overview(self):
-        # Get the database
-        tweet_db = util.vars.tweets_db
-
-        # Remove all entries older than 24h
+    async def overview(self, tweet_db, category):
+        # Make sure that the new db is not empty
         if not tweet_db.empty:
-            tweet_db = self.clean_db(tweet_db)
+            if self.do_stocks:
+                await self.make_overview(tweet_db, category)
+            if self.do_crypto:
+                await self.make_overview(tweet_db, category)
 
-        # Make sure that the new db is also not empty
-        if not tweet_db.empty:
-            await self.make_overview(tweet_db, "stockS")
-            await self.make_overview(tweet_db, "crypto")
-
-    async def make_overview(self, tweet_db, keyword):
+    async def make_overview(self, tweet_db, category):
         # Post the overview for stocks and crypto
-        db = tweet_db.loc[tweet_db["category"] == keyword]
+        db = tweet_db.loc[tweet_db["category"] == category]
 
         if db.empty:
             return
@@ -111,9 +74,9 @@ class Overview(commands.Cog):
 
         # Make the embed
         e = discord.Embed(
-            title=f"{keyword.capitalize()} Mentions Overview",
+            title=f"Top {category.capitalize()} Mentions Of The Last 24 Hours",
             description="",
-            color=0x131722,
+            color=0x090844,
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
 
@@ -135,11 +98,7 @@ class Overview(commands.Cog):
             inline=True,
         )
 
-        if keyword == "crypto":
+        if category == "crypto":
             await self.crypto_channel.send(embed=e)
         else:
             await self.stocks_channel.send(embed=e)
-
-
-def setup(bot: commands.bot.Bot) -> None:
-    bot.add_cog(Overview(bot))

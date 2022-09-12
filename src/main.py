@@ -28,6 +28,7 @@ async def on_ready() -> None:
     load_folder("listeners")
 
     guild = get_guild(bot)
+    print("\033[H\033[J", end="")
     print(f"{bot.user} is connected to {guild.name} (id: {guild.id}) \n")
 
 
