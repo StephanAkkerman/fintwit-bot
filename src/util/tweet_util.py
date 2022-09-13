@@ -5,10 +5,6 @@ from typing import Optional, List
 import json
 import datetime
 from traceback import format_exc
-from webbrowser import get
-
-# > Third party depedencies
-import numpy as np
 
 # Discord imports
 import discord
@@ -17,7 +13,7 @@ from discord.ext import commands
 # Local dependencies
 from util.sentiment_analyis import add_sentiment
 from util.ticker_classifier import classify_ticker
-from util.vars import filter_dict
+from util.vars import filter_dict, client
 from util.disc_util import get_emoji
 
 
@@ -384,7 +380,7 @@ async def add_financials(
             # Skip if this ticker has been done before, for instance in tweets containing Solana and SOL
             if base_symbol in base_symbols:
                 continue
-            
+
             # Add the website to it
             base_symbol = f"[{base_symbol}]({website})"
 
@@ -449,3 +445,31 @@ async def add_financials(
 
     # Return just the prediction without emoji
     return e, category, prediction, base_symbols, categories
+
+
+def count_tweets(ticker: str) -> int:
+    """
+    Counts the number of tweets for a ticker during the last 24 hours.
+    https://developer.twitter.com/en/docs/twitter-api/tweets/counts/api-reference/get-tweets-counts-recent
+    Max 300 requests per 15 minutes.
+
+    Parameters
+    ----------
+    ticker : str
+        The ticker to count the tweets for.
+
+    Returns
+    -------
+    int
+        Returns the number of tweets for the ticker.
+    """
+
+    # Count the last 24 hours
+    counts = client.get_recent_tweets_count(
+        ticker,
+        start_time=datetime.datetime.now(datetime.timezone.utc)
+        - datetime.timedelta(days=1),
+        granularity="day",
+    )
+
+    return counts.meta["total_tweet_count"]

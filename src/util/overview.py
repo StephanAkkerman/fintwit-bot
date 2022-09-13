@@ -46,8 +46,8 @@ class Overview:
         if db.empty:
             return
 
-        # Get the top 10 mentions
-        top10 = db["ticker"].value_counts()[:10]
+        # Get the top 50 mentions
+        top50 = db["ticker"].value_counts()[:50]
 
         # Make the list for embeds
         count_list = []
@@ -55,7 +55,7 @@ class Overview:
         sentiment_list = []
 
         # Add overview of sentiment for each ticker
-        for ticker, count in top10.items():
+        for ticker, count in top50.items():
 
             # Get the sentiment for the ticker
             sentiment = db.loc[db["ticker"] == ticker]["sentiment"].tolist()
