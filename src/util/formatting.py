@@ -89,24 +89,22 @@ async def format_embed(df: pd.DataFrame, type: str, source: str) -> discord.Embe
     if source == "binance":
         url = "https://www.binance.com/en/altcoins/gainers-losers"
         color = 0xF0B90B
-        icon_url = "https://public.bnbstatic.com/20190405/eb2349c3-b2f8-4a93-a286-8f86a62ea9d8.png"
+        icon_url = "https://bin.bnbstatic.com/static/images/common/favicon.ico"
         name = "Coin"
     elif source == "yahoo":
         url = "https://finance.yahoo.com/" + type
         color = 0x720E9E
-        icon_url = (
-            "https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png"
-        )
+        icon_url = "https://finance.yahoo.com/favicon.ico"
         name = "Stock"
     elif source == "coingecko":
-        url = "https://www.coingecko.com/en/discover"
+        url = "https://www.coingecko.com/en/watchlists/trending-crypto"
         color = 0x8CC63F
-        icon_url = "https://static.coingecko.com/s/thumbnail-007177f3eca19695592f0b8b0eabbdae282b54154e1be912285c9034ea6cbaf2.png"
+        icon_url = "https://www.coingecko.com/favicon.ico"
         name = "Coin"
     elif source == "coinmarketcap":
         url = "https://coinmarketcap.com/trending-cryptocurrencies/"
         color = 0x0D3EFD
-        icon_url = "https://pbs.twimg.com/profile_images/1504868150403338269/MEQ_lC8P_400x400.jpg"
+        icon_url = "https://coinmarketcap.com/favicon.ico"
         name = "Coin"
 
     e = discord.Embed(

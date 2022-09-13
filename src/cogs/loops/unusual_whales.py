@@ -181,10 +181,13 @@ class UW(commands.Cog):
             e.set_footer(
                 # Use the time the alert was created in the footer
                 text=f"Alerted at {row['timestamp'].split('T')[1].split('Z')[0]}",
-                icon_url="https://blog.unusualwhales.com/content/images/2021/08/logo.8f570f66-1.png",
+                icon_url="https://unusualwhales.com/favicon.ico",
             )
 
-            await self.channel.send(content=get_tagged_users([row["ticker_symbol"]]), embed=e)
+            await self.channel.send(
+                content=get_tagged_users([row["ticker_symbol"]]), embed=e
+            )
+
 
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(UW(bot))

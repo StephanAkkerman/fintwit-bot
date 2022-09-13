@@ -101,4 +101,5 @@ async def get_stock_info(
     # Check TradingView data
     tv_data = await tv.get_tv_data(ticker, "stock")
     price, perc_change, volume, exchange, website = tv_data
-    return volume, website, exchange, price, format_change(perc_change), ticker
+    if price != 0:
+        return volume, website, exchange, price, format_change(perc_change), ticker

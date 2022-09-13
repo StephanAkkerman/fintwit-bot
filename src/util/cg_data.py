@@ -8,7 +8,7 @@ from pycoingecko import CoinGeckoAPI
 
 # Local dependencies
 import util.vars
-from util.vars import stables, format_change
+from util.vars import stables, format_change, get_json_data
 from util.tv_data import tv
 
 cg = CoinGeckoAPI()
@@ -173,3 +173,82 @@ async def get_coin_info(
         format_change(change) if change else "N/A",
         base,
     )
+
+
+async def get_trending_coins() -> tuple[list, list, list, list]:
+    """
+    Gets the trending coins on CoinGecko without using their API.
+
+    Returns
+    -------
+    tuple[list, list, list, list]
+        list
+            The tickers of the trending coins, formatted with the website.
+        list
+            The prices of the trending coins.
+        list
+            The 24h price changes of the trending coins.
+        list
+            The volumes of the trending coins.
+    """
+
+    html = await get_json_data(
+        "https://www.coingecko.com/en/watchlists/trending-crypto", text=True
+    )
+
+    # Get the table
+    html = html[html.find("<tbody>") : html.find("</tbody>")]
+
+    # Split headlines by <tr> until </tr>
+    coins = html.split("<tr>")[1:]
+
+    tickers = []
+    prices = []
+    changes = []
+    volumes = []
+
+    for coin in coins:
+
+        # The price, 1h, 24h, 7d change is stored here
+        data = coin.split("<td data-sort=")[1:]
+
+        # This is used for getting the website
+        slug = coin[
+            coin.find('data-coin-slug="')
+            + len('data-coin-slug="') : coin.find('" data-coin-image=')
+        ]
+
+        website = f"https://www.coingecko.com/en/coins/{slug}"
+
+        ticker = coin[
+            coin.find('data-coin-symbol="')
+            + len('data-coin-symbol="') : coin.find('" data-source=')
+        ]
+
+        price = float(
+            data[0][: data[0].find('class="td-price price text-right"')].replace(
+                "'", ""
+            )
+        )
+
+        change = float(
+            data[2][
+                : data[2].find(
+                    ' class="td-change24h change24h stat-percent text-right col-market">'
+                )
+            ].replace("'", "")
+        )
+
+        volume = float(
+            data[4][
+                data[4].find('data-target="price.price">$')
+                + len('data-target="price.price">$') : data[4].find("</span>")
+            ].replace(",", "")
+        )
+
+        tickers.append(f"[{ticker.upper()}]({website})")
+        prices.append(price)
+        changes.append(change)
+        volumes.append(volume)
+
+    return tickers, prices, changes, volumes

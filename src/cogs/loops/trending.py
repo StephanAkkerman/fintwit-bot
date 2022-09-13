@@ -1,5 +1,4 @@
 # > 3rd party dependencies
-from pycoingecko import CoinGeckoAPI
 import yahoo_fin.stock_info as si
 import pandas as pd
 
@@ -12,6 +11,7 @@ from util.vars import config, get_json_data
 from util.disc_util import get_channel
 from util.afterhours import afterHours
 from util.formatting import format_embed
+from util.cg_data import get_trending_coins
 
 
 class Trending(commands.Cog):
@@ -93,24 +93,7 @@ class Trending(commands.Cog):
         None
         """
 
-        cg = CoinGeckoAPI()
-
-        ticker = []
-        prices = []
-        price_changes = []
-        vol = []
-
-        for coin in cg.get_search_trending()["coins"]:
-            coin_dict = cg.get_coin_by_id(coin["item"]["id"])
-
-            website = f"https://coingecko.com/en/coins/{coin['item']['id']}"
-            price = coin_dict["market_data"]["current_price"]["usd"]
-            price_change = coin_dict["market_data"]["price_change_percentage_24h"]
-
-            ticker.append(f"[{coin['item']['symbol']}]({website})")
-            vol.append(coin_dict["market_data"]["total_volume"]["usd"])
-            prices.append(price)
-            price_changes.append(price_change)
+        ticker, prices, price_changes, vol = await get_trending_coins()
 
         # Convert to dataframe
         df = pd.DataFrame(
