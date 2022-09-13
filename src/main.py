@@ -6,6 +6,7 @@
 import os
 import asyncio
 import sys
+import datetime
 
 # Discord libraries
 import discord
@@ -28,8 +29,7 @@ async def on_ready() -> None:
     load_folder("listeners")
 
     guild = get_guild(bot)
-    print("\033[H\033[J", end="")
-    print(f"{bot.user} is connected to {guild.name} (id: {guild.id}) \n")
+    print(f"{bot.user} is connected to {guild.name} at {datetime.datetime.now()} \n")
 
 
 def load_folder(foldername: str) -> None:

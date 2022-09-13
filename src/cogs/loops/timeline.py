@@ -401,12 +401,18 @@ class Streamer(AsyncStream):
                 msg = await channel.send(content=get_tagged_users(tickers), embed=e)
 
             # Do this for every message
-            await msg.add_reaction("💸")
+            try:
+                await msg.add_reaction("💸")
+            except discord.DiscordServerError:
+                print("Could not add reaction to message")
 
             if category != None:
-                await msg.add_reaction("🐂")
-                await msg.add_reaction("🦆")
-                await msg.add_reaction("🐻")
+                try:
+                    await msg.add_reaction("🐂")
+                    await msg.add_reaction("🦆")
+                    await msg.add_reaction("🐻")
+                except discord.DiscordServerError:
+                    print("Could not add reaction to message")
 
             return msg, channel
 

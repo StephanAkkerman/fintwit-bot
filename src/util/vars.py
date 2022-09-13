@@ -27,6 +27,7 @@ filter_dict = {
     "ES": "ES=F",
     "NQ": "NQ=F",
     "NQ_F": "NQ=F",
+    "CL_F": "CL=F",
 }
 
 # Stable coins

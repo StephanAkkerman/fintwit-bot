@@ -384,10 +384,13 @@ async def add_financials(
             # Skip if this ticker has been done before, for instance in tweets containing Solana and SOL
             if base_symbol in base_symbols:
                 continue
+            
+            # Add the website to it
+            base_symbol = f"[{base_symbol}]({website})"
 
         else:
             if ticker in tickers:
-                base_symbol = ticker
+                base_symbol = f"[{ticker}]({website})"
 
                 e.add_field(name=f"${ticker}", value=majority)
                 print(
