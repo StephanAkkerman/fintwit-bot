@@ -45,6 +45,7 @@ crypto = None
 forex = None
 cfd = None
 
+nasdaq_tickers = None
 
 def format_change(change: float) -> str:
     """

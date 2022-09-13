@@ -2,7 +2,7 @@ import datetime
 
 # > 3rd party dependencies
 import pandas as pd
-from yahoo_fin.stock_info import tickers_nasdaq, get_earnings_in_date_range
+from yahoo_fin.stock_info import get_earnings_in_date_range
 
 # > Discord dependencies
 import discord
@@ -10,6 +10,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
+import util.vars
 from util.vars import config
 from util.disc_util import get_channel, get_tagged_users
 
@@ -27,8 +28,6 @@ class Earnings_Overview(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.channel = get_channel(self.bot, config["LOOPS"]["EARNINGS_OVERVIEW"]["CHANNEL"])
-
-        self.nasdaq_tickers = tickers_nasdaq()
 
         self.earnings.start()
 
@@ -55,7 +54,7 @@ class Earnings_Overview(commands.Cog):
 
                 # Filter on unique tickers in the nasdaq list
                 earnings_df = earnings_df[
-                    earnings_df["ticker"].isin(self.nasdaq_tickers)
+                    earnings_df["ticker"].isin(util.vars.nasdaq_tickers)
                 ]
 
                 earnings_df = earnings_df.drop_duplicates(subset="ticker")

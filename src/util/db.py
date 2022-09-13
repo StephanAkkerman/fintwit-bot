@@ -1,12 +1,12 @@
 # > Standard library
 import datetime
-import asyncio
 import time
 
 # > 3rd party dependencies
 import pandas as pd
 import sqlite3
 from pycoingecko import CoinGeckoAPI
+from yahoo_fin.stock_info import tickers_nasdaq
 
 # > Discord dependencies
 from discord.ext import commands
@@ -25,6 +25,7 @@ class DB(commands.Cog):
         # Start loops
         self.set_tv_db.start()
         self.set_cg_db.start()
+        self.set_nasdaq_tickers.start()
 
         # Set the portfolio and assets db
         self.set_portfolio_db()
@@ -40,6 +41,18 @@ class DB(commands.Cog):
     def set_tweets_db(self):
         util.vars.tweets_db = get_db("tweets")
 
+    @loop(hours=24)
+    async def set_nasdaq_tickers(self):
+        try:
+            util.vars.nasdaq_tickers = tickers_nasdaq()
+            update_db(pd.DataFrame(util.vars.nasdaq_tickers), "nasdaq_tickers")
+
+        except Exception as e:
+            print("Failed to get new nasdaq tickers, error:", e)
+            nasdaq_tickers = get_db("nasdaq_tickers")
+            # Convert the dataframe to list
+            util.vars.nasdaq_tickers = nasdaq_tickers.iloc[:, 0].tolist()
+
     # Set the important database variables on startup and refresh every 24 hours
     @loop(hours=24)
     async def set_cg_db(self):
@@ -53,11 +66,6 @@ class DB(commands.Cog):
 
         # Set cg_coins
         util.vars.cg_db = cg_coins
-
-    async def start_tv_loop(self):
-        """Start the TV loop after 24h"""
-        time.sleep(60 * 60 * 24)
-        self.set_tv_db.start()
 
     @loop(hours=24)
     async def set_tv_db(self):
@@ -164,7 +172,7 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list) 
     # Save database
     update_db(tweet_db, "tweets")
     util.vars.tweets_db = tweet_db
-    
+
     return tweet_db
 
 
