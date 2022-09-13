@@ -302,7 +302,7 @@ class Streamer(AsyncStream):
 
         # WE NEED THE PROCESSED TICKERS + HASHTAGS FROM add_financials()
         # ALSO NEED THE CATEGORY PER TICKER
-        if tickers + hashtags:
+        if base_symbols:
             tweet_db = update_tweet_db(base_symbols, user, sentiment, categories)
             await self.tweet_overview.overview(tweet_db, category)
 

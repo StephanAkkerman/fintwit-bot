@@ -120,6 +120,9 @@ def get_clean_tweet_db():
     # Get the old database
     old_db = util.vars.tweets_db
 
+    if old_db.empty:
+        return old_db
+
     # Set the types
     old_db = old_db.astype(
         {

@@ -11,6 +11,7 @@ from util.vars import format_change
 from util.afterhours import afterHours
 from util.tv_data import tv
 
+
 async def get_stock_info(
     ticker: str,
 ) -> Optional[tuple[float, str, List[str], float, str, str]]:
@@ -92,7 +93,7 @@ async def get_stock_info(
                 stock_info.info["exchange"],
                 prices,
                 changes,
-                ticker
+                ticker,
             )
 
     except Exception:
@@ -101,5 +102,11 @@ async def get_stock_info(
     # Check TradingView data
     tv_data = await tv.get_tv_data(ticker, "stock")
     price, perc_change, volume, exchange, website = tv_data
-    if price != 0:
-        return volume, website, exchange, price, format_change(perc_change), ticker
+    return (
+        volume,
+        website,
+        exchange,
+        price,
+        format_change(perc_change) if perc_change else None,
+        ticker,
+    )
