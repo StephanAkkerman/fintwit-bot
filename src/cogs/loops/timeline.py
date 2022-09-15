@@ -300,11 +300,15 @@ class Streamer(AsyncStream):
             e, category, images, user, retweeted_user, tickers + hashtags
         )
 
-        # WE NEED THE PROCESSED TICKERS + HASHTAGS FROM add_financials()
-        # ALSO NEED THE CATEGORY PER TICKER
         if base_symbols:
-            tweet_db = update_tweet_db(base_symbols, user, sentiment, categories)
-            await self.tweet_overview.overview(tweet_db, category)
+            # This can be deleted later
+            if len(tickers) != len(categories):
+                print("Error: tickers and categories are not the same length")
+                print("Tickers:", tickers)
+                print("Categories:", categories)
+            else:
+                tweet_db = update_tweet_db(base_symbols, user, sentiment, categories)
+                await self.tweet_overview.overview(tweet_db, category)
 
     async def upload_tweet(
         self,

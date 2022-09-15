@@ -181,7 +181,7 @@ class UW(commands.Cog):
             e.set_footer(
                 # Use the time the alert was created in the footer
                 text=f"Alerted at {row['timestamp'].split('T')[1].split('Z')[0]}",
-                icon_url="https://unusualwhales.com/favicon.ico",
+                icon_url="https://unusualwhales.com/android-icon-192x192.png",
             )
 
             await self.channel.send(

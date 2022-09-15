@@ -145,6 +145,7 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list) 
 
     # Prepare new data
     dict_list = []
+    
     for i in range(len(tickers)):
         dict_list.append(
             {

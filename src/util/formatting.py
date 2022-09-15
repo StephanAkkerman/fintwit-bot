@@ -94,12 +94,12 @@ async def format_embed(df: pd.DataFrame, type: str, source: str) -> discord.Embe
     elif source == "yahoo":
         url = "https://finance.yahoo.com/" + type
         color = 0x720E9E
-        icon_url = "https://finance.yahoo.com/favicon.ico"
+        icon_url = "https://s.yimg.com/cv/apiv2/default/fp/20180826/icons/favicon_y19_32x32.ico"
         name = "Stock"
     elif source == "coingecko":
         url = "https://www.coingecko.com/en/watchlists/trending-crypto"
         color = 0x8CC63F
-        icon_url = "https://www.coingecko.com/favicon.ico"
+        icon_url = "https://www.coingecko.com/favicon-96x96.png"
         name = "Coin"
     elif source == "coinmarketcap":
         url = "https://coinmarketcap.com/trending-cryptocurrencies/"

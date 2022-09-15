@@ -167,7 +167,7 @@ async def get_coin_info(
     # Return the information
     return (
         total_vol,
-        f"https://coingecko.com/en/coins/{id}" if id else "N/A",
+        f"https://coingecko.com/en/coins/{id}" if id else "https://coingecko.com/en/coins/id_not_found",
         exchanges,
         price,
         format_change(change) if change else "N/A",

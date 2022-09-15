@@ -104,7 +104,7 @@ async def get_stock_info(
     price, perc_change, volume, exchange, website = tv_data
     return (
         volume,
-        website,
+        website + '/?yahoo',
         exchange,
         price,
         format_change(perc_change) if perc_change else None,

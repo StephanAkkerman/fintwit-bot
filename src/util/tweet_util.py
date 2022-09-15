@@ -451,7 +451,7 @@ def count_tweets(ticker: str) -> int:
     """
     Counts the number of tweets for a ticker during the last 24 hours.
     https://developer.twitter.com/en/docs/twitter-api/tweets/counts/api-reference/get-tweets-counts-recent
-    Max 300 requests per 15 minutes.
+    Max 300 requests per 15 minutes, so 20 requests per minute.
 
     Parameters
     ----------
