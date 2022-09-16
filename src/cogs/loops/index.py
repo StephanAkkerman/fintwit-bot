@@ -13,6 +13,7 @@ from util.tv_data import tv
 from util.disc_util import get_channel
 from util.afterhours import afterHours
 from util.formatting import human_format
+from util.tv_symbols import crypto_indices, stock_indices
 
 
 class Index(commands.Cog):
@@ -38,12 +39,15 @@ class Index(commands.Cog):
             self.crypto_channel = get_channel(
                 self.bot, config["LOOPS"]["INDEX"]["CRYPTO"]["CHANNEL"]
             )
+
+            self.crypto_indices = [sym.split(":")[1] for sym in crypto_indices]
             self.crypto.start()
 
         if config["LOOPS"]["INDEX"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = get_channel(
                 self.bot, config["LOOPS"]["INDEX"]["STOCKS"]["CHANNEL"]
             )
+            self.stock_indices = [sym.split(":")[1] for sym in stock_indices]
             self.stocks.start()
 
     async def get_feargread(self) -> tuple[int, str] | None:
@@ -86,21 +90,19 @@ class Index(commands.Cog):
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
 
-        crypto_indices = ["TOTAL", "BTC.D", "OTHERS.D", "TOTALDEFI.D", "USDT.D"]
-
         ticker = []
         prices = []
         changes = []
 
-        for index in crypto_indices:
-            tv_data = await tv.get_tv_data(index, "crypto")
-            if tv_data == False:
+        for index in self.crypto_indices:
+            price, change, _, exchange, _ = await tv.get_tv_data(index, "crypto")
+            if price == 0:
+                print(index)
                 continue
-            price, change, _, exchange, _ = tv_data
             change = round(change, 2)
             change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
 
-            if index == "TOTAL":
+            if index == "TOTAL" or index == "TOTAL2" or index == "TOTAL3":
                 price = f"{human_format(price)}"
             else:
                 price = f"{round(price, 2)}%"
@@ -172,17 +174,14 @@ class Index(commands.Cog):
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
 
-        stock_indices = ["SPY", "NDX", "DXY", "PCC", "PCCE", "US10Y", "VIX"]
-
         ticker = []
         prices = []
         changes = []
 
-        for index in stock_indices:
-            tv_data = await tv.get_tv_data(index, "stock")
-            if tv_data == False:
+        for index in self.stock_indices:
+            price, change, _, exchange, _ = await tv.get_tv_data(index, "stock")
+            if price == 0:
                 continue
-            price, change, _, exchange, _ = tv_data
             change = round(change, 2)
             change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
 

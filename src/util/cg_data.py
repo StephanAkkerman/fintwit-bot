@@ -2,6 +2,7 @@
 # > Standard libaries
 from __future__ import annotations
 from typing import Optional, List
+import numbers
 
 # > Third party libraries
 from pycoingecko import CoinGeckoAPI
@@ -64,10 +65,13 @@ def get_coin_exchanges(coin_dict: dict) -> tuple[str, list]:
     base = "N/A"
     exchanges = []
     if "tickers" in coin_dict.keys():
-        if "base" in coin_dict["tickers"][0].keys():
-            base = coin_dict["tickers"][0]["base"]
-        if "exchange" in coin_dict["tickers"][0].keys():
-            exchanges = [ticker["exchange"]["name"] for ticker in coin_dict["tickers"]]
+        if isinstance(coin_dict["tickers"], list):
+            if "base" in coin_dict["tickers"][0].keys():
+                base = coin_dict["tickers"][0]["base"]
+            if "exchange" in coin_dict["tickers"][0].keys():
+                exchanges = [
+                    ticker["exchange"]["name"] for ticker in coin_dict["tickers"]
+                ]
 
     return base, exchanges
 
@@ -78,12 +82,12 @@ def get_info_from_dict(coin_dict: dict):
             volume = get_coin_vol(coin_dict)
             price = get_coin_price(coin_dict)
 
+            change = "N/A"
             if "price_change_percentage_24h" in coin_dict["market_data"].keys():
-                change = round(
-                    coin_dict["market_data"]["price_change_percentage_24h"], 2
-                )
-            else:
-                change = "N/A"
+                if isinstance(coin_dict["market_data"]["price_change_percentage_24h"], numbers.Number):
+                    change = round(
+                        coin_dict["market_data"]["price_change_percentage_24h"], 2
+                    )
 
             # Get the exchanges
             base, exchanges = get_coin_exchanges(coin_dict)
@@ -167,7 +171,9 @@ async def get_coin_info(
     # Return the information
     return (
         total_vol,
-        f"https://coingecko.com/en/coins/{id}" if id else "https://coingecko.com/en/coins/id_not_found",
+        f"https://coingecko.com/en/coins/{id}"
+        if id
+        else "https://coingecko.com/en/coins/id_not_found",
         exchanges,
         price,
         format_change(change) if change else "N/A",

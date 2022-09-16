@@ -2,10 +2,14 @@
 # Use format EXCHANGE:INDEX for TradingView symbols
 crypto_indices = [
     "CRYPTOCAP:TOTAL",
+    "CRYPTOCAP:TOTAL2",
+    "CRYPTOCAP:TOTAL3",
     "CRYPTOCAP:BTC.D",
+    "CRYPTOCAP:ETH.D",
     "CRYPTOCAP:OTHERS.D",
     "CRYPTOCAP:TOTALDEFI.D",
     "CRYPTOCAP:USDT.D",
+    "CRYPTOCAP:USDC.D",
 ]
 
 US_bonds = [

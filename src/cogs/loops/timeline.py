@@ -302,9 +302,9 @@ class Streamer(AsyncStream):
 
         if base_symbols:
             # This can be deleted later
-            if len(tickers) != len(categories):
+            if len(base_symbols) != len(categories):
                 print("Error: tickers and categories are not the same length")
-                print("Tickers:", tickers)
+                print("Tickers:", base_symbols)
                 print("Categories:", categories)
             else:
                 tweet_db = update_tweet_db(base_symbols, user, sentiment, categories)

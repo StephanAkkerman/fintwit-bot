@@ -269,7 +269,11 @@ def get_clean_symbols(tickers, hashtags):
 
         # Filter beforehand
         if symbol in filter_dict.keys():
-            clean_symbols.append(filter_dict[symbol])
+            # For instance Ethereum -> ETH
+            new_sym = filter_dict[symbol]
+            # However if ETH is in there we do not want to have it twice
+            if new_sym not in clean_symbols:
+                clean_symbols.append(new_sym)
         else:
             clean_symbols.append(symbol)
 
@@ -381,12 +385,8 @@ async def add_financials(
             if base_symbol in base_symbols:
                 continue
 
-            # Add the website to it
-            base_symbol = f"[{base_symbol}]({website})"
-
         else:
             if ticker in tickers:
-                base_symbol = f"[{ticker}]({website})"
 
                 e.add_field(name=f"${ticker}", value=majority)
                 print(
