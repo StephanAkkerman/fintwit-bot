@@ -14,7 +14,7 @@ from discord.ext.tasks import loop
 
 # > Local dependencies
 import util.vars
-from util.tv_symbols import crypto_indices, stock_indices
+from util.tv_symbols import crypto_indices, all_stock_indices
 from util.tv_data import get_tv_ticker_data
 
 
@@ -81,7 +81,7 @@ class DB(commands.Cog):
 
         # Get the current symbols and exchanges on TradingView
         tv_stocks = await get_tv_ticker_data(
-            "https://scanner.tradingview.com/america/scan", stock_indices
+            "https://scanner.tradingview.com/america/scan", all_stock_indices
         )
         tv_crypto = await get_tv_ticker_data(
             "https://scanner.tradingview.com/crypto/scan", crypto_indices

@@ -99,6 +99,9 @@ class Overview:
         )
 
         if category == "crypto":
+            # Delete previous message
+            await self.crypto_channel.purge(limit=1)
             await self.crypto_channel.send(embed=e)
         else:
+            await self.stocks_channel.purge(limit=1)
             await self.stocks_channel.send(embed=e)

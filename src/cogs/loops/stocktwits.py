@@ -54,6 +54,10 @@ class StockTwits(commands.Cog):
         # Keyword can be "ts", "m_day", "wl_ct_day"
         data = await get_json_data("https://api.stocktwits.com/api/2/charts/" + keyword)
 
+        # If no data could be found, return the embed
+        if data == {}:
+            return e
+
         table = pd.DataFrame(data["table"][keyword])
         stocks = pd.DataFrame(data["stocks"]).T
         stocks["stock_id"] = stocks.index.astype(int)

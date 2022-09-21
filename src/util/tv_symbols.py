@@ -47,16 +47,14 @@ EU_bonds = [
     "TVC:EU30Y",
 ]
 
-stock_indices = (
-    [
-        "AMEX:SPY",
-        "NASDAQ:NDX",
-        "USI:PCC",
-        "USI:PCCE",
-        "TVC:DXY",
-        "TVC:VIX",
-        "TVC:SPX",
-    ]
-    + US_bonds
-    + EU_bonds
-)
+stock_indices = [
+    "AMEX:SPY",
+    "NASDAQ:NDX",
+    "USI:PCC",
+    "USI:PCCE",
+    "TVC:DXY",
+    "TVC:VIX",
+    "TVC:SPX",
+]
+
+all_stock_indices = stock_indices + EU_bonds + US_bonds

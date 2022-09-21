@@ -49,6 +49,7 @@ cfd = None
 
 nasdaq_tickers = None
 
+
 def format_change(change: float) -> str:
     """
     Converts a float to a string with a plus sign if the float is positive, and a minus sign if the float is negative.
@@ -95,6 +96,7 @@ async def get_json_data(url: str, headers: dict = None, text: bool = False) -> d
                     response = await r.json()
             except Exception as e:
                 print(f"Error with get request for {url}.", "Error:", e)
+                response = {}
 
             # Close the connection
             await session.close()
@@ -127,6 +129,7 @@ async def post_json_data(url: str, headers: dict = None) -> dict:
                 response = await r.json()
             except Exception as e:
                 print(f"Error with get request for {url}.", "Error:", e)
+                response = {}
 
             # Close the connection
             await session.close()

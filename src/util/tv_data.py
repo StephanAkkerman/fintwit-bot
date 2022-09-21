@@ -16,7 +16,7 @@ from tradingview_ta import TA_Handler, Interval
 # > Local dependencies
 import util.vars
 from util.vars import get_json_data
-from util.tv_symbols import stock_indices, crypto_indices
+from util.tv_symbols import all_stock_indices, crypto_indices
 
 
 async def get_tv_ticker_data(url, append_to=None):
@@ -58,7 +58,9 @@ class TV_data:
 
     def __init__(self) -> None:
 
-        self.stock_indices_without_exch = [sym.split(":")[1] for sym in stock_indices]
+        self.stock_indices_without_exch = [
+            sym.split(":")[1] for sym in all_stock_indices
+        ]
         self.crypto_indices_without_exch = [sym.split(":")[1] for sym in crypto_indices]
 
     async def on_msg(
@@ -267,13 +269,25 @@ class TV_data:
 
                         elif counter == 3:
                             await session.close()
-                            return 0, None, 0, None, f"https://www.tradingview.com/symbols/{symbol}"
+                            return (
+                                0,
+                                None,
+                                0,
+                                None,
+                                f"https://www.tradingview.com/symbols/{symbol}",
+                            )
 
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         # self.restart_sockets()
                         print("TradingView websocket Error")
                         await session.close()
-                        return 0, None, 0, None, f"https://www.tradingview.com/symbols/{symbol}"
+                        return (
+                            0,
+                            None,
+                            0,
+                            None,
+                            f"https://www.tradingview.com/symbols/{symbol}",
+                        )
 
         except Exception:
             print(traceback.format_exc())

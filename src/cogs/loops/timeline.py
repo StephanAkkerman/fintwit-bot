@@ -284,6 +284,7 @@ class Streamer(AsyncStream):
         else:
             # If the tweet contains no tickers or hasthags, then it is not a financial tweet
             category = None
+            base_symbols = None
 
         # Set image if an image is included in the tweet
         if images:
