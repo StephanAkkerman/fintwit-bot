@@ -65,13 +65,15 @@ def get_coin_exchanges(coin_dict: dict) -> tuple[str, list]:
     base = "N/A"
     exchanges = []
     if "tickers" in coin_dict.keys():
-        if len(coin_dict["tickers"]) > 0:
-            if "base" in coin_dict["tickers"][0].keys():
-                base = coin_dict["tickers"][0]["base"]
-            if "exchange" in coin_dict["tickers"][0].keys():
-                exchanges = [
-                    ticker["exchange"]["name"] for ticker in coin_dict["tickers"]
-                ]
+        for info in coin_dict["tickers"]:
+            if "base" in info.keys():
+                # Somtimes the base is a contract instead of ticker
+                if base == "N/A":
+                    if not(info["base"].startswith("0X") and len(info["base"]) > 5):
+                        base = info["base"]
+
+            if "exchange" in info.keys():
+                exchanges.append(info["exchange"]["name"])
 
     return base, exchanges
 
@@ -84,7 +86,10 @@ def get_info_from_dict(coin_dict: dict):
 
             change = None
             if "price_change_percentage_24h" in coin_dict["market_data"].keys():
-                if isinstance(coin_dict["market_data"]["price_change_percentage_24h"], numbers.Number):
+                if isinstance(
+                    coin_dict["market_data"]["price_change_percentage_24h"],
+                    numbers.Number,
+                ):
                     change = round(
                         coin_dict["market_data"]["price_change_percentage_24h"], 2
                     )

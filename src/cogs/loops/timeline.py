@@ -192,6 +192,10 @@ class Streamer(AsyncStream):
             print(e)
             print("Failed to get following ids")
 
+    async def on_connection_error(self):
+        print("Tweepy Stream Connection error")
+        # Consider restarting the stream
+
     async def on_data(self, raw_data: str) -> None:
         """
         This method is called whenever data is received from the stream.
