@@ -31,15 +31,17 @@ class Overview:
         else:
             self.do_crypto = False
 
-    async def overview(self, tweet_db, category):
+    async def overview(self, tweet_db, category, tickers, sentiment):
         # Make sure that the new db is not empty
         if not tweet_db.empty:
             if self.do_stocks:
-                await self.make_overview(tweet_db, category)
+                await self.make_overview(tweet_db, category, tickers, sentiment)
             if self.do_crypto:
-                await self.make_overview(tweet_db, category)
+                await self.make_overview(tweet_db, category, tickers, sentiment)
 
-    async def make_overview(self, tweet_db, category):
+    async def make_overview(
+        self, tweet_db, category: str, tickers: list, last_sentiment: str
+    ):
         # Post the overview for stocks and crypto
         db = tweet_db.loc[tweet_db["category"] == category]
 
@@ -64,8 +66,18 @@ class Overview:
             sentiment = dict(Counter(sentiment))
 
             formatted_sentiment = ""
-            for key, value in sentiment.items():
-                formatted_sentiment += f"{value}{key} "
+            # Use this method to sort the dict
+            for emoji in ["🐂", "🦆", "🐻"]:
+                if emoji in sentiment.keys():
+                    if emoji == last_sentiment and ticker in tickers:
+                        formatted_sentiment += f"**{sentiment[emoji]}**{emoji} "
+                    else:
+                        formatted_sentiment += f"{sentiment[emoji]}{emoji} "
+
+            if ticker in tickers:
+                # Make bold
+                ticker = f"**{ticker}**"
+                count = f"**{count}**"
 
             # Add count, symbol, sentiment to embed lists
             count_list.append(str(count))

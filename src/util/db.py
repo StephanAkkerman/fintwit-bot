@@ -151,7 +151,7 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list) 
             {
                 "ticker": tickers[i],
                 "user": user,
-                "sentiment": sentiment.split(" - ")[0],
+                "sentiment": sentiment,
                 "category": categories[i],
             }
         )

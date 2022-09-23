@@ -59,6 +59,6 @@ def add_sentiment(e : discord.Embed, text: str) -> tuple[discord.Embed, str]:
         value=f"{prediction} ({round(max(sentiment*100),2)}%)",
         inline=False,
     )
-    prediction.split(" - ")[0]
+    prediction = prediction.split(" - ")[0]
     
     return e, prediction
