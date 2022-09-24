@@ -7,7 +7,8 @@ import datetime
 import traceback
 
 # > 3rd Party Dependencies
-from tweepy.asynchronous import AsyncStream
+from tweepy.asynchronous import AsyncStreamingClient
+from tweepy import StreamRule
 
 # > Discord dependencies
 import discord
@@ -17,11 +18,9 @@ from discord.ext.tasks import loop
 # Local dependencies
 from util.vars import (
     config,
-    consumer_key,
-    consumer_secret,
-    access_token,
-    access_token_secret,
+    bearer_token,
     api,
+    get_json_data
 )
 from util.disc_util import get_channel, get_tagged_users
 from util.tweet_util import format_tweet, add_financials
@@ -53,13 +52,47 @@ class Timeline(commands.Cog):
         """
 
         # These values are all imported from config.yaml
-        printer = Streamer(
-            consumer_key, consumer_secret, access_token, access_token_secret, self.bot
-        )
+        printer = Streamer(self.bot)
 
         try:
-            following = api.get_friend_ids()
-            await printer.filter(follow=following)
+            await printer.add_rules(self.get_rules())
+            # https://docs.tweepy.org/en/stable/asyncstreamingclient.html#tweepy.asynchronous.AsyncStreamingClient.filter
+            # https://developer.twitter.com/en/docs/twitter-api/fields
+            await printer.filter(
+                expansions=[
+                    "author_id",
+                    "referenced_tweets.id",
+                    "in_reply_to_user_id",
+                    "attachments.media_keys",
+                    "entities.mentions.username",
+                    "referenced_tweets.id.author_id",
+                ],
+                tweet_fields=[
+                    "id",
+                    "text",
+                    "attachments",
+                    "author_id",
+                    "conversation_id",
+                    "entities",
+                    "in_reply_to_user_id",
+                    "referenced_tweets",
+                ],
+                user_fields=[
+                    "id", 
+                    "name", 
+                    "username", 
+                    "profile_image_url"
+                ],
+                media_fields=[
+                    "media_key",
+                    "type",
+                    "url",
+                    "height",
+                    "preview_image_url",
+                    "width",
+                    "variants",
+                ],
+            )
 
         except Exception as e:
             print("Could not get following ids on startup. Error: ", e)
@@ -67,6 +100,30 @@ class Timeline(commands.Cog):
             # Wait 5 min and try again
             await asyncio.sleep(60 * 5)
             await self.start()
+
+    def get_rules(self) -> List[StreamRule]:
+        """
+        Creates the rules for the streamer to filter on.
+        Only tweets from users that the bot is following are allowed.
+
+        Returns
+        -------
+        List[StreamRule]
+            List of StreamRules to filter on.
+        """
+        following = api.get_friend_ids()
+
+        rules = []
+        text_rule = ""
+        for user in following:
+            if len(text_rule) + len(str(user)) + 2 < 512:
+                text_rule += f"from:{user} OR "
+            else:
+                # https://docs.tweepy.org/en/stable/streamrule.html#tweepy.StreamRule
+                rules.append(StreamRule(value=text_rule[:-4], tag="user"))
+                text_rule = ""
+
+        return rules
 
 
 def setup(bot: commands.Bot) -> None:
@@ -80,7 +137,7 @@ def setup(bot: commands.Bot) -> None:
     bot.add_cog(Timeline(bot))
 
 
-class Streamer(AsyncStream):
+class Streamer(AsyncStreamingClient):
     """
     The main Class of this project. This class is responsible for streaming tweets from the Twitter API.
 
@@ -100,16 +157,13 @@ class Streamer(AsyncStream):
 
     def __init__(
         self,
-        consumer_key: str,
-        consumer_secret: str,
-        access_token: str,
-        access_token_secret: str,
         bot: commands.Bot,
     ) -> None:
 
         # Init the parent class
-        AsyncStream.__init__(
-            self, consumer_key, consumer_secret, access_token, access_token_secret
+        # https://docs.tweepy.org/en/stable/asyncstreamingclient.html
+        AsyncStreamingClient.__init__(
+            self, bearer_token=bearer_token, wait_on_rate_limit=True, max_retries=10
         )
 
         # Set the bot for messages
@@ -186,6 +240,8 @@ class Streamer(AsyncStream):
         -------
         None
         """
+        # Could also use this
+        # https://developer.twitter.com/en/docs/twitter-api/users/follows/api-reference/get-users-id-following
         try:
             self.following_ids = api.get_friend_ids()
         except Exception as e:
@@ -195,6 +251,9 @@ class Streamer(AsyncStream):
     async def on_connection_error(self):
         print("Tweepy Stream Connection error")
         # Consider restarting the stream
+
+    async def on_request_error(self, status_code):
+        return await super().on_request_error(status_code)
 
     async def on_data(self, raw_data: str) -> None:
         """
@@ -211,7 +270,7 @@ class Streamer(AsyncStream):
         None
         """
 
-        formatted_tweet = await format_tweet(raw_data, self.following_ids)
+        formatted_tweet = await format_tweet(raw_data)
 
         if formatted_tweet == None:
             return
@@ -313,7 +372,9 @@ class Streamer(AsyncStream):
                 print("Categories:", categories)
             else:
                 tweet_db = update_tweet_db(base_symbols, user, sentiment, categories)
-                await self.tweet_overview.overview(tweet_db, category, base_symbols, sentiment)
+                await self.tweet_overview.overview(
+                    tweet_db, category, base_symbols, sentiment
+                )
 
     async def upload_tweet(
         self,

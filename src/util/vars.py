@@ -14,11 +14,10 @@ access_token = config["TWITTER"]["ACCESS_TOKEN_KEY"]
 access_token_secret = config["TWITTER"]["ACCESS_TOKEN_SECRET"]
 bearer_token = config["TWITTER"]["BEARER_TOKEN"]
 
-# Init API
+# Init v1 API
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth)
-client = tweepy.Client(bearer_token)
 
 # Replace key by value
 filter_dict = {
@@ -33,7 +32,23 @@ filter_dict = {
 }
 
 # Stable coins
-stables = ["USDT", "USD", "BUSD", "DAI", "USDTPERP"]
+# Could update this on startup:
+# https://www.binance.com/bapi/composite/v1/public/promo/cmc/cryptocurrency/category?id=604f2753ebccdd50cd175fc1&limit=10
+# Get info stored in ["data"]["body"]["data"]["coins"] to get this list
+stables = [
+    "USDT",
+    "USDC",
+    "BUSD",
+    "DAI",
+    "FRAX",
+    "TUSD",
+    "USDP",
+    "USDD",
+    "USDN",
+    "FEI",
+    "USD",
+    "USDTPERP",
+]
 
 # Init global database vars
 assets_db = None

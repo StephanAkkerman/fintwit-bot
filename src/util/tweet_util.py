@@ -13,157 +13,12 @@ from discord.ext import commands
 # Local dependencies
 from util.sentiment_analyis import add_sentiment
 from util.ticker_classifier import classify_ticker
-from util.vars import filter_dict, client
+from util.vars import filter_dict, get_json_data, bearer_token
 from util.disc_util import get_emoji
 
 
-async def get_tweet(
-    as_json: dict,
-) -> tuple[str, List[str], List[str], Optional[str], List[str]]:
-    """
-    Returns the info of the tweet that was quote retweeted
-
-    Parameters
-    ----------
-    as_json : dict
-        The json object of the tweet.
-
-    Returns
-    -------
-    tuple[str, List[str], List[str], Optional[str], List[str]]
-        str
-            The text of the tweet.
-        List[str]
-            The tickers in the tweet.
-        List[str]
-            The images in the tweet.
-        Optional[str]
-            The user that was retweeted.
-        List[str]
-            The hashtags in the tweet.
-    """
-
-    # Check for quote tweet (combine this with user's text)
-    if "quoted_status" in as_json:
-
-        # If it is a retweet change format
-        if "retweeted_status" in as_json:
-            (
-                user_text,
-                user_ticker_list,
-                user_image,
-                user_hashtags,
-            ) = await standard_tweet_info(as_json["retweeted_status"])
-        else:
-            (
-                user_text,
-                user_ticker_list,
-                user_image,
-                user_hashtags,
-            ) = await standard_tweet_info(as_json)
-
-        retweeted_user = as_json["quoted_status"]["user"]["screen_name"]
-
-        text, ticker_list, image, hashtags = await standard_tweet_info(
-            as_json["quoted_status"]
-        )
-
-        # Combine the information
-        images = user_image + image
-        ticker_list = user_ticker_list + ticker_list
-        hashtags = user_hashtags + hashtags
-
-        # Add > to show it's a quote
-        text = "\n".join(map(lambda line: "> " + line, text.split("\n")))
-
-        text = f"{user_text}\n\n> [@{retweeted_user}](https://twitter.com/{retweeted_user}):\n{text}"
-
-    # If retweeted check the extended tweet
-    elif "retweeted_status" in as_json:
-
-        text, ticker_list, images, hashtags = await standard_tweet_info(
-            as_json["retweeted_status"]
-        )
-        retweeted_user = as_json["retweeted_status"]["user"]["screen_name"]
-
-    else:
-        text, ticker_list, images, hashtags = await standard_tweet_info(as_json)
-        retweeted_user = None
-
-    return text, ticker_list, images, retweeted_user, hashtags
-
-
-async def standard_tweet_info(
-    as_json: dict,
-) -> tuple[str, List[str], List[str], List[str]]:
-    """
-    Returns the text, tickers, images, and hashtags of a tweet.
-
-    Parameters
-    ----------
-    as_json : dict
-        The json object of the tweet.
-
-    Returns
-    -------
-    tuple[str, List[str], List[str], List[str]]
-        str
-            The text of the tweet.
-        List[str]
-            The tickers in the tweet.
-        List[str]
-            The images in the tweet.
-        List[str]
-            The hashtags in the tweet.
-    """
-
-    images = []
-
-    # If the full text is available, use that
-    if "extended_tweet" in as_json:
-        text = as_json["extended_tweet"]["full_text"]
-        ticker_list = as_json["extended_tweet"]["entities"]
-
-        if "urls" in as_json["extended_tweet"]["entities"]:
-            for url in as_json["extended_tweet"]["entities"]["urls"]:
-                text = text.replace(url["url"], url["expanded_url"])
-
-        # Add the media, check extended entities first
-        if "extended_entities" in as_json["extended_tweet"]:
-            if "media" in as_json["extended_tweet"]["extended_entities"]:
-                for media in as_json["extended_tweet"]["extended_entities"]["media"]:
-                    images.append(media["media_url"])
-                    text = text.replace(media["url"], "")
-
-    # Not an extended tweet
-    else:
-        text = as_json["text"]
-        ticker_list = as_json["entities"]
-
-        if "urls" in as_json["entities"]:
-            for url in as_json["entities"]["urls"]:
-                text = text.replace(url["url"], url["expanded_url"])
-
-        if "media" in as_json["entities"]:
-            for media in as_json["entities"]["media"]:
-                images.append(media["media_url"])
-                text = text.replace(media["url"], "")
-
-    tickers = []
-    hashtags = []
-    # Process hashtags and tickers
-    if "symbols" in ticker_list:
-        for symbol in ticker_list["symbols"]:
-            tickers.append(f"{symbol['text'].upper()}")
-        # Also check the hashtags
-        for symbol in ticker_list["hashtags"]:
-            hashtags.append(f"{symbol['text'].upper()}")
-
-    return text, tickers, images, hashtags
-
-
 async def format_tweet(
-    raw_data: str | bytes, following_ids: List[str]
+    raw_data: str | bytes,
 ) -> Optional[
     tuple[str, str, str, str, List[str], List[str], List[str], Optional[str]]
 ]:
@@ -202,59 +57,206 @@ async def format_tweet(
     # Convert the string json data to json object
     as_json = json.loads(raw_data)
 
-    # Filter based on users we are following
-    # Otherwise shows all tweets (including tweets of people who we are not following)
-    if "user" in as_json:
-        if as_json["user"]["id"] in following_ids:
+    print(as_json)
 
-            # Ignore replies to other pipo
-            # Could instead try: ... or as_json['in_reply_to_user_id'] == as_json['user']['id']
-            if (
-                as_json["in_reply_to_user_id"] is None
-                or as_json["in_reply_to_user_id"] in following_ids
-            ):
-                # print(as_json)
+    # Get the user name
+    user = as_json["includes"]["users"][0]["username"]
 
-                # Get the user name
-                user = as_json["user"]["screen_name"]
+    # Get other info
+    profile_pic = as_json["includes"]["users"][0]["profile_image_url"]
 
-                # Get other info
-                profile_pic = as_json["user"]["profile_image_url"]
+    # Could also use ['id_sr'] instead
+    url = f"https://twitter.com/{user}/status/{as_json['data']['conversation_id']}"
 
-                # Could also use ['id_sr'] instead
-                url = f"https://twitter.com/{user}/status/{as_json['id']}"
+    (
+        text,
+        tickers,
+        images,
+        retweeted_user,
+        hashtags,
+    ) = await get_tweet(as_json)
 
-                (
-                    text,
-                    tickers,
-                    images,
-                    retweeted_user,
-                    hashtags,
-                ) = await get_tweet(as_json)
+    # Replace &amp;
+    text = text.replace("&amp;", "&")
+    text = text.replace("&gt;", ">")
 
-                # Replace &amp;
-                text = text.replace("&amp;", "&")
-                text = text.replace("&gt;", ">")
+    # Post the tweet containing the important info
+    try:
+        return (
+            text,
+            user,
+            profile_pic,
+            url,
+            images,
+            tickers,
+            hashtags,
+            retweeted_user,
+        )
 
-                # Post the tweet containing the important info
-                try:
-                    return (
-                        text,
-                        user,
-                        profile_pic,
-                        url,
-                        images,
-                        tickers,
-                        hashtags,
-                        retweeted_user,
+    except Exception:
+        print(
+            f"Error posting tweet of {user} at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
+        )
+        print(format_exc())
+        return None
+
+
+async def get_tweet(
+    as_json: dict,
+) -> tuple[str, List[str], List[str], Optional[str], List[str]]:
+    """
+    Returns the info of the tweet that was quote retweeted
+
+    Parameters
+    ----------
+    as_json : dict
+        The json object of the tweet.
+
+    Returns
+    -------
+    tuple[str, List[str], List[str], Optional[str], List[str]]
+        str
+            The text of the tweet.
+        List[str]
+            The tickers in the tweet.
+        List[str]
+            The images in the tweet.
+        Optional[str]
+            The user that was retweeted.
+        List[str]
+            The hashtags in the tweet.
+    """
+
+    retweeted_user = None
+
+    # Check for any referenced tweets
+    if "referenced_tweets" in as_json["data"].keys():
+
+        tweet_type = as_json["data"]["referenced_tweets"][0]["type"]
+
+        if tweet_type == "retweeted" or tweet_type == "quoted":
+            if len(as_json["includes"]["users"]) > 1:
+                retweeted_user = as_json["includes"]["users"][1]["username"]
+            else:
+                # If the user retweeted themselves
+                retweeted_user = as_json["includes"]["users"][0]["username"]
+
+        if tweet_type == "replied_to":
+            text, ticker_list, images, hashtags = await standard_tweet_info(
+                as_json["data"]
+            )
+
+        # If it is a retweet change format
+        elif tweet_type == "retweeted":
+            (
+                text,
+                ticker_list,
+                images,
+                hashtags,
+            ) = await standard_tweet_info(as_json["includes"]["tweets"][0])
+
+        # Add the user text to it
+        elif tweet_type == "quoted":
+            (
+                user_text,
+                user_ticker_list,
+                user_image,
+                user_hashtags,
+            ) = await standard_tweet_info(as_json["includes"]["tweets"][0])
+
+            text, ticker_list, image, hashtags = await standard_tweet_info(
+                as_json["data"]
+            )
+
+            # Combine the information
+            images = user_image + image
+            ticker_list = user_ticker_list + ticker_list
+            hashtags = user_hashtags + hashtags
+
+            # Add > to show it's a quote
+            text = "\n".join(map(lambda line: "> " + line, text.split("\n")))
+
+            text = f"{user_text}\n\n> [@{retweeted_user}](https://twitter.com/{retweeted_user}):\n{text}"
+
+    # If there is no reference then it is a normal tweet
+    else:
+        text, ticker_list, images, hashtags = await standard_tweet_info(as_json["data"])
+
+    return text, ticker_list, images, retweeted_user, hashtags
+
+
+def get_tweet_img(as_json: dict) -> List[str]:
+    images = []
+
+    # Check for images
+    if "includes" in as_json.keys():
+        if "media" in as_json["includes"].keys():
+            for media in as_json["includes"]["media"]:
+                if media["type"] == "photo":
+                    # Could increase resolution by changing url using width and height
+                    images.append(media["url"])
+
+    return images
+
+
+async def standard_tweet_info(
+    as_json: dict,
+) -> tuple[str, List[str], List[str], List[str]]:
+    """
+    Returns the text, tickers, images, and hashtags of a tweet.
+
+    Parameters
+    ----------
+    as_json : dict
+        The json object of the tweet.
+
+    Returns
+    -------
+    tuple[str, List[str], List[str], List[str]]
+        str
+            The text of the tweet.
+        List[str]
+            The tickers in the tweet.
+        List[str]
+            The images in the tweet.
+        List[str]
+            The hashtags in the tweet.
+    """
+
+    # Not an extended tweet
+    text = as_json["text"]
+
+    # Check for images
+    images = get_tweet_img(as_json)
+
+    # Remove image urls and extend other urls
+    if "urls" in as_json["entities"].keys():
+        for url in as_json["entities"]["urls"]:
+            if "media_key" in url.keys():
+                text = text.replace(url["url"], "")
+                # If there are no images yet, get the image based on conversation id
+                if not images:
+                    image_data = await get_json_data(
+                        url=f"https://api.twitter.com/2/tweets/{as_json['conversation_id']}?expansions=attachments.media_keys&media.fields=url",
+                        headers={"Authorization": f"Bearer {bearer_token}"},
                     )
+                    images = get_tweet_img(image_data)
+            else:
+                text = text.replace(url["url"], url["expanded_url"])
 
-                except Exception:
-                    print(
-                        f"Error posting tweet of {user} at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
-                    )
-                    print(format_exc())
-                    return None
+    tickers = []
+    hashtags = []
+    # Process hashtags and tickers
+    if "cashtags" in as_json["entities"].keys():
+        for symbol in as_json["entities"]["cashtags"]:
+            tickers.append(f"{symbol['tag'].upper()}")
+
+    # Also check the hashtags
+    if "hashtags" in as_json["entities"].keys():
+        for symbol in as_json["entities"]["hashtags"]:
+            hashtags.append(f"{symbol['tag'].upper()}")
+
+    return text, tickers, images, hashtags
 
 
 def get_clean_symbols(tickers, hashtags):
@@ -447,7 +449,7 @@ async def add_financials(
     return e, category, prediction, base_symbols, categories
 
 
-def count_tweets(ticker: str) -> int:
+async def count_tweets(ticker: str) -> int:
     """
     Counts the number of tweets for a ticker during the last 24 hours.
     https://developer.twitter.com/en/docs/twitter-api/tweets/counts/api-reference/get-tweets-counts-recent
@@ -465,11 +467,10 @@ def count_tweets(ticker: str) -> int:
     """
 
     # Count the last 24 hours
-    counts = client.get_recent_tweets_count(
-        ticker,
-        start_time=datetime.datetime.now(datetime.timezone.utc)
-        - datetime.timedelta(days=1),
-        granularity="day",
-    )
-
-    return counts.meta["total_tweet_count"]
+    # Can add -is:retweet in query param to exclude retweets
+    start_time = (datetime.datetime.utcnow() - datetime.timedelta(days=1)).isoformat() + "Z"
+    url = f"https://api.twitter.com/2/tweets/counts/recent?query={ticker}&granularity=day&start_time={start_time}"
+    counts = await get_json_data(url=url, 
+                                 headers={"Authorization": f"Bearer {bearer_token}"})
+    
+    return counts["meta"]["total_tweet_count"]

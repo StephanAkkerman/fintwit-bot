@@ -115,6 +115,13 @@ async def format_embed(df: pd.DataFrame, type: str, source: str) -> discord.Embe
         timestamp=datetime.datetime.now(datetime.timezone.utc),
     )
 
+    # In case of yahoo finance error add this line to stock_info.py
+    if "Select AllSymbol" in df.columns:
+        df["Symbol"] = df["Select AllSymbol"].map(lambda x: x[7 + (len(x) - 7) // 2 :])
+
+    # Only these columns are necessary
+    df = df[["Symbol", "Price", "% Change", "Volume"]]
+
     df = df.astype({"Symbol": str, "Price": float, "% Change": float, "Volume": float})
 
     df = df.round({"Price": 3, "% Change": 2, "Volume": 0})
