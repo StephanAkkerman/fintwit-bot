@@ -4,7 +4,7 @@ from discord.ext import commands
 from discord.commands import Option
 
 # Local dependencies
-from util.vars import api
+from util.vars import get_json_data, bearer_token, post_json_data, api
 
 
 class Follow(commands.Cog):
@@ -26,6 +26,14 @@ class Follow(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+
+    async def get_user_id(self, username):
+        id = await get_json_data(
+            f"https://api.twitter.com/2/users/by/username/{username}?user.fields=id",
+            headers={"Authorization": f"Bearer {bearer_token}"},
+        )
+
+        return id["data"]["id"]
 
     @commands.slash_command(name="follow", description="Follow a user on Twitter.")
     async def follow(
@@ -52,6 +60,10 @@ class Follow(commands.Cog):
         if input:
             for user in input.split(" "):
                 try:
+                    #id = await self.get_user_id(user)
+                    #response = await post_json_data(f"https://api.twitter.com/2/users/{id}/following",
+                    #                                headers={"Authorization": f"Bearer {bearer_token}"}
+                    #                                )
                     api.create_friendship(screen_name=user)
                     await ctx.respond(
                         f"You are now following: https://twitter.com/{user}"

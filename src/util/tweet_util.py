@@ -162,10 +162,10 @@ async def get_tweet(
                 user_ticker_list,
                 user_image,
                 user_hashtags,
-            ) = await standard_tweet_info(as_json["includes"]["tweets"][0])
+            ) = await standard_tweet_info(as_json["data"], True)
 
             text, ticker_list, image, hashtags = await standard_tweet_info(
-                as_json["data"]
+                as_json["includes"]["tweets"][0]
             )
 
             # Combine the information
@@ -200,7 +200,7 @@ def get_tweet_img(as_json: dict) -> List[str]:
 
 
 async def standard_tweet_info(
-    as_json: dict,
+    as_json: dict, is_quoted: bool = False
 ) -> tuple[str, List[str], List[str], List[str]]:
     """
     Returns the text, tickers, images, and hashtags of a tweet.
@@ -209,6 +209,8 @@ async def standard_tweet_info(
     ----------
     as_json : dict
         The json object of the tweet.
+    is_quoted: bool
+        If the tweet is a quote.
 
     Returns
     -------
@@ -242,7 +244,11 @@ async def standard_tweet_info(
                     )
                     images = get_tweet_img(image_data)
             else:
-                text = text.replace(url["url"], url["expanded_url"])
+                if is_quoted and url["expanded_url"].startswith("https://twitter.com"):
+                    # If it is a quote and the url is a twitter url, remove it
+                    text = text.replace(url["url"], "")
+                else:
+                    text = text.replace(url["url"], url["expanded_url"])
 
     tickers = []
     hashtags = []
@@ -468,9 +474,12 @@ async def count_tweets(ticker: str) -> int:
 
     # Count the last 24 hours
     # Can add -is:retweet in query param to exclude retweets
-    start_time = (datetime.datetime.utcnow() - datetime.timedelta(days=1)).isoformat() + "Z"
+    start_time = (
+        datetime.datetime.utcnow() - datetime.timedelta(days=1)
+    ).isoformat() + "Z"
     url = f"https://api.twitter.com/2/tweets/counts/recent?query={ticker}&granularity=day&start_time={start_time}"
-    counts = await get_json_data(url=url, 
-                                 headers={"Authorization": f"Bearer {bearer_token}"})
-    
+    counts = await get_json_data(
+        url=url, headers={"Authorization": f"Bearer {bearer_token}"}
+    )
+
     return counts["meta"]["total_tweet_count"]

@@ -5,6 +5,7 @@ import asyncio
 from typing import List
 import datetime
 import traceback
+import requests
 
 # > 3rd Party Dependencies
 from tweepy.asynchronous import AsyncStreamingClient
@@ -16,12 +17,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
-from util.vars import (
-    config,
-    bearer_token,
-    api,
-    get_json_data
-)
+from util.vars import config, bearer_token, get_json_data
 from util.disc_util import get_channel, get_tagged_users
 from util.tweet_util import format_tweet, add_financials
 from util.db import update_tweet_db
@@ -77,12 +73,7 @@ class Timeline(commands.Cog):
                     "in_reply_to_user_id",
                     "referenced_tweets",
                 ],
-                user_fields=[
-                    "id", 
-                    "name", 
-                    "username", 
-                    "profile_image_url"
-                ],
+                user_fields=["id", "name", "username", "profile_image_url"],
                 media_fields=[
                     "media_key",
                     "type",
@@ -111,7 +102,17 @@ class Timeline(commands.Cog):
         List[StreamRule]
             List of StreamRules to filter on.
         """
-        following = api.get_friend_ids()
+        id = requests.get(
+            f"https://api.twitter.com/2/users/by/username/{config['TWITTER']['USERNAME']}?user.fields=id",
+            headers={"Authorization": f"Bearer {bearer_token}"},
+        ).json()["data"]["id"]
+
+        following = requests.get(
+            f"https://api.twitter.com/2/users/{id}/following?max_results=1000",
+            headers={"Authorization": f"Bearer {bearer_token}"},
+        ).json()["data"]
+
+        following = [user["id"] for user in following]
 
         rules = []
         text_rule = ""
@@ -203,7 +204,7 @@ class Streamer(AsyncStreamingClient):
         self.all_txt_channels.start()
 
         # Set following ids
-        self.get_following_ids.start()
+        # self.get_following_ids.start()
 
         self.tweet_overview = Overview(self.bot)
 
@@ -243,7 +244,15 @@ class Streamer(AsyncStreamingClient):
         # Could also use this
         # https://developer.twitter.com/en/docs/twitter-api/users/follows/api-reference/get-users-id-following
         try:
-            self.following_ids = api.get_friend_ids()
+            id = await get_json_data(
+                f"https://api.twitter.com/2/users/by/username/{config['TWITTER']['USERNAME']}?user.fields=id",
+                headers={"Authorization": f"Bearer {bearer_token}"},
+            )
+            following = await get_json_data(
+                f"https://api.twitter.com/2/users/{id['data']['id']}/following?max_results=1000",
+                headers={"Authorization": f"Bearer {bearer_token}"},
+            )
+            self.following_ids = [user["id"] for user in following["data"]]
         except Exception as e:
             print(e)
             print("Failed to get following ids")
