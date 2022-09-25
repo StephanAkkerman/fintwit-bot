@@ -57,7 +57,7 @@ async def format_tweet(
     # Convert the string json data to json object
     as_json = json.loads(raw_data)
 
-    print(as_json)
+    #print(as_json)
 
     # Get the user name
     user = as_json["includes"]["users"][0]["username"]
@@ -99,6 +99,27 @@ async def format_tweet(
         )
         print(format_exc())
         return None
+
+
+async def add_quote_tweet(
+    quote_data, user_image, user_ticker_list, user_hashtags, user_text, retweeted_user
+):
+
+    text, ticker_list, image, hashtags = await standard_tweet_info(
+        quote_data["includes"]["tweets"][0], "tweet"
+    )
+
+    # Combine the information
+    images = user_image + image
+    ticker_list = user_ticker_list + ticker_list
+    hashtags = user_hashtags + hashtags
+
+    # Add > to show it's a quote
+    text = "\n".join(map(lambda line: "> " + line, text.split("\n")))
+
+    text = f"{user_text}\n\n> [@{retweeted_user}](https://twitter.com/{retweeted_user}):\n{text}"
+
+    return text, ticker_list, images, hashtags
 
 
 async def get_tweet(
@@ -143,17 +164,44 @@ async def get_tweet(
 
         if tweet_type == "replied_to":
             text, ticker_list, images, hashtags = await standard_tweet_info(
-                as_json["data"]
+                as_json["data"], tweet_type
             )
 
         # If it is a retweet change format
         elif tweet_type == "retweeted":
-            (
-                text,
-                ticker_list,
-                images,
-                hashtags,
-            ) = await standard_tweet_info(as_json["includes"]["tweets"][0])
+            # If the retweet is a quoted tweet
+            if "referenced_tweets" in as_json["includes"]["tweets"][0].keys():
+                if (
+                    "quoted"
+                    == as_json["includes"]["tweets"][0]["referenced_tweets"][0]["type"]
+                ):
+
+                    quote_data = await get_json_data(
+                        url=f"https://api.twitter.com/2/tweets/{as_json['includes']['tweets'][0]['conversation_id']}?tweet.fields=attachments,entities,conversation_id&expansions=attachments.media_keys,referenced_tweets.id&media.fields=url",
+                        headers={"Authorization": f"Bearer {bearer_token}"},
+                    )
+
+                    (
+                        user_text,
+                        user_ticker_list,
+                        user_image,
+                        user_hashtags,
+                    ) = await standard_tweet_info(quote_data["data"], "quoted")
+
+                    text, ticker_list, images, hashtags = await add_quote_tweet(
+                        quote_data,
+                        user_image,
+                        user_ticker_list,
+                        user_hashtags,
+                        user_text,
+                        retweeted_user,
+                    )
+
+            # Standaard retweet
+            else:
+                (text, ticker_list, images, hashtags,) = await standard_tweet_info(
+                    as_json["includes"]["tweets"][0], tweet_type
+                )
 
         # Add the user text to it
         elif tweet_type == "quoted":
@@ -162,25 +210,22 @@ async def get_tweet(
                 user_ticker_list,
                 user_image,
                 user_hashtags,
-            ) = await standard_tweet_info(as_json["data"], True)
+            ) = await standard_tweet_info(as_json["data"], tweet_type)
 
-            text, ticker_list, image, hashtags = await standard_tweet_info(
-                as_json["includes"]["tweets"][0]
+            text, ticker_list, images, hashtags = await add_quote_tweet(
+                as_json,
+                user_image,
+                user_ticker_list,
+                user_hashtags,
+                user_text,
+                retweeted_user,
             )
-
-            # Combine the information
-            images = user_image + image
-            ticker_list = user_ticker_list + ticker_list
-            hashtags = user_hashtags + hashtags
-
-            # Add > to show it's a quote
-            text = "\n".join(map(lambda line: "> " + line, text.split("\n")))
-
-            text = f"{user_text}\n\n> [@{retweeted_user}](https://twitter.com/{retweeted_user}):\n{text}"
 
     # If there is no reference then it is a normal tweet
     else:
-        text, ticker_list, images, hashtags = await standard_tweet_info(as_json["data"])
+        text, ticker_list, images, hashtags = await standard_tweet_info(
+            as_json["data"], "tweet"
+        )
 
     return text, ticker_list, images, retweeted_user, hashtags
 
@@ -200,7 +245,7 @@ def get_tweet_img(as_json: dict) -> List[str]:
 
 
 async def standard_tweet_info(
-    as_json: dict, is_quoted: bool = False
+    as_json: dict, tweet_type: str = "tweet"
 ) -> tuple[str, List[str], List[str], List[str]]:
     """
     Returns the text, tickers, images, and hashtags of a tweet.
@@ -209,8 +254,8 @@ async def standard_tweet_info(
     ----------
     as_json : dict
         The json object of the tweet.
-    is_quoted: bool
-        If the tweet is a quote.
+    tweet_type: str
+        The type of tweet, can be "quoted", "retweet", "replied_to" or "tweet".
 
     Returns
     -------
@@ -225,7 +270,6 @@ async def standard_tweet_info(
             The hashtags in the tweet.
     """
 
-    # Not an extended tweet
     text = as_json["text"]
 
     # Check for images
@@ -244,7 +288,9 @@ async def standard_tweet_info(
                     )
                     images = get_tweet_img(image_data)
             else:
-                if is_quoted and url["expanded_url"].startswith("https://twitter.com"):
+                if tweet_type == "quoted" and url["expanded_url"].startswith(
+                    "https://twitter.com"
+                ):
                     # If it is a quote and the url is a twitter url, remove it
                     text = text.replace(url["url"], "")
                 else:
