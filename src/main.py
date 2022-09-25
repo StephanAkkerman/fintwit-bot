@@ -71,6 +71,14 @@ def load_folder(foldername: str) -> None:
     for filename in os.listdir(f"./src/cogs/{foldername}"):
         if filename.endswith(".py") and filename in enabled_cogs:
             try:
+                # Do not start timeline if the -no_timeline argument is given
+                if (
+                    filename == "timeline.py"
+                    and len(sys.argv) > 2
+                    and sys.argv[2] == "-no_timeline"
+                ):
+                    continue
+
                 print("Loading:", filename)
                 bot.load_extension(f"cogs.{foldername}.{filename[:-3]}")
             except discord.ExtensionAlreadyLoaded:
