@@ -334,7 +334,7 @@ def get_clean_symbols(tickers, hashtags):
     return clean_symbols
 
 
-def format_description(AH: bool, change, price, website, i):
+def format_description(AH: bool, change: list, price: list, website: str, i : int) -> str:
     if AH:
         return f"[AH: ${price[i]}\n({change[i]})]({website})\n"
     else:

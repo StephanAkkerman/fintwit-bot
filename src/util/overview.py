@@ -5,15 +5,22 @@ import datetime
 
 # > Discord dependencies
 import discord
+from discord.ext.tasks import loop
 
 # Local dependencies
+import util.vars
 from util.vars import config
 from util.disc_util import get_channel
+from util.tweet_util import count_tweets
 
 
 class Overview:
     def __init__(self, bot):
         self.bot = bot
+        self.global_crypto = None
+        self.global_stocks = None
+        
+        self.global_overview.start()
 
         if config["LOOPS"]["OVERVIEW"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = get_channel(
@@ -38,6 +45,33 @@ class Overview:
                 await self.make_overview(tweet_db, category, tickers, sentiment)
             if self.do_crypto:
                 await self.make_overview(tweet_db, category, tickers, sentiment)
+
+    @loop(minutes=5)
+    async def global_overview(self):
+        categories = []
+        if self.do_stocks:
+            categories.append("stocks")
+        if self.do_crypto:
+            categories.append("crypto")
+
+        for category in categories:
+            db = util.vars.tweets_db.loc[util.vars.tweets_db["category"] == category]
+
+            if db.empty:
+                return
+
+            # Get the top 50 mentions
+            top50 = db["ticker"].value_counts()[:50]
+
+            global_count_dict = {}
+
+            for ticker, _ in top50.items():
+                global_count_dict[ticker] = await count_tweets(ticker)
+
+            if category == "stocks":
+                self.global_stocks = global_count_dict
+            elif category == "crypto":
+                self.global_crypto = global_count_dict
 
     async def make_overview(
         self, tweet_db, category: str, tickers: list, last_sentiment: str
@@ -73,6 +107,14 @@ class Overview:
                         formatted_sentiment += f"**{sentiment[emoji]}**{emoji} "
                     else:
                         formatted_sentiment += f"{sentiment[emoji]}{emoji} "
+                        
+            if category == "stocks":
+                if ticker in self.global_stocks.keys():
+                    count = f"{count} - {self.global_stocks[ticker]}"
+            
+            if category == "crypto":
+                if ticker in self.global_crypto.keys():
+                    count = f"{count} - {self.global_crypto[ticker]}"
 
             if ticker in tickers:
                 # Make bold
