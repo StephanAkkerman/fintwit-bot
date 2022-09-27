@@ -50,9 +50,7 @@ class Losers(commands.Cog):
             return
 
         try:
-            losers = si.get_day_losers()[
-                ["Symbol", "Price (Intraday)", "% Change", "Volume"]
-            ].head(50)
+            losers = si.get_day_losers().head(50)
         except Exception:
             print("Failed to get losers")
             return

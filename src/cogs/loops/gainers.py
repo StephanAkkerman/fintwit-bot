@@ -126,9 +126,7 @@ class Gainers(commands.Cog):
         if afterHours():
             return
 
-        gainers = si.get_day_gainers()[
-            ["Symbol", "Price (Intraday)", "% Change", "Volume"]
-        ].head(50)
+        gainers = si.get_day_gainers().head(50)
 
         gainers.rename(columns={"Price (Intraday)": "Price"}, inplace=True)
 

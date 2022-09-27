@@ -10,6 +10,7 @@ from discord.ext import commands
 from util.disc_util import get_channel
 from util.vars import config
 
+
 class On_raw_reaction_add(commands.Cog):
     """
     This class is used to handle the on_raw_reaction_add event.
@@ -24,13 +25,17 @@ class On_raw_reaction_add(commands.Cog):
     highlight(message : discord.Message, user : discord.User) -> None:
         This function gets called if a reaction was used for highlighting a tweet.
     """
-    
+
     def __init__(self, bot):
         self.bot = bot
-        self.channel = get_channel(self.bot, config["LISTENERS"]["ON_RAW_REACTION_ADD"]["CHANNEL"])
+        self.channel = get_channel(
+            self.bot, config["LISTENERS"]["ON_RAW_REACTION_ADD"]["CHANNEL"]
+        )
 
     @commands.Cog.listener()
-    async def on_raw_reaction_add(self, reaction : discord.RawReactionActionEvent) -> None:
+    async def on_raw_reaction_add(
+        self, reaction: discord.RawReactionActionEvent
+    ) -> None:
         """
         This function is called when a reaction is added to a message.
 
@@ -38,7 +43,7 @@ class On_raw_reaction_add(commands.Cog):
         ----------
         reaction : discord.RawReactionActionEvent
             The information about the reaction that was added.
-            
+
         Returns
         -------
         None
@@ -72,10 +77,9 @@ class On_raw_reaction_add(commands.Cog):
         except commands.CommandError as e:
             print(e)
 
-    async def classify_reaction(self, 
-                                reaction : discord.RawReactionActionEvent, 
-                                message : discord.Message
-                               ) -> None:
+    async def classify_reaction(
+        self, reaction: discord.RawReactionActionEvent, message: discord.Message
+    ) -> None:
         """
         This function gets called if a reaction was used for classifying a tweet.
 
@@ -85,7 +89,7 @@ class On_raw_reaction_add(commands.Cog):
             The information about the reaction that was added.
         message : discord.Message
             The message that the reaction was added to.
-            
+
         Returns
         -------
         None
@@ -106,10 +110,7 @@ class On_raw_reaction_add(commands.Cog):
                     [message.embeds[0].description.replace("\n", " "), 0]
                 )
 
-    async def highlight(self, 
-                        message : discord.Message, 
-                        user : discord.User
-                       ) -> None:
+    async def highlight(self, message: discord.Message, user: discord.User) -> None:
         """
         This function gets called if a reaction was used for highlighting a tweet.
 
@@ -119,7 +120,7 @@ class On_raw_reaction_add(commands.Cog):
             The tweet that should be posted in the highlight channel.
         user : discord.User
             The user that added this reaction to the tweet.
-            
+
         Returns
         -------
         None
@@ -129,13 +130,35 @@ class On_raw_reaction_add(commands.Cog):
         e = message.embeds[0]
 
         # Get the Discord name of the user
-        user = str(user).split("#")[0]
-        
         e.set_footer(
-            text=f"{e.footer.text} | Highlighted by {user}", icon_url=e.footer.icon_url
+            text=f"{e.footer.text} | Highlighted by {str(user).split('#')[0]}",
+            icon_url=e.footer.icon_url,
         )
 
-        await self.channel.send(embed=e)
+        if len(message.embeds) > 1:
+            image_e = [e] + [
+                discord.Embed(url=em.url).set_image(url=em.image.url)
+                for em in message.embeds[1:]
+            ]
+
+            webhook = await self.channel.webhooks()
+
+            if not webhook:
+                webhook = await self.channel.create_webhook(name=self.channel.name)
+                print(f"Created webhook for {self.channel.name}")
+            else:
+                webhook = webhook[0]
+
+            # Wait so we can use this message as reference
+            await webhook.send(
+                embeds=image_e,
+                username="FinTwit",
+                wait=True,
+                avatar_url=self.bot.user.avatar.url,
+            )
+
+        else:
+            await self.channel.send(embed=e)
 
 
 def setup(bot):

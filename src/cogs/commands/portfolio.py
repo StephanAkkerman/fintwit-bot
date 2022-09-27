@@ -108,7 +108,9 @@ class Portfolio(commands.Cog):
             [util.vars.portfolio_db, new_data], ignore_index=True
         )
 
-        await ctx.respond("Succesfully added your portfolio to the database!")
+        await ctx.respond(
+            "Succesfully added your portfolio to the database!\nPlease ensure that you set the API for read-only access."
+        )
 
         # Init Exchanges to start websockets
         Trades(self.bot, new_data)

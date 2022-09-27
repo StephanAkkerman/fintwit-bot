@@ -4,3 +4,4 @@ authentication.json
 config.yaml
 models/*
 data/*
+*.lnk

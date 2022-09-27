@@ -153,8 +153,10 @@ async def get_tweet(
     # Check for any referenced tweets
     if "referenced_tweets" in as_json["data"].keys():
 
+        # Tweet type can be "retweeted", "quoted" or "replied_to"
         tweet_type = as_json["data"]["referenced_tweets"][0]["type"]
 
+        # Set the retweeted user
         if tweet_type == "retweeted" or tweet_type == "quoted":
             if len(as_json["includes"]["users"]) > 1:
                 retweeted_user = as_json["includes"]["users"][1]["username"]
@@ -227,7 +229,10 @@ async def get_tweet(
             as_json["data"], "tweet"
         )
 
-    return text, ticker_list, images, retweeted_user, hashtags
+    try:
+        return text, ticker_list, images, retweeted_user, hashtags
+    except Exception:
+        print(as_json)
 
 
 def get_tweet_img(as_json: dict) -> List[str]:

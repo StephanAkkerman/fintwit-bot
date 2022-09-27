@@ -449,12 +449,10 @@ class Streamer(AsyncStreamingClient):
             channel = self.stocks_charts_channel
 
         try:
-            # Create a list of image embeds
-            image_e = [e]
-            for i in range(len(images[:10])):
-                if i > 0:
-                    # Create a new embed object for each image
-                    image_e.append(discord.Embed(url=e.url).set_image(url=images[i]))
+            # Create a list of image embeds, max 10 images per post
+            image_e = [e] + [
+                discord.Embed(url=e.url).set_image(url=img) for img in images[1:10]
+            ]
 
             # If there are multiple images to be sent, use a webhook to send them all at once
             if len(image_e) > 1:
