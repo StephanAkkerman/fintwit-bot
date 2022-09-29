@@ -2,7 +2,6 @@
 # > Standard libaries
 from __future__ import annotations
 from typing import Optional, List
-import json
 import datetime
 from traceback import format_exc
 
@@ -18,7 +17,7 @@ from util.disc_util import get_emoji
 
 
 async def format_tweet(
-    raw_data: str | bytes,
+    as_json: dict,
 ) -> Optional[
     tuple[str, str, str, str, List[str], List[str], List[str], Optional[str]]
 ]:
@@ -28,8 +27,8 @@ async def format_tweet(
 
     Parameters
     ----------
-    raw_data : str | bytes
-        The raw data of the tweet.
+    as_json : dict
+        The data from the tweet.
     following_ids : List[str]
         The list of the ids of the people we follow.
 
@@ -54,19 +53,19 @@ async def format_tweet(
             The user that was retweeted.
     """
 
-    # Convert the string json data to json object
-    as_json = json.loads(raw_data)
-
-    #print(as_json)
+    # print(as_json)
 
     # Get the user name
-    user = as_json["includes"]["users"][0]["username"]
+    if "includes" in as_json.keys():
+        user = as_json["includes"]["users"][0]["username"]
 
-    # Get other info
-    profile_pic = as_json["includes"]["users"][0]["profile_image_url"]
-
-    # Could also use ['id_sr'] instead
-    url = f"https://twitter.com/{user}/status/{as_json['data']['conversation_id']}"
+        # Get other info
+        profile_pic = as_json["includes"]["users"][0]["profile_image_url"]
+        
+        # Could also use ['id_sr'] instead
+        url = f"https://twitter.com/{user}/status/{as_json['data']['conversation_id']}"
+    else:
+        print(as_json)    
 
     (
         text,
@@ -149,6 +148,7 @@ async def get_tweet(
     """
 
     retweeted_user = None
+    is_reference = False
 
     # Check for any referenced tweets
     if "referenced_tweets" in as_json["data"].keys():
@@ -164,6 +164,7 @@ async def get_tweet(
                 # If the user retweeted themselves
                 retweeted_user = as_json["includes"]["users"][0]["username"]
 
+        # Could also add the tweet that it was replied to
         if tweet_type == "replied_to":
             text, ticker_list, images, hashtags = await standard_tweet_info(
                 as_json["data"], tweet_type
@@ -173,11 +174,10 @@ async def get_tweet(
         elif tweet_type == "retweeted":
             # If the retweet is a quoted tweet
             if "referenced_tweets" in as_json["includes"]["tweets"][0].keys():
-                if (
-                    "quoted"
-                    == as_json["includes"]["tweets"][0]["referenced_tweets"][0]["type"]
-                ):
-
+                is_reference = True
+            
+            # Only do this if a quote tweet was retweeted
+            if is_reference and as_json["includes"]["tweets"][0]["referenced_tweets"][0]["type"] == "quoted":
                     quote_data = await get_json_data(
                         url=f"https://api.twitter.com/2/tweets/{as_json['includes']['tweets'][0]['conversation_id']}?tweet.fields=attachments,entities,conversation_id&expansions=attachments.media_keys,referenced_tweets.id&media.fields=url",
                         headers={"Authorization": f"Bearer {bearer_token}"},
@@ -199,7 +199,7 @@ async def get_tweet(
                         retweeted_user,
                     )
 
-            # Standaard retweet
+            # Standard retweet
             else:
                 (text, ticker_list, images, hashtags,) = await standard_tweet_info(
                     as_json["includes"]["tweets"][0], tweet_type
@@ -281,25 +281,26 @@ async def standard_tweet_info(
     images = get_tweet_img(as_json)
 
     # Remove image urls and extend other urls
-    if "urls" in as_json["entities"].keys():
-        for url in as_json["entities"]["urls"]:
-            if "media_key" in url.keys():
-                text = text.replace(url["url"], "")
-                # If there are no images yet, get the image based on conversation id
-                if not images:
-                    image_data = await get_json_data(
-                        url=f"https://api.twitter.com/2/tweets/{as_json['conversation_id']}?expansions=attachments.media_keys&media.fields=url",
-                        headers={"Authorization": f"Bearer {bearer_token}"},
-                    )
-                    images = get_tweet_img(image_data)
-            else:
-                if tweet_type == "quoted" and url["expanded_url"].startswith(
-                    "https://twitter.com"
-                ):
-                    # If it is a quote and the url is a twitter url, remove it
+    if "entities" in as_json.keys():
+        if "urls" in as_json["entities"].keys():
+            for url in as_json["entities"]["urls"]:
+                if "media_key" in url.keys():
                     text = text.replace(url["url"], "")
+                    # If there are no images yet, get the image based on conversation id
+                    if not images:
+                        image_data = await get_json_data(
+                            url=f"https://api.twitter.com/2/tweets/{as_json['conversation_id']}?expansions=attachments.media_keys&media.fields=url",
+                            headers={"Authorization": f"Bearer {bearer_token}"},
+                        )
+                        images = get_tweet_img(image_data)
                 else:
-                    text = text.replace(url["url"], url["expanded_url"])
+                    if tweet_type == "quoted" and url["expanded_url"].startswith(
+                        "https://twitter.com"
+                    ):
+                        # If it is a quote and the url is a twitter url, remove it
+                        text = text.replace(url["url"], "")
+                    else:
+                        text = text.replace(url["url"], url["expanded_url"])
 
     tickers = []
     hashtags = []
@@ -339,7 +340,9 @@ def get_clean_symbols(tickers, hashtags):
     return clean_symbols
 
 
-def format_description(AH: bool, change: list, price: list, website: str, i : int) -> str:
+def format_description(
+    AH: bool, change: list, price: list, website: str, i: int
+) -> str:
     if AH:
         return f"[AH: ${price[i]}\n({change[i]})]({website})\n"
     else:

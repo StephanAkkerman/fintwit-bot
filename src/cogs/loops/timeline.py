@@ -6,6 +6,7 @@ from typing import List
 import datetime
 import traceback
 import requests
+import json
 
 # > 3rd Party Dependencies
 from tweepy.asynchronous import AsyncStreamingClient
@@ -264,7 +265,7 @@ class Streamer(AsyncStreamingClient):
     async def on_request_error(self, status_code):
         return await super().on_request_error(status_code)
 
-    async def on_data(self, raw_data: str) -> None:
+    async def on_data(self, raw_data: str | bytes) -> None:
         """
         This method is called whenever data is received from the stream.
         The name of this method cannot be changed, since it is called by the Tweepy stream automatically.
@@ -279,7 +280,13 @@ class Streamer(AsyncStreamingClient):
         None
         """
 
-        formatted_tweet = await format_tweet(raw_data)
+        # Convert the string json data to json object
+        tweet_data = json.loads(raw_data)
+
+        if "error" in tweet_data.keys():
+            print(tweet_data)
+        else:
+            formatted_tweet = await format_tweet(tweet_data)
 
         if formatted_tweet == None:
             return

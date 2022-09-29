@@ -17,9 +17,9 @@ from util.tweet_util import count_tweets
 class Overview:
     def __init__(self, bot):
         self.bot = bot
-        self.global_crypto = None
-        self.global_stocks = None
-        
+        self.global_crypto = {}
+        self.global_stocks = {}
+
         self.global_overview.start()
 
         if config["LOOPS"]["OVERVIEW"]["STOCKS"]["ENABLED"]:
@@ -107,11 +107,11 @@ class Overview:
                         formatted_sentiment += f"**{sentiment[emoji]}**{emoji} "
                     else:
                         formatted_sentiment += f"{sentiment[emoji]}{emoji} "
-                        
+
             if category == "stocks":
                 if ticker in self.global_stocks.keys():
                     count = f"{count} - {self.global_stocks[ticker]}"
-            
+
             if category == "crypto":
                 if ticker in self.global_crypto.keys():
                     count = f"{count} - {self.global_crypto[ticker]}"
