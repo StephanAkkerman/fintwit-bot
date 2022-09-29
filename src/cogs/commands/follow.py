@@ -2,9 +2,10 @@
 # > 3rd Party Dependencies
 from discord.ext import commands
 from discord.commands import Option
+from tweepy.asynchronous import AsyncClient
 
 # Local dependencies
-from util.vars import get_json_data, bearer_token, post_json_data, api
+import util.vars
 
 
 class Follow(commands.Cog):
@@ -26,85 +27,86 @@ class Follow(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-
-    async def get_user_id(self, username):
-        id = await get_json_data(
-            f"https://api.twitter.com/2/users/by/username/{username}?user.fields=id",
-            headers={"Authorization": f"Bearer {bearer_token}"},
+        self.client = AsyncClient(
+            bearer_token=util.vars.bearer_token,
+            consumer_key=util.vars.consumer_key,
+            consumer_secret=util.vars.consumer_secret,
+            access_token=util.vars.access_token,
+            access_token_secret=util.vars.access_token_secret,
+            wait_on_rate_limit=True,
         )
-
-        return id["data"]["id"]
 
     @commands.slash_command(name="follow", description="Follow a user on Twitter.")
     async def follow(
         self,
         ctx,
-        input: Option(str, description="The user you want to follow.", required=True),
+        user: Option(str, description="The user you want to follow.", required=True),
     ) -> None:
         """
-        Follow Twitter user(s), using their screen name (without @ in front).
-        Usage: `!follow [<username>]`.
+        Follow a Twitter user, using their screen name (without @ in front).
+        Usage: `!follow <username>`.
 
         Parameters
         ----------
         ctx : commands.context.Context
             The context of the command.
-        input : str
-            The Twitter username(s) specified after `!follow`.
+        user : str
+            The Twitter username specified after `!follow`.
 
         Returns
         -------
         None
         """
 
-        if input:
-            for user in input.split(" "):
-                try:
-                    #id = await self.get_user_id(user)
-                    #response = await post_json_data(f"https://api.twitter.com/2/users/{id}/following",
-                    #                                headers={"Authorization": f"Bearer {bearer_token}"}
-                    #                                )
-                    api.create_friendship(screen_name=user)
-                    await ctx.respond(
-                        f"You are now following: https://twitter.com/{user}"
-                    )
-                except Exception:
-                    raise commands.UserNotFound(user)
-        else:
-            raise commands.UserInputError()
+        try:
+            id = await self.client.get_user(username=user)
+            response = await self.client.follow_user(id.data.id)
+
+            if response.data["following"]:
+                await ctx.respond(f"You are now following: https://twitter.com/{user}")
+            elif response.data["pending_follow"]:
+                await ctx.respond(
+                    f"Sent a follow request to: https://twitter.com/{user}"
+                )
+            else:
+                await ctx.respond(f"Something went wrong, please try again later.")
+
+        except Exception:
+            raise commands.UserNotFound(user)
 
     @commands.slash_command(description="Unfollow a user on Twitter.")
     async def unfollow(
         self,
         ctx: commands.Context,
-        input: Option(str, description="The user you want to unfollow.", required=True),
+        user: Option(str, description="The user you want to unfollow.", required=True),
     ) -> None:
-        """Unfollow Twitter user(s), using their screen name (without @ in front).
-        Usage: `!unfollow [<username>]`.
+        """Unfollow Twitter user, using their screen name (without @ in front).
+        Usage: `!unfollow <username>`.
 
         Parameters
         ----------
         ctx : commands.context.Context
             The context of the command.
-        input : str
-            The Twitter username(s) specified after `!unfollow`.
+        user : str
+            The Twitter username specified after `!unfollow`.
 
         Returns
         -------
         None
         """
 
-        if input:
-            for user in input.split(" "):
-                try:
-                    api.destroy_friendship(screen_name=user)
-                    await ctx.respond(
-                        f"You are no longer following: https://twitter.com/{user}"
-                    )
-                except Exception:
-                    raise commands.UserNotFound(user)
-        else:
-            raise commands.UserInputError()
+        try:
+            id = await self.client.get_user(username=user)
+            response = await self.client.unfollow_user(id.data.id)
+
+            if not response.data["following"]:
+                await ctx.respond(
+                    f"You are no longer following: https://twitter.com/{user}"
+                )
+            else:
+                await ctx.respond(f"Something went wrong, please try again later.")
+        except Exception:
+            raise commands.UserNotFound(user)
 
     @follow.error
     async def follow_error(
