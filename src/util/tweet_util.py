@@ -485,9 +485,14 @@ async def add_financials(
 
         if four_h_ta is not None:
             e.add_field(name="4h TA", value=four_h_ta, inline=True)
+        else:
+            # Add empty fields to not mess up the layout
+            e.add_field(name="\u200b", value="\u200b", inline=True)
 
         if one_d_ta is not None:
             e.add_field(name="1d TA", value=one_d_ta, inline=True)
+        else:
+            e.add_field(name="\u200b", value="\u200b", inline=True)
 
         base_symbols.append(base_symbol)
 

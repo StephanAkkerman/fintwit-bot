@@ -283,7 +283,7 @@ class Streamer(AsyncStreamingClient):
         # Convert the string json data to json object
         tweet_data = json.loads(raw_data)
 
-        if "error" in tweet_data.keys():
+        if "errors" in tweet_data.keys():
             print(tweet_data)
         else:
             formatted_tweet = await format_tweet(tweet_data)
