@@ -43,6 +43,7 @@ async def classify_ticker(
             The base ticker.
     """
 
+    # If the majority is crypt or unkown check if the ticker is a crypto
     if majority == "crypto" or majority == "Unknown":
         (
             c_volume,

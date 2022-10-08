@@ -412,6 +412,7 @@ async def add_financials(
     # In case multiple tickers get send
     crypto = 0
     stocks = 0
+    forex = 0
 
     # Get the unique values
     symbols = get_clean_symbols(tickers, hashtags)
@@ -421,10 +422,12 @@ async def add_financials(
 
     for ticker in symbols:
 
-        if crypto > stocks:
+        if crypto > stocks and crypto > forex:
             majority = "crypto"
-        elif crypto < stocks:
+        elif stocks > crypto and stocks > forex:
             majority = "stocks"
+        elif forex > crypto and forex > stocks:
+            majority = "forex"
         else:
             majority = "Unknown"
 

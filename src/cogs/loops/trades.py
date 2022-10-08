@@ -799,7 +799,7 @@ class Trades(commands.Cog):
         self.trades_channel = get_channel(
             self.bot, config["LOOPS"]["TRADES"]["CHANNEL"]
         )
-
+        
         # Start getting trades
         asyncio.create_task(self.trades(db))
 

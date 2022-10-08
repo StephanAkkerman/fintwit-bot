@@ -31,18 +31,18 @@ class Gainers(commands.Cog):
 
         if config["LOOPS"]["GAINERS"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = get_channel(
-                self.bot, config["LOOPS"]["GAINERS"]["STOCKS"]["CHANNEL"]
+                self.bot, config["LOOPS"]["GAINERS"]["CHANNEL"], config["CATEGORIES"]["STOCKS"]
             )
             self.stocks.start()
 
         if config["LOOPS"]["GAINERS"]["CRYPTO"]["ENABLED"]:
             self.crypto_gainers_channel = get_channel(
-                self.bot, config["LOOPS"]["GAINERS"]["CRYPTO"]["CHANNEL"]
+                self.bot, config["LOOPS"]["GAINERS"]["CHANNEL"], config["CATEGORIES"]["CRYPTO"]
             )
 
         if config["LOOPS"]["LOSERS"]["CRYPTO"]["ENABLED"]:
             self.crypto_losers_channel = get_channel(
-                self.bot, config["LOOPS"]["LOSERS"]["CRYPTO"]["CHANNEL"]
+                self.bot, config["LOOPS"]["LOSERS"]["CHANNEL"], config["CATEGORIES"]["CRYPTO"]
             )
 
         if (

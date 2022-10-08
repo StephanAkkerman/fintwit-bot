@@ -34,7 +34,7 @@ class Trending(commands.Cog):
 
         if config["LOOPS"]["TRENDING"]["CRYPTO"]["ENABLED"]:
             self.crypto_channel = get_channel(
-                self.bot, config["LOOPS"]["TRENDING"]["CRYPTO"]["CHANNEL"]
+                self.bot, config["LOOPS"]["TRENDING"]["CHANNEL"], config["CATEGORIES"]["CRYPTO"]
             )
 
             self.coingecko.start()
@@ -42,7 +42,7 @@ class Trending(commands.Cog):
 
         if config["LOOPS"]["TRENDING"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = get_channel(
-                self.bot, config["LOOPS"]["TRENDING"]["STOCKS"]["CHANNEL"]
+                self.bot, config["LOOPS"]["TRENDING"]["CHANNEL"], config["CATEGORIES"]["STOCKS"]
             )
 
             self.stocks.start()

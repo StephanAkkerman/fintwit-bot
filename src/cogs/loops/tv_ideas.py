@@ -149,14 +149,14 @@ class TradingView_Ideas(commands.Cog):
 
         if config["LOOPS"]["TV_IDEAS"]["CRYPTO"]["ENABLED"]:
             self.crypto_channel = get_channel(
-                self.bot, config["LOOPS"]["TV_IDEAS"]["CRYPTO"]["CHANNEL"]
+                self.bot, config["LOOPS"]["TV_IDEAS"]["CHANNEL"], config["CATEGORIES"]["CRYPTO"]
             )
 
             self.crypto_ideas.start()
 
         if config["LOOPS"]["TV_IDEAS"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = get_channel(
-                self.bot, config["LOOPS"]["TV_IDEAS"]["STOCKS"]["CHANNEL"]
+                self.bot, config["LOOPS"]["TV_IDEAS"]["CHANNEL"], config["CATEGORIES"]["STOCKS"]
             )
 
             self.stock_ideas.start()

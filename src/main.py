@@ -16,8 +16,7 @@ from discord.ext import commands
 from util.vars import config
 from util.disc_util import get_guild
 
-bot = commands.Bot(command_prefix=config["PREFIX"], intents=discord.Intents.all())
-bot.remove_command("help")
+bot = commands.Bot(intents=discord.Intents.all())
 
 
 @bot.event
@@ -77,6 +76,10 @@ def load_folder(foldername: str) -> None:
                     and len(sys.argv) > 2
                     and sys.argv[2] == "-no_timeline"
                 ):
+                    continue
+
+                # Overview.py has no setup function, but should be considered as a loop / cog
+                if filename == "overview.py":
                     continue
 
                 print("Loading:", filename)

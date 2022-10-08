@@ -24,7 +24,7 @@ class Overview:
 
         if config["LOOPS"]["OVERVIEW"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = get_channel(
-                self.bot, config["LOOPS"]["OVERVIEW"]["STOCKS"]["CHANNEL"]
+                self.bot, config["LOOPS"]["OVERVIEW"]["CHANNEL"], config["CATEGORIES"]["STOCKS"]
             )
             self.do_stocks = True
         else:
@@ -32,7 +32,7 @@ class Overview:
 
         if config["LOOPS"]["OVERVIEW"]["CRYPTO"]["ENABLED"]:
             self.crypto_channel = get_channel(
-                self.bot, config["LOOPS"]["OVERVIEW"]["CRYPTO"]["CHANNEL"]
+                self.bot, config["LOOPS"]["OVERVIEW"]["CHANNEL"], config["CATEGORIES"]["CRYPTO"]
             )
             self.do_crypto = True
         else:
@@ -63,15 +63,12 @@ class Overview:
             # Get the top 50 mentions
             top50 = db["ticker"].value_counts()[:50]
 
-            global_count_dict = {}
-
             for ticker, _ in top50.items():
-                global_count_dict[ticker] = await count_tweets(ticker)
-
-            if category == "stocks":
-                self.global_stocks = global_count_dict
-            elif category == "crypto":
-                self.global_crypto = global_count_dict
+                # Get the global tweets about the ticker using the API
+                if category == "stocks":
+                    self.global_stocks[ticker] = await count_tweets(ticker)
+                elif category == "crypto":
+                    self.global_crypto[ticker] = await count_tweets(ticker)
 
     async def make_overview(
         self, tweet_db, category: str, tickers: list, last_sentiment: str

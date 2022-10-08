@@ -1,3 +1,5 @@
+import sys
+
 # > 3rd Party Dependencies
 import yaml
 import aiohttp
@@ -19,6 +21,12 @@ auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth)
 
+guild_name = (
+    config["DEBUG"]["GUILD_NAME"]
+    if len(sys.argv) > 1 and sys.argv[1] == "-test"
+    else config["DISCORD"]["GUILD_NAME"]
+)
+
 # Replace key by value
 filter_dict = {
     "BITCOIN": "BTC",
@@ -29,6 +37,7 @@ filter_dict = {
     "NQ": "NQ=F",
     "NQ_F": "NQ=F",
     "CL_F": "CL=F",
+    "APPL": "AAPL",
 }
 
 # Stable coins

@@ -351,7 +351,6 @@ class TV_data:
                         timeout=5,
                     )
                     .get_analysis()
-                    .summary
                 )
 
                 one_d_analysis = (
@@ -363,13 +362,18 @@ class TV_data:
                         timeout=5,
                     )
                     .get_analysis()
-                    .summary
                 )
+                
+                if four_h_analysis:
+                    four_h_analysis = self.format_analysis(four_h_analysis.summary)
+                else:
+                    print(f"No 4h TA data found for {symbol}")
+                
+                if one_d_analysis:
+                    one_d_analysis = self.format_analysis(one_d_analysis.summary)
 
                 # Format the analysis
-                return self.format_analysis(four_h_analysis), self.format_analysis(
-                    one_d_analysis
-                )
+                return four_h_analysis, one_d_analysis
 
         except Exception as e:
             print(f"TradingView TA error for ticker: {symbol}, error:", e)

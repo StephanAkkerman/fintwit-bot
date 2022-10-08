@@ -31,7 +31,9 @@ class Losers(commands.Cog):
 
         if config["LOOPS"]["LOSERS"]["STOCKS"]["ENABLED"]:
             self.channel = get_channel(
-                self.bot, config["LOOPS"]["LOSERS"]["STOCKS"]["CHANNEL"]
+                self.bot,
+                config["LOOPS"]["LOSERS"]["CHANNEL"],
+                config["CATEGORIES"]["STOCKS"],
             )
             self.losers.start()
 

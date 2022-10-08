@@ -37,7 +37,7 @@ class Index(commands.Cog):
 
         if config["LOOPS"]["INDEX"]["CRYPTO"]["ENABLED"]:
             self.crypto_channel = get_channel(
-                self.bot, config["LOOPS"]["INDEX"]["CRYPTO"]["CHANNEL"]
+                self.bot, config["LOOPS"]["INDEX"]["CHANNEL"], config["CATEGORIES"]["CRYPTO"]
             )
 
             self.crypto_indices = [sym.split(":")[1] for sym in crypto_indices]
@@ -45,7 +45,7 @@ class Index(commands.Cog):
 
         if config["LOOPS"]["INDEX"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = get_channel(
-                self.bot, config["LOOPS"]["INDEX"]["STOCKS"]["CHANNEL"]
+                self.bot, config["LOOPS"]["INDEX"]["CHANNEL"], config["CATEGORIES"]["STOCKS"]
             )
             self.stock_indices = [sym.split(":")[1] for sym in stock_indices]
             self.stocks.start()

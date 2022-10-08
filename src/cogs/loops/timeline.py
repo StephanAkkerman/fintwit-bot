@@ -22,7 +22,7 @@ from util.vars import config, bearer_token, get_json_data
 from util.disc_util import get_channel, get_tagged_users
 from util.tweet_util import format_tweet, add_financials
 from util.db import update_tweet_db
-from util.overview import Overview
+from cogs.loops.overview import Overview
 
 
 class Timeline(commands.Cog):
@@ -171,21 +171,24 @@ class Streamer(AsyncStreamingClient):
         # Set the bot for messages
         self.bot = bot
 
+        charts_channel = config["LOOPS"]["TIMELINE"]["CHARTS_CHANNEL"]
+        text_channel = config["LOOPS"]["TIMELINE"]["TEXT_CHANNEL"]
+
         # Set the channels
         if config["LOOPS"]["TIMELINE"]["STOCKS"]["ENABLED"]:
             self.stocks_charts_channel = get_channel(
-                self.bot, config["LOOPS"]["TIMELINE"]["STOCKS"]["CHARTS_CHANNEL"]
+                self.bot, charts_channel, config["CATEGORIES"]["STOCKS"]
             )
             self.stocks_text_channel = get_channel(
-                self.bot, config["LOOPS"]["TIMELINE"]["STOCKS"]["TEXT_CHANNEL"]
+                self.bot, text_channel, config["CATEGORIES"]["STOCKS"]
             )
 
         if config["LOOPS"]["TIMELINE"]["CRYPTO"]["ENABLED"]:
             self.crypto_charts_channel = get_channel(
-                self.bot, config["LOOPS"]["TIMELINE"]["CRYPTO"]["CHARTS_CHANNEL"]
+                self.bot, charts_channel, config["CATEGORIES"]["CRYPTO"]
             )
             self.crypto_text_channel = get_channel(
-                self.bot, config["LOOPS"]["TIMELINE"]["CRYPTO"]["TEXT_CHANNEL"]
+                self.bot, text_channel, config["CATEGORIES"]["CRYPTO"]
             )
 
         if config["LOOPS"]["TIMELINE"]["IMAGES"]["ENABLED"]:
@@ -283,8 +286,10 @@ class Streamer(AsyncStreamingClient):
         # Convert the string json data to json object
         tweet_data = json.loads(raw_data)
 
-        if "errors" in tweet_data.keys():
-            print(tweet_data)
+        if "data" not in tweet_data.keys():
+            # For instance if the stream was temporarily disconnected
+            print("Stream error")
+            return
         else:
             formatted_tweet = await format_tweet(tweet_data)
 

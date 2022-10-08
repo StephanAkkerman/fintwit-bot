@@ -1,5 +1,4 @@
 # Standard libraries
-import sys
 from typing import Optional
 
 # Third party libraries
@@ -8,7 +7,7 @@ from discord.ext import commands
 
 # Local dependencies
 import util.vars
-from util.vars import config
+from util.vars import config, guild_name
 
 
 def get_guild(bot: commands.Bot) -> discord.Guild:
@@ -29,13 +28,11 @@ def get_guild(bot: commands.Bot) -> discord.Guild:
     return discord.utils.get(
         bot.guilds,
         # Return the debug server if -test is used as an argument
-        name=config["DEBUG"]["GUILD_NAME"]
-        if len(sys.argv) > 1 and sys.argv[1] == "-test"
-        else config["DISCORD"]["GUILD_NAME"],
+        name=guild_name,
     )
 
 
-def get_channel(bot: commands.Bot, channel_name: str) -> discord.TextChannel:
+def get_channel(bot: commands.Bot, channel_name: str, category_name : str = None) -> discord.TextChannel:
     """
     Returns the discord.TextChannel object of the channel with the given name.
 
@@ -52,14 +49,15 @@ def get_channel(bot: commands.Bot, channel_name: str) -> discord.TextChannel:
         The discord.TextChannel object of the channel with the given name.
     """
 
-    return discord.utils.get(
-        bot.get_all_channels(),
-        guild__name=config["DEBUG"]["GUILD_NAME"]
-        if len(sys.argv) > 1 and sys.argv[1] == "-test"
-        else config["DISCORD"]["GUILD_NAME"],
-        name=channel_name,
-    )
-
+    for guild in bot.guilds:
+        if guild.name == guild_name:
+            for channel in guild.channels:
+                if channel.name == channel_name:
+                    if category_name is None:
+                        return channel
+                    else:
+                        if channel.category.name == category_name:
+                            return channel
 
 def get_emoji(bot: commands.Bot, emoji: str) -> discord.Emoji:
     """
