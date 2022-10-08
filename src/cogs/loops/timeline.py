@@ -191,6 +191,14 @@ class Streamer(AsyncStreamingClient):
                 self.bot, text_channel, config["CATEGORIES"]["CRYPTO"]
             )
 
+        if config["LOOPS"]["TIMELINE"]["FOREX"]["ENABLED"]:
+            self.forex_charts_channel = get_channel(
+                self.bot, charts_channel, config["CATEGORIES"]["FOREX"]
+            )
+            self.forex_text_channel = get_channel(
+                self.bot, text_channel, config["CATEGORIES"]["FOREX"]
+            )
+
         if config["LOOPS"]["TIMELINE"]["IMAGES"]["ENABLED"]:
             self.images_channel = get_channel(
                 self.bot, config["LOOPS"]["TIMELINE"]["IMAGES"]["CHANNEL"]
@@ -438,12 +446,16 @@ class Streamer(AsyncStreamingClient):
             channel = self.text_channels[
                 self.text_channel_names.index(retweeted_user.lower())
             ]
+
+        # Highlighted users
         elif user.lower() in self.text_channel_names:
             channel = self.text_channels[self.text_channel_names.index(user.lower())]
 
+        # News posters
         elif user in config["LOOPS"]["TIMELINE"]["NEWS"]["FOLLOWING"]:
             channel = self.news_channel
 
+        # Tweets without financial information
         elif category == None and not images:
             channel = self.other_channel
         elif category == None and images:
@@ -455,10 +467,17 @@ class Streamer(AsyncStreamingClient):
         elif (category == "crypto" or category == "🤷‍♂️") and images:
             channel = self.crypto_charts_channel
 
+        # Stocks tweet channels
         elif category == "stocks" and not images:
             channel = self.stocks_text_channel
-        else:
+        elif category == "stocks" and images:
             channel = self.stocks_charts_channel
+
+        # Forex tweet channels
+        elif category == "forex" and not images:
+            channel = self.forex_text_channel
+        elif category == "forex" and images:
+            channel = self.forex_charts_channel
 
         try:
             # Create a list of image embeds, max 10 images per post

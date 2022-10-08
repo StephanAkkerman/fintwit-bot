@@ -61,11 +61,11 @@ async def format_tweet(
 
         # Get other info
         profile_pic = as_json["includes"]["users"][0]["profile_image_url"]
-        
+
         # Could also use ['id_sr'] instead
         url = f"https://twitter.com/{user}/status/{as_json['data']['conversation_id']}"
     else:
-        print(as_json)    
+        print(as_json)
 
     (
         text,
@@ -175,29 +175,33 @@ async def get_tweet(
             # If the retweet is a quoted tweet
             if "referenced_tweets" in as_json["includes"]["tweets"][0].keys():
                 is_reference = True
-            
+
             # Only do this if a quote tweet was retweeted
-            if is_reference and as_json["includes"]["tweets"][0]["referenced_tweets"][0]["type"] == "quoted":
-                    quote_data = await get_json_data(
-                        url=f"https://api.twitter.com/2/tweets/{as_json['includes']['tweets'][0]['conversation_id']}?tweet.fields=attachments,entities,conversation_id&expansions=attachments.media_keys,referenced_tweets.id&media.fields=url",
-                        headers={"Authorization": f"Bearer {bearer_token}"},
-                    )
+            if (
+                is_reference
+                and as_json["includes"]["tweets"][0]["referenced_tweets"][0]["type"]
+                == "quoted"
+            ):
+                quote_data = await get_json_data(
+                    url=f"https://api.twitter.com/2/tweets/{as_json['includes']['tweets'][0]['conversation_id']}?tweet.fields=attachments,entities,conversation_id&expansions=attachments.media_keys,referenced_tweets.id&media.fields=url",
+                    headers={"Authorization": f"Bearer {bearer_token}"},
+                )
 
-                    (
-                        user_text,
-                        user_ticker_list,
-                        user_image,
-                        user_hashtags,
-                    ) = await standard_tweet_info(quote_data["data"], "quoted")
+                (
+                    user_text,
+                    user_ticker_list,
+                    user_image,
+                    user_hashtags,
+                ) = await standard_tweet_info(quote_data["data"], "quoted")
 
-                    text, ticker_list, images, hashtags = await add_quote_tweet(
-                        quote_data,
-                        user_image,
-                        user_ticker_list,
-                        user_hashtags,
-                        user_text,
-                        retweeted_user,
-                    )
+                text, ticker_list, images, hashtags = await add_quote_tweet(
+                    quote_data,
+                    user_image,
+                    user_ticker_list,
+                    user_hashtags,
+                    user_text,
+                    retweeted_user,
+                )
 
             # Standard retweet
             else:
@@ -477,6 +481,9 @@ async def add_financials(
             if "yahoo" in website:
                 stocks += 1
                 categories.append("stocks")
+            if "forex" in website:
+                forex += 1
+                categories.append("forex")
         else:
             # Default category is crypto
             categories.append("crypto")
@@ -506,12 +513,14 @@ async def add_financials(
         prediction = None
 
     # Decide the category of this tweet
-    if crypto == 0 and stocks == 0:
+    if crypto == 0 and stocks == 0 and forex == 0:
         category = None
-    elif crypto >= stocks:
+    elif crypto >= stocks and crypto >= forex:
         category = "crypto"
-    elif crypto < stocks:
+    elif stocks > crypto and stocks > forex:
         category = "stocks"
+    elif forex > stocks and forex > crypto:
+        category = "forex"
 
     # Return just the prediction without emoji
     return e, category, prediction, base_symbols, categories

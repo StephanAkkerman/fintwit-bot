@@ -162,12 +162,19 @@ class TV_data:
 
         tv_stocks = util.vars.stocks
         tv_crypto = util.vars.crypto
+        tv_forex = util.vars.forex
 
         if asset == "stock":
             stock = tv_stocks.loc[tv_stocks["stock"] == symbol]
             if not stock.empty:
                 return stock["exchange"].values[0], "america", symbol
-        else:
+
+        elif asset == "forex":
+            forex = tv_forex.loc[tv_forex["stock"] == symbol]
+            if not forex.empty:
+                return forex["exchange"].values[0], "forex", symbol
+
+        elif asset == "crypto":
             crypto = tv_crypto.loc[tv_crypto["stock"] == symbol]
             if not crypto.empty:
                 return crypto["exchange"].values[0], "crypto", symbol
@@ -202,7 +209,7 @@ class TV_data:
         symbol: string
             The ticker of the stock / crypto, e.g. "AAPL" or "BTCUSDT".
         asset: string
-            The type of asset, either "stock" or "crypto".
+            The type of asset, either "stock", "crypto", or "forex".
 
         Returns
         -------
@@ -219,14 +226,28 @@ class TV_data:
                 The url to the TradingView chart for this symbol.
         """
 
+        website_suffix = ""
+
+        if asset == "stocks":
+            website_suffix = "/?yahoo"
+        elif asset == "forex":
+            website_suffix = "/?forex"
+
         try:
             symbol_data = self.get_symbol_data(symbol, asset)
+
             if symbol_data is not None:
                 # Format it "exchange:symbol"
                 exchange = symbol_data[0]
                 symbol = f"{exchange}:{symbol_data[2]}"
             else:
-                return 0, None, 0, None, f"https://www.tradingview.com/symbols/{symbol}"
+                return (
+                    0,
+                    None,
+                    0,
+                    None,
+                    f"https://www.tradingview.com/symbols/{symbol}" + website_suffix,
+                )
 
             # Create a session
             session = aiohttp.ClientSession()
@@ -264,7 +285,8 @@ class TV_data:
                                 resp[1],
                                 resp[2],
                                 exchange,
-                                f"https://www.tradingview.com/symbols/{symbol}-{exchange}",
+                                f"https://www.tradingview.com/symbols/{symbol}-{exchange}"
+                                + website_suffix,
                             )
 
                         elif counter == 3:
@@ -274,7 +296,8 @@ class TV_data:
                                 None,
                                 0,
                                 None,
-                                f"https://www.tradingview.com/symbols/{symbol}",
+                                f"https://www.tradingview.com/symbols/{symbol}"
+                                + website_suffix,
                             )
 
                     elif msg.type == aiohttp.WSMsgType.ERROR:
@@ -286,7 +309,8 @@ class TV_data:
                             None,
                             0,
                             None,
-                            f"https://www.tradingview.com/symbols/{symbol}",
+                            f"https://www.tradingview.com/symbols/{symbol}"
+                            + website_suffix,
                         )
 
         except Exception:
@@ -318,7 +342,7 @@ class TV_data:
         symbol : str
             The ticker of the stock / crypto.
         asset : str
-            The type of asset, either "stock" or "crypto".
+            The type of asset, either "stock", "crypto" or "forex".
 
         Returns
         -------
@@ -326,7 +350,7 @@ class TV_data:
             The 4h and 1d TA data as formatted strings.
         """
 
-        # There is no TA for stock or crypto indices
+        # There is no TA for indices
         if (
             symbol in self.stock_indices_without_exch
             or symbol in self.crypto_indices_without_exch
@@ -342,33 +366,27 @@ class TV_data:
                 exchange, market, symbol = symbol_data
 
                 # Wait max 5 sec
-                four_h_analysis = (
-                    TA_Handler(
-                        symbol=symbol,
-                        screener=market,
-                        exchange=exchange,
-                        interval=Interval.INTERVAL_4_HOURS,
-                        timeout=5,
-                    )
-                    .get_analysis()
-                )
+                four_h_analysis = TA_Handler(
+                    symbol=symbol,
+                    screener=market,
+                    exchange=exchange,
+                    interval=Interval.INTERVAL_4_HOURS,
+                    timeout=5,
+                ).get_analysis()
 
-                one_d_analysis = (
-                    TA_Handler(
-                        symbol=symbol,
-                        screener=market,
-                        exchange=exchange,
-                        interval=Interval.INTERVAL_1_DAY,
-                        timeout=5,
-                    )
-                    .get_analysis()
-                )
-                
+                one_d_analysis = TA_Handler(
+                    symbol=symbol,
+                    screener=market,
+                    exchange=exchange,
+                    interval=Interval.INTERVAL_1_DAY,
+                    timeout=5,
+                ).get_analysis()
+
                 if four_h_analysis:
                     four_h_analysis = self.format_analysis(four_h_analysis.summary)
                 else:
                     print(f"No 4h TA data found for {symbol}")
-                
+
                 if one_d_analysis:
                     one_d_analysis = self.format_analysis(one_d_analysis.summary)
 

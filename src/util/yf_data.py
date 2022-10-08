@@ -13,7 +13,7 @@ from util.tv_data import tv
 
 
 async def get_stock_info(
-    ticker: str,
+    ticker: str, asset_type: str = "stock"
 ) -> Optional[tuple[float, str, List[str], float, str, str]]:
     """
     Gets the volume, website, exchanges, price, and change of the stock.
@@ -100,11 +100,11 @@ async def get_stock_info(
         pass
 
     # Check TradingView data
-    tv_data = await tv.get_tv_data(ticker, "stock")
+    tv_data = await tv.get_tv_data(ticker, asset_type)
     price, perc_change, volume, exchange, website = tv_data
     return (
         volume,
-        website + '/?yahoo',
+        website,
         exchange,
         price,
         format_change(perc_change) if perc_change else None,

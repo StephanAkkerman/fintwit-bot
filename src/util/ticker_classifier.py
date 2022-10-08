@@ -9,6 +9,80 @@ from util.cg_data import get_coin_info
 from util.yf_data import get_stock_info
 
 
+async def get_best_guess(ticker: str, asset_type: str):
+    get_TA = False
+
+    if asset_type == "crypto":
+        (
+            volume,
+            website,
+            exchange,
+            price,
+            change,
+            base_sym,
+        ) = await get_coin_info(ticker)
+
+    elif asset_type == "stocks":
+        (
+            volume,
+            website,
+            exchange,
+            price,
+            change,
+            base_sym,
+        ) = await get_stock_info(ticker)
+
+    elif asset_type == "forex":
+        (
+            volume,
+            website,
+            exchange,
+            price,
+            change,
+            base_sym,
+        ) = await get_stock_info(ticker, asset_type)
+
+        if price > 0:
+            four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "forex")
+            return (
+                volume,
+                website,
+                exchange,
+                price,
+                change,
+                four_h_ta,
+                one_d_ta,
+                base_sym,
+                True,
+            )
+
+    # If volume of the crypto is bigger than 1,000,000, it is likely a crypto
+    # Stupid Tessla Coin https://www.coingecko.com/en/coins/tessla-coin
+    if volume > 1000000:
+        get_TA = True
+
+    if asset_type == "crypto":
+        if ticker.endswith("BTC"):
+            get_TA = True
+
+    # Set the TA data, only if volume is high enough
+    four_h_ta = one_d_ta = None
+    if get_TA:
+        four_h_ta, one_d_ta = tv.get_tv_TA(ticker, asset_type)
+
+    return (
+        volume,
+        website,
+        exchange,
+        price,
+        change,
+        four_h_ta,
+        one_d_ta,
+        base_sym,
+        get_TA,
+    )
+
+
 async def classify_ticker(
     ticker: str, majority: str
 ) -> Optional[tuple[float, str, List[str], float, str, str, str]]:
@@ -45,91 +119,48 @@ async def classify_ticker(
 
     # If the majority is crypt or unkown check if the ticker is a crypto
     if majority == "crypto" or majority == "Unknown":
-        (
-            c_volume,
-            c_website,
-            c_exchange,
-            c_price,
-            c_change,
-            c_ticker,
-        ) = await get_coin_info(ticker)
-        # If volume of the crypto is bigger than 1,000,000, it is likely a crypto
-        # Stupid Tessla Coin https://www.coingecko.com/en/coins/tessla-coin
+        crypto_data = await get_best_guess(ticker, "crypto")
 
-        if c_volume > 1000000 or ticker.endswith("BTC"):
-            four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "crypto")
-            return (
-                c_volume,
-                c_website,
-                c_exchange,
-                c_price,
-                c_change,
-                four_h_ta,
-                one_d_ta,
-                c_ticker,
-            )
+        if crypto_data[-1] == True:
+            return crypto_data[:-1]
 
-        (
-            s_volume,
-            s_website,
-            s_exchange,
-            s_price,
-            s_change,
-            s_ticker,
-        ) = await get_stock_info(ticker)
+        stock_data = await get_best_guess(ticker, "stocks")
 
     else:
-        (
-            s_volume,
-            s_website,
-            s_exchange,
-            s_price,
-            s_change,
-            s_ticker,
-        ) = await get_stock_info(ticker)
-        if s_volume > 1000000:
-            four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "stock")
-            return (
-                s_volume,
-                s_website,
-                s_exchange,
-                s_price,
-                s_change,
-                four_h_ta,
-                one_d_ta,
-                s_ticker,
-            )
+        stock_data = await get_best_guess(ticker, "stocks")
 
-        (
-            c_volume,
-            c_website,
-            c_exchange,
-            c_price,
-            c_change,
-            c_ticker,
-        ) = await get_coin_info(ticker)
+        if stock_data[-1] == True:
+            return stock_data[:-1]
+
+        crypto_data = await get_best_guess(ticker, "crypto")
+
+    # Try forex
+    forex_data = await get_best_guess(ticker, "forex")
+    if forex_data[-1] == True:
+        return forex_data[:-1]
+
+    # If it was not the majority, compare the data
+    c_volume = crypto_data[0]
+    s_volume = stock_data[0]
 
     if c_volume > s_volume and c_volume > 50000:
-        four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "crypto")
-        return (
-            c_volume,
-            c_website,
-            c_exchange,
-            c_price,
-            c_change,
-            four_h_ta,
-            one_d_ta,
-            c_ticker,
-        )
+        if crypto_data[5] is None:
+            four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "crypto")
+
+            crypto_data = list(crypto_data)
+            crypto_data[5] = four_h_ta
+            crypto_data[6] = one_d_ta
+            tuple(crypto_data)
+
+        return crypto_data
+
     elif c_volume < s_volume:
-        four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "stock")
-        return (
-            s_volume,
-            s_website,
-            s_exchange,
-            s_price,
-            s_change,
-            four_h_ta,
-            one_d_ta,
-            s_ticker,
-        )
+        if stock_data[5] is None:
+            four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "stock")
+
+            stock_data = list(stock_data)
+            stock_data[5] = four_h_ta
+            stock_data[6] = one_d_ta
+            tuple(stock_data)
+
+        return stock_data
