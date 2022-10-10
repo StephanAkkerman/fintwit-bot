@@ -42,6 +42,9 @@ async def get_best_guess(ticker: str, asset_type: str):
             base_sym,
         ) = await get_stock_info(ticker, asset_type)
 
+        if type(price) == list:
+            price == price[0]
+
         if price > 0:
             four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "forex")
             return (

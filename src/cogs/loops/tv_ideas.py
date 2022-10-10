@@ -63,7 +63,9 @@ async def scraper(type: str) -> pd.DataFrame:
     # Save the Timestamps
     for time_upd in content.find_all("span", class_="tv-card-stats__time js-time-upd"):
         timestampList.append(
-            datetime.datetime.fromtimestamp(float(time_upd["data-timestamp"]), tz=datetime.timezone.utc)
+            datetime.datetime.fromtimestamp(
+                float(time_upd["data-timestamp"]), tz=datetime.timezone.utc
+            )
         )
 
     for img_row in content.find_all("div", class_="tv-widget-idea__cover-wrap"):
@@ -149,17 +151,30 @@ class TradingView_Ideas(commands.Cog):
 
         if config["LOOPS"]["TV_IDEAS"]["CRYPTO"]["ENABLED"]:
             self.crypto_channel = get_channel(
-                self.bot, config["LOOPS"]["TV_IDEAS"]["CHANNEL"], config["CATEGORIES"]["CRYPTO"]
+                self.bot,
+                config["LOOPS"]["TV_IDEAS"]["CHANNEL"],
+                config["CATEGORIES"]["CRYPTO"],
             )
 
             self.crypto_ideas.start()
 
         if config["LOOPS"]["TV_IDEAS"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = get_channel(
-                self.bot, config["LOOPS"]["TV_IDEAS"]["CHANNEL"], config["CATEGORIES"]["STOCKS"]
+                self.bot,
+                config["LOOPS"]["TV_IDEAS"]["CHANNEL"],
+                config["CATEGORIES"]["STOCKS"],
             )
 
             self.stock_ideas.start()
+
+        if config["LOOPS"]["TV_IDEAS"]["FOREX"]["ENABLED"]:
+            self.forex_channel = get_channel(
+                self.bot,
+                config["LOOPS"]["TV_IDEAS"]["CHANNEL"],
+                config["CATEGORIES"]["FOREX"],
+            )
+
+            self.forex_ideas.start()
 
     async def send_embed(self, df: pd.DataFrame, type: str) -> None:
         """
@@ -212,8 +227,10 @@ class TradingView_Ideas(commands.Cog):
 
             if type == "stocks":
                 channel = self.stocks_channel
-            else:
+            elif type == "crypto":
                 channel = self.crypto_channel
+            elif type == "forex":
+                channel = self.forex_channel
 
             await channel.send(content=get_tagged_users([row["Symbol"]]), embed=e)
 
@@ -242,6 +259,19 @@ class TradingView_Ideas(commands.Cog):
 
         df = await scraper("stocks")
         await self.send_embed(df, "stocks")
+
+    @loop(hours=24)
+    async def forex_ideas(self) -> None:
+        """
+        This function posts the forex Trading View ideas.
+
+        Returns
+        -------
+        None
+        """
+
+        df = await scraper("currencies")
+        await self.send_embed(df, "forex")
 
 
 def setup(bot: commands.Bot) -> None:

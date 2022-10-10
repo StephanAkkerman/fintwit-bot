@@ -14,7 +14,7 @@ from discord.ext.tasks import loop
 
 # > Local dependencies
 import util.vars
-from util.tv_symbols import crypto_indices, all_stock_indices
+from util.tv_symbols import crypto_indices, stock_indices, all_forex_indices
 from util.tv_data import get_tv_ticker_data
 
 
@@ -81,22 +81,23 @@ class DB(commands.Cog):
 
         # Get the current symbols and exchanges on TradingView
         tv_stocks = await get_tv_ticker_data(
-            "https://scanner.tradingview.com/america/scan", all_stock_indices
+            "https://scanner.tradingview.com/america/scan", stock_indices
         )
         tv_crypto = await get_tv_ticker_data(
             "https://scanner.tradingview.com/crypto/scan", crypto_indices
         )
         tv_forex = await get_tv_ticker_data(
-            "https://scanner.tradingview.com/forex/scan"
+            "https://scanner.tradingview.com/forex/scan", all_forex_indices
         )
-        tv_cfd = await get_tv_ticker_data("https://scanner.tradingview.com/cfd/scan")
+        
+        #tv_cfd = await get_tv_ticker_data("https://scanner.tradingview.com/cfd/scan")
 
         # Save the data to the database
         for db, name in [
             (tv_stocks, "tv_stocks"),
             (tv_crypto, "tv_crypto"),
             (tv_forex, "tv_forex"),
-            (tv_cfd, "tv_cfd"),
+            #(tv_cfd, "tv_cfd"),
         ]:
             if not db.empty:
                 update_db(db, name)
@@ -107,8 +108,8 @@ class DB(commands.Cog):
                     util.vars.crypto = db
                 elif name == "tv_forex":
                     util.vars.forex = db
-                elif name == "tv_cfd":
-                    util.vars.cfd = db
+                #elif name == "tv_cfd":
+                #    util.vars.cfd = db
 
 
 def setup(bot: commands.Bot) -> None:

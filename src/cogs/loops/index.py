@@ -13,7 +13,7 @@ from util.tv_data import tv
 from util.disc_util import get_channel
 from util.afterhours import afterHours
 from util.formatting import human_format
-from util.tv_symbols import crypto_indices, stock_indices
+from util.tv_symbols import crypto_indices, stock_indices, forex_indices
 
 
 class Index(commands.Cog):
@@ -37,7 +37,9 @@ class Index(commands.Cog):
 
         if config["LOOPS"]["INDEX"]["CRYPTO"]["ENABLED"]:
             self.crypto_channel = get_channel(
-                self.bot, config["LOOPS"]["INDEX"]["CHANNEL"], config["CATEGORIES"]["CRYPTO"]
+                self.bot,
+                config["LOOPS"]["INDEX"]["CHANNEL"],
+                config["CATEGORIES"]["CRYPTO"],
             )
 
             self.crypto_indices = [sym.split(":")[1] for sym in crypto_indices]
@@ -45,10 +47,21 @@ class Index(commands.Cog):
 
         if config["LOOPS"]["INDEX"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = get_channel(
-                self.bot, config["LOOPS"]["INDEX"]["CHANNEL"], config["CATEGORIES"]["STOCKS"]
+                self.bot,
+                config["LOOPS"]["INDEX"]["CHANNEL"],
+                config["CATEGORIES"]["STOCKS"],
             )
             self.stock_indices = [sym.split(":")[1] for sym in stock_indices]
             self.stocks.start()
+
+        if config["LOOPS"]["INDEX"]["FOREX"]["ENABLED"]:
+            self.forex_channel = get_channel(
+                self.bot,
+                config["LOOPS"]["INDEX"]["CHANNEL"],
+                config["CATEGORIES"]["FOREX"],
+            )
+            self.forex_indices = [sym.split(":")[1] for sym in forex_indices]
+            self.forex.start()
 
     async def get_feargread(self) -> tuple[int, str] | None:
         """
@@ -187,8 +200,8 @@ class Index(commands.Cog):
 
             if index in ["SPY", "NDX"]:
                 price = f"${round(price, 2)}"
-            elif index == "USD10Y":
-                price = f"{round(price, 2)}%"
+            # elif index == "USD10Y":
+            #    price = f"{round(price, 2)}%"
             else:
                 price = f"{round(price, 2)}"
 
@@ -225,6 +238,77 @@ class Index(commands.Cog):
         )
 
         await self.stocks_channel.send(embed=e)
+
+    @loop(hours=2)
+    async def forex(self) -> None:
+        """
+        Posts the forex indices in the configured channel, only posts if the market is open.
+
+        Returns
+        -------
+        None
+        """
+
+        # Dont send if the market is closed
+        if afterHours():
+            return
+
+        e = discord.Embed(
+            title=f"Forex Indices",
+            description="",
+            color=0x131722,
+            timestamp=datetime.datetime.now(datetime.timezone.utc),
+        )
+
+        ticker = []
+        prices = []
+        changes = []
+
+        for index in self.forex_indices:
+            price, change, _, exchange, _ = await tv.get_tv_data(index, "forex")
+            if price == 0:
+                continue
+            change = round(change, 2)
+            change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
+
+            price = f"{round(price, 2)}"
+
+            ticker.append(
+                f"[{index}](https://www.tradingview.com/symbols/{exchange}-{index}/)"
+            )
+            prices.append(price)
+            changes.append(change)
+
+        if ticker == [] or prices == [] or changes == []:
+            return
+
+        ticker = "\n".join(ticker)
+        prices = "\n".join(prices)
+        changes = "\n".join(changes)
+
+        e.add_field(
+            name="Index",
+            value=ticker,
+            inline=True,
+        )
+
+        e.add_field(
+            name="Value",
+            value=prices,
+            inline=True,
+        )
+        e.add_field(
+            name="% Change",
+            value=changes,
+            inline=True,
+        )
+
+        e.set_footer(
+            text="\u200b",
+            icon_url="https://s3.tradingview.com/userpics/6171439-Hlns_orig.png",
+        )
+
+        await self.forex_channel.send(embed=e)
 
 
 def setup(bot: commands.Bot) -> None:

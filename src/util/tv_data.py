@@ -16,7 +16,7 @@ from tradingview_ta import TA_Handler, Interval
 # > Local dependencies
 import util.vars
 from util.vars import get_json_data
-from util.tv_symbols import all_stock_indices, crypto_indices
+from util.tv_symbols import stock_indices, crypto_indices, all_forex_indices
 
 
 async def get_tv_ticker_data(url, append_to=None):
@@ -58,10 +58,11 @@ class TV_data:
 
     def __init__(self) -> None:
 
-        self.stock_indices_without_exch = [
-            sym.split(":")[1] for sym in all_stock_indices
-        ]
+        self.stock_indices_without_exch = [sym.split(":")[1] for sym in stock_indices]
         self.crypto_indices_without_exch = [sym.split(":")[1] for sym in crypto_indices]
+        self.forex_indices_without_exch = [
+            sym.split(":")[1] for sym in all_forex_indices
+        ]
 
     async def on_msg(
         self, ws: aiohttp.ClientWebSocketResponse, msg
@@ -354,6 +355,7 @@ class TV_data:
         if (
             symbol in self.stock_indices_without_exch
             or symbol in self.crypto_indices_without_exch
+            or symbol in self.forex_indices_without_exch
         ):
             return None, None
 

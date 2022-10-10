@@ -12,6 +12,14 @@ crypto_indices = [
     "CRYPTOCAP:USDC.D",
 ]
 
+# https://www.tradingview.com/markets/currencies/indices-all/
+forex_indices = [
+    "TVC:DXY",
+    "TVC:EXY",
+    "TVC:BXY",
+    "TVC:JXY",
+]
+
 US_bonds = [
     "TVC:US01MY",
     "TVC:US02MY",
@@ -47,14 +55,15 @@ EU_bonds = [
     "TVC:EU30Y",
 ]
 
+# https://www.tradingview.com/markets/cfds/quotes-world-indices/
+# https://www.tradingview.com/markets/indices/quotes-major/
 stock_indices = [
     "AMEX:SPY",
     "NASDAQ:NDX",
     "USI:PCC",
     "USI:PCCE",
-    "TVC:DXY",
     "TVC:VIX",
     "TVC:SPX",
 ]
 
-all_stock_indices = stock_indices + EU_bonds + US_bonds
+all_forex_indices = forex_indices + EU_bonds + US_bonds
