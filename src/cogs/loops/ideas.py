@@ -14,9 +14,10 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # > Local dependencies
+import util.vars
 from util.vars import get_json_data, config
 from util.disc_util import get_channel, get_tagged_users
-
+from util.db import update_db
 
 async def scraper(type: str) -> pd.DataFrame:
     """
@@ -175,6 +176,26 @@ class TradingView_Ideas(commands.Cog):
             )
 
             self.forex_ideas.start()
+            
+    def add_id_to_db(self, id: str) -> None:
+        """
+        Adds the given id to the database.
+        """
+
+        util.vars.ideas_ids = pd.concat(
+            [
+                util.vars.ideas_ids,
+                pd.DataFrame(
+                    [
+                        {
+                            "id": id,
+                            "timestamp": datetime.datetime.now(),
+                        }
+                    ]
+                ),
+            ],
+            ignore_index=True,
+        )
 
     async def send_embed(self, df: pd.DataFrame, type: str) -> None:
         """
@@ -192,12 +213,32 @@ class TradingView_Ideas(commands.Cog):
         -------
         None
         """
+        
+        # Get the database
+        if not util.vars.ideas_ids.empty:
+            # Set the types
+            util.vars.ideas_ids = util.vars.ideas_ids.astype(
+                {
+                    "id": str,
+                    "timestamp": "datetime64[ns]",
+                }
+            )
 
-        for i, row in df.iterrows():
+            # Only keep ids that are less than 72 hours old
+            util.vars.ideas_ids = util.vars.ideas_ids[
+                util.vars.ideas_ids["timestamp"]
+                > datetime.datetime.now() - datetime.timedelta(hours=72)
+            ]
+
+        counter = 1
+        for _, row in df.iterrows():
             
-            # Only show the top 10 ideas
-            if i == 9:
-                break
+            if not util.vars.ideas_ids.empty:
+                if row["Url"] in util.vars.ideas_ids["id"].tolist():
+                    counter += 1
+                    continue
+            
+            self.add_id_to_db(row["Url"])
 
             if row["Label"] == "Long":
                 color = 0x3CC474
@@ -225,7 +266,7 @@ class TradingView_Ideas(commands.Cog):
             e.add_field(name="Prediction", value=row["Label"], inline=True)
 
             e.set_footer(
-                text=f"#{i + 1} | 👍 {row['Likes']} | 💬 {row['Comments']}",
+                text=f"#{counter} | 👍 {row['Likes']} | 💬 {row['Comments']}",
                 icon_url="https://s3.tradingview.com/userpics/6171439-Hlns_big.png",
             )
 
@@ -237,6 +278,14 @@ class TradingView_Ideas(commands.Cog):
                 channel = self.forex_channel
 
             await channel.send(content=get_tagged_users([row["Symbol"]]), embed=e)
+            
+            counter += 1
+            
+            # Only show the top 10 ideas
+            if counter == 11:
+                break
+        # Write to db
+        update_db(util.vars.ideas_ids, "ideas_ids")
 
     @loop(hours=24)
     async def crypto_ideas(self) -> None:

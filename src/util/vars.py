@@ -4,6 +4,7 @@ import sys
 import yaml
 import aiohttp
 import tweepy
+import pandas as pd
 
 # Read config.yaml content
 with open("config.yaml", "r", encoding="utf-8") as f:
@@ -73,6 +74,8 @@ cfd = None
 
 nasdaq_tickers = None
 
+reddit_ids = pd.DataFrame()
+ideas_ids = pd.DataFrame()
 
 def format_change(change: float) -> str:
     """

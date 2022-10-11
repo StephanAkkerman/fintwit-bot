@@ -3,6 +3,7 @@ import datetime
 
 # > 3rd party dependencies
 import asyncpraw
+import pandas as pd
 
 # > Discord dependencies
 import discord
@@ -10,8 +11,10 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
+import util.vars
 from util.vars import config
 from util.disc_util import get_channel
+from util.db import update_db
 
 
 class Reddit(commands.Cog):
@@ -42,9 +45,27 @@ class Reddit(commands.Cog):
                 self.bot, config["LOOPS"]["REDDIT"]["WALLSTREETBETS"]["CHANNEL"]
             )
 
-            # Get the subreddit database
-
             self.wsb.start(reddit)
+            
+    def add_id_to_db(self, id: str) -> None:
+        """
+        Adds the given id to the database.
+        """
+
+        util.vars.reddit_ids = pd.concat(
+            [
+                util.vars.reddit_ids,
+                pd.DataFrame(
+                    [
+                        {
+                            "id": id,
+                            "timestamp": datetime.datetime.now(),
+                        }
+                    ]
+                ),
+            ],
+            ignore_index=True,
+        )
 
     @loop(hours=12)
     async def wsb(self, reddit: asyncpraw.Reddit) -> None:
@@ -61,12 +82,40 @@ class Reddit(commands.Cog):
         None
         """
 
+        if not util.vars.reddit_ids.empty:
+            # Set the types
+            util.vars.reddit_ids = util.vars.reddit_ids.astype(
+                {
+                    "id": str,
+                    "timestamp": "datetime64[ns]",
+                }
+            )
+
+            # Only keep ids that are less than 72 hours old
+            util.vars.reddit_ids = util.vars.reddit_ids[
+                util.vars.reddit_ids["timestamp"]
+                > datetime.datetime.now() - datetime.timedelta(hours=72)
+            ]
+
         subreddit = await reddit.subreddit("WallStreetBets")
         try:
             counter = 1
-            async for submission in subreddit.hot(limit=10):
+
+            # https://asyncpraw.readthedocs.io/en/stable/code_overview/models/submission.html?highlight=poll_data#asyncpraw.models.Submission
+            async for submission in subreddit.hot(limit=15):
                 if submission.stickied:
                     continue
+
+                if "poll_data" in vars(submission).keys():
+                    continue
+
+                if not util.vars.reddit_ids.empty:
+                    if submission.id in util.vars.reddit_ids["id"].tolist():
+                        counter += 1
+                        continue
+
+                # If it is a new submission add it to the db
+                self.add_id_to_db(submission.id)
 
                 descr = submission.selftext
 
@@ -96,7 +145,7 @@ class Reddit(commands.Cog):
                             img_url.append(largest_image["u"])
                     elif "v.redd.it" in url:
                         video = True
-                        descr = "See video below."
+                        descr = "The video is shown in the next message."
 
                 e = discord.Embed(
                     title=title,
@@ -132,8 +181,14 @@ class Reddit(commands.Cog):
 
                 counter += 1
 
+                if counter == 11:
+                    break
+
+            # Write to db
+            update_db(util.vars.reddit_ids, "reddit_ids")
+
         except Exception as e:
-            print("Error getting reddit posts", e)
+            print("Error getting reddit posts, error:", e)
 
 
 def setup(bot: commands.bot.Bot) -> None:

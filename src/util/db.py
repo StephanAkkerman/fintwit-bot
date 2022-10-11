@@ -1,6 +1,5 @@
 # > Standard library
 import datetime
-import time
 
 # > 3rd party dependencies
 import pandas as pd
@@ -26,11 +25,13 @@ class DB(commands.Cog):
         self.set_tv_db.start()
         self.set_cg_db.start()
         self.set_nasdaq_tickers.start()
-
+        
         # Set the portfolio and assets db
         self.set_portfolio_db()
         self.set_assets_db()
         self.set_tweets_db()
+        self.set_reddit_ids_db()
+        self.set_ideas_ids_db()
 
     def set_portfolio_db(self):
         util.vars.portfolio_db = get_db("portfolio")
@@ -40,6 +41,12 @@ class DB(commands.Cog):
 
     def set_tweets_db(self):
         util.vars.tweets_db = get_db("tweets")
+
+    def set_reddit_ids_db(self):
+        util.vars.reddit_ids = get_db("reddit_ids")
+        
+    def set_ideas_ids_db(self):
+        util.vars.ideas_ids = get_db("ideas_ids")
 
     @loop(hours=24)
     async def set_nasdaq_tickers(self):
@@ -89,15 +96,15 @@ class DB(commands.Cog):
         tv_forex = await get_tv_ticker_data(
             "https://scanner.tradingview.com/forex/scan", all_forex_indices
         )
-        
-        #tv_cfd = await get_tv_ticker_data("https://scanner.tradingview.com/cfd/scan")
+
+        # tv_cfd = await get_tv_ticker_data("https://scanner.tradingview.com/cfd/scan")
 
         # Save the data to the database
         for db, name in [
             (tv_stocks, "tv_stocks"),
             (tv_crypto, "tv_crypto"),
             (tv_forex, "tv_forex"),
-            #(tv_cfd, "tv_cfd"),
+            # (tv_cfd, "tv_cfd"),
         ]:
             if not db.empty:
                 update_db(db, name)
@@ -108,7 +115,7 @@ class DB(commands.Cog):
                     util.vars.crypto = db
                 elif name == "tv_forex":
                     util.vars.forex = db
-                #elif name == "tv_cfd":
+                # elif name == "tv_cfd":
                 #    util.vars.cfd = db
 
 
@@ -146,7 +153,7 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list) 
 
     # Prepare new data
     dict_list = []
-    
+
     for i in range(len(tickers)):
         dict_list.append(
             {
