@@ -649,6 +649,7 @@ class KuCoin:
                 ).reset_index(drop=True)
 
                 update_db(assets_db, "assets")
+                
                 # Maybe post the assets of this user as well
 
     @loop(hours=24)

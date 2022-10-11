@@ -198,15 +198,19 @@ class Assets(commands.Cog):
         discord.Embed
             The new embed.
         """
+        
+        old_df = None
 
-        old_assets = old_assets.split("\n")
-        old_worth = old_worth.replace("$", "")
-        old_worth = old_worth.split("\n")
-        # Remove the emoji + whitespace
-        old_worth = [x[:-2] for x in old_worth]
+        if old_worth and old_assets:
+            old_worth = old_worth.replace("$", "")
+            old_worth = old_worth.split("\n")
+            # Remove the emoji + whitespace
+            old_worth = [x[:-2] for x in old_worth]
+            
+            old_assets = old_assets.split("\n")
 
-        old_df = pd.DataFrame({"asset": old_assets, "old_worth": old_worth})
-        old_df["old_worth"] = pd.to_numeric(old_df["old_worth"])
+            old_df = pd.DataFrame({"asset": old_assets, "old_worth": old_worth})
+            old_df["old_worth"] = pd.to_numeric(old_df["old_worth"])
 
         # Sort and clean the data
         sorted_df = exchange_df.sort_values(by=["owned"], ascending=False)
@@ -247,18 +251,17 @@ class Assets(commands.Cog):
 
         # Sort by usd value
         final_df = exchange_df.sort_values(by=["usd_value"], ascending=False)
-
+        
         # Compare with the old df
-        final_df = pd.merge(final_df, old_df, on="asset")
-        final_df["worth_change"] = final_df["usd_value"] - final_df["old_worth"]
-        final_df["worth_display"] = final_df["worth_change"].apply(
-            lambda row: " 🔴" if row < 0 else (" 🔘" if row == 0 else " 🟢")
-        )
-
-        # Add $ in front of it
-        final_df["usd_value"] = (
-            "$" + final_df["usd_value"].astype(str) + final_df["worth_display"]
-        )
+        if old_df is not None:
+            final_df = pd.merge(final_df, old_df, on="asset")
+            final_df["worth_change"] = final_df["usd_value"] - final_df["old_worth"]
+            final_df["worth_display"] = final_df["worth_change"].apply(
+                lambda row: " 🔴" if row < 0 else (" 🔘" if row == 0 else " 🟢")
+            )
+            final_df["usd_value"] = "$" + final_df["usd_value"].astype(str) + final_df["worth_display"]
+        else:
+            final_df["usd_value"] = "$" + final_df["usd_value"].astype(str)
 
         # Convert owned to string
         final_df["owned"] = final_df["owned"].astype(str)
@@ -277,8 +280,9 @@ class Assets(commands.Cog):
         e.add_field(name="Worth", value=values, inline=True)
 
         # If all rows end with 🔘 don't send the embed
-        if final_df["worth_display"].str.endswith("🔘").all():
-            return e, True
+        if old_df is not None:
+            if final_df["worth_display"].str.endswith("🔘").all():
+                return e, True
 
         return e, False
 
@@ -292,11 +296,10 @@ class Assets(commands.Cog):
         None
         """
 
-        assets_db = util.vars.assets_db
         guild = get_guild(self.bot)
 
         # Use the user name as channel
-        names = assets_db["user"].unique()
+        names = util.vars.assets_db["user"].unique()
 
         for name in names:
             channel_name = config["LOOPS"]["ASSETS"]["CHANNEL_PREFIX"] + name.lower()
@@ -310,7 +313,7 @@ class Assets(commands.Cog):
                 print(f"Created channel {channel_name}")
 
             # Get the data
-            assets = assets_db.loc[assets_db["user"] == name]
+            assets = util.vars.assets_db.loc[util.vars.assets_db["user"] == name]
             id = assets["id"].values[0]
             disc_user = self.bot.get_user(id)
 
@@ -323,9 +326,12 @@ class Assets(commands.Cog):
                 last_msg = await channel.history().find(
                     lambda m: m.author.id == self.bot.user.id
                 )
+                
+                binance_worth = kucoin_worth = stocks_worth = None
+                binance_coins = kucoin_coins = stocks_owned = None
 
                 # Gets the old values so we can compare with the new ones
-                try:
+                if last_msg:
                     old_fields = last_msg.embeds[0].to_dict()["fields"]
                     if old_fields[0]["name"] == "Binance":
                         binance_worth = old_fields[2]["value"]
@@ -349,10 +355,6 @@ class Assets(commands.Cog):
                         if old_fields[6]["name"] == "Stocks":
                             stocks_worth = old_fields[8]["value"]
                             stocks_owned = old_fields[6]["value"]
-
-                except Exception as e:
-                    print(f"Error getting old assets of {disc_user}. Error:", e)
-                    return
 
                 e = discord.Embed(
                     title="",
@@ -396,6 +398,7 @@ class Assets(commands.Cog):
                 if all(no_changes):
                     return
 
+                await channel.purge(limit=1)
                 await channel.send(embed=e)
 
 

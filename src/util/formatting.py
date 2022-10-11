@@ -92,7 +92,7 @@ async def format_embed(df: pd.DataFrame, type: str, source: str) -> discord.Embe
         icon_url = "https://bin.bnbstatic.com/static/images/common/favicon.ico"
         name = "Coin"
     elif source == "yahoo":
-        url = "https://finance.yahoo.com/" + type
+        url = "https://finance.yahoo.com/most-active"
         color = 0x720E9E
         icon_url = "https://play-lh.googleusercontent.com/jQVXIz4MbsuOJSzoeFsTeL2gHoaZTlBtz2JbyG9JAuhsrTPB2vSvsRqsINWYVUr3Xw"
         name = "Stock"

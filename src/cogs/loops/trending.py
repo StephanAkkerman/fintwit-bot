@@ -34,7 +34,9 @@ class Trending(commands.Cog):
 
         if config["LOOPS"]["TRENDING"]["CRYPTO"]["ENABLED"]:
             self.crypto_channel = get_channel(
-                self.bot, config["LOOPS"]["TRENDING"]["CHANNEL"], config["CATEGORIES"]["CRYPTO"]
+                self.bot,
+                config["LOOPS"]["TRENDING"]["CHANNEL"],
+                config["CATEGORIES"]["CRYPTO"],
             )
 
             self.coingecko.start()
@@ -42,7 +44,9 @@ class Trending(commands.Cog):
 
         if config["LOOPS"]["TRENDING"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = get_channel(
-                self.bot, config["LOOPS"]["TRENDING"]["CHANNEL"], config["CATEGORIES"]["STOCKS"]
+                self.bot,
+                config["LOOPS"]["TRENDING"]["CHANNEL"],
+                config["CATEGORIES"]["STOCKS"],
             )
 
             self.stocks.start()
@@ -128,7 +132,7 @@ class Trending(commands.Cog):
         # Format the data
         active["Price"] = active["Price (Intraday)"]
 
-        e = await format_embed(active, "most-active", "yahoo")
+        e = await format_embed(active, "Most Active Stocks", "yahoo")
 
         await self.stocks_channel.send(embed=e)
 
