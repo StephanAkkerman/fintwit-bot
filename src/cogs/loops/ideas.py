@@ -149,28 +149,28 @@ class TradingView_Ideas(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-        if config["LOOPS"]["TV_IDEAS"]["CRYPTO"]["ENABLED"]:
+        if config["LOOPS"]["IDEAS"]["CRYPTO"]["ENABLED"]:
             self.crypto_channel = get_channel(
                 self.bot,
-                config["LOOPS"]["TV_IDEAS"]["CHANNEL"],
+                config["LOOPS"]["IDEAS"]["CHANNEL"],
                 config["CATEGORIES"]["CRYPTO"],
             )
 
             self.crypto_ideas.start()
 
-        if config["LOOPS"]["TV_IDEAS"]["STOCKS"]["ENABLED"]:
+        if config["LOOPS"]["IDEAS"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = get_channel(
                 self.bot,
-                config["LOOPS"]["TV_IDEAS"]["CHANNEL"],
+                config["LOOPS"]["IDEAS"]["CHANNEL"],
                 config["CATEGORIES"]["STOCKS"],
             )
 
             self.stock_ideas.start()
 
-        if config["LOOPS"]["TV_IDEAS"]["FOREX"]["ENABLED"]:
+        if config["LOOPS"]["IDEAS"]["FOREX"]["ENABLED"]:
             self.forex_channel = get_channel(
                 self.bot,
-                config["LOOPS"]["TV_IDEAS"]["CHANNEL"],
+                config["LOOPS"]["IDEAS"]["CHANNEL"],
                 config["CATEGORIES"]["FOREX"],
             )
 
@@ -193,7 +193,11 @@ class TradingView_Ideas(commands.Cog):
         None
         """
 
-        for _, row in df.iterrows():
+        for i, row in df.iterrows():
+            
+            # Only show the top 10 ideas
+            if i == 9:
+                break
 
             if row["Label"] == "Long":
                 color = 0x3CC474
@@ -221,7 +225,7 @@ class TradingView_Ideas(commands.Cog):
             e.add_field(name="Prediction", value=row["Label"], inline=True)
 
             e.set_footer(
-                text=f"👍 {row['Likes']} | 💬 {row['Comments']}",
+                text=f"#{i + 1} | 👍 {row['Likes']} | 💬 {row['Comments']}",
                 icon_url="https://s3.tradingview.com/userpics/6171439-Hlns_big.png",
             )
 

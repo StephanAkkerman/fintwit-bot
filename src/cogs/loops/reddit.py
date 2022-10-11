@@ -114,20 +114,8 @@ class Reddit(commands.Cog):
                     url="https://styles.redditmedia.com/t5_2th52/styles/communityIcon_wzrl8s0hx8a81.png?width=256&s=dcbf830170c1e8237335a3f046b36f723c5d55e7"
                 )
 
-                e.add_field(
-                    name="Score",
-                    value=submission.score,
-                    inline=True,
-                )
-
-                e.add_field(
-                    name="Comments",
-                    value=submission.num_comments,
-                    inline=True,
-                )
-
                 e.set_footer(
-                    text=f"#{counter} Hottest Post On r/wallstreetbets",
+                    text=f"#{counter} | 🔼 {submission.score} | 💬 {submission.num_comments}",
                     icon_url="https://external-preview.redd.it/iDdntscPf-nfWKqzHRGFmhVxZm4hZgaKe5oyFws-yzA.png?width=640&crop=smart&auto=webp&s=bfd318557bf2a5b3602367c9c4d9cd84d917ccd5",
                 )
 
