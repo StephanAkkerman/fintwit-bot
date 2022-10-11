@@ -396,7 +396,6 @@ class Binance:
 
             update_db(assets_db, "assets")
             util.vars.assets_db = assets_db
-            print(util.vars.assets_db)
             # Maybe post the updated assets of this user as well
 
     @loop(hours=24)

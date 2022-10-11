@@ -47,6 +47,8 @@ class Assets(commands.Cog):
         # Refresh assets
         asyncio.create_task(self.assets(db))
 
+        self.old_assets = []
+
     async def usd_value(self, asset: str, owned: float, exchange: str) -> float:
         """
         Get the USD value of an asset, based on the exchange.
@@ -250,12 +252,18 @@ class Assets(commands.Cog):
         # Round it to 2 decimals
         exchange_df = exchange_df.round({"usd_value": 2})
 
+        # Drop it if it's worth less than 1$
+        exchange_df = exchange_df.drop(exchange_df[exchange_df.usd_value < 1].index)
+
         # Sort by usd value
         final_df = exchange_df.sort_values(by=["usd_value"], ascending=False)
 
         # Compare with the old df
         if old_df is not None:
             final_df = final_df.merge(old_df, how="outer", on="asset")
+            # Drop rows with nan
+            final_df.dropna(subset=["asset", "owned", "usd_value"], inplace=True)
+
             final_df["worth_change"] = final_df["usd_value"] - final_df["old_worth"]
             final_df["worth_display"] = final_df["worth_change"].apply(
                 lambda row: " 🔴" if row < 0 else (" 🔘" if row == 0 else " 🟢")
@@ -298,6 +306,11 @@ class Assets(commands.Cog):
         -------
         None
         """
+
+        if len(util.vars.assets_db) == len(self.old_assets):
+            return
+
+        self.old_assets = util.vars.assets_db
 
         # Use the user name as channel
         names = util.vars.assets_db["user"].unique()
