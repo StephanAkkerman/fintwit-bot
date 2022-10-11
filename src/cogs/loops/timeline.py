@@ -293,7 +293,7 @@ class Streamer(AsyncStreamingClient):
 
         # Convert the string json data to json object
         tweet_data = json.loads(raw_data)
-
+        
         if "data" not in tweet_data.keys():
             # For instance if the stream was temporarily disconnected
             print("Stream error")

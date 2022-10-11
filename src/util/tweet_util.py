@@ -173,17 +173,17 @@ async def get_tweet(
         # If it is a retweet change format
         elif tweet_type == "retweeted":
             # If the retweet is a quoted tweet
-            if "referenced_tweets" in as_json["includes"]["tweets"][0].keys():
+            if "referenced_tweets" in as_json["includes"]["tweets"][-1].keys():
                 is_reference = True
 
             # Only do this if a quote tweet was retweeted
             if (
                 is_reference
-                and as_json["includes"]["tweets"][0]["referenced_tweets"][0]["type"]
+                and as_json["includes"]["tweets"][-1]["referenced_tweets"][0]["type"]
                 == "quoted"
             ):
                 quote_data = await get_json_data(
-                    url=f"https://api.twitter.com/2/tweets/{as_json['includes']['tweets'][0]['conversation_id']}?tweet.fields=attachments,entities,conversation_id&expansions=attachments.media_keys,referenced_tweets.id&media.fields=url",
+                    url=f"https://api.twitter.com/2/tweets/{as_json['includes']['tweets'][-1]['conversation_id']}?tweet.fields=attachments,entities,conversation_id&expansions=attachments.media_keys,referenced_tweets.id&media.fields=url",
                     headers={"Authorization": f"Bearer {bearer_token}"},
                 )
 
@@ -206,7 +206,7 @@ async def get_tweet(
             # Standard retweet
             else:
                 (text, ticker_list, images, hashtags,) = await standard_tweet_info(
-                    as_json["includes"]["tweets"][0], tweet_type
+                    as_json["includes"]["tweets"][-1], tweet_type
                 )
 
         # Add the user text to it
@@ -355,9 +355,9 @@ def format_description(
 
 def get_description(change, price, website):
     # Change can be a list (if the information is from Yahoo Finance) or a string
-    if type(change) == list:
+    if type(change) == list and type(price) == list:
         # If the length is 2 then we know the after-hour prices
-        if len(change) == 2:
+        if len(change) == 2 and len(price) == 2:
             for i in range(len(change)):
                 if i == 0:
                     description = format_description(True, change, price, website, i)
@@ -423,9 +423,10 @@ async def add_financials(
 
     base_symbols = []
     categories = []
+    do_last = []
 
     for ticker in symbols:
-
+        
         if crypto > stocks and crypto > forex:
             majority = "crypto"
         elif stocks > crypto and stocks > forex:
@@ -437,7 +438,6 @@ async def add_financials(
 
         # Get the information about the ticker
         ticker_info = await classify_ticker(ticker, majority)
-
         if ticker_info:
             (
                 _,
@@ -488,23 +488,26 @@ async def add_financials(
             # Default category is crypto
             categories.append("crypto")
 
+        base_symbols.append(base_symbol)
+
+        # If there is no TA for a symbol, add it at the end of the embed
+        if four_h_ta is None:
+            do_last.append((title, change, price, website))
+            continue
+
         # Add the field with hyperlink
         e.add_field(
             name=title, value=get_description(change, price, website), inline=True
         )
 
-        if four_h_ta is not None:
-            e.add_field(name="4h TA", value=four_h_ta, inline=True)
-        else:
-            # Add empty fields to not mess up the layout
-            e.add_field(name="\u200b", value="\u200b", inline=True)
+        e.add_field(name="4h TA", value=four_h_ta, inline=True)
 
-        if one_d_ta is not None:
-            e.add_field(name="1d TA", value=one_d_ta, inline=True)
-        else:
-            e.add_field(name="\u200b", value="\u200b", inline=True)
+        e.add_field(name="1d TA", value=one_d_ta, inline=True)
 
-        base_symbols.append(base_symbol)
+    for title, change, price, website in do_last:
+        e.add_field(
+            name=title, value=get_description(change, price, website), inline=True
+        )
 
     # Finally add the sentiment to the embed
     if symbols:

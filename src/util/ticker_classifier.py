@@ -10,6 +10,22 @@ from util.yf_data import get_stock_info
 
 
 async def get_best_guess(ticker: str, asset_type: str):
+    """
+    Gets the best guess of the ticker.
+
+    Parameters
+    ----------
+    ticker : str
+        The ticker mentioned in a tweet, e.g. BTC
+    asset_type : str
+        The guessed asset type, this can be crypto, stock or forex.
+
+    Returns
+    -------
+    tuple
+        The data of the best guess
+    """
+    
     get_TA = False
 
     if asset_type == "crypto":
@@ -22,7 +38,7 @@ async def get_best_guess(ticker: str, asset_type: str):
             base_sym,
         ) = await get_coin_info(ticker)
 
-    elif asset_type == "stocks":
+    elif asset_type == "stock":
         (
             volume,
             website,
@@ -41,9 +57,6 @@ async def get_best_guess(ticker: str, asset_type: str):
             change,
             base_sym,
         ) = await get_stock_info(ticker, asset_type)
-
-        if type(price) == list:
-            price == price[0]
 
         if price > 0:
             four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "forex")
@@ -127,10 +140,10 @@ async def classify_ticker(
         if crypto_data[-1] == True:
             return crypto_data[:-1]
 
-        stock_data = await get_best_guess(ticker, "stocks")
+        stock_data = await get_best_guess(ticker, "stock")
 
     else:
-        stock_data = await get_best_guess(ticker, "stocks")
+        stock_data = await get_best_guess(ticker, "stock")
 
         if stock_data[-1] == True:
             return stock_data[:-1]
@@ -155,7 +168,7 @@ async def classify_ticker(
             crypto_data[6] = one_d_ta
             tuple(crypto_data)
 
-        return crypto_data
+        return crypto_data[:-1]
 
     elif c_volume < s_volume:
         if stock_data[5] is None:
@@ -166,4 +179,4 @@ async def classify_ticker(
             stock_data[6] = one_d_ta
             tuple(stock_data)
 
-        return stock_data
+        return stock_data[:-1]
