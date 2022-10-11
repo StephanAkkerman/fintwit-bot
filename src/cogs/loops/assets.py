@@ -198,7 +198,7 @@ class Assets(commands.Cog):
         discord.Embed
             The new embed.
         """
-        
+
         old_df = None
 
         if old_worth and old_assets:
@@ -206,7 +206,7 @@ class Assets(commands.Cog):
             old_worth = old_worth.split("\n")
             # Remove the emoji + whitespace
             old_worth = [x[:-2] for x in old_worth]
-            
+
             old_assets = old_assets.split("\n")
 
             old_df = pd.DataFrame({"asset": old_assets, "old_worth": old_worth})
@@ -220,10 +220,11 @@ class Assets(commands.Cog):
         exchange_df = sorted_df.drop(sorted_df[sorted_df.owned == 0].index)
 
         usd_values = []
-        for sym in exchange_df["asset"].to_list():
+        for sym in exchange_df["asset"].tolist():
             if sym not in stables:
                 usd_val = 0
                 if exchange == "Binance":
+                    # Get current USD price of a coin
                     usd_val = await Binance(self.bot, None, None).get_usd_price(sym)
                 elif exchange == "Kucoin":
                     usd_val = await KuCoin(self.bot, None, None).get_quote_price(
@@ -251,15 +252,17 @@ class Assets(commands.Cog):
 
         # Sort by usd value
         final_df = exchange_df.sort_values(by=["usd_value"], ascending=False)
-        
+
         # Compare with the old df
         if old_df is not None:
-            final_df = pd.merge(final_df, old_df, on="asset")
+            final_df = final_df.merge(old_df, how="outer", on="asset")
             final_df["worth_change"] = final_df["usd_value"] - final_df["old_worth"]
             final_df["worth_display"] = final_df["worth_change"].apply(
                 lambda row: " 🔴" if row < 0 else (" 🔘" if row == 0 else " 🟢")
             )
-            final_df["usd_value"] = "$" + final_df["usd_value"].astype(str) + final_df["worth_display"]
+            final_df["usd_value"] = (
+                "$" + final_df["usd_value"].astype(str) + final_df["worth_display"]
+            )
         else:
             final_df["usd_value"] = "$" + final_df["usd_value"].astype(str)
 
@@ -286,7 +289,7 @@ class Assets(commands.Cog):
 
         return e, False
 
-    @loop(hours=12)
+    @loop(minutes=1)
     async def post_assets(self) -> None:
         """
         Posts the assets of the users that added their portfolio.
@@ -295,8 +298,6 @@ class Assets(commands.Cog):
         -------
         None
         """
-
-        guild = get_guild(self.bot)
 
         # Use the user name as channel
         names = util.vars.assets_db["user"].unique()
@@ -307,6 +308,7 @@ class Assets(commands.Cog):
             # If this channel does not exist make it
             channel = get_channel(self.bot, channel_name)
             if channel is None:
+                guild = get_guild(self.bot)
                 channel = await guild.create_text_channel(
                     channel_name, category=config["CATEGORIES"]["USERS"]
                 )
@@ -326,7 +328,7 @@ class Assets(commands.Cog):
                 last_msg = await channel.history().find(
                     lambda m: m.author.id == self.bot.user.id
                 )
-                
+
                 binance_worth = kucoin_worth = stocks_worth = None
                 binance_coins = kucoin_coins = stocks_owned = None
 

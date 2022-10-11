@@ -18,6 +18,7 @@ import pandas as pd
 import aiohttp
 
 # Local dependencies
+import util.vars
 from util.db import get_db, update_db
 from util.disc_util import get_channel, get_user
 from util.vars import config, stables, get_json_data, post_json_data
@@ -394,6 +395,8 @@ class Binance:
             ).reset_index(drop=True)
 
             update_db(assets_db, "assets")
+            util.vars.assets_db = assets_db
+            print(util.vars.assets_db)
             # Maybe post the updated assets of this user as well
 
     @loop(hours=24)
@@ -649,7 +652,8 @@ class KuCoin:
                 ).reset_index(drop=True)
 
                 update_db(assets_db, "assets")
-                
+                util.vars.assets_db = assets_db
+
                 # Maybe post the assets of this user as well
 
     @loop(hours=24)
@@ -800,7 +804,7 @@ class Trades(commands.Cog):
         self.trades_channel = get_channel(
             self.bot, config["LOOPS"]["TRADES"]["CHANNEL"]
         )
-        
+
         # Start getting trades
         asyncio.create_task(self.trades(db))
 
