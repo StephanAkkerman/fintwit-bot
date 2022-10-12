@@ -11,6 +11,7 @@ import json
 # > 3rd Party Dependencies
 from tweepy.asynchronous import AsyncStreamingClient
 from tweepy import StreamRule
+import aiohttp
 
 # > Discord dependencies
 import discord
@@ -293,7 +294,7 @@ class Streamer(AsyncStreamingClient):
 
         # Convert the string json data to json object
         tweet_data = json.loads(raw_data)
-        
+
         if "data" not in tweet_data.keys():
             # For instance if the stream was temporarily disconnected
             print("Stream error")
@@ -523,6 +524,10 @@ class Streamer(AsyncStreamingClient):
                     print("Could not add reaction to message")
 
             return msg, channel
+
+        except aiohttp.ClientConnectionError:
+            print("Connection Error posting tweet on timeline")
+            return
 
         except Exception as error:
             print("Error posting tweet on timeline", error)

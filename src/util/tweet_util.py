@@ -9,6 +9,9 @@ from traceback import format_exc
 import discord
 from discord.ext import commands
 
+# 3rd party imports
+import numpy as np
+
 # Local dependencies
 from util.sentiment_analyis import add_sentiment
 from util.ticker_classifier import classify_ticker
@@ -518,12 +521,8 @@ async def add_financials(
     # Decide the category of this tweet
     if crypto == 0 and stocks == 0 and forex == 0:
         category = None
-    elif crypto >= stocks and crypto >= forex:
-        category = "crypto"
-    elif stocks > crypto and stocks > forex:
-        category = "stocks"
-    elif forex > stocks and forex > crypto:
-        category = "forex"
+    else:
+        category = ("crypto", "stocks", "forex")[np.argmax([crypto,stocks,forex])]
 
     # Return just the prediction without emoji
     return e, category, prediction, base_symbols, categories
@@ -555,5 +554,7 @@ async def count_tweets(ticker: str) -> int:
     counts = await get_json_data(
         url=url, headers={"Authorization": f"Bearer {bearer_token}"}
     )
-
-    return counts["meta"]["total_tweet_count"]
+    
+    if "meta" in counts.keys():
+        if "total_tweet_count" in counts["meta"].keys():
+            return counts["meta"]["total_tweet_count"]

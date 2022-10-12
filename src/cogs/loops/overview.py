@@ -66,9 +66,13 @@ class Overview:
             for ticker, _ in top50.items():
                 # Get the global tweets about the ticker using the API
                 if category == "stocks":
-                    self.global_stocks[ticker] = await count_tweets(ticker)
+                    global_mentions = await count_tweets(ticker)
+                    if global_mentions is not None:
+                        self.global_stocks[ticker] = global_mentions
                 elif category == "crypto":
-                    self.global_crypto[ticker] = await count_tweets(ticker)
+                    global_mentions = await count_tweets(ticker)
+                    if global_mentions is not None:
+                        self.global_crypto[ticker] = await count_tweets(ticker)
 
     async def make_overview(
         self, tweet_db, category: str, tickers: list, last_sentiment: str
