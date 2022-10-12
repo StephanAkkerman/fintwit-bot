@@ -77,6 +77,7 @@ nasdaq_tickers = None
 reddit_ids = pd.DataFrame()
 ideas_ids = pd.DataFrame()
 
+
 def format_change(change: float) -> str:
     """
     Converts a float to a string with a plus sign if the float is positive, and a minus sign if the float is negative.
@@ -131,7 +132,11 @@ async def get_json_data(url: str, headers: dict = None, text: bool = False) -> d
             return response
 
 
-async def post_json_data(url: str, headers: dict = None) -> dict:
+async def post_json_data(
+    url: str,
+    headers: dict = None,
+    data: dict = None,
+) -> dict:
     """
     Asynchronous function to post JSON data from a website.
 
@@ -149,13 +154,11 @@ async def post_json_data(url: str, headers: dict = None) -> dict:
     """
 
     async with aiohttp.ClientSession(headers=headers) as session:
-        async with session.post(
-            url,
-        ) as r:
+        async with session.post(url, data=data) as r:
             try:
-                response = await r.json()
+                response = await r.json(content_type=None)
             except Exception as e:
-                print(f"Error with get request for {url}.", "Error:", e)
+                print(f"Error with POST request for {url}.", "Error:", e)
                 response = {}
 
             # Close the connection
