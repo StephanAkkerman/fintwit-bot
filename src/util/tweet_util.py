@@ -108,7 +108,7 @@ async def add_quote_tweet(
 ):
 
     text, ticker_list, image, hashtags = await standard_tweet_info(
-        quote_data["includes"]["tweets"][0], "tweet"
+        quote_data["includes"]["tweets"][-1], "tweet"
     )
 
     # Combine the information
@@ -159,7 +159,7 @@ async def get_tweet(
         # Tweet type can be "retweeted", "quoted" or "replied_to"
         tweet_type = as_json["data"]["referenced_tweets"][0]["type"]
 
-        # Set the retweeted user
+        # Set the retweeted / quoted user
         if tweet_type == "retweeted" or tweet_type == "quoted":
             if len(as_json["includes"]["users"]) > 1:
                 retweeted_user = as_json["includes"]["users"][1]["username"]
@@ -282,6 +282,9 @@ async def standard_tweet_info(
             The hashtags in the tweet.
     """
 
+    tickers = []
+    hashtags = []
+
     text = as_json["text"]
 
     # Check for images
@@ -309,17 +312,15 @@ async def standard_tweet_info(
                     else:
                         text = text.replace(url["url"], url["expanded_url"])
 
-    tickers = []
-    hashtags = []
-    # Process hashtags and tickers
-    if "cashtags" in as_json["entities"].keys():
-        for symbol in as_json["entities"]["cashtags"]:
-            tickers.append(f"{symbol['tag'].upper()}")
+        # Process hashtags and tickers
+        if "cashtags" in as_json["entities"].keys():
+            for symbol in as_json["entities"]["cashtags"]:
+                tickers.append(f"{symbol['tag'].upper()}")
 
-    # Also check the hashtags
-    if "hashtags" in as_json["entities"].keys():
-        for symbol in as_json["entities"]["hashtags"]:
-            hashtags.append(f"{symbol['tag'].upper()}")
+        # Also check the hashtags
+        if "hashtags" in as_json["entities"].keys():
+            for symbol in as_json["entities"]["hashtags"]:
+                hashtags.append(f"{symbol['tag'].upper()}")
 
     return text, tickers, images, hashtags
 
@@ -429,7 +430,7 @@ async def add_financials(
     do_last = []
 
     for ticker in symbols:
-        
+
         if crypto > stocks and crypto > forex:
             majority = "crypto"
         elif stocks > crypto and stocks > forex:
@@ -522,7 +523,7 @@ async def add_financials(
     if crypto == 0 and stocks == 0 and forex == 0:
         category = None
     else:
-        category = ("crypto", "stocks", "forex")[np.argmax([crypto,stocks,forex])]
+        category = ("crypto", "stocks", "forex")[np.argmax([crypto, stocks, forex])]
 
     # Return just the prediction without emoji
     return e, category, prediction, base_symbols, categories
@@ -554,7 +555,7 @@ async def count_tweets(ticker: str) -> int:
     counts = await get_json_data(
         url=url, headers={"Authorization": f"Bearer {bearer_token}"}
     )
-    
+
     if "meta" in counts.keys():
         if "total_tweet_count" in counts["meta"].keys():
             return counts["meta"]["total_tweet_count"]
