@@ -132,9 +132,14 @@ async def classify_ticker(
         str
             The base ticker.
     """
+    
+    # Try forex first
+    forex_data = await get_best_guess(ticker, "forex")
+    if forex_data[-1] == True:
+        return forex_data[:-1]
 
-    # If the majority is crypt or unkown check if the ticker is a crypto
-    if majority == "crypto" or majority == "Unknown":
+    # If the majority is crypto or unkown check if the ticker is a crypto
+    if majority == "crypto":
         crypto_data = await get_best_guess(ticker, "crypto")
 
         if crypto_data[-1] == True:
@@ -148,12 +153,7 @@ async def classify_ticker(
         if stock_data[-1] == True:
             return stock_data[:-1]
 
-        crypto_data = await get_best_guess(ticker, "crypto")
-
-    # Try forex
-    forex_data = await get_best_guess(ticker, "forex")
-    if forex_data[-1] == True:
-        return forex_data[:-1]
+        crypto_data = await get_best_guess(ticker, "crypto")    
 
     # If it was not the majority, compare the data
     c_volume = crypto_data[0]
