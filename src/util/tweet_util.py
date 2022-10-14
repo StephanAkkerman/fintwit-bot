@@ -78,6 +78,9 @@ async def format_tweet(
         hashtags,
     ) = await get_tweet(as_json)
 
+    if not text:
+        return
+
     # Replace &amp;
     text = text.replace("&amp;", "&")
     text = text.replace("&gt;", ">")
@@ -101,7 +104,7 @@ async def format_tweet(
             f"Error posting tweet of {user} at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
         )
         print(format_exc())
-        return None
+        return
 
 
 async def add_quote_tweet(
@@ -118,7 +121,8 @@ async def add_quote_tweet(
     hashtags = user_hashtags + hashtags
 
     # Add > to show it's a quote
-    text = "\n".join(map(lambda line: "> " + line, text.split("\n")))
+    if text != "":
+        text = "\n".join(map(lambda line: "> " + line, text.split("\n")))
 
     text = f"{user_text}\n\n> [@{retweeted_user}](https://twitter.com/{retweeted_user}):\n{text}"
 
@@ -169,7 +173,8 @@ async def get_tweet(
                 retweeted_user = as_json["includes"]["users"][0]["username"]
 
         # Could also add the tweet that it was replied to
-        #if tweet_type == "replied_to":
+        if tweet_type == "replied_to":
+            return None, None, None, None, None
         #    text, ticker_list, images, hashtags = await standard_tweet_info(
         #        as_json["data"], tweet_type
         #    )
