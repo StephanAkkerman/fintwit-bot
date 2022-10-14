@@ -13,7 +13,7 @@ from discord.ext.tasks import loop
 # Local dependencies
 import util.vars
 from util.vars import config
-from util.disc_util import get_channel
+from util.disc_util import get_channel, get_webhook
 from util.db import update_db
 
 
@@ -46,7 +46,7 @@ class Reddit(commands.Cog):
             )
 
             self.wsb.start(reddit)
-            
+
     def add_id_to_db(self, id: str) -> None:
         """
         Adds the given id to the database.
@@ -168,11 +168,23 @@ class Reddit(commands.Cog):
                     icon_url="https://external-preview.redd.it/iDdntscPf-nfWKqzHRGFmhVxZm4hZgaKe5oyFws-yzA.png?width=640&crop=smart&auto=webp&s=bfd318557bf2a5b3602367c9c4d9cd84d917ccd5",
                 )
 
-                msg = await self.channel.send(embed=e)
+                if len(img_url) > 1:
+                    # Create a list of image embeds, max 10 images per post
+                    image_e = [e] + [
+                        discord.Embed(url=e.url).set_image(url=img)
+                        for img in img_url[1:10]
+                    ]
 
-                for i in range(len(img_url)):
-                    if i > 0:
-                        await self.channel.send(reference=msg, content=img_url[i])
+                    webhook = await get_webhook(self.channel)
+
+                    msg = await webhook.send(
+                        embeds=image_e,
+                        username="FinTwit",
+                        wait=True,
+                        avatar_url=self.bot.user.avatar.url,
+                    )
+                else:
+                    msg = await self.channel.send(embed=e)
 
                 if video:
                     await self.channel.send(

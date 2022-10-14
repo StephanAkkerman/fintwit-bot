@@ -20,7 +20,7 @@ from discord.ext.tasks import loop
 
 # Local dependencies
 from util.vars import config, bearer_token, get_json_data
-from util.disc_util import get_channel, get_tagged_users
+from util.disc_util import get_channel, get_tagged_users, get_webhook
 from util.tweet_util import format_tweet, add_financials
 from util.db import update_tweet_db
 from cogs.loops.overview import Overview
@@ -488,13 +488,7 @@ class Streamer(AsyncStreamingClient):
 
             # If there are multiple images to be sent, use a webhook to send them all at once
             if len(image_e) > 1:
-                webhook = await channel.webhooks()
-
-                if not webhook:
-                    webhook = await channel.create_webhook(name=channel.name)
-                    print(f"Created webhook for {channel.name}")
-                else:
-                    webhook = webhook[0]
+                webhook = await get_webhook(channel)
 
                 # Wait so we can use this message as reference
                 msg = await webhook.send(

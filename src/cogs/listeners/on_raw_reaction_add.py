@@ -7,7 +7,7 @@ import discord
 from discord.ext import commands
 
 # > Local dependencies
-from util.disc_util import get_channel
+from util.disc_util import get_channel, get_webhook
 from util.vars import config
 
 
@@ -141,13 +141,7 @@ class On_raw_reaction_add(commands.Cog):
                 for em in message.embeds[1:]
             ]
 
-            webhook = await self.channel.webhooks()
-
-            if not webhook:
-                webhook = await self.channel.create_webhook(name=self.channel.name)
-                print(f"Created webhook for {self.channel.name}")
-            else:
-                webhook = webhook[0]
+            webhook = await get_webhook(self.channel)
 
             # Wait so we can use this message as reference
             await webhook.send(

@@ -7,7 +7,7 @@ from discord.ext import commands
 
 # Local dependencies
 import util.vars
-from util.vars import config, guild_name
+from util.vars import guild_name
 
 
 def get_guild(bot: commands.Bot) -> discord.Guild:
@@ -32,7 +32,9 @@ def get_guild(bot: commands.Bot) -> discord.Guild:
     )
 
 
-def get_channel(bot: commands.Bot, channel_name: str, category_name : str = None) -> discord.TextChannel:
+def get_channel(
+    bot: commands.Bot, channel_name: str, category_name: str = None
+) -> discord.TextChannel:
     """
     Returns the discord.TextChannel object of the channel with the given name.
 
@@ -58,6 +60,7 @@ def get_channel(bot: commands.Bot, channel_name: str, category_name : str = None
                     else:
                         if channel.category.name == category_name:
                             return channel
+
 
 def get_emoji(bot: commands.Bot, emoji: str) -> discord.Emoji:
     """
@@ -123,3 +126,30 @@ def get_tagged_users(tickers: list) -> Optional[str]:
     if unique_users:
         # Make it one message for all the users
         return " ".join([f"<@!{user}>" for user in unique_users])
+
+
+async def get_webhook(channel: discord.TextChannel) -> discord.Webhook:
+    """
+    Checks if there is a webhook in the given channel and returns it.
+    If there is not a webhook for a channel, then it creates one.
+
+    Parameters
+    ----------
+    channel : discord.TextChannel
+        The channel to check for a webhook.
+
+    Returns
+    -------
+    discord.Webhook
+        The webhook for the given channel.
+    """
+
+    webhook = await channel.webhooks()
+
+    if not webhook:
+        webhook = await channel.create_webhook(name=channel.name)
+        print(f"Created webhook for {channel.name}")
+    else:
+        webhook = webhook[0]
+
+    return webhook

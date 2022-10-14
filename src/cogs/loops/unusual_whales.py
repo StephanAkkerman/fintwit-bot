@@ -4,6 +4,9 @@ import pandas as pd
 import time
 import inspect
 
+# > 3rd party dependencies
+import numpy as np
+
 # > Discord dependencies
 import discord
 from discord.ext import commands
@@ -98,7 +101,7 @@ class UW(commands.Cog):
 
         # Check if the market is open
         if afterHours():
-            return
+           return
 
         # Get the emojis if not already done
         if self.emoji_dict == {}:
@@ -130,22 +133,44 @@ class UW(commands.Cog):
                 "tier",
                 "is_recommended",
                 "open_interest",
+                "delta",
+                "theta",
             ]
         ]
+
+        # Calculate the percentual difference between current price and strike price
+        df["strike_price"] = df["strike_price"].astype(float)
+        df["stock_price"] = df["stock_price"].astype(float)
+        df["difference"] = (
+            (df["strike_price"] - df["stock_price"]) / df["stock_price"] * 100
+        )
+        df["difference"] = df["difference"].round(2)
+        df["difference"] = df["difference"].astype(str) + "%"
+
+        # Convert IV to percent
+        df["implied_volatility"] = df["implied_volatility"].astype(float)
+        df["IV"] = df["implied_volatility"] * 100
+        df["IV"] = df["IV"].round(2)
+        df["IV"] = df["IV"].astype(str) + "%"
+
+        # Get the timestamp convert to datetime and local time
+        df["alert_time"] = pd.to_datetime(df["timestamp"], utc=True)
+        df["alert_time"] = df["alert_time"].dt.tz_convert(
+            datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
+        )
+        df["alert_time"] = df["alert_time"].dt.strftime("%I:%M %p")
+
+        # Round theta and delta
+        df["theta"] = df["theta"].astype(float)
+        df["theta"] = df["theta"].round(3)
+        df["delta"] = df["delta"].astype(float)
+        df["delta"] = df["delta"].round(3)
 
         # For each ticker in the df send a message
         for _, row in df.iterrows():
 
             # Only use the first letter of the option type
             option_type = row["option_type"][0].upper()
-
-            # Calculate the percentual difference between current price and strike price
-            difference = round(
-                (float(row["stock_price"]) - float(row["strike_price"]))
-                / float(row["strike_price"])
-                * 100,
-                2,
-            )
 
             emojis = ""
             for tag in row["tags"]:
@@ -166,12 +191,14 @@ class UW(commands.Cog):
                     Bid-Ask: ${row['bid']} - ${row['ask']}
                     Interest: {row['open_interest']}
                     Volume: {row['volume']}
-                    IV: {row['implied_volatility']}
-                    % Diff: {difference}
+                    IV: {row['IV']}
+                    % Diff: {row["difference"]}
                     Underlying: ${row['stock_price']}
+                    Θ | Δ: {row['theta']} | {row['delta']}
                     Sector: {row['sector']}
                     Tier: {row['tier']}
                     Recommended: {row['is_recommended']}
+                    {emojis}
                     """
                 ),
                 color=0xE40414 if option_type == "P" else 0x3CC474,
@@ -180,8 +207,8 @@ class UW(commands.Cog):
 
             e.set_footer(
                 # Use the time the alert was created in the footer
-                text=f"Alerted at {row['timestamp'].split('T')[1].split('Z')[0]}",
-                icon_url="https://unusualwhales.com/android-icon-192x192.png",
+                text=f"Alerted at {row['alert_time']}",
+                icon_url="https://docs.unusualwhales.com/images/banner.png",
             )
 
             await self.channel.send(
