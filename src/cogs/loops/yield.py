@@ -37,7 +37,14 @@ class Yield(commands.Cog):
         self.post_curve.start()
 
     @loop(hours=24)
-    async def post_curve(self):
+    async def post_curve(self) -> None:
+        """
+        Posts the US and EU yield curve in the channel specified in the config.
+
+        Returns
+        -------
+        None
+        """
 
         await self.plot_US_yield()
         await self.plot_EU_yield()
@@ -64,7 +71,10 @@ class Yield(commands.Cog):
         # Delete yield.png
         os.remove("yield.png")
 
-    async def plot_US_yield(self):
+    async def plot_US_yield(self) -> None:
+        """
+        Gets the US yield curve data from TradingView and plots it.
+        """
 
         years = np.array([0.08, 0.15, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 30])
         yield_percentage = await self.get_yield(US_bonds)
@@ -72,6 +82,10 @@ class Yield(commands.Cog):
         self.make_plot(years, yield_percentage, "b", "US")
 
     async def plot_EU_yield(self):
+        """
+        Gets the EU yield curve data from TradingView and plots it.
+        """
+
         years = np.array(
             [0.25, 0.5, 0.75, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30]
         )
@@ -79,7 +93,20 @@ class Yield(commands.Cog):
 
         self.make_plot(years, yield_percentage, "r", "EU")
 
-    async def get_yield(self, bonds):
+    async def get_yield(self, bonds: list) -> list:
+        """
+        For each bond in the given list, it gets the yield from TradingView.
+
+        Parameters
+        ----------
+        bonds : list
+            The names of the bonds to get the yield from.
+
+        Returns
+        -------
+        list
+            The percentages of the yield for each bond.
+        """
 
         yield_percentage = []
         for bond in bonds:
@@ -89,7 +116,25 @@ class Yield(commands.Cog):
 
         return yield_percentage
 
-    def make_plot(self, years, yield_percentage, color, label):
+    def make_plot(
+        self, years: list, yield_percentage: list, color: str, label: str
+    ) -> None:
+        """
+        Makes a matplotlib plot of the yield curve.
+        Each dot is the yield for a specific bond.
+        Connects a spline through the dots to make a smooth curve.
+
+        Parameters
+        ----------
+        years : list
+            The years of the yield curve.
+        yield_percentage : list
+            The yield percentage for each year.
+        color : str
+            The color of the plotted line.
+        label : str
+            The label for the plotted line.
+        """
 
         new_X = np.linspace(years.min(), years.max(), 500)
 

@@ -81,6 +81,7 @@ async def format_tweet(
     # Replace &amp;
     text = text.replace("&amp;", "&")
     text = text.replace("&gt;", ">")
+    text = text.replace("&lt;", "<")
 
     # Post the tweet containing the important info
     try:
@@ -168,13 +169,13 @@ async def get_tweet(
                 retweeted_user = as_json["includes"]["users"][0]["username"]
 
         # Could also add the tweet that it was replied to
-        if tweet_type == "replied_to":
-            text, ticker_list, images, hashtags = await standard_tweet_info(
-                as_json["data"], tweet_type
-            )
+        #if tweet_type == "replied_to":
+        #    text, ticker_list, images, hashtags = await standard_tweet_info(
+        #        as_json["data"], tweet_type
+        #    )
 
         # If it is a retweet change format
-        elif tweet_type == "retweeted":
+        if tweet_type == "retweeted":
             # If the retweet is a quoted tweet
             if "referenced_tweets" in as_json["includes"]["tweets"][-1].keys():
                 is_reference = True

@@ -16,7 +16,6 @@ from util.vars import get_json_data
 
 
 class Analyze(commands.Cog):
-    """ """
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
@@ -27,8 +26,18 @@ class Analyze(commands.Cog):
     async def analyze(
         self,
         ctx: commands.Context,
-        stock: Option(str, description="Stock ticker, i.e. AAPL.", required=True),
+        stock: Option(str, description="Stock ticker, e.g. AAPL.", required=True),
     ) -> None:
+        """
+        The analyze command is used to get the current analyst ratings for a stock ticker from benzinga.com.
+
+        Parameters
+        ----------
+        ctx : commands.Context
+            Discord context object.
+        stock : Option, optional
+            The ticker of a stock, e.g. AAPL
+        """
 
         # await ctx.response.defer(ephemeral=True)
 
