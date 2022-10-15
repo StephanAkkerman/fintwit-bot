@@ -49,6 +49,9 @@ class Timeline(commands.Cog):
         Builds the Streamer object, gets the users that we are following, and then starts the stream.
         """
 
+        # Set the following IDs, used in get_rules()
+        await self.get_following_ids()
+
         # These values are all imported from config.yaml
         printer = Streamer(self.bot)
 
@@ -94,6 +97,30 @@ class Timeline(commands.Cog):
             await asyncio.sleep(60 * 5)
             await self.start()
 
+    async def get_following_ids(self) -> None:
+        """
+        Gets and sets the Twitters IDs of the accounts that the bot is following.
+
+        Returns
+        -------
+        None
+        """
+        # Could also use this
+        # https://developer.twitter.com/en/docs/twitter-api/users/follows/api-reference/get-users-id-following
+        try:
+            id = await get_json_data(
+                f"https://api.twitter.com/2/users/by/username/{config['TWITTER']['USERNAME']}?user.fields=id",
+                headers={"Authorization": f"Bearer {bearer_token}"},
+            )
+            following = await get_json_data(
+                f"https://api.twitter.com/2/users/{id['data']['id']}/following?max_results=1000",
+                headers={"Authorization": f"Bearer {bearer_token}"},
+            )
+            self.following_ids = [user["id"] for user in following["data"]]
+        except Exception as e:
+            print(e)
+            print("Failed to get following ids")
+
     def get_rules(self) -> List[StreamRule]:
         """
         Creates the rules for the streamer to filter on.
@@ -104,21 +131,10 @@ class Timeline(commands.Cog):
         List[StreamRule]
             List of StreamRules to filter on.
         """
-        id = requests.get(
-            f"https://api.twitter.com/2/users/by/username/{config['TWITTER']['USERNAME']}?user.fields=id",
-            headers={"Authorization": f"Bearer {bearer_token}"},
-        ).json()["data"]["id"]
-
-        following = requests.get(
-            f"https://api.twitter.com/2/users/{id}/following?max_results=1000",
-            headers={"Authorization": f"Bearer {bearer_token}"},
-        ).json()["data"]
-
-        following = [user["id"] for user in following]
 
         rules = []
         text_rule = ""
-        for user in following:
+        for user in self.following_ids:
             if len(text_rule) + len(str(user)) + 2 < 512:
                 text_rule += f"from:{user} OR "
             else:
@@ -210,14 +226,20 @@ class Streamer(AsyncStreamingClient):
             )
         if config["LOOPS"]["TIMELINE"]["NEWS"]["ENABLED"]:
             self.news_channel = get_channel(
-                self.bot, config["LOOPS"]["TIMELINE"]["NEWS"]["CHANNEL"]
+                self.bot,
+                config["LOOPS"]["TIMELINE"]["NEWS"]["CHANNEL"],
+                config["CATEGORIES"]["TWITTER"],
             )
+
+            if config["LOOPS"]["TIMELINE"]["NEWS"]["CRYPTO"]["ENABLED"]:
+                self.crypto_news_channel = get_channel(
+                    self.bot,
+                    config["LOOPS"]["TIMELINE"]["NEWS"]["CRYPTO"]["CHANNEL"],
+                    config["CATEGORIES"]["CRYPTO"],
+                )
 
         # Get all text channels
         self.all_txt_channels.start()
-
-        # Set following ids
-        # self.get_following_ids.start()
 
         self.tweet_overview = Overview(self.bot)
 
@@ -244,31 +266,6 @@ class Streamer(AsyncStreamingClient):
         # Set the class variables
         self.text_channels = text_channel_list
         self.text_channel_names = text_channel_names
-
-    @loop(minutes=15)
-    async def get_following_ids(self) -> None:
-        """
-        Gets and sets the Twitters IDs of the accounts that the bot is following.
-
-        Returns
-        -------
-        None
-        """
-        # Could also use this
-        # https://developer.twitter.com/en/docs/twitter-api/users/follows/api-reference/get-users-id-following
-        try:
-            id = await get_json_data(
-                f"https://api.twitter.com/2/users/by/username/{config['TWITTER']['USERNAME']}?user.fields=id",
-                headers={"Authorization": f"Bearer {bearer_token}"},
-            )
-            following = await get_json_data(
-                f"https://api.twitter.com/2/users/{id['data']['id']}/following?max_results=1000",
-                headers={"Authorization": f"Bearer {bearer_token}"},
-            )
-            self.following_ids = [user["id"] for user in following["data"]]
-        except Exception as e:
-            print(e)
-            print("Failed to get following ids")
 
     async def on_connection_error(self):
         print("Tweepy Stream Connection error")
@@ -455,6 +452,9 @@ class Streamer(AsyncStreamingClient):
         # News posters
         elif user in config["LOOPS"]["TIMELINE"]["NEWS"]["FOLLOWING"]:
             channel = self.news_channel
+            
+        elif user in config["LOOPS"]["TIMELINE"]["NEWS"]["CRYPTO"]["FOLLOWING"]:
+            channel = self.crypto_news_channel
 
         # Tweets without financial information
         elif category == None and not images:
