@@ -3,18 +3,15 @@
 from __future__ import annotations
 
 # > Third party libraries
-import pandas as pd
-import numpy as np
 import discord
+from transformers import BertTokenizer, BertForSequenceClassification, pipeline
 
 # Load model
-model = pd.read_pickle("models/sentiment_model.pkl")
-feature_selector = model["Feature Selector"][0]
-vectorizer = model["Vectorizer"][0]
-classifier = model["Classifier"][0]
+finbert = BertForSequenceClassification.from_pretrained('./models')
+tokenizer = BertTokenizer.from_pretrained("yiyanghkust/finbert-tone")
+nlp = pipeline("text-classification", model=finbert, tokenizer=tokenizer)
 
-
-def classify_sentiment(text: str) -> np.ndarray:
+def classify_sentiment(text: str) -> tuple[str,str,str]:
     """
     Uses the text of a tweet to classify the sentiment of the tweet.
 
@@ -28,9 +25,24 @@ def classify_sentiment(text: str) -> np.ndarray:
     np.ndarray
         The probability of the tweet being bullish, neutral, or bearish.
     """
-
-    x = feature_selector.transform(vectorizer.transform([text]))
-    return classifier.predict_proba(x.toarray())[0]
+    
+    pred = nlp(text)[0]
+    label = pred['label']
+    score = pred['score']
+    
+    if label == "Positive":
+        label = "🐂 - Bullish"
+        emoji = "🐂"
+    elif label == "Neutral":
+        label = "🦆 - Neutral"
+        emoji = "🦆"
+    elif label == "Negative":
+        label = "🐻 - Bearish"
+        emoji = "🐻"
+        
+    score = round(score*100, 2)
+        
+    return label, score, emoji
 
 def add_sentiment(e : discord.Embed, text: str) -> tuple[discord.Embed, str]:
     """
@@ -52,13 +64,12 @@ def add_sentiment(e : discord.Embed, text: str) -> tuple[discord.Embed, str]:
             The sentiment of the tweet.
     """
     
-    sentiment = classify_sentiment(text)
-    prediction = ("🐻 - Bearish", "🦆 - Neutral", "🐂 - Bullish")[np.argmax(sentiment)]
+    prediction, score, emoji = classify_sentiment(text)
+    
     e.add_field(
         name="Sentiment",
-        value=f"{prediction} ({round(max(sentiment*100),2)}%)",
+        value=f"{prediction} ({score}%)",
         inline=False,
     )
-    prediction = prediction.split(" - ")[0]
     
-    return e, prediction
+    return e, emoji

@@ -234,7 +234,7 @@ class Streamer(AsyncStreamingClient):
             if config["LOOPS"]["TIMELINE"]["NEWS"]["CRYPTO"]["ENABLED"]:
                 self.crypto_news_channel = get_channel(
                     self.bot,
-                    config["LOOPS"]["TIMELINE"]["NEWS"]["CRYPTO"]["CHANNEL"],
+                    config["LOOPS"]["TIMELINE"]["NEWS"]["CHANNEL"],
                     config["CATEGORIES"]["CRYPTO"],
                 )
 
