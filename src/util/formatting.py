@@ -22,10 +22,13 @@ def human_format(number: float) -> str:
     str
         The formatted number as a string.
     """
+    
+    if number == 0:
+        return number
 
     # https://idlechampions.fandom.com/wiki/Large_number_abbreviations
     units = ["", "K", "M", "B", "t", "q"]
-    k = 1000.0
+    k = 1000.0   
     try:
         magnitude = int(floor(log(number, k)))
     except ValueError:

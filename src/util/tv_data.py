@@ -33,7 +33,7 @@ async def get_tv_ticker_data(url, append_to=None):
         tv_data = pd.concat([tv_data, pd.DataFrame(append_to, columns=["s"])])
 
     # Split the information in exchange and stock
-    tv_data[["exchange", "stock"]] = tv_data["s"].str.split(":", 1, expand=True)
+    tv_data[["exchange", "stock"]] = tv_data["s"].str.split(":", n=1, expand=True)
 
     return tv_data
 

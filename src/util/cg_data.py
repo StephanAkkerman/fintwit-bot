@@ -235,27 +235,36 @@ async def get_trending_coins() -> tuple[list, list, list, list]:
             coin.find('data-coin-symbol="')
             + len('data-coin-symbol="') : coin.find('" data-source=')
         ]
-
-        price = float(
-            data[0][: data[0].find('class="td-price price text-right"')].replace(
+        
+        price = data[0][: data[0].find('class="td-price price text-right"')].replace(
                 "'", ""
             )
-        )
 
-        change = float(
-            data[2][
+        change = data[2][
                 : data[2].find(
                     ' class="td-change24h change24h stat-percent text-right col-market">'
                 )
             ].replace("'", "")
-        )
 
-        volume = float(
-            data[4][
+        volume = data[4][
                 data[4].find('data-target="price.price">$')
                 + len('data-target="price.price">$') : data[4].find("</span>")
             ].replace(",", "")
-        )
+        
+        # Ensure that the variables are numbers, otherwise fill with 0
+        # There is no better way to do this...
+        try:
+            price = float(price)
+        except Exception:
+            price = 0
+        try:
+            change = float(change)
+        except Exception:
+            change = 0
+        try:
+            volume = float(volume)
+        except Exception:
+            volume = 0
 
         tickers.append(f"[{ticker.upper()}]({website})")
         prices.append(price)

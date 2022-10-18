@@ -266,7 +266,7 @@ class TradingView_Ideas(commands.Cog):
             e.add_field(name="Prediction", value=row["Label"], inline=True)
 
             e.set_footer(
-                text=f"#{counter} | 👍 {row['Likes']} | 💬 {row['Comments']}",
+                text=f"👍 {row['Likes']} | 💬 {row['Comments']}",
                 icon_url="https://s3.tradingview.com/userpics/6171439-Hlns_big.png",
             )
 

@@ -103,9 +103,11 @@ class Reddit(commands.Cog):
 
             # https://asyncpraw.readthedocs.io/en/stable/code_overview/models/submission.html?highlight=poll_data#asyncpraw.models.Submission
             async for submission in subreddit.hot(limit=15):
+                # Skip stickied posts
                 if submission.stickied:
                     continue
 
+                # Skip polls
                 if "poll_data" in vars(submission).keys():
                     continue
 
@@ -145,8 +147,8 @@ class Reddit(commands.Cog):
                             img_url.append(largest_image["u"])
                     elif "v.redd.it" in url:
                         video = True
-                        descr = "The video is shown in the next message."
-
+                        descr = ""
+                        
                 e = discord.Embed(
                     title=title,
                     url="https://www.reddit.com" + submission.permalink,
@@ -164,7 +166,7 @@ class Reddit(commands.Cog):
                 )
 
                 e.set_footer(
-                    text=f"#{counter} | 🔼 {submission.score} | 💬 {submission.num_comments}",
+                    text=f"🔼 {submission.score} | 💬 {submission.num_comments}",
                     icon_url="https://external-preview.redd.it/iDdntscPf-nfWKqzHRGFmhVxZm4hZgaKe5oyFws-yzA.png?width=640&crop=smart&auto=webp&s=bfd318557bf2a5b3602367c9c4d9cd84d917ccd5",
                 )
 
@@ -184,12 +186,11 @@ class Reddit(commands.Cog):
                         avatar_url=self.bot.user.avatar.url,
                     )
                 else:
-                    msg = await self.channel.send(embed=e)
+                    if video:
+                        await self.channel.send(content = f"https://www.reddit.com{submission.permalink}")
+                    else:
+                        await self.channel.send(embed=e)
 
-                if video:
-                    await self.channel.send(
-                        reference=msg, content=url + "/DASH_360.mp4"
-                    )
 
                 counter += 1
 
