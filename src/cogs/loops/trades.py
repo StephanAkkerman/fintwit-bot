@@ -204,10 +204,14 @@ class Binance:
             self.secret.encode("utf-8"), query_string.encode("utf-8"), hashlib.sha256
         ).hexdigest()
 
-    async def send_signed_request(self, url_path: str) -> dict:
+    async def send_signed_request(self, url_path: str, extra_parameters : str = "") -> dict:
         """
         Sends the signed request to the binance API.
         Necessary to show that you own this account.
+        
+        Used for:
+        https://binance-docs.github.io/apidocs/spot/en/#account-information-user_data
+        https://binance-docs.github.io/apidocs/spot/en/#account-trade-list-user_data
 
         Parameters
         ----------
@@ -220,7 +224,7 @@ class Binance:
             Dictionary containing the response from the API.
         """
 
-        query_string = f"timestamp={int(time.time() * 1000)}&recvWindow=60000"
+        query_string = f"timestamp={int(time.time() * 1000)}&recvWindow=60000" + extra_parameters
         url = (
             "https://api.binance.com"
             + url_path
@@ -235,6 +239,31 @@ class Binance:
         }
 
         return await get_json_data(url, headers)
+    
+    async def get_buying_price(self, symbol : str) -> float:
+        """
+        Gets the most recent buying price of a symbol.
+
+        Parameters
+        ----------
+        symbol : str
+            The symbol to get the buying price of.
+
+        Returns
+        -------
+        float
+            The buying price of the symbol.
+        """
+        
+        if symbol in stables:
+            return 1
+        else:
+            trades = await self.send_signed_request("/api/v3/myTrades", f"&symbol={symbol}USDT")
+            if type(trades) == list:
+                if len(trades) > 1:
+                    return float(trades[-1]["price"])
+                                 
+        return 0
 
     async def get_data(self) -> pd.DataFrame:
         """
@@ -255,19 +284,22 @@ class Binance:
             self.user = await get_user(self.bot, self.id)
 
         # Create a list of dictionaries
-        owned = [
-            {
-                "asset": asset["asset"],
-                "owned": float(asset["free"]) + float(asset["locked"]),
-                "exchange": "binance",
-                "id": self.id,
-                "user": self.user.name.split("#")[0],
-            }
-            # Loop over the balances
-            for asset in balances
-            # Only add them if they are not 0
-            if float(asset["free"]) > 0 or float(asset["locked"]) > 0
-        ]
+        owned = []
+        
+        for asset in balances:
+            if float(asset["free"]) > 0 or float(asset["locked"]) > 0:
+                buying_price = await self.get_buying_price(asset["asset"])
+                
+                # Only keep the assets that have a buying price
+                if buying_price != 0:
+                    owned.append({
+                        "asset": asset["asset"],
+                        "buying_price" : buying_price,
+                        "owned": float(asset["free"]) + float(asset["locked"]),
+                        "exchange": "binance",
+                        "id": self.id,
+                        "user": self.user.name.split("#")[0],
+                    })
 
         # Convert this list to a dataframe
         return pd.DataFrame(owned)
@@ -493,24 +525,19 @@ class KuCoin:
             self.passphrase = row["passphrase"]
 
         self.restart_sockets.start()
-
-    async def get_data(self) -> pd.DataFrame:
+        
+    async def send_signed_request(self, url_path : str):
         """
-        Gets the KuCoin assets of the user, documentation used: https://docs.kucoin.com/#get-an-account.
+        GETs a signed request from KuCoin.
 
-        Returns
-        -------
-        pd.DataFrame
-            The dataframe of the assets of the user.
+        Parameters
+        ----------
+        url_path : str
+            The url path to send the request to, e.g. '/api/v1/accounts'
         """
-
-        # Ensure that the user is set
-        if self.user is None:
-            self.user = await get_user(self.bot, self.id)
-
-        url = "https://api.kucoin.com/api/v1/accounts"
+        
         now = int(time.time() * 1000)
-        str_to_sign = str(now) + "GET" + "/api/v1/accounts"
+        str_to_sign = str(now) + "GET" + url_path
         signature = base64.b64encode(
             hmac.new(
                 self.secret.encode("utf-8"), str_to_sign.encode("utf-8"), hashlib.sha256
@@ -532,22 +559,44 @@ class KuCoin:
             "Content-Type": "application/json",
         }
 
-        response = await get_json_data(url, headers=headers)
-        response = response["data"]
+        return await get_json_data(f"https://api.kucoin.com{url_path}", headers=headers)
 
-        owned = [
-            {
+    async def get_data(self) -> pd.DataFrame:
+        """
+        Gets the KuCoin assets of the user, documentation used: https://docs.kucoin.com/#get-an-account.
+
+        Returns
+        -------
+        pd.DataFrame
+            The dataframe of the assets of the user.
+        """
+
+        # Ensure that the user is set
+        if self.user is None:
+            self.user = await get_user(self.bot, self.id)
+        
+        response = await self.send_signed_request('/api/v1/accounts')
+
+        owned = []
+        for sym in response["data"]:
+            # Only add them if they are not 0
+            if float(sym["balance"]) > 0:
+                if sym['currency'] in stables:
+                    buying_price = 1
+                else:
+                    buying_price = await self.send_signed_request(f'/api/v1/orders?symbol={sym["currency"]}-USDT')
+                
+                print(sym["currency"] + "-USDT")
+                print(buying_price)
+                
+                owned.append({
                 "asset": sym["currency"],
                 "owned": float(sym["balance"]),
                 "exchange": "kucoin",
                 "id": self.id,
                 "user": self.user.name.split("#")[0],
-            }
-            # Loop over all the symbols
-            for sym in response
-            # Only add them if they are not 0
-            if float(sym["balance"]) > 0
-        ]
+            })
+
 
         return pd.DataFrame(owned)
 

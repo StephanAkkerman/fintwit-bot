@@ -13,7 +13,7 @@ from discord.commands import SlashCommandGroup, Option
 # Local dependencies
 import util.vars
 from util.vars import config
-from util.db import update_db
+from util.db import update_db, merge_and_update
 from util.disc_util import get_channel
 from util.confirm_stock import confirm_stock
 
@@ -90,7 +90,7 @@ class Stock(commands.Cog):
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
 
-        e.set_author(name=user.name, icon_url=user.avatar_url)
+        e.set_author(name=user.name, icon_url=user.display_avatar.url)
         e.add_field(name="Price", value=f"${price}", inline=True)
         e.add_field(name="Amount", value=quantity, inline=True)
         e.add_field(
@@ -107,15 +107,21 @@ class Stock(commands.Cog):
     async def add(
         self,
         ctx: commands.Context,
-        input: Option(
-            str, description="Provide the following: <ticker> <amount>`", required=True
+        ticker: Option(
+            str, description="The ticker of the stock e.g., AAPL", required=True
+        ),
+        buying_price: Option(
+            str, description="The price of the stock when you bought it, e.g., 106.40", required=True
+        ),
+        amount: Option(
+            str, description="The amount of stock that you own at this price, e.g., 2", required=True
         ),
     ) -> None:
 
         """
         Add stocks to your portfolio.
         Usage:
-        `/stock add <ticker> <amount>` to add a stock to your portfolio
+        `/stock add <ticker> <buying price> <amount>` to add a stock to your portfolio
 
 
         Parameters
@@ -130,59 +136,82 @@ class Stock(commands.Cog):
         None
         """
 
-        # Split the input using the spaces
-        input = input.split(" ")
-        
-        if len(input) < 2 or len(input) >2:
-            await ctx.respond("Please provide a ticker and amount.")
-            return
-
-        ticker, amount = input
-
         # Make sure that the user is aware of this stock's existence
         if not await confirm_stock(self.bot, ctx, ticker):
             return
+        
+        try:
+            amount = float(amount)
+            buying_price = float(buying_price)
+        except Exception:
+            await ctx.respond("Please provide a valid buying price and/or amount.")
+            return
+        
+        print(ctx.author.id)
 
         # Add ticker to database
         new_data = pd.DataFrame(
-            {
+            [{
                 "asset": ticker.upper(),
-                "owned": int(amount),
+                "buying_price": buying_price,
+                "owned": amount,
                 "exchange": "stock",
-                "id": ctx.message.author.id,
-                "user": ctx.message.author.name,
-            },
-            index=[0],
+                "id": ctx.author.id,
+                "user": ctx.author.name,
+            }]
         )
 
         old_db = util.vars.assets_db
 
         # Check if the user has this asset already
         owned_in_db = old_db.loc[
-            (old_db["id"] == ctx.message.author.id)
+            (old_db["id"] == ctx.author.id)
             & (old_db["asset"] == ticker.upper())
         ]
+        
+        # If the user does not yet own this stock
         if owned_in_db.empty:
-            self.update_assets_db(
-                pd.concat([old_db, new_data], ignore_index=True)
-            )
+            merge_and_update(old_db, new_data, "assets")
         else:
-            old_db.loc[
-                (old_db["id"] == ctx.message.author.id)
-                & (old_db["asset"] == ticker.upper()),
-                "owned",
-            ] += int(amount)
+            # Increase the amount if everything is the same
+            same_price = old_db.loc[
+                (old_db["id"] == ctx.author.id) & 
+                (old_db["asset"] == ticker.upper()) & 
+                (old_db["buying_price"] == buying_price)
+            ]
+            
+            if not same_price.empty:
+                old_db.loc[
+                (old_db["id"] == ctx.author.id) & 
+                (old_db["asset"] == ticker.upper()), 
+                "owned"] += amount
+                
+            else:
+                # Get the old buying price and average it with the new one
+                old_buying_price = owned_in_db["buying_price"].values[0]
+                old_amount_owned = owned_in_db["owned"].values[0]
+                
+                new_buying_price = (old_buying_price * old_amount_owned + buying_price * amount) / (old_amount_owned + amount)              
+                
+                # Update the buying price and amount owned
+                old_db.loc[(old_db["id"] == ctx.author.id) & 
+                (old_db["asset"] == ticker.upper()),
+                "buying_price"] = new_buying_price
+                
+                # Update the amount owned
+                old_db.loc[(old_db["id"] == ctx.author.id) & 
+                (old_db["asset"] == ticker.upper()),
+                "owned"] += amount
+                        
             self.update_assets_db(old_db)
         await ctx.send("Succesfully added your stock to the database!")
 
-        stock_info = yf.Ticker(ticker)
-
         # Send message in trades channel
         await self.stock_trade_msg(
-            ctx.message.author,
+            ctx.author,
             "Bought",
             ticker,
-            stock_info.info["regularMarketPrice"],
+            buying_price,
             amount,
         )
 

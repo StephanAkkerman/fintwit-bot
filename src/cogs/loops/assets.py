@@ -78,6 +78,7 @@ class Assets(commands.Cog):
                 asset + "-USDT"
             )
 
+        # If the coin does not exist as an USDT pair on the exchange, check coingecko
         if usd_val == 0:
             _, _, _, price, _, _ = await get_coin_info(asset)
             return price * owned
@@ -102,15 +103,18 @@ class Assets(commands.Cog):
         if db.equals(util.vars.portfolio_db):
             # Drop all crypto assets
             old_db = util.vars.assets_db
-            crypto_rows = old_db.index[old_db["exchange"] != "stock"].tolist()
-            assets_db = old_db.drop(index=crypto_rows)
+            if not old_db.empty:
+                crypto_rows = old_db.index[old_db["exchange"] != "stock"].tolist()
+                assets_db = old_db.drop(index=crypto_rows)
+            else:
+                assets_db = pd.DataFrame(columns=['asset', 'buying_price', 'owned', 'exchange', 'id', 'user'])
         else:
             # Add it to the old assets db, since this call is for a specific person
             assets_db = util.vars.assets_db
 
         # Ensure that the db knows the right types
         assets_db = assets_db.astype(
-            {"asset": str, "owned": float, "exchange": str, "id": "int64", "user": str}
+            {"asset": str, "buying_price": float, "owned": float, "exchange": str, "id": "int64", "user": str}
         )
 
         if not db.empty:
@@ -121,7 +125,7 @@ class Assets(commands.Cog):
 
             if not binance.empty:
                 for _, row in binance.iterrows():
-                    # Add this data to the assets.pkl database
+                    # Add this data to the assets.db database
                     assets_db = pd.concat(
                         [assets_db, await Binance(self.bot, row, None).get_data()],
                         ignore_index=True,
@@ -136,7 +140,7 @@ class Assets(commands.Cog):
 
         # Sum values where assets and names are the same
         assets_db = assets_db.astype(
-            {"asset": str, "owned": float, "exchange": str, "id": "int64", "user": str}
+            {"asset": str, "buying_price":float, "owned": float, "exchange": str, "id": "int64", "user": str}
         )
 
         # Get USD value of each asset
