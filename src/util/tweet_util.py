@@ -10,13 +10,16 @@ import discord
 from discord.ext import commands
 
 # 3rd party imports
+import pandas as pd
 import numpy as np
 
 # Local dependencies
+import util.vars
+from util.ticker_classifier import classify_ticker, get_financials
 from util.sentiment_analyis import add_sentiment
-from util.ticker_classifier import classify_ticker
-from util.vars import filter_dict, get_json_data, bearer_token
 from util.disc_util import get_emoji
+from util.vars import filter_dict, get_json_data, bearer_token
+from util.db import merge_and_update, remove_old_rows
 
 
 async def format_tweet(
@@ -207,7 +210,7 @@ async def get_tweet(
             # Standard retweet
             else:
                 (text, ticker_list, images, hashtags,) = await standard_tweet_info(
-                    as_json, tweet_type
+                    as_json, "retweeted"
                 )
 
         # Add the user text to it
@@ -219,6 +222,8 @@ async def get_tweet(
 
     # If there is no reference then it is a normal tweet
     else:
+        retweeted_user = None
+        
         text, ticker_list, images, hashtags = await standard_tweet_info(
             as_json, "tweet"
         )
@@ -304,22 +309,23 @@ async def standard_tweet_info(
     if tweet_type != "quoted tweet":
         images = get_tweet_img(as_json)
 
+    # Unpack json data
     if tweet_type == "tweet" or tweet_type == "quoted":
-        as_json = as_json["data"]
-    elif tweet_type == "retweet" or tweet_type == "quoted tweet":
-        as_json = as_json["includes"]["tweets"][-1]
+        tweet_data = as_json["data"]
+    elif tweet_type == "retweeted" or tweet_type == "quoted tweet":
+        tweet_data = as_json["includes"]["tweets"][-1]
         
-    text = as_json["text"]
+    text = tweet_data["text"]
 
     # Remove image urls and extend other urls
-    if "entities" in as_json.keys():
-        if "urls" in as_json["entities"].keys():
-            for url in as_json["entities"]["urls"]:
+    if "entities" in tweet_data.keys():
+        if "urls" in tweet_data["entities"].keys():
+            for url in tweet_data["entities"]["urls"]:
                 if "media_key" in url.keys():
                     text = text.replace(url["url"], "")
                     # If there are no images yet, get the image based on conversation id
                     if images == []:
-                        images = await get_missing_img(as_json["conversation_id"])
+                        images = await get_missing_img(tweet_data["conversation_id"])
                 else:
                     if tweet_type == "quoted" and url["expanded_url"].startswith(
                         "https://twitter.com"
@@ -329,8 +335,8 @@ async def standard_tweet_info(
                     else:
                         text = text.replace(url["url"], url["expanded_url"])
                         
-    tickers = get_tags(as_json, "cashtags")
-    hashtags = get_tags(as_json, "hashtags")
+    tickers = get_tags(tweet_data, "cashtags")
+    hashtags = get_tags(tweet_data, "hashtags")
 
     return text, tickers, images, hashtags
 
@@ -438,6 +444,12 @@ async def add_financials(
     base_symbols = []
     categories = []
     do_last = []
+    classified_tickers = []
+    
+    if not util.vars.classified_tickers.empty:
+        # Drop tickers older than 3 days
+        util.vars.classified_tickers = remove_old_rows(util.vars.classified_tickers, 3)
+        classified_tickers = util.vars.classified_tickers['ticker'].tolist()
 
     for ticker in symbols:
 
@@ -451,33 +463,53 @@ async def add_financials(
             majority = "Unknown"
 
         # Get the information about the ticker
-        ticker_info = await classify_ticker(ticker, majority)
-        if ticker_info:
-            (
-                _,
-                website,
-                exchanges,
-                price,
-                change,
-                four_h_ta,
-                one_d_ta,
-                base_symbol,
-            ) = ticker_info
+        if ticker not in classified_tickers:
+            ticker_info = await classify_ticker(ticker, majority)
+            if ticker_info:
+                (
+                    _,
+                    website,
+                    exchanges,
+                    price,
+                    change,
+                    four_h_ta,
+                    one_d_ta,
+                    base_symbol,
+                ) = ticker_info
+                
+                # Convert info to a dataframe
+                df = pd.DataFrame([{'ticker':ticker,
+                                    'website':website,
+                                    'exchanges':exchanges,
+                                    'base_symbol':base_symbol,
+                                    'timestamp':datetime.datetime.now()}])
+                
+                # Save the ticker info in a database
+                merge_and_update(util.vars.classified_tickers, df, 'classified_tickers')
 
-            # Skip if this ticker has been done before, for instance in tweets containing Solana and SOL
-            if base_symbol in base_symbols:
+                # Skip if this ticker has been done before, for instance in tweets containing Solana and SOL
+                if base_symbol in base_symbols:
+                    continue
+
+            else:
+                if ticker in tickers:
+
+                    e.add_field(name=f"${ticker}", value=majority)
+                    print(
+                        f"No crypto or stock match found for ${ticker} in {user}'s tweet at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
+                    )
+
+                # Go to next in symbols
                 continue
-
         else:
-            if ticker in tickers:
-
-                e.add_field(name=f"${ticker}", value=majority)
-                print(
-                    f"No crypto or stock match found for ${ticker} in {user}'s tweet at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
-                )
-
-            # Go to next in symbols
-            continue
+            ticker_info = util.vars.classified_tickers[util.vars.classified_tickers['ticker'] == ticker]
+            
+            website = ticker_info['website'].values[0]
+            exchanges = ticker_info['exchanges'].values[0]
+            base_symbol = ticker_info['base_symbol'].values[0]
+            
+            # Still need the price, change, TA info
+            price, change, four_h_ta, one_d_ta = await get_financials(ticker, website)
 
         title = f"${ticker}"
 

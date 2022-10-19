@@ -38,13 +38,13 @@ class Overview:
         else:
             self.do_crypto = False
 
-    async def overview(self, tweet_db, category, tickers, sentiment):
+    async def overview(self, category, tickers, sentiment):
         # Make sure that the new db is not empty
-        if not tweet_db.empty:
+        if not util.vars.tweets_db.empty:
             if self.do_stocks:
-                await self.make_overview(tweet_db, category, tickers, sentiment)
+                await self.make_overview(category, tickers, sentiment)
             if self.do_crypto:
-                await self.make_overview(tweet_db, category, tickers, sentiment)
+                await self.make_overview(category, tickers, sentiment)
 
     @loop(minutes=5)
     async def global_overview(self):
@@ -75,10 +75,10 @@ class Overview:
                         self.global_crypto[ticker] = await count_tweets(ticker)
 
     async def make_overview(
-        self, tweet_db, category: str, tickers: list, last_sentiment: str
+        self, category: str, tickers: list, last_sentiment: str
     ):
         # Post the overview for stocks and crypto
-        db = tweet_db.loc[tweet_db["category"] == category]
+        db = util.vars.tweets_db.loc[util.vars.tweets_db["category"] == category]
 
         if db.empty:
             return

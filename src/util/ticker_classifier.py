@@ -8,6 +8,19 @@ from util.tv_data import tv
 from util.cg_data import get_coin_info
 from util.yf_data import get_stock_info
 
+async def get_financials(ticker: str, website : str):
+    if "coingecko" in website:
+        _, _, _, price, change, _ = await get_coin_info(ticker)
+        four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "crypto")
+    elif "yahoo" in website:
+        _, _, _, price, change, _ = await get_stock_info(ticker)
+        four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "stock")
+    elif "forex" in website:
+        _, _, _, price, change, _ = await get_stock_info(ticker, "forex")
+        four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "forex")
+        
+    return price, change, four_h_ta, one_d_ta
+    
 
 async def get_best_guess(ticker: str, asset_type: str):
     """

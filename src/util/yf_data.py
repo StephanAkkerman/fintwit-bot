@@ -22,6 +22,8 @@ async def get_stock_info(
     ----------
     ticker : str
         The ticker of the stock.
+    asset_type : str
+        The type of asset, this can be stock or forex.
 
     Returns
     -------

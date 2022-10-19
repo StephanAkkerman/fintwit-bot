@@ -32,6 +32,7 @@ class DB(commands.Cog):
         self.set_tweets_db()
         self.set_reddit_ids_db()
         self.set_ideas_ids_db()
+        self.set_classified_tickers_db()
 
     def set_portfolio_db(self):
         util.vars.portfolio_db = get_db("portfolio")
@@ -47,6 +48,9 @@ class DB(commands.Cog):
         
     def set_ideas_ids_db(self):
         util.vars.ideas_ids = get_db("ideas_ids")
+        
+    def set_classified_tickers_db(self):
+        util.vars.classified_tickers = get_db("classified_tickers")
 
     @loop(hours=24)
     async def set_nasdaq_tickers(self):
@@ -122,17 +126,37 @@ class DB(commands.Cog):
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(DB(bot))
 
+def remove_old_rows(db: pd.DataFrame, days : int) -> pd.DataFrame:
+    """
+    Removes the old rows from the database and return it.
+    """
+    
+    # Set timestamp column to datetime
+    db["timestamp"] = pd.to_datetime(db["timestamp"])
+    
+    return db[db["timestamp"] > datetime.datetime.now() - datetime.timedelta(days=days)]
 
-def get_clean_tweet_db():
+def merge_and_update(main_db : pd.DataFrame, new_data : pd.DataFrame, db_name : str):
+    main_db = pd.concat([main_db, new_data])
+    main_db.reset_index(drop=True, inplace=True)
+    update_db(main_db, db_name)
 
-    # Get the old database
-    old_db = util.vars.tweets_db
+def clean_tweet_db() -> None:
+    """
+    Cleans the tweets database and returns it.
 
-    if old_db.empty:
-        return old_db
+    Returns
+    -------
+    pd.Dataframe
+        The cleaned tweets database.
+    """
+
+    # If the database is empty, do nothing and return
+    if util.vars.tweets_db.empty:
+        return util.vars.tweets_db
 
     # Set the types
-    old_db = old_db.astype(
+    util.vars.tweets_db = util.vars.tweets_db.astype(
         {
             "ticker": str,
             "user": str,
@@ -142,14 +166,24 @@ def get_clean_tweet_db():
         }
     )
 
-    old_db = old_db[
-        old_db["timestamp"] > datetime.datetime.now() - datetime.timedelta(hours=24)
-    ]
-
-    return old_db
+    util.vars.tweets_db = remove_old_rows(util.vars.tweets_db, 1)
 
 
 def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list) -> None:
+    """
+    Updates thet tweet database variable using the info provided.
+
+    Parameters
+    ----------
+    tickers : list
+        The list of tickers.
+    user : str
+        The name of the user.
+    sentiment : str
+        The sentiment of the tweet.
+    categories : list
+        The categories of the tickers.
+    """
 
     # Prepare new data
     dict_list = []
@@ -170,23 +204,10 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list) 
     # Add current time
     tweet_db["timestamp"] = datetime.datetime.now()
 
-    old_db = get_clean_tweet_db()
-
-    # Merge with the old database
-    if not old_db.empty:
-
-        # Add tweet to database
-        tweet_db = pd.concat([old_db, tweet_db])
-
-    # Reset the index
-    tweet_db = tweet_db.reset_index(drop=True)
-
-    # Save database
-    update_db(tweet_db, "tweets")
-    util.vars.tweets_db = tweet_db
-
-    return tweet_db
-
+    clean_tweet_db()
+    
+    merge_and_update(util.vars.tweets_db, tweet_db, "tweets")
+    
 
 def get_db(database_name: str) -> pd.DataFrame:
     """

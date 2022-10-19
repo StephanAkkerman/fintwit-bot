@@ -39,6 +39,7 @@ filter_dict = {
     "NQ_F": "NQ=F",
     "CL_F": "CL=F",
     "APPL": "AAPL",
+    "DEFI": "DEFIPERP",
 }
 
 # Stable coins
@@ -76,7 +77,7 @@ nasdaq_tickers = None
 
 reddit_ids = pd.DataFrame()
 ideas_ids = pd.DataFrame()
-
+classified_tickers = pd.DataFrame()
 
 def format_change(change: float) -> str:
     """

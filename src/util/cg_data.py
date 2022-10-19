@@ -130,8 +130,10 @@ async def get_coin_info(
         The base symbol of the coin, e.g. BTC, ETH, etc.
     """
 
-    cg_coins = util.vars.cg_db
     id = change = None
+    total_vol = 0
+    exchanges = []
+    change = "N/A"
 
     # Remove formatting from ticker input
     if ticker not in stables:
@@ -142,11 +144,16 @@ async def get_coin_info(
     # Get the id of the ticker
     # Check if the symbol exists
     coin_dict = None
-    if ticker in cg_coins["symbol"].values:
+    if ticker in util.vars.cg_db["symbol"].values:
         # Check coin by symbol, i.e. "BTC"
-        coin_dict, id = get_crypto_info(cg_coins[cg_coins["symbol"] == ticker]["id"])
+        coin_dict, id = get_crypto_info(util.vars.cg_db[util.vars.cg_db["symbol"] == ticker]["id"])
+        
+        # Get the information from the dictionary
+        if coin_dict:
+            total_vol, price, change, exchanges, base = get_info_from_dict(coin_dict)
 
-    if coin_dict is None:
+    # Try other methods if the information sucks
+    if total_vol < 50000 or exchanges == [] or change == 'N/A':
         # As a second options check the TradingView data
         price, perc_change, volume, exchange, website = await tv.get_tv_data(
             ticker, "crypto"
@@ -162,17 +169,17 @@ async def get_coin_info(
             )
 
         # Third option is to check by id
-        elif ticker.lower() in cg_coins["id"].values:
+        elif ticker.lower() in util.vars.cg_db["id"].values:
             coin_dict, id = get_crypto_info(
-                cg_coins[cg_coins["id"] == ticker.lower()]["id"]
+                util.vars.cg_db[util.vars.cg_db["id"] == ticker.lower()]["id"]
             )
 
         # Fourth option is to check by name, i.e. "Bitcoin"
-        elif ticker in cg_coins["name"].values:
-            coin_dict, id = get_crypto_info(cg_coins[cg_coins["name"] == ticker]["id"])
+        elif ticker in util.vars.cg_db["name"].values:
+            coin_dict, id = get_crypto_info(util.vars.cg_db[util.vars.cg_db["name"] == ticker]["id"])
 
-    # Get the information from the dictionary
-    total_vol, price, change, exchanges, base = get_info_from_dict(coin_dict)
+        # Get the information from the dictionary
+        total_vol, price, change, exchanges, base = get_info_from_dict(coin_dict)
 
     # Return the information
     return (

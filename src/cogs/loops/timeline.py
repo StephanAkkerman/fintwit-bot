@@ -398,9 +398,9 @@ class Streamer(AsyncStreamingClient):
                 print("Tickers:", base_symbols)
                 print("Categories:", categories)
             else:
-                tweet_db = update_tweet_db(base_symbols, user, sentiment, categories)
+                update_tweet_db(base_symbols, user, sentiment, categories)
                 await self.tweet_overview.overview(
-                    tweet_db, category, base_symbols, sentiment
+                    category, base_symbols, sentiment
                 )
 
     async def upload_tweet(

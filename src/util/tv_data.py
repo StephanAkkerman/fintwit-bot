@@ -185,6 +185,7 @@ class TV_data:
                     # If it crypto try adding USD or USDT
                     crypto_USD = tv_crypto.loc[tv_crypto["stock"] == symbol + "USD"]
                     crypto_USDT = tv_crypto.loc[tv_crypto["stock"] == symbol + "USDT"]
+                    crypto_USDTPERP = tv_crypto.loc[tv_crypto["stock"] == symbol + "USDTPERP"]
 
                     if not crypto_USD.empty:
                         return (
@@ -197,6 +198,12 @@ class TV_data:
                             crypto_USDT["exchange"].values[0],
                             "crypto",
                             crypto_USDT["stock"].values[0],
+                        )
+                    elif not crypto_USDTPERP.empty:
+                        return (
+                            crypto_USDTPERP["exchange"].values[0],
+                            "crypto",
+                            crypto_USDTPERP["stock"].values[0],
                         )
 
     async def get_tv_data(
