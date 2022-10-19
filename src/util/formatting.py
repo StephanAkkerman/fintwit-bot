@@ -24,16 +24,12 @@ def human_format(number: float) -> str:
     """
     
     if number == 0:
-        return number
+        return "0"
 
     # https://idlechampions.fandom.com/wiki/Large_number_abbreviations
     units = ["", "K", "M", "B", "t", "q"]
     k = 1000.0   
-    try:
-        magnitude = int(floor(log(number, k)))
-    except ValueError:
-        magnitude = 0
-        print("Could not get magnitude for number:", number)
+    magnitude = int(floor(log(number, k)))
     return "%.2f%s" % (number / k**magnitude, units[magnitude])
 
 
