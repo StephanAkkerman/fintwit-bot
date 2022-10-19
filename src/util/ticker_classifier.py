@@ -139,9 +139,9 @@ async def classify_ticker(
         return forex_data[:-1]
 
     # If the majority is crypto or unkown check if the ticker is a crypto
-    if majority == "crypto":
+    if majority == "crypto" or majority == "Unknown":
         crypto_data = await get_best_guess(ticker, "crypto")
-
+        
         if crypto_data[-1] == True:
             return crypto_data[:-1]
 

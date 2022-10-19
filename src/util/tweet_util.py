@@ -225,7 +225,8 @@ async def get_tweet(
 
     try:
         return text, ticker_list, images, retweeted_user, hashtags
-    except Exception:
+    except Exception as e:
+        print("Error processing tweet, error:", e)
         print(as_json)
 
 
@@ -298,8 +299,10 @@ async def standard_tweet_info(
         List[str]
             The hashtags in the tweet.
     """    
-    # Check for images
-    images = get_tweet_img(as_json)
+    # Check for images, do not do this for quoted tweet, otherwise images will get added twice
+    images = []
+    if tweet_type != "quoted tweet":
+        images = get_tweet_img(as_json)
 
     if tweet_type == "tweet" or tweet_type == "quoted":
         as_json = as_json["data"]
@@ -315,7 +318,7 @@ async def standard_tweet_info(
                 if "media_key" in url.keys():
                     text = text.replace(url["url"], "")
                     # If there are no images yet, get the image based on conversation id
-                    if not images:
+                    if images == []:
                         images = await get_missing_img(as_json["conversation_id"])
                 else:
                     if tweet_type == "quoted" and url["expanded_url"].startswith(

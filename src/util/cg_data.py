@@ -69,7 +69,8 @@ def get_coin_exchanges(coin_dict: dict) -> tuple[str, list]:
             if "base" in info.keys():
                 # Somtimes the base is a contract instead of ticker
                 if base == "N/A":
-                    if not(info["base"].startswith("0X") and len(info["base"]) > 5):
+                    # > 7, because $KOMPETE
+                    if not(info["base"].startswith("0X") and len(info["base"]) > 7):
                         base = info["base"]
 
             if "exchange" in info.keys():
