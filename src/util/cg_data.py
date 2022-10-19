@@ -161,7 +161,7 @@ async def get_coin_info(
         if volume != 0:
             return (
                 volume,
-                website + "/?coingecko",
+                website,
                 exchange,
                 price,
                 format_change(perc_change) if perc_change else "N/A",

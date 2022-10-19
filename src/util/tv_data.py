@@ -154,9 +154,9 @@ class TV_data:
         -------
         Optional[tuple[str, str, str]]
             str
-                The exchange the symbol is traded on.
+                The exchange the symbol is traded on, e.g. "FTX" or "Binance".
             str
-                The market the symbol is traded on.
+                The market the symbol is traded on, e.g. "crypto", "america", "forex".
             str
                 The symbol itself.
         """
@@ -234,27 +234,30 @@ class TV_data:
                 The url to the TradingView chart for this symbol.
         """
 
-        website_suffix = ""
-
         if asset == "stock":
             website_suffix = "/?yahoo"
         elif asset == "forex":
             website_suffix = "/?forex"
+        elif asset == "crypto":
+            website_suffix = "/?coingecko"
 
         try:
             symbol_data = self.get_symbol_data(symbol, asset)
+            website = f"https://www.tradingview.com/symbols/{symbol}{website_suffix}" 
 
             if symbol_data is not None:
                 # Format it "exchange:symbol"
                 exchange = symbol_data[0]
                 symbol = f"{exchange}:{symbol_data[2]}"
+                website = f"https://www.tradingview.com/symbols/{symbol_data[2]}{website_suffix}"
+
             else:
                 return (
                     0,
                     None,
                     0,
                     None,
-                    f"https://www.tradingview.com/symbols/{symbol}" + website_suffix,
+                    website
                 )
 
             # Create a session
@@ -293,8 +296,7 @@ class TV_data:
                                 resp[1],
                                 resp[2],
                                 exchange,
-                                f"https://www.tradingview.com/symbols/{symbol}-{exchange}"
-                                + website_suffix,
+                                website
                             )
 
                         elif counter == 3:
@@ -304,8 +306,7 @@ class TV_data:
                                 None,
                                 0,
                                 None,
-                                f"https://www.tradingview.com/symbols/{symbol}"
-                                + website_suffix,
+                                website
                             )
 
                     elif msg.type == aiohttp.WSMsgType.ERROR:
@@ -317,8 +318,7 @@ class TV_data:
                             None,
                             0,
                             None,
-                            f"https://www.tradingview.com/symbols/{symbol}"
-                            + website_suffix,
+                            website
                         )
 
         except Exception:
