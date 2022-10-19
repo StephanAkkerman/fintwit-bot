@@ -584,13 +584,20 @@ class KuCoin:
                 if sym['currency'] in stables:
                     buying_price = 1
                 else:
-                    buying_price = await self.send_signed_request(f'/api/v1/orders?symbol={sym["currency"]}-USDT')
-                
-                print(sym["currency"] + "-USDT")
-                print(buying_price)
+                    # https://docs.kucoin.com/#list-orders
+                    # Will only get orders from max 7 days ago, maybe save it in a database
+                    buying_prices = await self.send_signed_request(f'/api/v1/orders?symbol={sym["currency"]}-USDT')
+                    
+                    buying_price = 0
+                    # For some reason specifying side does not return anything
+                    for d in buying_prices['data']['items']:
+                        if d['side'] == 'buy':
+                            buying_price = float(d['price'])
+                            break
                 
                 owned.append({
                 "asset": sym["currency"],
+                "buying_price": buying_price,
                 "owned": float(sym["balance"]),
                 "exchange": "kucoin",
                 "id": self.id,
