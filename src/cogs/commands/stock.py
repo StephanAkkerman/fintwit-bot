@@ -37,7 +37,6 @@ class Stock(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.channel = get_channel(self.bot, config["LOOPS"]["TRADES"]["CHANNEL"])
 
     def update_assets_db(self, new_db):
         """
@@ -101,7 +100,11 @@ class Stock(commands.Cog):
             icon_url="https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png",
         )
 
-        await self.channel.send(embed=e)
+        channel = get_channel(
+            self.bot, config["LOOPS"]["TRADES"]["CHANNEL"]
+        )
+
+        await channel.send(embed=e)
 
     @stocks.command(name="add", description="Add a stock to your portfolio.")
     async def add(
@@ -114,7 +117,7 @@ class Stock(commands.Cog):
             str, description="The price of the stock when you bought it, e.g., 106.40", required=True
         ),
         amount: Option(
-            str, description="The amount of stock that you own at this price, e.g., 2", required=True
+            str, description="The amount of stocks that you own at this price, e.g., 2", required=True
         ),
     ) -> None:
 
@@ -146,8 +149,6 @@ class Stock(commands.Cog):
         except Exception:
             await ctx.respond("Please provide a valid buying price and/or amount.")
             return
-        
-        print(ctx.author.id)
 
         # Add ticker to database
         new_data = pd.DataFrame(
@@ -219,24 +220,19 @@ class Stock(commands.Cog):
     @stocks.command(
         name="remove", description="Remove a specific stock from your portfolio."
     )
-    async def remove(self, ctx: commands.Context, input: Option(str, description="Provide the following information: <ticker> (<amount>)", required=True)) -> None:
+    async def remove(self, 
+                     ctx: commands.Context, 
+                     ticker: Option(str, description="The ticker of the stock e.g., AAPL", required=True),
+                     amount: Option(str, description="The amount of stocks that you want to delete, e.g., 2", required=False)) -> None:
         """
         Usage:
         `!stock remove <ticker> (<amount>)` to remove a stock from your portfolio
         """
-        
-        # Split the input using the spaces
-        input = input.split(" ")
-        ticker = input[0]
-        
-        if len(input) < 1 or len(input) > 2:
-            await ctx.respond("Please provide at least a ticker and possibly an amount.")
-            return
+        old_db = util.vars.assets_db
                 
-        if len(input) == 1:
-            old_db = util.vars.assets_db
+        if not amount:
             row = old_db.index[
-                (old_db["id"] == ctx.message.author.id)
+                (old_db["id"] == ctx.author.id)
                 & (old_db["asset"] == ticker)
             ]
 
@@ -249,12 +245,9 @@ class Stock(commands.Cog):
             else:
                 await ctx.respond("You do not own this stock!")
 
-        elif len(input) == 2:
-            amount = input[1]
-            old_db = util.vars.assets_db
-
+        else:
             row = old_db.loc[
-                (old_db["id"] == ctx.message.author.id)
+                (old_db["id"] == ctx.author.id)
                 & (old_db["asset"] == ticker)
             ]
 
@@ -270,7 +263,7 @@ class Stock(commands.Cog):
                     )
                 else:
                     old_db.loc[
-                        (old_db["id"] == ctx.message.author.id)
+                        (old_db["id"] == ctx.author.id)
                         & (old_db["asset"] == ticker.upper()),
                         "owned",
                     ] -= int(amount)
@@ -281,7 +274,7 @@ class Stock(commands.Cog):
 
                 # Send message in trades channel
                 await self.stock_trade_msg(
-                    ctx.message.author,
+                    ctx.author,
                     "Sold",
                     ticker,
                     yf.Ticker(ticker).info["regularMarketPrice"],
@@ -299,7 +292,7 @@ class Stock(commands.Cog):
         """
         db = util.vars.assets_db
         rows = db.loc[
-            (db["id"] == ctx.message.author.id) & (db["exchange"] == "stock")
+            (db["id"] == ctx.author.id) & (db["exchange"] == "stock")
         ]
         if not rows.empty:
             for _, row in rows.iterrows():
