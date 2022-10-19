@@ -56,7 +56,7 @@ async def format_tweet(
             The user that was retweeted.
     """
 
-    print(as_json)
+    #print(as_json)
 
     # Get the user name
     if "includes" in as_json.keys():

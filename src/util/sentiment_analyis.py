@@ -64,7 +64,8 @@ def add_sentiment(e : discord.Embed, text: str) -> tuple[discord.Embed, str]:
             The sentiment of the tweet.
     """
     
-    prediction, score, emoji = classify_sentiment(text)
+    # Remove quote tweet formatting
+    prediction, score, emoji = classify_sentiment(text.split('\n\n> [@')[0])
     
     e.add_field(
         name="Sentiment",
