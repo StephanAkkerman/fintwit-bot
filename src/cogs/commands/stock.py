@@ -59,7 +59,7 @@ class Stock(commands.Cog):
         update_db(new_db, "assets")
 
     async def stock_trade_msg(
-        self, user: discord.User, side: str, stock_name: str, price: str, quantity: str
+        self, user: discord.User, side: str, stock_name: str, price: str, quantity: str, worth:float
     ) -> None:
         """
         Posts a message in the trades channel specifying a user's trade.
@@ -82,6 +82,8 @@ class Stock(commands.Cog):
         None
         """
 
+        price = round(price, 2)
+
         e = discord.Embed(
             title=f"{side} {quantity} {stock_name} for ${price}",
             description="",
@@ -93,10 +95,11 @@ class Stock(commands.Cog):
         e.add_field(name="Price", value=f"${price}", inline=True)
         e.add_field(name="Amount", value=quantity, inline=True)
         e.add_field(
-            name="$ Worth", value=f"${float(quantity)*float(price)}", inline=True
+            name="$ Worth", value=f"${round(worth,2)}", inline=True
         )
 
         e.set_footer(
+            text="\u200b",
             icon_url="https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png",
         )
 
@@ -149,11 +152,19 @@ class Stock(commands.Cog):
         except Exception:
             await ctx.respond("Please provide a valid buying price and/or amount.")
             return
+        
+        try:
+            price = yf.Ticker(ticker).info["regularMarketPrice"]
+        except Exception:
+            price = 0
+            
+        worth = round(price * amount,2)
 
         # Add ticker to database
         new_data = pd.DataFrame(
             [{
                 "asset": ticker.upper(),
+                "worth": worth,
                 "buying_price": buying_price,
                 "owned": amount,
                 "exchange": "stock",
@@ -205,7 +216,7 @@ class Stock(commands.Cog):
                 "owned"] += amount
                         
             self.update_assets_db(old_db)
-        await ctx.send("Succesfully added your stock to the database!")
+        await ctx.respond("Succesfully added your stock to the database!")
 
         # Send message in trades channel
         await self.stock_trade_msg(
@@ -214,6 +225,7 @@ class Stock(commands.Cog):
             ticker,
             buying_price,
             amount,
+            worth
         )
 
 
@@ -227,7 +239,7 @@ class Stock(commands.Cog):
         """
         Usage:
         `!stock remove <ticker> (<amount>)` to remove a stock from your portfolio
-        """
+        """        
         old_db = util.vars.assets_db
                 
         if not amount:
@@ -238,14 +250,23 @@ class Stock(commands.Cog):
 
             # Update database
             if not row.empty:
+                amount = old_db.loc[row, "owned"].values[0]
                 self.update_assets_db(old_db.drop(index=row))
                 await ctx.respond(
                     f"Succesfully removed all {ticker.upper()} from your owned stocks!"
                 )
             else:
                 await ctx.respond("You do not own this stock!")
+                return
 
         else:
+            
+            try:
+                amount = float(amount)
+            except Exception:
+                await ctx.respond("Please provide a valid amount.")
+                return
+            
             row = old_db.loc[
                 (old_db["id"] == ctx.author.id)
                 & (old_db["asset"] == ticker)
@@ -256,7 +277,7 @@ class Stock(commands.Cog):
                 # Check the amount owned
                 owned_now = row["owned"].tolist()[0]
                 # if it is equal to or greater than the amount to remove, remove all
-                if int(amount) >= owned_now:
+                if float(amount) >= owned_now:
                     self.update_assets_db(old_db.drop(index=row.index))
                     await ctx.respond(
                         f"Succesfully removed all {ticker.upper()} from your owned stocks!"
@@ -266,23 +287,31 @@ class Stock(commands.Cog):
                         (old_db["id"] == ctx.author.id)
                         & (old_db["asset"] == ticker.upper()),
                         "owned",
-                    ] -= int(amount)
+                    ] -= float(amount)
                     self.update_assets_db(old_db)
                     await ctx.respond(
                         f"Succesfully removed {amount} {ticker.upper()} from your owned stocks!"
                     )
-
-                # Send message in trades channel
-                await self.stock_trade_msg(
-                    ctx.author,
-                    "Sold",
-                    ticker,
-                    yf.Ticker(ticker).info["regularMarketPrice"],
-                    amount,
-                )
-
             else:
                 await ctx.respond("You do not own this stock!")
+                return
+                
+        try:
+            price = yf.Ticker(ticker).info["regularMarketPrice"]
+        except Exception:
+            price = 0
+            
+        worth = amount * price
+
+        # Send message in trades channel
+        await self.stock_trade_msg(
+            ctx.author,
+            "Sold",
+            ticker,
+            price,
+            amount,
+            worth
+        )
 
     @stocks.command(name="show", description="Show the stocks in your portfolio.")
     async def show(self, ctx: commands.Context) -> None:

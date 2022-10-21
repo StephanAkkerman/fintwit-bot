@@ -286,20 +286,38 @@ class Binance:
         # Create a list of dictionaries
         owned = []
         
-        for asset in balances:
-            if float(asset["free"]) > 0 or float(asset["locked"]) > 0:
-                buying_price = await self.get_buying_price(asset["asset"])
+        # Keep assets that are bigger than 0 if rounded to 3 decimals
+        assets = [x for x in balances if round(float(x["free"]) + float(x["locked"]), 3) > 0]
+        
+        for asset in assets:
+            amount_owned = float(asset["free"]) + float(asset["locked"])
+            
+            if asset["asset"] in stables:
+                # Assume stables are always $1
+                buying_price = 1
+                worth = amount_owned
                 
-                # Only keep the assets that have a buying price
-                if buying_price != 0:
-                    owned.append({
-                        "asset": asset["asset"],
-                        "buying_price" : buying_price,
-                        "owned": float(asset["free"]) + float(asset["locked"]),
-                        "exchange": "binance",
-                        "id": self.id,
-                        "user": self.user.name.split("#")[0],
-                    })
+            else:
+                usd_val = await self.get_usd_price(asset["asset"])
+                worth = usd_val * amount_owned
+            
+            if worth < 1:
+                continue
+            
+            if asset["asset"] not in stables:
+                buying_price = await self.get_buying_price(asset["asset"])                
+            
+            # Only keep the assets that have a buying price
+            if buying_price != 0:
+                owned.append({
+                    "asset": asset["asset"],
+                    "worth": worth,
+                    "buying_price" : buying_price,
+                    "owned": amount_owned,
+                    "exchange": "binance",
+                    "id": self.id,
+                    "user": self.user.name.split("#")[0],
+                })
 
         # Convert this list to a dataframe
         return pd.DataFrame(owned)
@@ -578,32 +596,49 @@ class KuCoin:
         response = await self.send_signed_request('/api/v1/accounts')
 
         owned = []
-        for sym in response["data"]:
-            # Only add them if they are not 0
-            if float(sym["balance"]) > 0:
-                if sym['currency'] in stables:
-                    buying_price = 1
-                else:
-                    # https://docs.kucoin.com/#list-orders
-                    # Will only get orders from max 7 days ago, maybe save it in a database
+        
+        symbols = [x for x in response["data"] if round(float(x["balance"]),3) > 0 and x["currency"] not in stables]
+        stables_owned = [x for x in response["data"] if round(float(x["balance"]),3) > 0 and x["currency"] in stables]
+        
+        max_tries = 30 // len(symbols)
+        for sym in symbols + stables_owned:
+            buying_price = 0
+            
+            if sym not in stables_owned:
+                usd_val = await self.get_quote_price(sym["currency"] + '-USDT')
+                worth = float(sym["balance"]) * usd_val
+            else:
+                buying_price = 1
+                worth = float(sym["balance"])
+            
+            if worth < 1:
+                continue
+            
+            # Set the buying price to 1
+            if sym in stables_owned:
+                buying_price = 1
+            
+            # Get the original buying price
+            if sym in symbols:
+                # https://docs.kucoin.com/#list-orders
+                # Will only get orders from max 7 days ago
+                # Try again if result is an empty list
+                tries = 0
+                while buying_price == 0 and tries < max_tries:
                     buying_prices = await self.send_signed_request(f'/api/v1/orders?symbol={sym["currency"]}-USDT')
-                    
-                    buying_price = 0
-                    # For some reason specifying side does not return anything
-                    for d in buying_prices['data']['items']:
-                        if d['side'] == 'buy':
-                            buying_price = float(d['price'])
-                            break
+                    buying_info = [x for x in buying_prices['data']['items'] if x['side'] == 'buy']
+                    buying_price = buying_info[0]['price'] if len(buying_info) > 0 else 0
+                    tries += 1
                 
-                owned.append({
-                "asset": sym["currency"],
-                "buying_price": buying_price,
-                "owned": float(sym["balance"]),
-                "exchange": "kucoin",
-                "id": self.id,
-                "user": self.user.name.split("#")[0],
+            owned.append({
+            "asset": sym["currency"],
+            "worth": worth,
+            "buying_price": buying_price,
+            "owned": float(sym["balance"]),
+            "exchange": "kucoin",
+            "id": self.id,
+            "user": self.user.name.split("#")[0],
             })
-
 
         return pd.DataFrame(owned)
 

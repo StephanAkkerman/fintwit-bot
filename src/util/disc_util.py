@@ -119,13 +119,13 @@ def get_tagged_users(tickers: list) -> Optional[str]:
     """
 
     # Get the stored db
-    assets_db = util.vars.assets_db
-    matching_users = assets_db[assets_db["asset"].isin(tickers)]["id"].tolist()
-    unique_users = list(set(matching_users))
+    if not util.vars.assets_db.empty:
+        matching_users = util.vars.assets_db[util.vars.assets_db["asset"].isin(tickers)]["id"].tolist()
+        unique_users = list(set(matching_users))
 
-    if unique_users:
-        # Make it one message for all the users
-        return " ".join([f"<@!{user}>" for user in unique_users])
+        if unique_users:
+            # Make it one message for all the users
+            return " ".join([f"<@!{user}>" for user in unique_users])
 
 
 async def get_webhook(channel: discord.TextChannel) -> discord.Webhook:

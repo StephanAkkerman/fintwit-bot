@@ -485,7 +485,11 @@ async def add_financials(
                                     'timestamp':datetime.datetime.now()}])
                 
                 # Save the ticker info in a database
-                merge_and_update(util.vars.classified_tickers, df, 'classified_tickers')
+                try:
+                    merge_and_update(util.vars.classified_tickers, df, 'classified_tickers')
+                except Exception as e:
+                    print("Error while saving classified tickers:", e)
+                    print(df)
 
                 # Skip if this ticker has been done before, for instance in tweets containing Solana and SOL
                 if base_symbol in base_symbols:

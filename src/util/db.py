@@ -137,8 +137,7 @@ def remove_old_rows(db: pd.DataFrame, days : int) -> pd.DataFrame:
     return db[db["timestamp"] > datetime.datetime.now() - datetime.timedelta(days=days)]
 
 def merge_and_update(main_db : pd.DataFrame, new_data : pd.DataFrame, db_name : str):
-    main_db = pd.concat([main_db, new_data], ignore_index=True)
-    update_db(main_db, db_name)
+    update_db(pd.concat([main_db, new_data], ignore_index=True), db_name)
 
 def clean_tweet_db() -> None:
     """

@@ -43,11 +43,10 @@ class Assets(commands.Cog):
         self, bot: commands.Bot, db: pd.DataFrame = util.vars.portfolio_db
     ) -> None:
         self.bot = bot
-
+        self.first_post = True
+        
         # Refresh assets
-        asyncio.create_task(self.assets(db))
-
-        self.old_assets = []
+        asyncio.create_task(self.assets(db))        
 
     async def usd_value(self, asset: str, owned: float, exchange: str) -> float:
         """
@@ -107,14 +106,14 @@ class Assets(commands.Cog):
                 crypto_rows = old_db.index[old_db["exchange"] != "stock"].tolist()
                 assets_db = old_db.drop(index=crypto_rows)
             else:
-                assets_db = pd.DataFrame(columns=['asset', 'buying_price', 'owned', 'exchange', 'id', 'user'])
+                assets_db = pd.DataFrame(columns=['asset', 'worth', 'buying_price', 'owned', 'exchange', 'id', 'user'])
         else:
             # Add it to the old assets db, since this call is for a specific person
             assets_db = util.vars.assets_db
 
         # Ensure that the db knows the right types
         assets_db = assets_db.astype(
-            {"asset": str, "buying_price": float, "owned": float, "exchange": str, "id": "int64", "user": str}
+            {"asset": str, "worth": float, "buying_price": float, "owned": float, "exchange": str, "id": "int64", "user": str}
         )
 
         if not db.empty:
@@ -140,32 +139,8 @@ class Assets(commands.Cog):
 
         # Sum values where assets and names are the same
         assets_db = assets_db.astype(
-            {"asset": str, "buying_price":float, "owned": float, "exchange": str, "id": "int64", "user": str}
+            {"asset": str, "worth": float, "buying_price":float, "owned": float, "exchange": str, "id": "int64", "user": str}
         )
-
-        # Get USD value of each asset
-        for index, row in assets_db.iterrows():
-
-            # Do not check stocks
-            if row["exchange"] == "stock":
-                continue
-
-            # Stables is always the same in USD
-            if row["asset"] in stables:
-                if row["owned"] < 1:
-                    assets_db.drop(index, inplace=True)
-                continue
-
-            # Remove small quantities, 0.005 btc is 20 usd
-            if round(row["owned"], 3) == 0:
-                assets_db.drop(index, inplace=True)
-                continue
-
-            usd_val = await self.usd_value(row["asset"], row["owned"], row["exchange"])
-
-            # Remove assets below threshold
-            if usd_val < 1:
-                assets_db.drop(index, inplace=True)
 
         # Update the assets db
         update_db(assets_db, "assets")
@@ -173,6 +148,7 @@ class Assets(commands.Cog):
 
         print("Updated assets database")
 
+        self.first_post = True
         self.post_assets.start()
 
     async def format_exchange(
@@ -220,63 +196,33 @@ class Assets(commands.Cog):
 
         # Sort and clean the data
         sorted_df = exchange_df.sort_values(by=["owned"], ascending=False)
-
-        # Round by 3 and drop everything that is 0
         sorted_df = sorted_df.round({"owned": 3})
         exchange_df = sorted_df.drop(sorted_df[sorted_df.owned == 0].index)
 
-        usd_values = []
-        for sym in exchange_df["asset"].tolist():
-            if sym not in stables:
-                usd_val = 0
-                if exchange == "Binance":
-                    # Get current USD price of a coin
-                    usd_val = await Binance(self.bot, None, None).get_usd_price(sym)
-                elif exchange == "Kucoin":
-                    usd_val = await KuCoin(self.bot, None, None).get_quote_price(
-                        sym + "-USDT"
-                    )
-                elif exchange == "Stocks":
-                    usd_val = await get_stock_info(sym)
-                    usd_val = usd_val[3][0]
-
-                if usd_val == 0 and exchange != "Stocks":
-                    # Exchange is None, because it is not on this exchange
-                    usd_val = await self.usd_value(sym, 1, None)
-                usd_values.append(usd_val)
-            else:
-                usd_values.append(1)
-
-        # Add new column for usd values
-        exchange_df["usd_value"] = usd_values
-
-        # Multiply it with the owned amount
-        exchange_df["usd_value"] = exchange_df["usd_value"] * exchange_df["owned"]
-
         # Round it to 2 decimals
-        exchange_df = exchange_df.round({"usd_value": 2})
+        exchange_df = exchange_df.round({"worth": 2})
 
         # Drop it if it's worth less than 1$
-        exchange_df = exchange_df.drop(exchange_df[exchange_df.usd_value < 1].index)
+        exchange_df = exchange_df.drop(exchange_df[exchange_df.worth < 1].index)
 
         # Sort by usd value
-        final_df = exchange_df.sort_values(by=["usd_value"], ascending=False)
+        final_df = exchange_df.sort_values(by=["worth"], ascending=False)
 
         # Compare with the old df
         if old_df is not None:
             final_df = final_df.merge(old_df, how="outer", on="asset")
             # Drop rows with nan
-            final_df.dropna(subset=["asset", "owned", "usd_value"], inplace=True)
+            final_df.dropna(subset=["asset", "owned", "worth"], inplace=True)
 
-            final_df["worth_change"] = final_df["usd_value"] - final_df["old_worth"]
+            final_df["worth_change"] = final_df["worth"] - final_df["old_worth"]
             final_df["worth_display"] = final_df["worth_change"].apply(
                 lambda row: " 🔴" if row < 0 else (" 🔘" if row == 0 else " 🟢")
             )
-            final_df["usd_value"] = (
-                "$" + final_df["usd_value"].astype(str) + final_df["worth_display"]
+            final_df["worth"] = (
+                "$" + final_df["worth"].astype(str) + final_df["worth_display"]
             )
         else:
-            final_df["usd_value"] = "$" + final_df["usd_value"].astype(str)
+            final_df["worth"] = "$" + final_df["worth"].astype(str)
 
         # Convert owned to string
         final_df["owned"] = final_df["owned"].astype(str)
@@ -284,15 +230,15 @@ class Assets(commands.Cog):
         # Create the list of string values
         assets = "\n".join(final_df["asset"].to_list())
         owned = "\n".join(final_df["owned"].to_list())
-        values = "\n".join(final_df["usd_value"].to_list())
+        worth = "\n".join(final_df["worth"].to_list())
 
         # Ensure that the length is not bigger than allowed
-        assets, owned, values = format_embed_length([assets, owned, values])
+        assets, owned, worth = format_embed_length([assets, owned, worth])
 
         # These are the new fields added to the embed
         e.add_field(name=exchange, value=assets, inline=True)
         e.add_field(name="Quantity", value=owned, inline=True)
-        e.add_field(name="Worth", value=values, inline=True)
+        e.add_field(name="Worth", value=worth, inline=True)
 
         # If all rows end with 🔘 don't send the embed
         if old_df is not None:
@@ -300,8 +246,37 @@ class Assets(commands.Cog):
                 return e, True
 
         return e, False
+    
+    async def update_worth(self):
+        # Updates the worth column of the assets_db
+        for index, row in util.vars.assets_db:
+            asset = row["asset"]
+            owned = row["owned"]
+            exchange = row["exchange"]
+            usd_val = 0
+            
+            # No need to update the stable coins
+            if asset not in stables:
+                if exchange == "Binance":
+                    # Get current USD price of a coin
+                    usd_val = await Binance(self.bot, None, None).get_usd_price(asset)
+                elif exchange == "Kucoin":
+                    usd_val = await KuCoin(self.bot, None, None).get_quote_price(asset + "-USDT")
+                elif exchange == "Stocks":
+                    usd_val = await get_stock_info(asset)
+                    usd_val = usd_val[3][0]
 
-    @loop(minutes=1)
+                if usd_val == 0 and exchange != "Stocks":
+                    # Exchange is None, because it is not on this exchange
+                    _, _, _, usd_val, _, _ = await get_coin_info(asset)
+                    
+                # Update the worth column for this row
+                util.vars.assets_db.at[index,"worth"] = usd_val * owned
+                
+        # Update the assets db
+        update_db(util.vars.assets_db, "assets")
+
+    @loop(hours=1)
     async def post_assets(self) -> None:
         """
         Posts the assets of the users that added their portfolio.
@@ -310,37 +285,24 @@ class Assets(commands.Cog):
         -------
         None
         """
-
-        if len(util.vars.assets_db) == len(self.old_assets):
-            return
-
-        self.old_assets = util.vars.assets_db
+        
+        # Update the worth column of all assets
+        if not self.first_post:
+            await self.update_worth()
+            self.first_post = False
 
         # Use the user name as channel
-        names = util.vars.assets_db["user"].unique()
-
-        for name in names:
-            channel_name = config["LOOPS"]["ASSETS"]["CHANNEL_PREFIX"] + name.lower()
-
-            # If this channel does not exist make it
-            channel = get_channel(self.bot, channel_name)
-            if channel is None:
-                guild = get_guild(self.bot)
-                channel = await guild.create_text_channel(
-                    channel_name, category=config["CATEGORIES"]["USERS"]
-                )
-                print(f"Created channel {channel_name}")
-
-            # Get the data
-            assets = util.vars.assets_db.loc[util.vars.assets_db["user"] == name]
-            id = assets["id"].values[0]
-            disc_user = self.bot.get_user(id)
-
-            if disc_user == None:
-                disc_user = await get_user(self.bot, id)
-
+        for name in util.vars.assets_db["user"].unique():
+            # Get the assets of this user
+            user_assets = util.vars.assets_db.loc[util.vars.assets_db["user"] == name]
+            
             # Only post if there are assets
-            if not assets.empty:
+            if not user_assets.empty:
+                
+                # Get the Discord objects
+                channel = await self.get_user_channel(name)
+                disc_user = await self.get_user(user_assets)      
+                
                 # Get the old message
                 last_msg = await channel.history().find(
                     lambda m: m.author.id == self.bot.user.id
@@ -388,9 +350,9 @@ class Assets(commands.Cog):
                 )
 
                 # Divide it per exchange
-                binance = assets.loc[assets["exchange"] == "binance"]
-                kucoin = assets.loc[assets["exchange"] == "kucoin"]
-                stocks = assets.loc[assets["exchange"] == "stock"]
+                binance = user_assets.loc[user_assets["exchange"] == "binance"]
+                kucoin = user_assets.loc[user_assets["exchange"] == "kucoin"]
+                stocks = user_assets.loc[user_assets["exchange"] == "stock"]
 
                 no_changes = []
 
@@ -419,7 +381,42 @@ class Assets(commands.Cog):
 
                 await channel.purge(limit=1)
                 await channel.send(embed=e)
+                
+    async def get_user_channel(self, name:str) -> discord.TextChannel:
+        """
+        Based on the username returns the user specific channel.
 
+        Parameters
+        ----------
+        name : str
+            The name of the Discord user.
+
+        Returns
+        -------
+        discord.TextChannel
+            The user specific channel.
+        """
+        channel_name = config["LOOPS"]["ASSETS"]["CHANNEL_PREFIX"] + name.lower()
+
+        # If this channel does not exist make it
+        channel = get_channel(self.bot, channel_name)
+        if channel is None:
+            guild = get_guild(self.bot)
+            channel = await guild.create_text_channel(
+                channel_name, category=config["CATEGORIES"]["USERS"]
+            )
+            print(f"Created channel {channel_name}")
+            
+        return channel
+    
+    async def get_user(self, assets):
+        id = assets["id"].values[0]
+        disc_user = self.bot.get_user(id)
+
+        if disc_user == None:
+            disc_user = await get_user(self.bot, id)
+            
+        return disc_user
 
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(Assets(bot))

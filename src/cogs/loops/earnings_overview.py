@@ -1,4 +1,5 @@
 import datetime
+from lib2to3.pgen2.pgen import DFAState
 
 # > 3rd party dependencies
 import pandas as pd
@@ -30,6 +31,38 @@ class Earnings_Overview(commands.Cog):
         self.channel = get_channel(self.bot, config["LOOPS"]["EARNINGS_OVERVIEW"]["CHANNEL"])
 
         self.earnings.start()
+        
+    def earnings_embed(self, df: pd.DataFrame, date: str) -> tuple[str, discord.Embed]:
+        # Create lists of the important info
+        tickers = "\n".join(df["ticker"].to_list())
+        
+        time_type = "\n".join(df["startdatetimetype"].to_list())
+
+        epsestimate = "\n".join(
+            df["epsestimate"].replace("nan", "N/A").to_list()
+        )
+
+        # Make an embed with these tickers and their earnings date + estimation
+        e = discord.Embed(
+            title=f"Earnings for {date}",
+            url=f"https://finance.yahoo.com/calendar/earnings?day={date}",
+            description="",
+            color=0x720E9E,
+            timestamp=datetime.datetime.now(datetime.timezone.utc),
+        )
+
+        e.add_field(name="Stock", value=tickers, inline=True)
+        e.add_field(name="Time", value=time_type, inline=True)
+        e.add_field(name="Estimate", value=epsestimate, inline=True)
+
+        e.set_footer(
+            text="\u200b",
+            icon_url="https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png",
+        )
+
+        tags = get_tagged_users(df["ticker"].to_list())
+        
+        return tags, e
 
     @loop(hours=1)
     async def earnings(self) -> None:
@@ -69,46 +102,27 @@ class Earnings_Overview(commands.Cog):
                 for date in dates:
                     date_df = earnings_df.loc[earnings_df["date"] == date]
 
-                    # Necessary for using .replace()
+                    # Necessary for using inplace operations below
                     date_df_copy = date_df.copy()
-
-                    # Create lists of the important info
-                    tickers = "\n".join(date_df["ticker"].to_list())
+                    
+                    # Format the dataframe
+                    date_df_copy.sort_values(by="ticker", inplace=True)
+                    
                     # AMC after market close (After-hours)
                     # BMO before market open (Pre-market)
                     # TNS Time not supplied (Unknown)
                     date_df_copy["startdatetimetype"].replace(
-                        {"AMC": "After-hours", "BMO": "Pre-market", "TNS": "Unknown"},
+                        {"AMC": "After-hours", "BMO": "Pre-market", "TNS": "Unknown", "TAS": "Unknown"},
                         inplace=True,
                     )
-                    time_type = "\n".join(date_df_copy["startdatetimetype"].to_list())
-
-                    date_df = date_df.astype({"epsestimate": str})
-
-                    epsestimate = "\n".join(
-                        date_df["epsestimate"].replace("nan", "N/A").to_list()
-                    )
-
-                    # Make an embed with these tickers and their earnings date + estimation
-                    e = discord.Embed(
-                        title=f"Earnings for {date}",
-                        url=f"https://finance.yahoo.com/calendar/earnings?day={date}",
-                        description="",
-                        color=0x720E9E,
-                        timestamp=datetime.datetime.now(datetime.timezone.utc),
-                    )
-
-                    e.add_field(name="Stock", value=tickers, inline=True)
-                    e.add_field(name="Time", value=time_type, inline=True)
-                    e.add_field(name="Estimate", value=epsestimate, inline=True)
-
-                    e.set_footer(
-                        text="\u200b",
-                        icon_url="https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png",
-                    )
-
-                    tags = get_tagged_users(date_df["ticker"].to_list())
-                    await self.channel.send(content=tags, embed=e)
+                    
+                    date_df_copy = date_df_copy.astype({"epsestimate": str})
+                    
+                    split = 50
+                    while not date_df_copy.iloc[split-50:split].empty:
+                        tags, e = self.earnings_embed(date_df_copy.iloc[split-50:split], date)            
+                        await self.channel.send(content=tags, embed=e)
+                        split += split
 
 
 def setup(bot: commands.Bot) -> None:
