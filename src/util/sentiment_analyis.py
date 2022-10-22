@@ -11,7 +11,7 @@ finbert = BertForSequenceClassification.from_pretrained('./models')
 tokenizer = BertTokenizer.from_pretrained("yiyanghkust/finbert-tone")
 nlp = pipeline("text-classification", model=finbert, tokenizer=tokenizer)
 
-def classify_sentiment(text: str) -> tuple[str,str,str]:
+def classify_sentiment(text: str) -> tuple[str,str]:
     """
     Uses the text of a tweet to classify the sentiment of the tweet.
 
@@ -40,9 +40,9 @@ def classify_sentiment(text: str) -> tuple[str,str,str]:
         label = "🐻 - Bearish"
         emoji = "🐻"
         
-    score = round(score*100, 2)
+    #score = round(score*100, 2)
         
-    return label, score, emoji
+    return label, emoji
 
 def add_sentiment(e : discord.Embed, text: str) -> tuple[discord.Embed, str]:
     """
@@ -65,11 +65,11 @@ def add_sentiment(e : discord.Embed, text: str) -> tuple[discord.Embed, str]:
     """
     
     # Remove quote tweet formatting
-    prediction, score, emoji = classify_sentiment(text.split('\n\n> [@')[0])
+    prediction, emoji = classify_sentiment(text.split('\n\n> [@')[0])
     
     e.add_field(
         name="Sentiment",
-        value=f"{prediction} ({score}%)",
+        value=f"{prediction}",
         inline=False,
     )
     

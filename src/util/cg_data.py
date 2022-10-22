@@ -73,8 +73,8 @@ def get_coin_exchanges(coin_dict: dict) -> tuple[str, list]:
                     if not(info["base"].startswith("0X") and len(info["base"]) > 7):
                         base = info["base"]
 
-            if "exchange" in info.keys():
-                exchanges.append(info["exchange"]["name"])
+            if "market" in info.keys():
+                exchanges.append(info["market"]["name"])
 
     return base, exchanges
 

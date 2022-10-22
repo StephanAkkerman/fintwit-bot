@@ -477,23 +477,27 @@ async def add_financials(
                     base_symbol,
                 ) = ticker_info
                 
+                # Skip if this ticker has been done before, for instance in tweets containing Solana and SOL
+                if base_symbol in base_symbols:
+                    continue
+                                
+                # Db cannot save lists
+                if exchanges == []:
+                    exchanges = None
+                
                 # Convert info to a dataframe
                 df = pd.DataFrame([{'ticker':ticker,
                                     'website':website,
-                                    'exchanges':exchanges,
+                                    'exchanges':";".join(exchanges),
                                     'base_symbol':base_symbol,
-                                    'timestamp':datetime.datetime.now()}])
+                                    'timestamp':datetime.datetime.now()}])                
                 
                 # Save the ticker info in a database
                 try:
                     merge_and_update(util.vars.classified_tickers, df, 'classified_tickers')
-                except Exception as e:
-                    print("Error while saving classified tickers:", e)
-                    print(df)
-
-                # Skip if this ticker has been done before, for instance in tweets containing Solana and SOL
-                if base_symbol in base_symbols:
-                    continue
+                except Exception as excep:
+                    print("Error while saving classified tickers:", excep)
+                    print(ticker, website, exchanges, base_symbol)
 
             else:
                 if ticker in tickers:
@@ -507,15 +511,20 @@ async def add_financials(
                 continue
         else:
             ticker_info = util.vars.classified_tickers[util.vars.classified_tickers['ticker'] == ticker]
+            print(ticker_info)
             
             website = ticker_info['website'].values[0]
             exchanges = ticker_info['exchanges'].values[0]
+            exchanges = exchanges.split(';')
             base_symbol = ticker_info['base_symbol'].values[0]
             
             # Still need the price, change, TA info
             price, change, four_h_ta, one_d_ta = await get_financials(ticker, website)
 
         title = f"${ticker}"
+        
+        # Add to base symbol list to prevent duplicates
+        base_symbols.append(base_symbol)
 
         # Determine if this is a crypto or stock
         if website:
@@ -538,8 +547,7 @@ async def add_financials(
             # Default category is crypto
             categories.append("crypto")
 
-        base_symbols.append(base_symbol)
-
+        
         # If there is no TA for a symbol, add it at the end of the embed
         if four_h_ta is None:
             do_last.append((title, change, price, website))

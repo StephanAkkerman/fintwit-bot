@@ -88,7 +88,7 @@ async def format_embed(df: pd.DataFrame, type: str, source: str) -> discord.Embe
     if source == "binance":
         url = "https://www.binance.com/en/altcoins/gainers-losers"
         color = 0xF0B90B
-        icon_url = "https://bin.bnbstatic.com/static/images/common/favicon.ico"
+        icon_url = "https://upload.wikimedia.org/wikipedia/commons/5/57/Binance_Logo.png"
         name = "Coin"
     elif source == "yahoo":
         url = "https://finance.yahoo.com/most-active"

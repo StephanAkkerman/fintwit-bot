@@ -135,6 +135,19 @@ class TV_data:
         as_json = json.dumps({"m": func, "p": args}, separators=(",", ":"))
         prepended = "~m~" + str(len(as_json)) + "~m~" + as_json
         await ws.send_str(prepended)
+        
+    def get_usd_info(self, tv_crypto, symbol: str, suffix: str):
+        if not symbol.endswith(suffix):
+
+            # If it crypto try adding USD or USDT
+            crypto_USD = tv_crypto.loc[tv_crypto["stock"] == symbol + suffix]
+            
+            if not crypto_USD.empty:
+                return (
+                    crypto_USD["exchange"].values[0],
+                    "crypto",
+                    crypto_USD["stock"].values[0],
+                )
 
     def get_symbol_data(
         self, symbol: str, asset: str
@@ -180,31 +193,10 @@ class TV_data:
             if not crypto.empty:
                 return crypto["exchange"].values[0], "crypto", symbol
             else:
-                if not symbol.endswith("USD") or not symbol.endswith("USDT"):
-
-                    # If it crypto try adding USD or USDT
-                    crypto_USD = tv_crypto.loc[tv_crypto["stock"] == symbol + "USD"]
-                    crypto_USDT = tv_crypto.loc[tv_crypto["stock"] == symbol + "USDT"]
-                    crypto_USDTPERP = tv_crypto.loc[tv_crypto["stock"] == symbol + "USDTPERP"]
-
-                    if not crypto_USD.empty:
-                        return (
-                            crypto_USD["exchange"].values[0],
-                            "crypto",
-                            crypto_USD["stock"].values[0],
-                        )
-                    elif not crypto_USDT.empty:
-                        return (
-                            crypto_USDT["exchange"].values[0],
-                            "crypto",
-                            crypto_USDT["stock"].values[0],
-                        )
-                    elif not crypto_USDTPERP.empty:
-                        return (
-                            crypto_USDTPERP["exchange"].values[0],
-                            "crypto",
-                            crypto_USDTPERP["stock"].values[0],
-                        )
+                # Iterate over some USD suffixes
+                for s in ["USD", "USDT", "USDTPERP"]:
+                    if data := self.get_usd_info(tv_crypto, symbol, s):
+                        return data
 
     async def get_tv_data(
         self, symbol: str, asset: str
@@ -291,10 +283,11 @@ class TV_data:
                         if resp is not None:
                             await ws.close()
                             await session.close()
+                            # Convert to USD volume if asset is crypto
                             return (
                                 resp[0],
                                 resp[1],
-                                resp[2],
+                                resp[0] * resp[2] if asset == "crypto" else resp[2],
                                 exchange,
                                 website
                             )
