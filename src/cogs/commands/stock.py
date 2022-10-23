@@ -183,7 +183,7 @@ class Stock(commands.Cog):
         
         # If the user does not yet own this stock
         if owned_in_db.empty:
-            merge_and_update(old_db, new_data, "assets")
+            util.vars.assets_db = merge_and_update(old_db, new_data, "assets")
         else:
             # Increase the amount if everything is the same
             same_price = old_db.loc[

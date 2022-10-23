@@ -97,7 +97,7 @@ async def get_best_guess(ticker: str, asset_type: str):
     # Set the TA data, only if volume is high enough
     four_h_ta = one_d_ta = None
     if get_TA:
-        four_h_ta, one_d_ta = tv.get_tv_TA(ticker, asset_type)
+        four_h_ta, one_d_ta = tv.get_tv_TA(base_sym, asset_type)
 
     return (
         volume,

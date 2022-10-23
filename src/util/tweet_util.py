@@ -268,7 +268,7 @@ def get_tags(as_json: dict, keyword : str) -> List[str]:
     if "entities" in as_json.keys():
         if keyword in as_json["entities"].keys():
             for tag in as_json["entities"][keyword]:
-                tags.append(tag["tag"])
+                tags.append(tag["tag"].upper())
 
     return tags
 
@@ -494,7 +494,7 @@ async def add_financials(
                 
                 # Save the ticker info in a database
                 try:
-                    merge_and_update(util.vars.classified_tickers, df, 'classified_tickers')
+                    util.vars.classified_tickers = merge_and_update(util.vars.classified_tickers, df, 'classified_tickers')
                 except Exception as excep:
                     print("Error while saving classified tickers:", excep)
                     print(ticker, website, exchanges, base_symbol)
@@ -510,9 +510,7 @@ async def add_financials(
                 # Go to next in symbols
                 continue
         else:
-            ticker_info = util.vars.classified_tickers[util.vars.classified_tickers['ticker'] == ticker]
-            print(ticker_info)
-            
+            ticker_info = util.vars.classified_tickers[util.vars.classified_tickers['ticker'] == ticker]            
             website = ticker_info['website'].values[0]
             exchanges = ticker_info['exchanges'].values[0]
             exchanges = exchanges.split(';')

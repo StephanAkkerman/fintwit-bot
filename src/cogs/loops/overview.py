@@ -41,13 +41,16 @@ class Overview:
     async def overview(self, category, tickers, sentiment):
         # Make sure that the new db is not empty
         if not util.vars.tweets_db.empty:
-            if self.do_stocks:
+            if self.do_stocks and category == "stocks":
                 await self.make_overview(category, tickers, sentiment)
-            if self.do_crypto:
+            if self.do_crypto and category == "crypto":
                 await self.make_overview(category, tickers, sentiment)
 
     @loop(minutes=5)
     async def global_overview(self):
+        if util.vars.tweets_db.empty:
+            return
+        
         categories = []
         if self.do_stocks:
             categories.append("stocks")

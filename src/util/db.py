@@ -136,10 +136,12 @@ def remove_old_rows(db: pd.DataFrame, days : int) -> pd.DataFrame:
     
     return db[db["timestamp"] > datetime.datetime.now() - datetime.timedelta(days=days)]
 
-def merge_and_update(main_db : pd.DataFrame, new_data : pd.DataFrame, db_name : str):
-    update_db(pd.concat([main_db, new_data], ignore_index=True), db_name)
+def merge_and_update(main_db : pd.DataFrame, new_data : pd.DataFrame, db_name : str) -> pd.DataFrame:
+    merged = pd.concat([main_db, new_data], ignore_index=True)
+    update_db(merged, db_name)
+    return merged
 
-def clean_tweet_db() -> None:
+def clean_tweets_db() -> None:
     """
     Cleans the tweets database and returns it.
 
@@ -201,11 +203,9 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list) 
 
     # Add current time
     tweet_db["timestamp"] = datetime.datetime.now()
-
-    clean_tweet_db()
     
-    merge_and_update(util.vars.tweets_db, tweet_db, "tweets")
-    
+    clean_tweets_db()
+    util.vars.tweets_db = merge_and_update(util.vars.tweets_db, tweet_db, "tweets")
 
 def get_db(database_name: str) -> pd.DataFrame:
     """

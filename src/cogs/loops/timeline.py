@@ -271,9 +271,6 @@ class Streamer(AsyncStreamingClient):
         print("Tweepy Stream Connection error")
         # Consider restarting the stream
 
-    async def on_request_error(self, status_code):
-        return await super().on_request_error(status_code)
-
     async def on_data(self, raw_data: str | bytes) -> None:
         """
         This method is called whenever data is received from the stream.
