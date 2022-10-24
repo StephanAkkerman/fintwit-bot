@@ -251,9 +251,9 @@ class Assets(commands.Cog):
                 )
 
                 # Finally, format the embed before posting it                
-                for exchange in ["Binance","KuCoin","Stocks"]:
+                for exchange in ["Binance","KuCoin","Stock"]:
                     exchange_df = user_assets.loc[user_assets["exchange"] == exchange.lower()]
-                    
+
                     if not exchange_df.empty:
                         e = await self.format_exchange(exchange_df, exchange, e)
 
