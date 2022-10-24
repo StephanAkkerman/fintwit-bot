@@ -113,10 +113,13 @@ async def format_embed(df: pd.DataFrame, type: str, source: str) -> discord.Embe
         color=color,
         timestamp=datetime.datetime.now(datetime.timezone.utc),
     )
-
-    # In case of yahoo finance error add this line to stock_info.py
-    if "Select AllSymbol" in df.columns:
-        df["Symbol"] = df["Select AllSymbol"].map(lambda x: x[7 + (len(x) - 7) // 2 :])
+    
+    if source == "yahoo":
+        # Format the data
+        df.rename(columns={"Price (Intraday)": "Price"}, inplace=True)
+        
+        # Add website to symbol
+        df["Symbol"] = "[" + df["Symbol"] + "](https://finance.yahoo.com/quote/" + df["Symbol"] + ")"
 
     # Only these columns are necessary
     df = df[["Symbol", "Price", "% Change", "Volume"]]

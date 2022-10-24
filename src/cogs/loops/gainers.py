@@ -126,13 +126,11 @@ class Gainers(commands.Cog):
         if afterHours():
             return
 
-        gainers = si.get_day_gainers().head(50)
-
-        gainers.rename(columns={"Price (Intraday)": "Price"}, inplace=True)
-
-        e = await format_embed(gainers, "Gainers", "yahoo")
-
-        await self.stocks_channel.send(embed=e)
+        try:
+            e = await format_embed(si.get_day_gainers().head(10), "Gainers", "yahoo")
+            await self.stocks_channel.send(embed=e)
+        except Exception as e:
+            print("Error posting stocks gainers: ", e)
 
 
 def setup(bot: commands.Bot) -> None:

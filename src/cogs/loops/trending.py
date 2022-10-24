@@ -126,16 +126,12 @@ class Trending(commands.Cog):
         if afterHours():
             return
 
-        # Only use the top 50 stocks
-        active = si.get_day_most_active().head(50)
-
-        # Format the data
-        active["Price"] = active["Price (Intraday)"]
-
-        e = await format_embed(active, "Most Active Stocks", "yahoo")
-
-        await self.stocks_channel.send(embed=e)
-
-
+        # Only use the top 10 stocks
+        try:
+            e = await format_embed(si.get_day_most_active().head(10), "Most Active Stocks", "yahoo")
+            await self.stocks_channel.send(embed=e)
+        except Exception as e:
+            print("Error getting most active stocks: ", e)
+        
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(Trending(bot))
