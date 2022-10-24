@@ -93,6 +93,9 @@ class Gainers(commands.Cog):
             },
             inplace=True,
         )
+        
+        # Add website to symbol
+        sorted["Symbol"] = "[" + sorted["Symbol"] + "](https://www.binance.com/en/price/" + sorted["Symbol"] + ")"
 
         # Post the top 10 highest
         gainers = sorted.head(10)
