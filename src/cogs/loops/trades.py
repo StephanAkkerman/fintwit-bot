@@ -290,28 +290,19 @@ class Binance:
         assets = [x for x in balances if round(float(x["free"]) + float(x["locked"]), 3) > 0]
         
         for asset in assets:
-            amount_owned = float(asset["free"]) + float(asset["locked"])
+            amount_owned = float(asset["free"]) + float(asset["locked"])                
+            usd_val = await self.get_usd_price(asset["asset"])
+            worth = usd_val * amount_owned
             
-            if asset["asset"] in stables:
-                # Assume stables are always $1
-                buying_price = 1
-                worth = amount_owned
-                
-            else:
-                usd_val = await self.get_usd_price(asset["asset"])
-                worth = usd_val * amount_owned
-            
-            if worth < 1:
+            if worth < 5:
                 continue
             
-            if asset["asset"] not in stables:
-                buying_price = await self.get_buying_price(asset["asset"])                
+            buying_price = await self.get_buying_price(asset["asset"])                
             
             # Only keep the assets that have a buying price
             if buying_price != 0:
                 owned.append({
                     "asset": asset["asset"],
-                    "worth": worth,
                     "buying_price" : buying_price,
                     "owned": amount_owned,
                     "exchange": "binance",
@@ -320,7 +311,14 @@ class Binance:
                 })
 
         # Convert this list to a dataframe
-        return pd.DataFrame(owned)
+        binance_data = pd.DataFrame(owned)
+        
+        if not binance_data.empty:
+            binance_data = binance_data.astype(
+                {"asset": str, "buying_price": float, "owned": float, "exchange": str, "id": "int64", "user": str}
+            )
+        
+        return binance_data
 
     async def get_base_sym(self, sym: str) -> str:
         """
@@ -366,9 +364,17 @@ class Binance:
         """
 
         # Use for-loop using USDT, USD, BUSD, DAI
-        for usd in stables:
+        if symbol not in stables:
+            for usd in stables:
+                response = await get_json_data(
+                    f"https://api.binance.com/api/v3/avgPrice?symbol={symbol+usd}"
+                )
+
+                if "price" in response.keys():
+                    return round(float(response["price"]), 2)
+        else:
             response = await get_json_data(
-                f"https://api.binance.com/api/v3/avgPrice?symbol={symbol+usd}"
+                f"https://api.binance.com/api/v3/avgPrice?symbol={symbol+'DAI'}"
             )
 
             if "price" in response.keys():
@@ -608,8 +614,8 @@ class KuCoin:
                 usd_val = await self.get_quote_price(sym["currency"] + '-USDT')
                 worth = float(sym["balance"]) * usd_val
             else:
-                buying_price = 1
-                worth = float(sym["balance"])
+                usd_val = await self.get_quote_price(sym["currency"] + '-DAI')
+                worth = float(sym["balance"]) * usd_val
             
             if worth < 1:
                 continue
@@ -632,15 +638,22 @@ class KuCoin:
                 
             owned.append({
             "asset": sym["currency"],
-            "worth": worth,
             "buying_price": buying_price,
             "owned": float(sym["balance"]),
             "exchange": "kucoin",
             "id": self.id,
             "user": self.user.name.split("#")[0],
             })
+            
+        kucoin_data = pd.DataFrame(owned)
+        
+        # Set the correct types
+        if not kucoin_data.empty:
+            kucoin_data = kucoin_data.astype(
+                {"asset": str, "buying_price":float, "owned": float, "exchange": str, "id": "int64", "user": str}
+            )
 
-        return pd.DataFrame(owned)
+        return kucoin_data
 
     async def get_quote_price(self, symbol: str) -> float:
         """

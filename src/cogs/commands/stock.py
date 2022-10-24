@@ -157,14 +157,11 @@ class Stock(commands.Cog):
             price = yf.Ticker(ticker).info["regularMarketPrice"]
         except Exception:
             price = 0
-            
-        worth = round(price * amount,2)
 
         # Add ticker to database
         new_data = pd.DataFrame(
             [{
                 "asset": ticker.upper(),
-                "worth": worth,
                 "buying_price": buying_price,
                 "owned": amount,
                 "exchange": "stock",
@@ -225,7 +222,7 @@ class Stock(commands.Cog):
             ticker,
             buying_price,
             amount,
-            worth
+            round(price * amount,2)
         )
 
 
@@ -301,8 +298,6 @@ class Stock(commands.Cog):
         except Exception:
             price = 0
             
-        worth = amount * price
-
         # Send message in trades channel
         await self.stock_trade_msg(
             ctx.author,
@@ -310,7 +305,7 @@ class Stock(commands.Cog):
             ticker,
             price,
             amount,
-            worth
+            round(price * amount,2)
         )
 
     @stocks.command(name="show", description="Show the stocks in your portfolio.")
