@@ -558,7 +558,8 @@ async def add_financials(
 
         e.add_field(name="4h TA", value=four_h_ta, inline=True)
 
-        e.add_field(name="1d TA", value=one_d_ta, inline=True)
+        if one_d_ta:
+            e.add_field(name="1d TA", value=one_d_ta, inline=True)
 
     for title, change, price, website in do_last:
         e.add_field(

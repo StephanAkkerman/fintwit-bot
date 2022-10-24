@@ -360,6 +360,7 @@ class TV_data:
             return None, None
 
         symbol_data = self.get_symbol_data(symbol, asset)
+        four_h_analysis = one_d_analysis = None
 
         # Get the TradingView TA for symbol
         # Interval can be 1m, 5m, 15m, 30m, 1h, 2h, 4h, 1d, 1W, 1M
@@ -386,8 +387,6 @@ class TV_data:
 
                 if four_h_analysis:
                     four_h_analysis = self.format_analysis(four_h_analysis.summary)
-                else:
-                    print(f"No 4h TA data found for {symbol}")
 
                 if one_d_analysis:
                     one_d_analysis = self.format_analysis(one_d_analysis.summary)
@@ -400,6 +399,5 @@ class TV_data:
             return None, None
 
         return None, None
-
 
 tv = TV_data()
