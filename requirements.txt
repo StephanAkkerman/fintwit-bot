@@ -2,7 +2,7 @@ yahoo-fin==0.8.9.1
 numpy==1.23.4
 yfinance==0.1.81
 py-cord==2.2.2
-tweepy==4.10.1
+tweepy==4.11.0
 pycoingecko==3.0.0
 pandas==1.5.1
 requests==2.28.1
