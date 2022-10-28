@@ -364,11 +364,11 @@ class TV_data:
 
         # Get the TradingView TA for symbol
         # Interval can be 1m, 5m, 15m, 30m, 1h, 2h, 4h, 1d, 1W, 1M
-        try:
-            if symbol_data is not None:
-                exchange, market, symbol = symbol_data
+        if symbol_data is not None:
+            exchange, market, symbol = symbol_data
 
-                # Wait max 5 sec
+            # Wait max 5 sec
+            try:
                 four_h_analysis = TA_Handler(
                     symbol=symbol,
                     screener=market,
@@ -384,19 +384,19 @@ class TV_data:
                     interval=Interval.INTERVAL_1_DAY,
                     timeout=5,
                 ).get_analysis()
+                
+            except Exception as e:
+                print(f"TradingView TA error for ticker: {symbol}, error:", e)
+                return None, None
+            
+            if four_h_analysis:
+                four_h_analysis = self.format_analysis(four_h_analysis.summary)
 
-                if four_h_analysis:
-                    four_h_analysis = self.format_analysis(four_h_analysis.summary)
+            if one_d_analysis:
+                one_d_analysis = self.format_analysis(one_d_analysis.summary)
 
-                if one_d_analysis:
-                    one_d_analysis = self.format_analysis(one_d_analysis.summary)
-
-                # Format the analysis
-                return four_h_analysis, one_d_analysis
-
-        except Exception as e:
-            print(f"TradingView TA error for ticker: {symbol}, error:", e)
-            return None, None
+            # Format the analysis
+            return four_h_analysis, one_d_analysis
 
         return None, None
 

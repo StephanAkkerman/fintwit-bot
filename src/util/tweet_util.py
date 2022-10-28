@@ -313,7 +313,11 @@ async def standard_tweet_info(
     if tweet_type == "tweet" or tweet_type == "quoted":
         tweet_data = as_json["data"]
     elif tweet_type == "retweeted" or tweet_type == "quoted tweet":
-        tweet_data = as_json["includes"]["tweets"][-1]
+        try:
+            tweet_data = as_json["includes"]["tweets"][-1]
+        except Exception as e:
+            print("Error getting tweet_data in tweet_util.py on row 317, error:", e)
+            print(as_json)
         
     text = tweet_data["text"]
 

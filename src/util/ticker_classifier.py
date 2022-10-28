@@ -40,6 +40,7 @@ async def get_best_guess(ticker: str, asset_type: str):
     """
     
     get_TA = False
+    four_h_ta = one_d_ta = None
 
     if asset_type == "crypto":
         (

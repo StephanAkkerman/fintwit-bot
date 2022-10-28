@@ -15,14 +15,13 @@ import yfinance as yf
 # > Local dependencies
 import util.vars
 from cogs.loops.trades import Binance, KuCoin
-from util.yf_data import get_AH_info, get_standard_info
+from util.yf_data import get_stock_info
 from util.cg_data import get_coin_info
 from util.db import update_db
 from util.disc_util import get_channel, get_user
 from util.vars import config, format_change
 from util.disc_util import get_guild
 from util.formatting import format_embed_length
-from util.afterhours import afterHours
 
 class Assets(commands.Cog):
     """
@@ -68,15 +67,12 @@ class Assets(commands.Cog):
 
         usd_val = change = None
         
-        if exchange != "stock":
+        if exchange != "Stock":
             _, _, _, usd_val, change, _ = await get_coin_info(asset)
-        elif exchange == "stock":
-            
-            if afterHours():
-                # Get the after hours info
-               usd_val, change = get_AH_info(asset)
-            else:
-                usd_val, change = get_standard_info(asset)
+        else:
+            _, _, _, usd_val, change, _ = await get_stock_info(asset)
+            usd_val = usd_val[0]
+            change = change[0]
             
         return usd_val, change
 
@@ -171,6 +167,12 @@ class Assets(commands.Cog):
         changes = []
         for _, row in new_df.iterrows():
             price, change = await self.usd_value(row["asset"], exchange)
+            
+            if price is None:
+                price = 0
+            if change is None:
+                change = 0
+                
             prices.append(round(price,2))
             # Add without emoji
             changes.append(change)
@@ -199,7 +201,7 @@ class Assets(commands.Cog):
         # Sort by usd value
         new_df = new_df.sort_values(by=["worth"], ascending=False)
 
-        new_df["worth"] = '$' + new_df["worth"].astype(str) + ' (' + new_df["worth_change"] + '%)'
+        new_df["worth"] = '$' + new_df["worth"].astype(str) + ' (' + new_df["worth_change"] + ')'
 
         # Create the list of string values
         assets = "\n".join(new_df["asset"].to_list())
@@ -208,7 +210,7 @@ class Assets(commands.Cog):
 
         # Ensure that the length is not bigger than allowed
         assets, prices, worth = format_embed_length([assets, prices, worth])
-
+        
         # These are the new fields added to the embed
         e.add_field(name=exchange, value=assets, inline=True)
         e.add_field(name="Price", value=prices, inline=True)
