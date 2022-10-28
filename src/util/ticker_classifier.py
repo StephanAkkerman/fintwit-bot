@@ -65,7 +65,7 @@ async def get_best_guess(ticker: str, asset_type: str):
 
     elif asset_type == "forex":
         if ticker in currencies:
-            return (100000, "forex", "forex", 1, "0", None, None, True)
+            return (100000, "https://www.tradingview.com/ideas/eur/?forex", "forex", None, None, None, None, ticker, True)
         (
             volume,
             website,

@@ -61,6 +61,7 @@ async def make_tweet_embed(
     None
     """
     category = base_symbols = sentiment = None
+    categories = []
     
     # Ensure the tickers are unique
     symbols = get_clean_symbols(tickers, hashtags)[:24]
@@ -180,7 +181,7 @@ async def add_financials(
             majority = "Unknown"
 
         # Get the information about the ticker
-        if True:#if ticker not in classified_tickers:
+        if ticker not in classified_tickers:
             ticker_info = await classify_ticker(ticker, majority)
             if ticker_info:
                 (
@@ -330,6 +331,9 @@ def format_description(
 
 
 def get_description(change, price, website):
+    if not change and not price:
+        return "\u200b"
+    
     # Change can be a list (if the information is from Yahoo Finance) or a string
     if type(change) == list and type(price) == list:
         # If the length is 2 then we know the after-hour prices
