@@ -30,7 +30,7 @@ async def make_tweet_embed(
         hashtags: List[str],
         retweeted_user: str,
         bot : commands.Bot,
-    ) -> None:
+    ) -> tuple[discord.Embed, str, str, list, list]:
     """
     Pre-processing the tweet data before uploading it to the Discord channels.
     This function creates the embed object and tags the user after it is correctly uploaded.
@@ -60,7 +60,7 @@ async def make_tweet_embed(
     -------
     None
     """
-    category = base_symbols = None
+    category = base_symbols = sentiment = None
     
     # Ensure the tickers are unique
     symbols = get_clean_symbols(tickers, hashtags)[:24]
@@ -75,7 +75,7 @@ async def make_tweet_embed(
         
     return e, category, sentiment, base_symbols, categories
     
-def make_embed(user, symbols, retweeted_user, url, text, profile_pic, images):
+def make_embed(user, symbols, retweeted_user, url, text, profile_pic, images) -> discord.Embed:
     # Set the properties of the embed
     e = discord.Embed(
         title=embed_title(user, symbols, retweeted_user),
@@ -99,7 +99,7 @@ def make_embed(user, symbols, retweeted_user, url, text, profile_pic, images):
     
     return e
     
-def embed_title(user, tickers, retweeted_user):
+def embed_title(user, tickers, retweeted_user) -> str:
     title = (
         f"{user} tweeted about {', '.join(tickers)}"
         if retweeted_user == None
@@ -180,7 +180,7 @@ async def add_financials(
             majority = "Unknown"
 
         # Get the information about the ticker
-        if ticker not in classified_tickers:
+        if True:#if ticker not in classified_tickers:
             ticker_info = await classify_ticker(ticker, majority)
             if ticker_info:
                 (
@@ -210,11 +210,7 @@ async def add_financials(
                                     'timestamp':datetime.datetime.now()}])                
                 
                 # Save the ticker info in a database
-                try:
-                    util.vars.classified_tickers = merge_and_update(util.vars.classified_tickers, df, 'classified_tickers')
-                except Exception as excep:
-                    print("Error while saving classified tickers:", excep)
-                    print(ticker, website, exchanges, base_symbol)
+                util.vars.classified_tickers = merge_and_update(util.vars.classified_tickers, df, 'classified_tickers')
 
             else:
                 if ticker in tickers:
