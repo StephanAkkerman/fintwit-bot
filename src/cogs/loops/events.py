@@ -136,7 +136,7 @@ class Events(commands.Cog):
                     date_df_copy["forecast|previous"] = (
                         date_df_copy["forecast"] + " | " + date_df_copy["previous"]
                     )
-                    for_prev = "\n".join(date_df_copy["forecast|previous"])
+                    for_prev = "\n".join(date_df_copy["forecast|previous"].astype(str))
 
                     date_df_copy["info"] = date_df_copy["zone"] + ": " + date_df_copy["event"]
                     info = "\n".join(date_df_copy["info"])

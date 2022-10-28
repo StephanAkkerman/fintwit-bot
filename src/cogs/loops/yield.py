@@ -66,6 +66,7 @@ class Yield(commands.Cog):
         file = discord.File("yield.png")
         e.set_image(url="attachment://yield.png")
 
+        await self.channel.purge(limit=1)
         await self.channel.send(file=file, embed=e)
 
         # Delete yield.png

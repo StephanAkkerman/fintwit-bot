@@ -116,6 +116,7 @@ class Funding(commands.Cog):
         )
 
         # Post the embed in the channel
+        await self.channel.purge(limit=1)
         await self.channel.send(embed=e)
 
 
