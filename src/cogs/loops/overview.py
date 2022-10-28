@@ -9,9 +9,8 @@ from discord.ext.tasks import loop
 
 # Local dependencies
 import util.vars
-from util.vars import config
+from util.vars import config, get_json_data, bearer_token
 from util.disc_util import get_channel
-from util.tweet_util import count_tweets
 
 
 class Overview:
@@ -163,3 +162,34 @@ class Overview:
         else:
             await self.stocks_channel.purge(limit=1)
             await self.stocks_channel.send(embed=e)
+
+async def count_tweets(ticker: str) -> int:
+    """
+    Counts the number of tweets for a ticker during the last 24 hours.
+    https://developer.twitter.com/en/docs/twitter-api/tweets/counts/api-reference/get-tweets-counts-recent
+    Max 300 requests per 15 minutes, so 20 requests per minute.
+
+    Parameters
+    ----------
+    ticker : str
+        The ticker to count the tweets for.
+
+    Returns
+    -------
+    int
+        Returns the number of tweets for the ticker.
+    """
+
+    # Count the last 24 hours
+    # Can add -is:retweet in query param to exclude retweets
+    start_time = (
+        datetime.datetime.utcnow() - datetime.timedelta(days=1)
+    ).isoformat() + "Z"
+    url = f"https://api.twitter.com/2/tweets/counts/recent?query={ticker}&granularity=day&start_time={start_time}"
+    counts = await get_json_data(
+        url=url, headers={"Authorization": f"Bearer {bearer_token}"}
+    )
+
+    if "meta" in counts.keys():
+        if "total_tweet_count" in counts["meta"].keys():
+            return counts["meta"]["total_tweet_count"]

@@ -5,6 +5,7 @@ from typing import Optional, List
 
 # Local dependencies
 from util.tv_data import tv
+from util.tv_symbols import currencies
 from util.cg_data import get_coin_info
 from util.yf_data import get_stock_info
 
@@ -63,6 +64,8 @@ async def get_best_guess(ticker: str, asset_type: str):
         ) = await get_stock_info(ticker)
 
     elif asset_type == "forex":
+        if ticker in currencies:
+            return (100000, "forex", "forex", 1, "0", None, None, True)
         (
             volume,
             website,

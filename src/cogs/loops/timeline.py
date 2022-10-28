@@ -5,7 +5,6 @@ import asyncio
 from typing import List
 import datetime
 import traceback
-import requests
 import json
 
 # > 3rd Party Dependencies
@@ -21,7 +20,8 @@ from discord.ext.tasks import loop
 # Local dependencies
 from util.vars import config, bearer_token, get_json_data
 from util.disc_util import get_channel, get_tagged_users, get_webhook
-from util.tweet_util import format_tweet, add_financials
+from util.tweet_embed import make_tweet_embed
+from util.tweet_decoder import decode_tweet
 from util.db import update_tweet_db
 from cogs.loops.overview import Overview
 
@@ -294,7 +294,7 @@ class Streamer(AsyncStreamingClient):
             print("Stream error")
             return
         else:
-            formatted_tweet = await format_tweet(tweet_data)
+            formatted_tweet = await decode_tweet(tweet_data)
 
         if formatted_tweet == None:
             return
@@ -340,65 +340,18 @@ class Streamer(AsyncStreamingClient):
         None
         """
 
-        # Ensure the tickers are unique
-        tickers = list(set(tickers))
-
-        title = (
-            f"{user} tweeted about {', '.join(tickers)}"
-            if retweeted_user == None
-            else f"{user} 🔁 {retweeted_user} about {', '.join(tickers)}"
-        )
-
-        # The max length of the title is 256 characters
-        if len(title) > 256:
-            title = title[:253] + "..."
-
-        # Set the properties of the embed
-        e = discord.Embed(
-            title=title,
-            url=url,
-            description=text,
-            color=0x1DA1F2,
-            timestamp=datetime.datetime.now(datetime.timezone.utc),
-        )
-        e.set_thumbnail(url=profile_pic)
-
-        # Max 25 fields
-        if len(tickers + hashtags) < 26:
-            e, category, sentiment, base_symbols, categories = await add_financials(
-                e, tickers, hashtags, text, user, self.bot
-            )
-        else:
-            # If the tweet contains no tickers or hasthags, then it is not a financial tweet
-            category = None
-            base_symbols = None
-
-        # Set image if an image is included in the tweet
-        if images:
-            e.set_image(url=images[0])
-
-        # Set the twitter icon as footer image
-        e.set_footer(
-            text="\u200b",
-            icon_url="https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
-        )
+        e, category, sentiment, base_symbols, categories = await make_tweet_embed(text, user, profile_pic, url, images, tickers, hashtags, retweeted_user, self.bot)
 
         # Upload the tweet to the Discord.
         await self.upload_tweet(
-            e, category, images, user, retweeted_user, tickers + hashtags
+            e, category, images, user, retweeted_user, base_symbols
         )
 
         if base_symbols:
-            # This can be deleted later
-            if len(base_symbols) != len(categories):
-                print("Error: tickers and categories are not the same length")
-                print("Tickers:", base_symbols)
-                print("Categories:", categories)
-            else:
-                update_tweet_db(base_symbols, user, sentiment, categories)
-                await self.tweet_overview.overview(
-                    category, base_symbols, sentiment
-                )
+            update_tweet_db(base_symbols, user, sentiment, categories)
+            await self.tweet_overview.overview(
+                category, base_symbols, sentiment
+            )
 
     async def upload_tweet(
         self,
