@@ -344,7 +344,7 @@ class Streamer(AsyncStreamingClient):
 
         # Upload the tweet to the Discord.
         await self.upload_tweet(
-            e, category, images, user, retweeted_user, base_symbols
+            e, category, images, user, base_symbols
         )
 
         if base_symbols:
@@ -359,7 +359,6 @@ class Streamer(AsyncStreamingClient):
         category: str,
         images: List[str],
         user: str,
-        retweeted_user: str,
         tickers: List[str],
     ) -> None:
         """
@@ -389,20 +388,12 @@ class Streamer(AsyncStreamingClient):
         channel = self.other_channel
 
         # Check if there is a user specific channel
-        # If there is a retweeted user check for both
-        if retweeted_user and retweeted_user.lower() in self.text_channel_names:
-            channel = self.text_channels[
-                self.text_channel_names.index(retweeted_user.lower())
-            ]
-
-        # Highlighted users
-        elif user.lower() in self.text_channel_names:
+        if user.lower() in self.text_channel_names:
             channel = self.text_channels[self.text_channel_names.index(user.lower())]
 
         # News posters
         elif user in config["LOOPS"]["TIMELINE"]["NEWS"]["FOLLOWING"]:
             channel = self.news_channel
-            
         elif user in config["LOOPS"]["TIMELINE"]["NEWS"]["CRYPTO"]["FOLLOWING"]:
             channel = self.crypto_news_channel
 

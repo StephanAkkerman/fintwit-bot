@@ -60,8 +60,8 @@ async def make_tweet_embed(
     -------
     None
     """
-    category = base_symbols = sentiment = None
-    categories = []
+    category = sentiment = None
+    categories = base_symbols = []
     
     # Ensure the tickers are unique
     symbols = get_clean_symbols(tickers, hashtags)[:24]
@@ -281,7 +281,7 @@ async def add_financials(
         )
 
     # Finally add the sentiment to the embed
-    if symbols:
+    if base_symbols: # or if categories:
         e, prediction = add_sentiment(e, text)
     else:
         prediction = None
