@@ -3,14 +3,12 @@
 from __future__ import annotations
 import asyncio
 import datetime
-from turtle import update
 
 # > 3rd Party Dependencies
 import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
 import pandas as pd
-import yfinance as yf
 
 # > Local dependencies
 import util.vars
@@ -19,9 +17,9 @@ from util.yf_data import get_stock_info
 from util.cg_data import get_coin_info
 from util.db import update_db
 from util.disc_util import get_channel, get_user
-from util.vars import config, format_change
+from util.vars import config
 from util.disc_util import get_guild
-from util.formatting import format_embed_length
+from util.formatting import format_embed_length, format_change
 
 class Assets(commands.Cog):
     """

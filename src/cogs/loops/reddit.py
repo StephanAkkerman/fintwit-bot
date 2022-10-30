@@ -107,10 +107,6 @@ class Reddit(commands.Cog):
                 if submission.stickied:
                     continue
 
-                # Skip polls
-                if "poll_data" in vars(submission).keys():
-                    continue
-
                 if not util.vars.reddit_ids.empty:
                     if submission.id in util.vars.reddit_ids["id"].tolist():
                         counter += 1
@@ -149,6 +145,9 @@ class Reddit(commands.Cog):
                         video = True
                         descr = ""
                         
+                if descr == "" and not video and not img_url:
+                    continue
+                        
                 e = discord.Embed(
                     title=title,
                     url="https://www.reddit.com" + submission.permalink,
@@ -179,7 +178,7 @@ class Reddit(commands.Cog):
 
                     webhook = await get_webhook(self.channel)
 
-                    msg = await webhook.send(
+                    await webhook.send(
                         embeds=image_e,
                         username="FinTwit",
                         wait=True,

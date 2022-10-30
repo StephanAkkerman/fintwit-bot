@@ -9,8 +9,9 @@ from pycoingecko import CoinGeckoAPI
 
 # Local dependencies
 import util.vars
-from util.vars import stables, format_change, get_json_data
+from util.vars import stables, get_json_data
 from util.tv_data import tv
+from util.formatting import format_change
 
 cg = CoinGeckoAPI()
 

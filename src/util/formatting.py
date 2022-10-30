@@ -6,8 +6,24 @@ import datetime
 import pandas as pd
 import discord
 
+def format_change(change: float) -> str:
+    """
+    Converts a float to a string with a plus sign if the float is positive, and a minus sign if the float is negative.
 
-def human_format(number: float) -> str:
+    Parameters
+    ----------
+    change : float
+        The percentual change of an asset.
+
+    Returns
+    -------
+    str
+        The formatted change.
+    """
+
+    return f"+{change}% 📈" if change > 0 else f"{change}% 📉"
+
+def human_format(number: float, absolute : bool = False, decimals : int = 0) -> str:
     """
     Takes a number and returns a human readable string.
     Taken from: https://stackoverflow.com/questions/579310/formatting-long-numbers-as-strings-in-python/45846841.
@@ -16,6 +32,10 @@ def human_format(number: float) -> str:
     ----------
     number : float
         The number to be formatted.
+    absolute : bool
+        If True, the number will be converted to its absolute value.
+    decimals : int
+        The number of decimals to be used.
 
     Returns
     -------
@@ -28,9 +48,18 @@ def human_format(number: float) -> str:
 
     # https://idlechampions.fandom.com/wiki/Large_number_abbreviations
     units = ["", "K", "M", "B", "t", "q"]
-    k = 1000.0   
-    magnitude = int(floor(log(number, k)))
-    return "%.2f%s" % (number / k**magnitude, units[magnitude])
+    k = 1000.0
+    magnitude = int(floor(log(abs(number), k)))
+    
+    if decimals > 0:
+        rounded_number = round(number / k**magnitude, decimals)
+    else:
+        rounded_number = int(number / k**magnitude)
+    
+    if absolute:
+        rounded_number = abs(rounded_number)
+        
+    return f"{rounded_number}{units[magnitude]}"
 
 
 def format_embed_length(data: list) -> list:

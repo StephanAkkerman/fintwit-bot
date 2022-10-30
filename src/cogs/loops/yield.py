@@ -3,6 +3,7 @@ import os
 import datetime
 
 # > 3rd Party Dependencies
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from scipy.interpolate import make_interp_spline
 import numpy as np
@@ -23,11 +24,6 @@ class Yield(commands.Cog):
     """
     This class contains the cog for posting the US and EU yield curve.
     It can be enabled / disabled in the config under ["LOOPS"]["YIELD"].
-
-    Methods
-    -------
-    set_emojis() -> None
-        This function gets and sets the emojis for the UW alerts.
     """
 
     def __init__(self, bot: commands.Bot) -> None:
@@ -40,27 +36,47 @@ class Yield(commands.Cog):
     async def post_curve(self) -> None:
         """
         Posts the US and EU yield curve in the channel specified in the config.
+        Charts based on http://www.worldgovernmentbonds.com/country/united-states/
 
         Returns
         -------
         None
         """
+        
+        # Remove spines
+        mpl.rcParams["axes.spines.right"] = False
+        mpl.rcParams["axes.spines.left"] = False
+        mpl.rcParams["axes.spines.top"] = False
+        mpl.rcParams["axes.spines.bottom"] = False
 
         await self.plot_US_yield()
         await self.plot_EU_yield()
-
+        
+        plt.style.use('dark_background')
+        
+        # Add gridlines
+        plt.grid(axis = 'y', color ='grey', linewidth = 0.5, alpha = 0.5)
+        plt.tick_params(axis='y', which='both', left=False)
+        
+        frame = plt.gca()
+        frame.axes.get_xaxis().set_major_formatter(lambda x, _: f"{int(x)}Y")
+        
+        frame.axes.set_ylim(0)
+        frame.axes.get_yaxis().set_major_formatter(lambda x, _: f"{int(x)}%")
+        
         # Set plot parameters
-        plt.legend()
-        plt.ylabel("Yield (%)")
-        plt.xlabel("Years")
+        plt.legend(loc="lower center", ncol=2)
+        plt.xlabel("Residual Maturity")
 
         # Convert to plot to a temporary image
-        plt.savefig("yield.png", bbox_inches="tight")
+        plt.savefig("yield.png", bbox_inches="tight", dpi=300)
+        plt.cla()
+        plt.close()
 
         e = discord.Embed(
             title="US and EU Yield Curve Rates",
             description="",
-            color=0xFFFFFF,
+            color=0x000000,
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
         file = discord.File("yield.png")
@@ -80,7 +96,7 @@ class Yield(commands.Cog):
         years = np.array([0.08, 0.15, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 30])
         yield_percentage = await self.get_yield(US_bonds)
 
-        self.make_plot(years, yield_percentage, "b", "US")
+        self.make_plot(years, yield_percentage, "c", "US")
 
     async def plot_EU_yield(self):
         """
@@ -147,7 +163,6 @@ class Yield(commands.Cog):
         plt.rcParams["figure.figsize"] = (10, 5)  # Set the figure size
         plt.plot(new_X, smooth, color, label=label)
         plt.plot(years, yield_percentage, f"{color}o")
-
 
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(Yield(bot))

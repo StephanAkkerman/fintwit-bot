@@ -7,7 +7,7 @@ from typing import Optional, List
 import yfinance as yf
 
 # Local dependencies
-from util.vars import format_change
+from util.formatting import format_change
 from util.afterhours import afterHours
 from util.tv_data import tv
 

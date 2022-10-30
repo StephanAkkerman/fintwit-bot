@@ -79,24 +79,6 @@ reddit_ids = pd.DataFrame()
 ideas_ids = pd.DataFrame()
 classified_tickers = pd.DataFrame()
 
-def format_change(change: float) -> str:
-    """
-    Converts a float to a string with a plus sign if the float is positive, and a minus sign if the float is negative.
-
-    Parameters
-    ----------
-    change : float
-        The percentual change of an asset.
-
-    Returns
-    -------
-    str
-        The formatted change.
-    """
-
-    return f"+{change}% 📈" if change > 0 else f"{change}% 📉"
-
-
 async def get_json_data(url: str, headers: dict = None, text: bool = False) -> dict:
     """
     Asynchronous function to get JSON data from a website.
