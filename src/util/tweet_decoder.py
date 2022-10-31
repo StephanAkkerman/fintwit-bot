@@ -304,8 +304,11 @@ async def standard_tweet_info(
         try:
             tweet_data = as_json["includes"]["tweets"][-1]
         except Exception as e:
-            print("Error getting tweet_data in tweet_util.py on row 317, error:", e)
+            print("Error getting tweet_data in tweet_decoder.py on row 307, error:", e)
             print(as_json)
+    else:
+        print("Was not able to assign tweet_type to following tweet:")
+        print(as_json)
         
     text = tweet_data["text"]
 

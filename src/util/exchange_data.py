@@ -43,14 +43,20 @@ async def get_data(row) -> pd.DataFrame:
     return df
 
 async def get_balance(exchange) -> dict:
-    balances = await exchange.fetchBalance()
-    return {k: v for k, v in balances['total'].items() if v > 0}
+    params = {}
+    if exchange.id == 'binance':
+        params = {"recvWindow":60000}
+    try:
+        balances = await exchange.fetchBalance(params=params)
+        return {k: v for k, v in balances['total'].items() if v > 0}
+    except ccxt.RequestTimeout:
+        return {}
 
 async def get_usd_price(exchange, symbol) -> float:
     """
     Returns the price of the symbol in USD
     Symbol must be in the format 'BTC/USDT'
-    """
+    """    
     if symbol not in stables:
         for usd in stables:
             try:
@@ -58,6 +64,10 @@ async def get_usd_price(exchange, symbol) -> float:
                 if price != 0:
                     return price['last']
             except ccxt.BadSymbol:
+                continue
+            except ccxt.ExchangeError as e:
+                print(f"Exchange error for {symbol} on {exchange.id}")
+                print(e)
                 continue
     else:
         try:
@@ -78,10 +88,14 @@ async def get_buying_price(exchange, symbol, full_sym : bool = False) -> float:
     params = {}
     if exchange.id == 'kucoin':
         params = {"side" : 'buy'}
+    elif exchange.id == 'binance':
+        params = {"recvWindow":60000}
     
     try:
         trades = await exchange.fetchClosedOrders(symbol, params = params)
     except ccxt.BadSymbol:
+        return 0
+    except ccxt.RequestTimeout:
         return 0
     if type(trades) == list:
         if len(trades) > 1:

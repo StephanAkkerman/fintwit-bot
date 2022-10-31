@@ -102,14 +102,22 @@ class Assets(commands.Cog):
             # Add it to the old assets db, since this call is for a specific person
             assets_db = util.vars.assets_db
 
-
         if not portfolio_db.empty:    
             for _, row in portfolio_db.iterrows():
                 # Add this data to the assets.db database
                 exch_data = await get_data(row)
+                
+                if exch_data.empty:
+                    continue
+                
                 exch_data['id'] = row['id']
                 exch_data['user'] = self.bot.get_user(row["id"])
                 exch_data['user'] = exch_data['user'].apply(lambda x: x.name)
+                
+                # Ensure that the db knows the right types
+                exch_data = exch_data.astype(
+                    {"asset": str, "buying_price": float, "owned": float, "exchange": str, "id": "int64", "user": str}
+                )
                 assets_db = pd.concat([assets_db, exch_data], ignore_index=True) 
             
         # Ensure that the db knows the right types

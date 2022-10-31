@@ -32,6 +32,8 @@ async def on_msg(msg: list,
     -------
     None
     """
+    
+    
     msg = msg[0]
     sym = msg['symbol'] #BNB/USDT
     orderType = msg['type'] # market, limit, stop, stop limit
@@ -48,19 +50,9 @@ async def on_msg(msg: list,
         usd = await get_usd_price(exchange, base)
         
     # Get profit / loss if it is a sell
-    profit_loss = None
+    buying_price = None
     if side == 'sell':
         buying_price = await get_buying_price(exchange, sym, True)
-        if buying_price != 0:
-            price_change = price - buying_price
-            
-            if price_change != 0:
-                percent_change = round((price_change / buying_price) * 100, 2)
-            else:
-                percent_change = 0
-                
-            percent_change = format_change(percent_change)
-            profit_loss = f"${round(price_change * amount, 2)} ({percent_change})"
         
     # Send it in the discord channel
     await util.trades_msg.trades_msg(
@@ -73,7 +65,7 @@ async def on_msg(msg: list,
         price,
         amount,
         round(usd * amount, 2),
-        profit_loss
+        buying_price,
     )
 
     # Assets db: asset, owned (quantity), exchange, id, user
@@ -104,7 +96,7 @@ async def trades_msg(
     price: float,
     quantity: float,
     usd: float,
-    profit_loss : str = None,
+    buying_price : float = None,
 ) -> None:
     """
     Formats the Discord embed that will be send to the dedicated trades channel.
@@ -112,7 +104,7 @@ async def trades_msg(
     Parameters
     ----------
     exchange : str
-        The name of the exchange, currently only supports "binance" and "kucoin".
+        The name of the exchange, currently only supports "binance", "kucoin" and "stocks".
     channel : discord.TextChannel
         The channel that the message will be sent to.
     user : discord.User
@@ -134,11 +126,26 @@ async def trades_msg(
     -------
     None
     """
+    
+    # Same as in formatting.py
+    if exchange == "binance":
+        color = 0xF0B90B
+        icon_url = "https://upload.wikimedia.org/wikipedia/commons/5/57/Binance_Logo.png"
+        url = f"https://www.binance.com/en/trade/{symbol}"
+    elif exchange == "kucoin":
+        color = 0x24AE8F
+        icon_url = "https://yourcryptolibrary.com/wp-content/uploads/2021/12/Kucoin-exchange-logo-1.png"
+        url = f"https://www.kucoin.com/trade/{symbol}"
+    else:
+        color = 0x720E9E
+        icon_url = "https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png"
+        url = f"https://finance.yahoo.com/quote/{symbol}"
 
     e = discord.Embed(
         title=f"{orderType.capitalize()} {side.lower()} {quantity} {symbol}",
         description="",
-        color=0xF0B90B if exchange == "binance" else 0x24AE8F,
+        color=color,
+        url=url,
         timestamp=datetime.datetime.now(datetime.timezone.utc),
     )
 
@@ -146,7 +153,7 @@ async def trades_msg(
     e.set_author(name=user.name, icon_url=user.display_avatar.url)
 
     # If the quote is USD, then the price is the USD value
-    if symbol.endswith("USDT") or symbol.endswith("USD") or symbol.endswith("BUSD"):
+    if symbol.endswith(tuple(stables)):
         price = f"${price}"
 
     e.add_field(
@@ -154,8 +161,18 @@ async def trades_msg(
         value=price,
         inline=True,
     )
+    
+    if buying_price and buying_price != 0:
+        price_change = price - buying_price
+        
+        if price_change != 0:
+            percent_change = round((price_change / buying_price) * 100, 2)
+        else:
+            percent_change = 0
+            
+        percent_change = format_change(percent_change)
+        profit_loss = f"${round(price_change * quantity, 2)} ({percent_change})"
 
-    if profit_loss:
         e.add_field(
             name="Profit / Loss",
             value=profit_loss,
@@ -174,9 +191,7 @@ async def trades_msg(
 
     e.set_footer(
         text="\u200b",
-        icon_url="https://public.bnbstatic.com/20190405/eb2349c3-b2f8-4a93-a286-8f86a62ea9d8.png"
-        if exchange == "binance"
-        else "https://yourcryptolibrary.com/wp-content/uploads/2021/12/Kucoin-exchange-logo-1.png",
+        icon_url=icon_url
     )
 
     await channel.send(embed=e)

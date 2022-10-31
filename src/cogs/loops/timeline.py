@@ -269,7 +269,15 @@ class Streamer(AsyncStreamingClient):
 
     async def on_connection_error(self):
         print("Tweepy Stream Connection error")
-        # Consider restarting the stream
+        
+    async def on_exception(self, e):
+        print("Tweepy Stream Exception", e)
+        
+    async def on_disconnect(self):
+        print("Tweepy Stream Disconnected")
+        
+    async def on_errors(self, errors):
+        print("Tweepy Stream Errors", errors)
 
     async def on_data(self, raw_data: str | bytes) -> None:
         """

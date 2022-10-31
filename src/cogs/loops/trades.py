@@ -42,8 +42,11 @@ class Trades(commands.Cog):
     async def start_sockets(self, exchange, row, user) -> None:
          
         while True:
-            msg = await exchange.watchMyTrades()
-            await on_msg(msg, exchange, self.trades_channel, row, user)
+            try:
+                msg = await exchange.watchMyTrades()
+                await on_msg(msg, exchange, self.trades_channel, row, user)
+            except Exception as e:
+                print(f"Error in trade websocket for {row['user']} and {exchange.id}: ", e)
 
     async def trades(self, db: pd.DataFrame) -> None:
         """
@@ -63,6 +66,7 @@ class Trades(commands.Cog):
 
             if not binance.empty:
                 for _, row in binance.iterrows():
+                    print(f"Starting Binance socket for {row['user']}...")
                     # If using await, it will block other connections
                     asyncio.create_task(
                         self.start_sockets(ccxt.binance({'apiKey': row['key'], 'secret':row['secret']}), 

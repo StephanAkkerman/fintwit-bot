@@ -16,6 +16,7 @@ from util.vars import config
 from util.db import update_db, merge_and_update
 from util.disc_util import get_channel
 from util.confirm_stock import confirm_stock
+from util.trades_msg import trades_msg
 
 
 class Stock(commands.Cog):
@@ -58,56 +59,6 @@ class Stock(commands.Cog):
         # Write to SQL database
         update_db(new_db, "assets")
 
-    async def stock_trade_msg(
-        self, user: discord.User, side: str, stock_name: str, price: str, quantity: str, worth:float
-    ) -> None:
-        """
-        Posts a message in the trades channel specifying a user's trade.
-
-        Parameters
-        ----------
-        user : discord.User
-            The user who made the trade.
-        side : str
-            Buy or sell.
-        stock_name : str
-            The ticker of the traded stock.
-        price : str
-            The price of the traded stock.
-        quantity : str
-            The amount bought or sold.
-
-        Returns
-        -------
-        None
-        """
-
-        price = round(price, 2)
-
-        e = discord.Embed(
-            title=f"{side} {quantity} {stock_name} for ${price}",
-            description="",
-            color=0x720E9E,
-            timestamp=datetime.datetime.now(datetime.timezone.utc),
-        )
-
-        e.set_author(name=user.name, icon_url=user.display_avatar.url)
-        e.add_field(name="Price", value=f"${price}", inline=True)
-        e.add_field(name="Amount", value=quantity, inline=True)
-        e.add_field(
-            name="$ Worth", value=f"${round(worth,2)}", inline=True
-        )
-
-        e.set_footer(
-            text="\u200b",
-            icon_url="https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png",
-        )
-
-        channel = get_channel(
-            self.bot, config["LOOPS"]["TRADES"]["CHANNEL"]
-        )
-
-        await channel.send(embed=e)
 
     @stocks.command(name="add", description="Add a stock to your portfolio.")
     async def add(
@@ -141,6 +92,8 @@ class Stock(commands.Cog):
         -------
         None
         """
+        
+        await ctx.response.defer(ephemeral=True)
 
         # Make sure that the user is aware of this stock's existence
         if not await confirm_stock(self.bot, ctx, ticker):
@@ -214,15 +167,23 @@ class Stock(commands.Cog):
                         
             self.update_assets_db(old_db)
         await ctx.respond("Succesfully added your stock to the database!")
+        
+        channel = get_channel(
+            self.bot, config["LOOPS"]["TRADES"]["CHANNEL"]
+        )
 
         # Send message in trades channel
-        await self.stock_trade_msg(
+        await trades_msg(
+            "stocks",
+            channel,
             ctx.author,
-            "Bought",
             ticker,
+            "buy",
+            "market",
             buying_price,
             amount,
-            round(price * amount,2)
+            round(price * amount,2),
+            None,
         )
 
 
@@ -236,7 +197,9 @@ class Stock(commands.Cog):
         """
         Usage:
         `!stock remove <ticker> (<amount>)` to remove a stock from your portfolio
-        """        
+        """
+        await ctx.response.defer(ephemeral=True)
+        
         old_db = util.vars.assets_db
                 
         if not amount:
@@ -298,14 +261,24 @@ class Stock(commands.Cog):
         except Exception:
             price = 0
             
+        buying_price = row['buying_price'].tolist()[0]
+            
+        channel = get_channel(
+            self.bot, config["LOOPS"]["TRADES"]["CHANNEL"]
+        )
+            
         # Send message in trades channel
-        await self.stock_trade_msg(
+        await trades_msg(
+            "stocks",
+            channel,
             ctx.author,
-            "Sold",
             ticker,
+            "sold",
+            "market",
             price,
             amount,
-            round(price * amount,2)
+            round(price * amount,2),
+            buying_price,
         )
 
     @stocks.command(name="show", description="Show the stocks in your portfolio.")
@@ -314,6 +287,7 @@ class Stock(commands.Cog):
         Usage:
         `!stock show` to show the stocks in your portfolio
         """
+        await ctx.response.defer(ephemeral=True)
         db = util.vars.assets_db
         rows = db.loc[
             (db["id"] == ctx.author.id) & (db["exchange"] == "stock")
