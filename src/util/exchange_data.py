@@ -68,17 +68,19 @@ async def get_usd_price(exchange, symbol) -> float:
     
     return 0
 
-async def get_buying_price(exchange, symbol) -> float:
+async def get_buying_price(exchange, symbol, full_sym : bool = False) -> float:
     # Maybe try different quote currencies when returned list is empty
     if symbol in stables:
         return 1
+    
+    symbol = symbol + '/USDT' if not full_sym else symbol
     
     params = {}
     if exchange.id == 'kucoin':
         params = {"side" : 'buy'}
     
     try:
-        trades = await exchange.fetchClosedOrders(f"{symbol}/USDT", params = params)
+        trades = await exchange.fetchClosedOrders(symbol, params = params)
     except ccxt.BadSymbol:
         return 0
     if type(trades) == list:

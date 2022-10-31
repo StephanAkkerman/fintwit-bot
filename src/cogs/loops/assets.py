@@ -12,7 +12,6 @@ import pandas as pd
 
 # > Local dependencies
 import util.vars
-from cogs.loops.trades import Binance, KuCoin
 from util.yf_data import get_stock_info
 from util.cg_data import get_coin_info
 from util.db import update_db
@@ -240,10 +239,11 @@ class Assets(commands.Cog):
                     timestamp=datetime.datetime.now(datetime.timezone.utc),
                 )
 
-                e.set_author(
-                    name=disc_user.name + "'s Assets",
-                    icon_url=disc_user.display_avatar.url,
-                )
+                if disc_user:
+                    e.set_author(
+                        name=disc_user.name + "'s Assets",
+                        icon_url=disc_user.display_avatar.url,
+                    )
 
                 # Finally, format the embed before posting it                
                 for exchange in ["Binance","KuCoin","Stock"]:
@@ -287,7 +287,10 @@ class Assets(commands.Cog):
         disc_user = self.bot.get_user(id)
 
         if disc_user == None:
-            disc_user = await get_user(self.bot, id)
+            try:
+                disc_user = await get_user(self.bot, id)
+            except Exception as e:
+                print(f"Could not get user with id: {id}.\n{assets} \nError:", e)
             
         return disc_user
 
