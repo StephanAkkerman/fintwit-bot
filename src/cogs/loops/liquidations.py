@@ -84,7 +84,7 @@ class Liquidations(commands.Cog):
             label="Longs",
             color='#45bf87',
         )
-
+        
         ax1.get_yaxis().set_major_formatter(
             ticker.FuncFormatter(lambda x, _: f"${human_format(x, absolute=True)}")
         )
@@ -117,6 +117,10 @@ class Liquidations(commands.Cog):
         ax2.spines['right'].set_visible(False)
         ax2.spines['left'].set_visible(False)
         ax2.tick_params(left=False, bottom=False, right=False)
+        
+        # Fixes first and last bar not showing
+        ax1.set_xlim(left=df_without_price.index[0] - datetime.timedelta(days=1), right=df_without_price.index[-1] + datetime.timedelta(days=1))
+        ax2.set_xlim(left=df_without_price.index[0] - datetime.timedelta(days=1), right=df_without_price.index[-1] + datetime.timedelta(days=1))
 
         # Set correct size
         fig.set_size_inches(15, 6)

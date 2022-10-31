@@ -20,6 +20,7 @@ from util.disc_util import get_channel, get_user
 from util.vars import config
 from util.disc_util import get_guild
 from util.formatting import format_embed_length, format_change
+from util.exchange_data import get_data
 
 class Assets(commands.Cog):
     """
@@ -74,14 +75,14 @@ class Assets(commands.Cog):
             
         return usd_val, change
 
-    async def assets(self, db: pd.DataFrame) -> None:
+    async def assets(self, portfolio_db: pd.DataFrame) -> None:
         """
         Only do this function at startup and if a new portfolio has been added.
         Checks the account balances of accounts saved in portfolio db, then updates the assets db.
 
         Parameters
         ----------
-        db : pd.DataFrame
+        portfolio_db : pd.DataFrame
             The portfolio db or the db for a new user.
 
         Returns
@@ -89,7 +90,7 @@ class Assets(commands.Cog):
         None
         """
 
-        if db.equals(util.vars.portfolio_db):
+        if portfolio_db.equals(util.vars.portfolio_db):
             # Drop all crypto assets
             old_db = util.vars.assets_db
             if not old_db.empty:
@@ -102,27 +103,21 @@ class Assets(commands.Cog):
             # Add it to the old assets db, since this call is for a specific person
             assets_db = util.vars.assets_db
 
-        # Ensure that the db knows the right types
-        #assets_db = assets_db.astype(
-        #    {"asset": str, "buying_price": float, "owned": float, "exchange": str, "id": "int64", "user": str}
-        #)
 
-        if not db.empty:
-
-            # Divide per exchange
-            binance = db.loc[db["exchange"] == "binance"]
-            kucoin = db.loc[db["exchange"] == "kucoin"]
+        if not portfolio_db.empty:    
+            for _, row in portfolio_db.iterrows():
+                # Add this data to the assets.db database
+                exch_data = await get_data(row)
+                exch_data['id'] = row['id']
+                exch_data['user'] = self.bot.get_user(row["id"])
+                exch_data['user'] = exch_data['user'].apply(lambda x: x.name)
+                assets_db = pd.concat([assets_db, exch_data], ignore_index=True) 
             
-            for exchange in [binance, kucoin]:
-                if not exchange.empty:
-                    for _, row in exchange.iterrows():
-                        # Add this data to the assets.db database
-                        if row["exchange"] == "binance":
-                            exch_data = await Binance(self.bot, row, None).get_data()
-                        elif row["exchange"] == "kucoin":
-                            exch_data = await KuCoin(self.bot, row, None).get_data()
-                        assets_db = pd.concat([assets_db, exch_data], ignore_index=True) 
-                    
+        # Ensure that the db knows the right types
+        assets_db = assets_db.astype(
+            {"asset": str, "buying_price": float, "owned": float, "exchange": str, "id": "int64", "user": str}
+        )
+            
         # Update the assets db    
         update_db(assets_db, "assets")
         util.vars.assets_db = assets_db
