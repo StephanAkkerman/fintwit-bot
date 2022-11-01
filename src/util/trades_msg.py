@@ -38,9 +38,9 @@ async def on_msg(msg: list,
     sym = msg['symbol'] #BNB/USDT
     orderType = msg['type'] # market, limit, stop, stop limit
     side = msg['side'] # buy, sell
-    price = round(msg['price'],4)
-    amount = round(msg['amount'],4)
-    cost = round(msg['cost'],4) # If /USDT, then this is the USD value
+    price = float(round(msg['price'],4))
+    amount = float(round(msg['amount'],4))
+    cost = float(round(msg['cost'],4)) # If /USDT, then this is the USD value
     
     # Get the value in USD
     usd = price

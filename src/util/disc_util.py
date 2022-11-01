@@ -1,7 +1,7 @@
 # Standard libraries
 from typing import Optional
 
-# Third party libraries
+# Discord dependencies
 import discord
 from discord.ext import commands
 
@@ -120,7 +120,7 @@ def get_tagged_users(tickers: list) -> Optional[str]:
 
     # Get the stored db
     if not util.vars.assets_db.empty:
-        matching_users = util.vars.assets_db[util.vars.assets_db["asset"].isin(tickers)]["id"].tolist()
+        matching_users = util.vars.assets_db[util.vars.assets_db["asset"].isin(tickers)]["id"].dropna().tolist()
         unique_users = list(set(matching_users))
 
         if unique_users:

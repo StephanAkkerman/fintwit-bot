@@ -269,7 +269,8 @@ class Streamer(AsyncStreamingClient):
         self.text_channel_names = text_channel_names
 
     async def on_connection_error(self):
-        print("Tweepy Stream Connection error")
+        pass
+        #print("Tweepy Stream Connection error")
         
     async def on_exception(self, e):
         print("Tweepy Stream Exception", e)

@@ -32,12 +32,14 @@ async def get_data(row) -> pd.DataFrame:
                 "buying_price" : buying_price,
                 "owned": amount,
                 "exchange": exchange.id,
+                "id": row["id"],
+                "user": row["user"],
             })
 
     df = pd.DataFrame(owned)
     
     if not df.empty:
-        df = df.astype({"asset": str, "buying_price": float, "owned": float, "exchange": str})
+        df = df.astype({"asset": str, "buying_price": float, "owned": float, "exchange": str, "id": "int64", "user": str})
         
     await exchange.close()
     return df
@@ -62,7 +64,7 @@ async def get_usd_price(exchange, symbol) -> float:
             try:
                 price = await exchange.fetchTicker(f"{symbol}/{usd}")
                 if price != 0:
-                    return price['last']
+                    return float(price['last'])
             except ccxt.BadSymbol:
                 continue
             except ccxt.ExchangeError as e:
@@ -72,7 +74,7 @@ async def get_usd_price(exchange, symbol) -> float:
     else:
         try:
             price = await exchange.fetchTicker(symbol + '/DAI')
-            return price['last']
+            return float(price['last'])
         except ccxt.BadSymbol:
             return 1
     
