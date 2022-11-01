@@ -66,7 +66,6 @@ class Trades(commands.Cog):
 
             if not binance.empty:
                 for _, row in binance.iterrows():
-                    print(f"Starting Binance socket for {row['user']}...")
                     # If using await, it will block other connections
                     asyncio.create_task(
                         self.start_sockets(ccxt.binance({'apiKey': row['key'], 'secret':row['secret']}), 

@@ -232,11 +232,11 @@ class TV_data:
             website_suffix = "/?forex"
         elif asset == "crypto":
             website_suffix = "/?coingecko"
+            
+        website = f"https://www.tradingview.com/symbols/{symbol}{website_suffix}" 
 
         try:
             symbol_data = self.get_symbol_data(symbol, asset)
-            website = f"https://www.tradingview.com/symbols/{symbol}{website_suffix}" 
-
             if symbol_data is not None:
                 # Format it "exchange:symbol"
                 exchange = symbol_data[0]
@@ -254,6 +254,7 @@ class TV_data:
 
             # Create a session
             session = aiohttp.ClientSession()
+            
             async with session.ws_connect(
                 url="wss://data.tradingview.com/socket.io/websocket",
                 headers={"Origin": "https://data.tradingview.com"},
@@ -313,6 +314,15 @@ class TV_data:
                             None,
                             website
                         )
+        except aiohttp.ClientConnectionError:
+            print("Temporary TradingView websocket error")
+            return (
+                    0,
+                    None,
+                    0,
+                    None,
+                    website
+                )
 
         except Exception:
             print(traceback.format_exc())

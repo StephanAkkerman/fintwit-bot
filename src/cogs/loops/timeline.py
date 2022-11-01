@@ -25,6 +25,29 @@ from util.tweet_decoder import decode_tweet
 from util.db import update_tweet_db
 from cogs.loops.overview import Overview
 
+async def get_following_ids() -> None:
+    """
+    Gets and sets the Twitters IDs of the accounts that the bot is following.
+
+    Returns
+    -------
+    None
+    """
+    # Could also use this
+    # https://developer.twitter.com/en/docs/twitter-api/users/follows/api-reference/get-users-id-following
+    try:
+        id = await get_json_data(
+            f"https://api.twitter.com/2/users/by/username/{config['TWITTER']['USERNAME']}?user.fields=id",
+            headers={"Authorization": f"Bearer {bearer_token}"},
+        )
+        following = await get_json_data(
+            f"https://api.twitter.com/2/users/{id['data']['id']}/following?max_results=1000",
+            headers={"Authorization": f"Bearer {bearer_token}"},
+        )
+        return [user["id"] for user in following["data"]]
+    except Exception as e:
+        print(e)
+        print("Failed to get following ids")
 
 class Timeline(commands.Cog):
     """
@@ -50,7 +73,7 @@ class Timeline(commands.Cog):
         """
 
         # Set the following IDs, used in get_rules()
-        await self.get_following_ids()
+        self.following_ids = await get_following_ids()
 
         # These values are all imported from config.yaml
         printer = Streamer(self.bot)
@@ -59,6 +82,7 @@ class Timeline(commands.Cog):
             await printer.add_rules(self.get_rules())
             # https://docs.tweepy.org/en/stable/asyncstreamingclient.html#tweepy.asynchronous.AsyncStreamingClient.filter
             # https://developer.twitter.com/en/docs/twitter-api/fields
+            print("Starting Twitter Stream")
             await printer.filter(
                 expansions=[
                     "author_id",
@@ -96,30 +120,6 @@ class Timeline(commands.Cog):
             # Wait 5 min and try again
             await asyncio.sleep(60 * 5)
             await self.start()
-
-    async def get_following_ids(self) -> None:
-        """
-        Gets and sets the Twitters IDs of the accounts that the bot is following.
-
-        Returns
-        -------
-        None
-        """
-        # Could also use this
-        # https://developer.twitter.com/en/docs/twitter-api/users/follows/api-reference/get-users-id-following
-        try:
-            id = await get_json_data(
-                f"https://api.twitter.com/2/users/by/username/{config['TWITTER']['USERNAME']}?user.fields=id",
-                headers={"Authorization": f"Bearer {bearer_token}"},
-            )
-            following = await get_json_data(
-                f"https://api.twitter.com/2/users/{id['data']['id']}/following?max_results=1000",
-                headers={"Authorization": f"Bearer {bearer_token}"},
-            )
-            self.following_ids = [user["id"] for user in following["data"]]
-        except Exception as e:
-            print(e)
-            print("Failed to get following ids")
 
     def get_rules(self) -> List[StreamRule]:
         """
@@ -252,7 +252,8 @@ class Streamer(AsyncStreamingClient):
         -------
         None
         """
-
+        self.following_ids = await get_following_ids()
+        
         text_channel_list = []
         text_channel_names = []
 
@@ -299,10 +300,10 @@ class Streamer(AsyncStreamingClient):
 
         if "data" not in tweet_data.keys():
             # For instance if the stream was temporarily disconnected
-            print("Stream error")
+            print("No ['data'] found in tweet", tweet_data)
             return
         else:
-            formatted_tweet = await decode_tweet(tweet_data)
+            formatted_tweet = await decode_tweet(tweet_data, self.following_ids)
 
         if formatted_tweet == None:
             return
