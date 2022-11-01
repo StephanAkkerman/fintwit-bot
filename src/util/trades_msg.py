@@ -153,12 +153,9 @@ async def trades_msg(
     e.set_author(name=user.name, icon_url=user.display_avatar.url)
 
     # If the quote is USD, then the price is the USD value
-    if symbol.endswith(tuple(stables)):
-        price = f"${price}"
-
     e.add_field(
         name="Price",
-        value=price,
+        value=f"${price}" if symbol.endswith(tuple(stables)) else price,
         inline=True,
     )
     

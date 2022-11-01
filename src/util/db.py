@@ -6,6 +6,7 @@ import pandas as pd
 import sqlite3
 from pycoingecko import CoinGeckoAPI
 from yahoo_fin.stock_info import tickers_nasdaq
+import numpy as np
 
 # > Discord dependencies
 from discord.ext import commands
@@ -38,7 +39,9 @@ class DB(commands.Cog):
         util.vars.portfolio_db = get_db("portfolio")
 
     def set_assets_db(self):
-        util.vars.assets_db = get_db("assets")
+        assets_db = get_db("assets")
+        assets_db["id"] = assets_db["id"].astype(np.int64)
+        util.vars.assets_db = assets_db
 
     def set_tweets_db(self):
         util.vars.tweets_db = get_db("tweets")

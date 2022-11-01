@@ -9,6 +9,7 @@ import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
 import pandas as pd
+import numpy as np
 
 # > Local dependencies
 import util.vars
@@ -111,7 +112,7 @@ class Assets(commands.Cog):
             
         # Ensure that the db knows the right types
         assets_db = assets_db.astype(
-            {"asset": str, "buying_price": float, "owned": float, "exchange": str, "id": "int64", "user": str}
+            {"asset": str, "buying_price": float, "owned": float, "exchange": str, "id": np.int64, "user": str}
         )
             
         # Update the assets db    

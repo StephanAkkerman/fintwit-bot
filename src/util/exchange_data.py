@@ -1,5 +1,6 @@
 import ccxt.async_support as ccxt
 import pandas as pd
+import numpy as np
 from util.vars import stables
 
 async def get_data(row) -> pd.DataFrame:
@@ -39,7 +40,7 @@ async def get_data(row) -> pd.DataFrame:
     df = pd.DataFrame(owned)
     
     if not df.empty:
-        df = df.astype({"asset": str, "buying_price": float, "owned": float, "exchange": str, "id": "int64", "user": str})
+        df = df.astype({"asset": str, "buying_price": float, "owned": float, "exchange": str, "id": np.int64, "user": str})
         
     await exchange.close()
     return df
