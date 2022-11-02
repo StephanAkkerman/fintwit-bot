@@ -46,6 +46,7 @@ class Trades(commands.Cog):
                 msg = await exchange.watchMyTrades()
                 await on_msg(msg, exchange, self.trades_channel, row, user)
             except Exception as e:
+                # Maybe do: await exchange.close() and restart the socket
                 print(f"Error in trade websocket for {row['user']} and {exchange.id}: ", e)
 
     async def trades(self, db: pd.DataFrame) -> None:

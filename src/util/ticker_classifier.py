@@ -42,6 +42,11 @@ async def get_best_guess(ticker: str, asset_type: str):
     
     get_TA = False
     four_h_ta = one_d_ta = None
+    
+    if asset_type == "crypto" and ticker.endswith("BTC") and ticker != "BTC":
+        get_TA = True
+        ticker = ticker[:-3]
+        print(ticker)
 
     if asset_type == "crypto":
         (
@@ -93,10 +98,6 @@ async def get_best_guess(ticker: str, asset_type: str):
     # Stupid Tessla Coin https://www.coingecko.com/en/coins/tessla-coin
     if volume > 1000000:
         get_TA = True
-
-    if asset_type == "crypto":
-        if ticker.endswith("BTC"):
-            get_TA = True
 
     # Set the TA data, only if volume is high enough
     if get_TA:
@@ -173,7 +174,7 @@ async def classify_ticker(
     else:
         crypto_data = await get_best_guess(ticker, "crypto")
         stock_data = await get_best_guess(ticker, "stock")
-
+        
     # If it was not the majority, compare the data
     c_volume = crypto_data[0]
     s_volume = stock_data[0]

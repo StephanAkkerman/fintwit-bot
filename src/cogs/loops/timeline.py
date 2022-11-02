@@ -46,8 +46,7 @@ async def get_following_ids() -> None:
         )
         return [user["id"] for user in following["data"]]
     except Exception as e:
-        print(e)
-        print("Failed to get following ids")
+        print("Failed to get following ids. Error: ", e)
 
 class Timeline(commands.Cog):
     """
@@ -77,6 +76,11 @@ class Timeline(commands.Cog):
 
         # These values are all imported from config.yaml
         printer = Streamer(self.bot)
+        
+        # Delete any old rules
+        old_rules = await printer.get_rules()
+        if old_rules:
+            await printer.delete_rules(old_rules.data)
 
         try:
             await printer.add_rules(self.get_rules())
@@ -89,28 +93,28 @@ class Timeline(commands.Cog):
                     "referenced_tweets.id",
                     "in_reply_to_user_id",
                     "attachments.media_keys",
-                    "entities.mentions.username",
-                    "referenced_tweets.id.author_id",
+                    #"entities.mentions.username",
+                    #"referenced_tweets.id.author_id",
                 ],
                 tweet_fields=[
-                    "id",
-                    "text",
-                    "attachments",
+                    "id",           # Default
+                    "text",         # Default
+                    #"attachments", 
                     "author_id",
                     "conversation_id",
                     "entities",
                     "in_reply_to_user_id",
                     "referenced_tweets",
                 ],
-                user_fields=["id", "name", "username", "profile_image_url"],
+                user_fields=[
+                    "id", 
+                    "username", 
+                    "profile_image_url"
+                ],
                 media_fields=[
                     "media_key",
                     "type",
                     "url",
-                    "height",
-                    "preview_image_url",
-                    "width",
-                    "variants",
                 ],
             )
 
@@ -268,12 +272,11 @@ class Streamer(AsyncStreamingClient):
         self.text_channels = text_channel_list
         self.text_channel_names = text_channel_names
 
-    async def on_connection_error(self):
-        pass
-        #print("Tweepy Stream Connection error")
-        
-    async def on_exception(self, e):
-        print("Tweepy Stream Exception", e)
+    #async def on_connection_error(self):
+    #    print("Tweepy Stream Connection error")
+    #    
+    #async def on_exception(self, e):
+    #    print("Tweepy Stream Exception", e)
         
     async def on_disconnect(self):
         print("Tweepy Stream Disconnected")

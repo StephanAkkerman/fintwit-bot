@@ -13,37 +13,41 @@ async def get_data(row) -> pd.DataFrame:
         exchange_info['password'] = row['passphrase']
         exchange = ccxt.kucoin(exchange_info)
         
-    balances = await get_balance(exchange)
-    
-    # Create a list of dictionaries
-    owned = []
+    try:
+        balances = await get_balance(exchange)
+        
+        # Create a list of dictionaries
+        owned = []
 
-    for symbol, amount in balances.items():
-        usd_val = await get_usd_price(exchange, symbol)
-        worth = amount * usd_val
+        for symbol, amount in balances.items():
+            usd_val = await get_usd_price(exchange, symbol)
+            worth = amount * usd_val
+        
+            if worth < 5:
+                continue
+            
+            buying_price = await get_buying_price(exchange, symbol)
+            
+            if buying_price != 0:
+                owned.append({
+                    "asset": symbol,
+                    "buying_price" : buying_price,
+                    "owned": amount,
+                    "exchange": exchange.id,
+                    "id": row["id"],
+                    "user": row["user"],
+                })
     
-        if worth < 5:
-            continue
+        df = pd.DataFrame(owned)
         
-        buying_price = await get_buying_price(exchange, symbol)
-        
-        if buying_price != 0:
-            owned.append({
-                "asset": symbol,
-                "buying_price" : buying_price,
-                "owned": amount,
-                "exchange": exchange.id,
-                "id": row["id"],
-                "user": row["user"],
-            })
-
-    df = pd.DataFrame(owned)
-    
-    if not df.empty:
-        df = df.astype({"asset": str, "buying_price": float, "owned": float, "exchange": str, "id": np.int64, "user": str})
-        
-    await exchange.close()
-    return df
+        if not df.empty:
+            df = df.astype({"asset": str, "buying_price": float, "owned": float, "exchange": str, "id": np.int64, "user": str})
+            
+        await exchange.close()
+        return df
+    except Exception as e:
+        await exchange.close()
+        print("Error in get_data(). Error:", e)
 
 async def get_balance(exchange) -> dict:
     params = {}
