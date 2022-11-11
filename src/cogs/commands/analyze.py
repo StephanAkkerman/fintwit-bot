@@ -39,7 +39,7 @@ class Analyze(commands.Cog):
             The ticker of a stock, e.g. AAPL
         """
 
-        # await ctx.response.defer(ephemeral=True)
+        await ctx.response.defer(ephemeral=True)
 
         req = await get_json_data(
             f"https://www.benzinga.com/quote/{stock}/analyst-ratings", text=True

@@ -9,6 +9,7 @@ async def get_data(row) -> pd.DataFrame:
     
     if row['exchange'] == 'binance':
         exchange = ccxt.binance(exchange_info)
+        exchange.options['recvWindow'] = 60000
     elif row['exchange'] == 'kucoin':
         exchange_info['password'] = row['passphrase']
         exchange = ccxt.kucoin(exchange_info)
@@ -50,11 +51,8 @@ async def get_data(row) -> pd.DataFrame:
         print("Error in get_data(). Error:", e)
 
 async def get_balance(exchange) -> dict:
-    params = {}
-    if exchange.id == 'binance':
-        params = {"recvWindow":60000}
     try:
-        balances = await exchange.fetchBalance(params=params)
+        balances = await exchange.fetchBalance()
         return {k: v for k, v in balances['total'].items() if v > 0}
     except ccxt.RequestTimeout:
         return {}
@@ -94,10 +92,7 @@ async def get_buying_price(exchange, symbol, full_sym : bool = False) -> float:
     
     params = {}
     if exchange.id == 'kucoin':
-        params = {"side" : 'buy'}
-    elif exchange.id == 'binance':
-        params = {"recvWindow":60000}
-    
+        params = {"side" : 'buy'}    
     try:
         trades = await exchange.fetchClosedOrders(symbol, params = params)
     except ccxt.BadSymbol:

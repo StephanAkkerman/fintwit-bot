@@ -68,8 +68,10 @@ class Trades(commands.Cog):
             if not binance.empty:
                 for _, row in binance.iterrows():
                     # If using await, it will block other connections
+                    exchange = ccxt.binance({'apiKey': row['key'], 'secret':row['secret']})
+                    exchange.streaming['keepAlive'] = 30000 * 2 # 2x more than original
                     asyncio.create_task(
-                        self.start_sockets(ccxt.binance({'apiKey': row['key'], 'secret':row['secret']}), 
+                        self.start_sockets(exchange, 
                                            row,
                                            await get_user(self.bot, row['id']))
                     )
@@ -77,8 +79,11 @@ class Trades(commands.Cog):
 
             if not kucoin.empty:
                 for _, row in kucoin.iterrows():
+                    # keepAlive should be < 60000
+                    exchange = ccxt.kucoin({'apiKey': row['key'], 'secret':row['secret'], 'password': row['passphrase']})
+                    exchange.streaming['keepAlive'] = 40000
                     asyncio.create_task(
-                        self.start_sockets(ccxt.kucoin({'apiKey': row['key'], 'secret':row['secret'], 'password': row['passphrase']}), 
+                        self.start_sockets(exchange, 
                                            row,
                                            await get_user(self.bot, row['id']))
                     )

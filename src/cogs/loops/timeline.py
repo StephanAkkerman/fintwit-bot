@@ -80,13 +80,13 @@ class Timeline(commands.Cog):
         # Delete any old rules
         old_rules = await printer.get_rules()
         if old_rules:
-            await printer.delete_rules(old_rules.data)
+            if old_rules.data:
+                await printer.delete_rules(old_rules.data)
 
         try:
             await printer.add_rules(self.get_rules())
             # https://docs.tweepy.org/en/stable/asyncstreamingclient.html#tweepy.asynchronous.AsyncStreamingClient.filter
             # https://developer.twitter.com/en/docs/twitter-api/fields
-            print("Starting Twitter Stream")
             await printer.filter(
                 expansions=[
                     "author_id",
@@ -186,7 +186,7 @@ class Streamer(AsyncStreamingClient):
         # Init the parent class
         # https://docs.tweepy.org/en/stable/asyncstreamingclient.html
         AsyncStreamingClient.__init__(
-            self, bearer_token=bearer_token, wait_on_rate_limit=True, max_retries=10
+            self, bearer_token=bearer_token, wait_on_rate_limit=True, #max_retries=10
         )
 
         # Set the bot for messages
@@ -271,6 +271,9 @@ class Streamer(AsyncStreamingClient):
         # Set the class variables
         self.text_channels = text_channel_list
         self.text_channel_names = text_channel_names
+        
+    async def on_connect(self):
+        print("Succesfully connected Tweepy stream")
 
     #async def on_connection_error(self):
     #    print("Tweepy Stream Connection error")

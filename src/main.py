@@ -26,11 +26,14 @@ async def on_ready() -> None:
     # Load the loops and listeners
     load_folder("loops")
     load_folder("listeners")
+    
+    ## Load help command after the rest
+    #bot.load_extension("cogs.commands.help")
 
     guild = get_guild(bot)
     print(f"{bot.user} is connected to {guild.name} at {datetime.datetime.now()} \n")
-
-
+    
+    
 def load_folder(foldername: str) -> None:
     """
     Loads all the cogs in the given folder.

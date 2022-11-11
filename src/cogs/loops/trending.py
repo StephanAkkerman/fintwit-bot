@@ -108,6 +108,10 @@ class Trending(commands.Cog):
                 "Volume": vol,
             }
         )
+        
+        if df.empty:
+            print("No trending coins found on CoinGecko")
+            return
 
         e = await format_embed(df, "Trending On CoinGecko", "coingecko")
 
