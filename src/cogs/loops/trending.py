@@ -97,18 +97,8 @@ class Trending(commands.Cog):
         None
         """
 
-        ticker, prices, price_changes, vol = await get_trending_coins()
+        df = await get_trending_coins()
 
-        # Convert to dataframe
-        df = pd.DataFrame(
-            {
-                "Symbol": ticker,
-                "Price": prices,
-                "% Change": price_changes,
-                "Volume": vol,
-            }
-        )
-        
         if df.empty:
             print("No trending coins found on CoinGecko")
             return

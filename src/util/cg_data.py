@@ -3,6 +3,8 @@
 from __future__ import annotations
 from typing import Optional, List
 import numbers
+from bs4 import BeautifulSoup
+import pandas as pd
 
 # > Third party libraries
 from pycoingecko import CoinGeckoAPI
@@ -195,89 +197,65 @@ async def get_coin_info(
     )
 
 
-async def get_trending_coins() -> tuple[list, list, list, list]:
+async def get_trending_coins() -> pd.DataFrame:
     """
     Gets the trending coins on CoinGecko without using their API.
 
     Returns
     -------
-    tuple[list, list, list, list]
-        list
+    DataFrame
+        Symbol
             The tickers of the trending coins, formatted with the website.
-        list
+        Price
             The prices of the trending coins.
-        list
+        % Change
             The 24h price changes of the trending coins.
-        list
+        Volume
             The volumes of the trending coins.
     """
 
-    html = await get_json_data(
-        "https://www.coingecko.com/en/watchlists/trending-crypto", text=True
-    )
+    
+    html = await get_json_data("https://www.coingecko.com/en/watchlists/trending-crypto", text=True)
 
-    # Get the table
-    html = html[html.find("<tbody>") : html.find("</tbody>")]
+    soup = BeautifulSoup(html, 'html.parser')
 
-    # Split headlines by <tr> until </tr>
-    coins = html.split("<tr>")[1:]
+    table = soup.find('table', class_="sort table mb-0 text-sm text-lg-normal table-scrollable")
 
-    tickers = []
-    prices = []
-    changes = []
-    volumes = []
-
-    for coin in coins:
-
-        # The price, 1h, 24h, 7d change is stored here
-        data = coin.split("<td data-sort=")[1:]
-
-        # This is used for getting the website
-        slug = coin[
-            coin.find('data-coin-slug="')
-            + len('data-coin-slug="') : coin.find('" data-coin-image=')
-        ]
-
-        website = f"https://www.coingecko.com/en/coins/{slug}"
-
-        ticker = coin[
-            coin.find('data-coin-symbol="')
-            + len('data-coin-symbol="') : coin.find('" data-source=')
-        ]
+    data = []
+    for tr in table.find_all('tr'):
+        coin_data = {}
+        td_count = 0
         
-        price = data[0][: data[0].find('class="td-price price text-right"')].replace(
-                "'", ""
-            )
+        for td in tr.find_all('td'):
+            if td_count == 2:
+                ticker = td.find('a').text.split('\n')[-3]
+                website = f"https://www.coingecko.com{td.find('a').get('href')}"
+                coin_data["Symbol"] = f"[{ticker.upper()}]({website})"
+            
+            if td_count == 3:
+                price = td.find('span').text.replace('$', '').replace(',', '')
+                try:
+                    coin_data['Price'] = float(price)
+                except Exception:
+                    coin_data['Price'] = 0
 
-        change = data[2][
-                : data[2].find(
-                    ' class="td-change24h change24h stat-percent text-right col-market">'
-                )
-            ].replace("'", "")
-
-        volume = data[4][
-                data[4].find('data-target="price.price">$')
-                + len('data-target="price.price">$') : data[4].find("</span>")
-            ].replace(",", "")
+            if td_count == 5:
+                change = td.find('span').text.replace('%', '')
+                try:
+                    coin_data['% Change'] = float(change)
+                except Exception:
+                    coin_data['% Change'] = 0
+            
+            if td_count == 7:
+                volume = td.find('span').text.replace('$', '').replace(',', '')
+                try:
+                    coin_data['Volume'] = float(volume)
+                except Exception:
+                    coin_data['Volume'] = 0
+                
+            td_count += 1
+            
+        if coin_data != {}:
+            data.append(coin_data)
         
-        # Ensure that the variables are numbers, otherwise fill with 0
-        # There is no better way to do this...
-        try:
-            price = float(price)
-        except Exception:
-            price = 0
-        try:
-            change = float(change)
-        except Exception:
-            change = 0
-        try:
-            volume = float(volume)
-        except Exception:
-            volume = 0
-
-        tickers.append(f"[{ticker.upper()}]({website})")
-        prices.append(price)
-        changes.append(change)
-        volumes.append(volume)
-
-    return tickers, prices, changes, volumes
+    return pd.DataFrame(data)
