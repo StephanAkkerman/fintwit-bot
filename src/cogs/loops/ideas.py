@@ -108,7 +108,12 @@ async def scraper(type: str) -> pd.DataFrame:
         symbol_info = info_row.find("div", class_="tv-widget-idea__symbol-info")
 
         if symbol_info:
-            symbolList.append(symbol_info.a.text)
+            if symbol_info.a:
+                symbolList.append(symbol_info.a.text)
+            elif symbol_info.span:
+                symbolList.append(symbol_info.span.text)
+            else:
+                symbolList.append(None)
         else:
             symbolList.append(None)
 
