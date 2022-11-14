@@ -289,7 +289,7 @@ class TV_data:
                                 resp[0],
                                 resp[1],
                                 resp[0] * resp[2] if asset == "crypto" else resp[2],
-                                exchange,
+                                exchange.lower(),
                                 website
                             )
 

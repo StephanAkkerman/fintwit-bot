@@ -14,7 +14,7 @@ from discord.ext import commands
 
 # Import local dependencies
 from util.vars import config
-from util.disc_util import get_guild
+from util.disc_util import get_guild, set_emoji
 
 bot = commands.Bot(intents=discord.Intents.all())
 
@@ -26,12 +26,11 @@ async def on_ready() -> None:
     # Load the loops and listeners
     load_folder("loops")
     load_folder("listeners")
-    
-    ## Load help command after the rest
-    #bot.load_extension("cogs.commands.help")
 
     guild = get_guild(bot)
     print(f"{bot.user} is connected to {guild.name} at {datetime.datetime.now()} \n")
+    
+    await set_emoji(guild)
     
     
 def load_folder(foldername: str) -> None:

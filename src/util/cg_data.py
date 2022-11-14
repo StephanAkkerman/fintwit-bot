@@ -184,6 +184,10 @@ async def get_coin_info(
         # Get the information from the dictionary
         total_vol, price, change, exchanges, base = get_info_from_dict(coin_dict)
 
+    # remove duplicates and suffix 'exchange'
+    exchanges = [x.lower().replace(" exchange", "") for x in exchanges]
+    exchanges = list(set(exchanges))
+
     # Return the information
     return (
         total_vol,

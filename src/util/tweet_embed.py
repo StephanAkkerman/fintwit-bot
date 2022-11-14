@@ -16,7 +16,6 @@ import numpy as np
 import util.vars
 from util.ticker_classifier import classify_ticker, get_financials
 from util.sentiment_analyis import add_sentiment
-from util.disc_util import get_emoji
 from util.vars import filter_dict
 from util.db import merge_and_update, remove_old_rows
 
@@ -243,11 +242,9 @@ async def add_financials(
             if "coingecko" in website:
                 crypto += 1
                 categories.append("crypto")
-                if exchanges:
-                    if "Binance" in exchanges:
-                        title = f"{title} {get_emoji(bot, 'binance')}"
-                    if "KuCoin" in exchanges:
-                        title = f"{title} {get_emoji(bot, 'kucoin')}"
+                for x in exchanges:
+                    if x in util.vars.custom_emojis.keys():
+                        title = f"{title} {util.vars.custom_emojis[x]}"
 
             if "yahoo" in website:
                 stocks += 1

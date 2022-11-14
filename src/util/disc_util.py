@@ -62,7 +62,7 @@ def get_channel(
                             return channel
 
 
-def get_emoji(bot: commands.Bot, emoji: str) -> discord.Emoji:
+async def set_emoji(guild) -> dict:
     """
     Returns the custom emoji with the given name.
 
@@ -78,10 +78,13 @@ def get_emoji(bot: commands.Bot, emoji: str) -> discord.Emoji:
     discord.Emoji
         The custom emoji with the given name.
     """
+    # https://docs.pycord.dev/en/stable/api.html?highlight=emojis#discord.on_guild_emojis_update
+    # Could use this event to update the emojis if they change
 
-    guild = get_guild(bot)
-    return discord.utils.get(guild.emojis, name=emoji)
-
+    emojis = await guild.fetch_emojis()
+    
+    for emoji in emojis:
+        util.vars.custom_emojis[emoji.name] = emoji	
 
 async def get_user(bot: commands.Bot, user_id: int) -> discord.User:
     """

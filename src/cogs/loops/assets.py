@@ -201,8 +201,12 @@ class Assets(commands.Cog):
         # Ensure that the length is not bigger than allowed
         assets, prices, worth = format_embed_length([assets, prices, worth])
         
+        exchange_title = exchange
+        if exchange.lower() in util.vars.custom_emojis.keys():
+            exchange_title = f"{exchange} {util.vars.custom_emojis[exchange.lower()]}"
+        
         # These are the new fields added to the embed
-        e.add_field(name=exchange, value=assets, inline=True)
+        e.add_field(name=exchange_title, value=assets, inline=True)
         e.add_field(name="Price", value=prices, inline=True)
         e.add_field(name="Worth", value=worth, inline=True)
 

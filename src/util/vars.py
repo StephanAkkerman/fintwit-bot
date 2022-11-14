@@ -79,6 +79,8 @@ reddit_ids = pd.DataFrame()
 ideas_ids = pd.DataFrame()
 classified_tickers = pd.DataFrame()
 
+custom_emojis = {}
+
 async def get_json_data(url: str, headers: dict = None, text: bool = False) -> dict:
     """
     Asynchronous function to get JSON data from a website.
