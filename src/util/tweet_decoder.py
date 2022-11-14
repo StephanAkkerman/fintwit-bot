@@ -373,7 +373,10 @@ async def standard_tweet_info(
                     text = text.replace(url["url"], "")
                     # If there are no images yet, get the image based on conversation id
                     if images == []:
-                        images = await get_missing_img(tweet_data["conversation_id"])
+                        if tweet_type == "replied tweet":
+                            images = await get_missing_img(tweet_data["referenced_tweets"][0]["id"])
+                        else:
+                            images = await get_missing_img(tweet_data["conversation_id"])
                 else:
                     if tweet_type == "quoted" and url["expanded_url"].startswith(
                         "https://twitter.com"
