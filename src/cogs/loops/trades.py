@@ -39,8 +39,7 @@ class Trades(commands.Cog):
         # Start getting trades
         asyncio.create_task(self.trades(db))
         
-    async def start_sockets(self, exchange, row, user) -> None:
-         
+    async def start_sockets(self, exchange, row, user) -> None:         
         while True:
             try:
                 msg = await exchange.watchMyTrades()
@@ -58,6 +57,9 @@ class Trades(commands.Cog):
         db : pd.DataFrame
             The database containing all users.
         """
+        
+        tasks = []
+        exchanges = []
 
         if not db.empty:
 
@@ -70,11 +72,12 @@ class Trades(commands.Cog):
                     # If using await, it will block other connections
                     exchange = ccxt.binance({'apiKey': row['key'], 'secret':row['secret']})
                     exchange.streaming['keepAlive'] = 30000 * 2 # 2x more than original
-                    asyncio.create_task(
+                    task = asyncio.create_task(
                         self.start_sockets(exchange, 
                                            row,
                                            await get_user(self.bot, row['id']))
                     )
+                    tasks.append(task)
                     print(f"Started Binance socket for {row['user']}")
 
             if not kucoin.empty:
@@ -82,12 +85,25 @@ class Trades(commands.Cog):
                     # keepAlive should be < 60000
                     exchange = ccxt.kucoin({'apiKey': row['key'], 'secret':row['secret'], 'password': row['passphrase']})
                     exchange.streaming['keepAlive'] = 40000
-                    asyncio.create_task(
+                    task = asyncio.create_task(
                         self.start_sockets(exchange, 
                                            row,
                                            await get_user(self.bot, row['id']))
                     )
+                    tasks.append(task)
                     print(f"Started KuCoin socket for {row['user']}")
+                    
+        # After 24 hours close the exchange and start again
+        await asyncio.sleep(24 * 60 * 60)
+        
+        print("Stopping all sockets")
+        for task, exchange in zip(tasks, exchanges):
+            task.cancel()
+            await exchange.close()
+            await asyncio.sleep(10)
+            
+            # Restart the socket
+            await self.trades(db)
 
 
 def setup(bot: commands.Bot) -> None:

@@ -56,7 +56,7 @@ class Portfolio(commands.Cog):
         Adds your portfolio to the database.
 
         Usage:
-        `!portfolio add <exchange> <key> <secret> (<passphrase>)` to add your portfolio to the database.
+        `/portfolio add <exchange> <key> <secret> (<passphrase>)` to add your portfolio to the database.
 
         Parameters
         ----------
@@ -117,30 +117,29 @@ class Portfolio(commands.Cog):
         # Post the assets
         Assets(self.bot, new_data)
 
-    @commands.dm_only()
     @portfolios.command(
         name="remove", description="Remove a portfolio to the database."
     )
     async def remove(
         self,
         ctx: commands.Context,
-        input: Option(
+        exchange: Option(
             str,
             description="The name of the exchange that you want to remove, if left empty all will be removed.",
             required=True,
         ),
     ) -> None:
         """
-        `!portfolio remove (<exchange>)` if exchange is not specified, all your portfolio(s) will be removed.
+        `/portfolio remove (<exchange>)` if exchange is not specified, all your portfolio(s) will be removed.
         """
 
         old_db = util.vars.portfolio_db
-        if len(input) == 1:
-            rows = old_db.index[old_db["id"] == ctx.author.id].tolist()
-        elif len(input) > 2:
+        if exchange:
             rows = old_db.index[
-                (old_db["id"] == ctx.author.id) & (old_db["exchange"] == input[1])
+                (old_db["id"] == ctx.author.id) & (old_db["exchange"] == exchange)
             ].tolist()
+        else:
+            rows = old_db.index[old_db["id"] == ctx.author.id].tolist()            
 
         # Update database
         self.update_portfolio_db(old_db.drop(rows))
@@ -173,38 +172,33 @@ class Portfolio(commands.Cog):
 
     @add.error
     async def add_error(self, ctx: commands.Context, error: Exception) -> None:
-        print(traceback.format_exc())
+        #print(traceback.format_exc())
         if isinstance(error, commands.BadArgument):
             await ctx.respond(
                 f"The exchange you specified is currently not supported! \nSupported exchanges: Kucoin, Binance"
             )
         elif isinstance(error, commands.UserInputError):
             await ctx.respond(
-                f"If using `portfolio add`, you must specify an exchange, key, secret, and optionally a passphrase!"
+                f"If using `/portfolio add`, you must specify an exchange, key, secret, and optionally a passphrase!"
             )
         elif isinstance(error, commands.PrivateMessageOnly):
             await ctx.respond(
-                "Please only use the `!portfolio` command in private messages for security reasons."
+                "Please only use the `/portfolio` command in private messages for security reasons."
             )
         else:
             await ctx.respond(f"An error has occurred. Please try again later.")
 
     @remove.error
     async def remove_error(self, ctx: commands.Context, error: Exception) -> None:
-        print(traceback.format_exc())
-        if isinstance(error, commands.PrivateMessageOnly):
-            await ctx.respond(
-                "Please only use the `!portfolio` command in private messages for security reasons."
-            )
-        else:
-            await ctx.respond(f"An error has occurred. Please try again later.")
+        #print(traceback.format_exc())
+        await ctx.respond(f"An error has occurred. Please try again later.")
 
     @show.error
     async def show_error(self, ctx: commands.Context, error: Exception) -> None:
-        print(traceback.format_exc())
+        #print(traceback.format_exc())
         if isinstance(error, commands.PrivateMessageOnly):
             await ctx.respond(
-                "Please only use the `!portfolio` command in private messages for security reasons."
+                "Please only use the `/portfolio` command in private messages for security reasons."
             )
         else:
             await ctx.respond(f"An error has occurred. Please try again later.")
