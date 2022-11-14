@@ -51,7 +51,7 @@ class Gainers(commands.Cog):
         ):
             self.crypto.start()
 
-    @loop(hours=2)
+    @loop(hours=1)
     async def crypto(self) -> None:
         """
         This function will check the gainers and losers on Binance, using USDT as the base currency.
@@ -110,12 +110,14 @@ class Gainers(commands.Cog):
 
         # Post the embed in the channel
         if config["LOOPS"]["GAINERS"]["CRYPTO"]["ENABLED"]:
+            await self.crypto_gainers_channel.purge(limit=1)
             await self.crypto_gainers_channel.send(embed=e_gainers)
 
         if config["LOOPS"]["LOSERS"]["CRYPTO"]["ENABLED"]:
+            await self.crypto_losers_channel.purge(limit=1)
             await self.crypto_losers_channel.send(embed=e_losers)
 
-    @loop(hours=2)
+    @loop(hours=1)
     async def stocks(self) -> None:
         """
         This function uses the yahoo_fin.stock_info module to get the gainers for todays stocks.
@@ -131,6 +133,7 @@ class Gainers(commands.Cog):
 
         try:
             e = await format_embed(si.get_day_gainers().head(10), "Gainers", "yahoo")
+            await self.stocks_channel.purge(limit=1)
             await self.stocks_channel.send(embed=e)
         except Exception as e:
             print("Error posting stocks gainers: ", e)

@@ -86,7 +86,7 @@ class Index(commands.Cog):
 
             return today, change
 
-    @loop(hours=12)
+    @loop(hours=1)
     async def crypto(self) -> None:
         """
         This function will get the current prices of crypto indices on TradingView and the Fear and Greed index.
@@ -164,9 +164,10 @@ class Index(commands.Cog):
             icon_url="https://s3.tradingview.com/userpics/6171439-Hlns_orig.png",
         )
 
+        await self.crypto_channel.purge(limit=1)
         await self.crypto_channel.send(embed=e)
 
-    @loop(hours=2)
+    @loop(hours=1)
     async def stocks(self) -> None:
         """
         Posts the stock indices in the configured channel, only posts if the market is open.
@@ -237,9 +238,10 @@ class Index(commands.Cog):
             icon_url="https://s3.tradingview.com/userpics/6171439-Hlns_orig.png",
         )
 
+        await self.stocks_channel.purge(limit=1)
         await self.stocks_channel.send(embed=e)
 
-    @loop(hours=2)
+    @loop(hours=1)
     async def forex(self) -> None:
         """
         Posts the forex indices in the configured channel, only posts if the market is open.
@@ -308,6 +310,7 @@ class Index(commands.Cog):
             icon_url="https://s3.tradingview.com/userpics/6171439-Hlns_orig.png",
         )
 
+        await self.forex_channel.purge(limit=1)
         await self.forex_channel.send(embed=e)
 
 

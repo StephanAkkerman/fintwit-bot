@@ -39,8 +39,7 @@ class Trending(commands.Cog):
                 config["CATEGORIES"]["CRYPTO"],
             )
 
-            self.coingecko.start()
-            self.cmc.start()
+            self.crypto.start()
 
         if config["LOOPS"]["TRENDING"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = get_channel(
@@ -52,7 +51,7 @@ class Trending(commands.Cog):
             self.stocks.start()
 
     @loop(hours=12)
-    async def cmc(self) -> None:
+    async def crypto(self) -> None:
         """
         Gets the data from the CoinMarketCap API and posts in the trending crypto channel.
 
@@ -83,31 +82,21 @@ class Trending(commands.Cog):
         cmc_df["% Change"] = cmc_df["priceChange"].apply(lambda x: x["priceChange24h"])
         cmc_df["Volume"] = cmc_df["priceChange"].apply(lambda x: x["volume24h"])
 
-        e = await format_embed(cmc_df, "Trending On CoinMarketCap", "coinmarketcap")
+        cmc_e = await format_embed(cmc_df, "Trending On CoinMarketCap", "coinmarketcap")
+        
+        cg_df = await get_trending_coins()
 
-        await self.crypto_channel.send(embed=e)
-
-    @loop(hours=12)
-    async def coingecko(self) -> None:
-        """
-        Posts the top 7 trending cryptocurrencies in trending crypto channel
-
-        Returns
-        -------
-        None
-        """
-
-        df = await get_trending_coins()
-
-        if df.empty:
+        if cg_df.empty:
             print("No trending coins found on CoinGecko")
             return
 
-        e = await format_embed(df, "Trending On CoinGecko", "coingecko")
+        cg_e = await format_embed(cg_df, "Trending On CoinGecko", "coingecko")
 
-        await self.crypto_channel.send(embed=e)
+        await self.crypto_channel.purge(limit=2)
+        await self.crypto_channel.send(embed=cg_e)
+        await self.crypto_channel.send(embed=cmc_e)        
 
-    @loop(hours=2)
+    @loop(hours=1)
     async def stocks(self) -> None:
         """
         Posts the most actively traded stocks in the trending stocks channel.
@@ -122,7 +111,8 @@ class Trending(commands.Cog):
 
         # Only use the top 10 stocks
         try:
-            e = await format_embed(si.get_day_most_active().head(10), "Most Active Stocks", "yahoo")
+            e = await format_embed(si.get_day_most_active().head(15), "Most Active Stocks", "yahoo")
+            await self.stocks_channel.purge(limit=1)
             await self.stocks_channel.send(embed=e)
         except Exception as e:
             print("Error getting most active stocks: ", e)

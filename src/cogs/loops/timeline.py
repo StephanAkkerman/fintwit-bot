@@ -399,13 +399,16 @@ class Streamer(AsyncStreamingClient):
         -------
         None
         """
+        
+        user_channel = None
+        msgs = []
 
         # Default channel
         channel = self.other_channel
 
         # Check if there is a user specific channel
         if user.lower() in self.text_channel_names:
-            channel = self.text_channels[self.text_channel_names.index(user.lower())]
+            user_channel = self.text_channels[self.text_channel_names.index(user.lower())]
 
         # News posters
         elif user in config["LOOPS"]["TIMELINE"]["NEWS"]["FOLLOWING"]:
@@ -459,28 +462,27 @@ class Streamer(AsyncStreamingClient):
             else:
                 # Use the normal send function
                 msg = await channel.send(content=get_tagged_users(tickers), embed=e)
+                msgs.append(msg)
+                
+                if user_channel:
+                    msg2 = await user_channel.send(content=get_tagged_users(tickers), embed=e)
+                    msgs.append(msg)
 
             # Do this for every message
             try:
-                await msg.add_reaction("💸")
+                for msg in msgs:
+                    await msg.add_reaction("💸")
+                    
+                    if category != None:
+                        await msg.add_reaction("🐂")
+                        await msg.add_reaction("🦆")
+                        await msg.add_reaction("🐻")
             except discord.DiscordServerError:
                 print("Could not add reaction to message")
 
-            if category != None:
-                try:
-                    await msg.add_reaction("🐂")
-                    await msg.add_reaction("🦆")
-                    await msg.add_reaction("🐻")
-                except discord.DiscordServerError:
-                    print("Could not add reaction to message")
-
-            return msg, channel
-
         except aiohttp.ClientConnectionError:
             print("Connection Error posting tweet on timeline")
-            return
 
         except Exception as error:
             print("Error posting tweet on timeline", error)
             print(traceback.format_exc())
-            return
