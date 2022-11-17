@@ -374,7 +374,11 @@ async def standard_tweet_info(
                     # If there are no images yet, get the image based on conversation id
                     if images == []:
                         if tweet_type == "replied tweet":
-                            images = await get_missing_img(tweet_data["referenced_tweets"][0]["id"])
+                            if "referenced_tweets" in tweet_data.keys():
+                                images = await get_missing_img(tweet_data["referenced_tweets"][0]["id"])
+                            else:
+                                print("No referenced tweet found, using conversation id, tweet at:", datetime.datetime.now())
+                                images = await get_missing_img(tweet_data["conversation_id"])
                         else:
                             images = await get_missing_img(tweet_data["conversation_id"])
                 else:
