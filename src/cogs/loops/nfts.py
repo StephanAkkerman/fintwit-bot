@@ -137,6 +137,7 @@ class NFTS(commands.Cog):
     @loop(hours=1)
     async def upcoming_nfts(self):
         upcoming = await upcoming_cmc()
+        upcoming = upcoming.head(10)
         
         e = discord.Embed(
             title=f"Top {len(upcoming)} Upcoming NFTs",

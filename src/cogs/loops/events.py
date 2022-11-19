@@ -122,6 +122,9 @@ class Events(commands.Cog):
                 # Split dataframe based on date
                 for date in events_df["date"].unique():
                     date_df = events_df.loc[events_df["date"] == date]
+                    
+                    if date_df.empty:
+                        continue
 
                     # Necessary for using .replace()
                     date_df_copy = date_df.copy()

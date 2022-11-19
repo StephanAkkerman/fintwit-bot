@@ -76,7 +76,7 @@ async def decode_tweet(
             text,
             user,
             profile_pic,
-            f"https://twitter.com/{user}/status/{as_json['data']['conversation_id']}",
+            f"https://twitter.com/{as_json['includes']['users'][0]['username']}/status/{as_json['data']['id']}",
             images,
             tickers,
             hashtags,
@@ -346,17 +346,17 @@ async def standard_tweet_info(
     images = []
     if tweet_type != "quoted tweet" and tweet_type != "replied tweet":
         images = get_tweet_img(as_json)
-        
+                
     tweet_data = as_json["data"]
 
     # Unpack json data
-    if tweet_type == "retweeted" or tweet_type == "quoted tweet" or tweet_type == "replied tweet":
+    if tweet_type == "retweeted" or tweet_type == "quoted tweet":
         if "includes" in as_json.keys():
             if "tweets" in as_json["includes"].keys():
                 tweet_data = as_json["includes"]["tweets"][-1]
             else:
                 print(f"Could not find tweet data in json at {datetime.datetime.now()}:\n", as_json)
-    elif tweet_type == "reply":
+    elif tweet_type == "reply" or tweet_type == "replied tweet":
         if "includes" in as_json.keys():
             if "tweets" in as_json["includes"].keys():
                 tweet_data = as_json["includes"]["tweets"][0]
@@ -377,8 +377,8 @@ async def standard_tweet_info(
                             if "referenced_tweets" in tweet_data.keys():
                                 images = await get_missing_img(tweet_data["referenced_tweets"][0]["id"])
                             else:
-                                print("No referenced tweet found, using conversation id, tweet at:", datetime.datetime.now())
                                 images = await get_missing_img(tweet_data["conversation_id"])
+                                print(f"No referenced tweet found for replied tweet at:", datetime.datetime.now(), as_json)
                         else:
                             images = await get_missing_img(tweet_data["conversation_id"])
                 else:
