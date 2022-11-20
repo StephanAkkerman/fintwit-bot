@@ -42,6 +42,10 @@ class UW(commands.Cog):
         self.channel = get_channel(
             self.bot, config["LOOPS"]["UNUSUAL_WHALES"]["CHANNEL"]
         )
+        
+        self.overview_channel = get_channel(
+            self.bot, config["LOOPS"]["UNUSUAL_WHALES"]["OVERVIEW_CHANNEL"], config["CATEGORIES"]["OPTIONS"]
+        )
 
         self.alerts.start()
 
@@ -218,9 +222,9 @@ class UW(commands.Cog):
             )
             
             # Add the data to the database
-            #update_options_db(row['ticker_symbol'], row['expires_at'], option_type, row['strike_price'], row['volume'], emojis)
-            
-            #await self.options_overview()
+            update_options_db(row['ticker_symbol'], row['expires_at'], option_type, row['strike_price'], row['volume'], emojis)
+        
+            await self.options_overview()
             
     async def options_overview(self):
         
@@ -242,20 +246,47 @@ class UW(commands.Cog):
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
         
+        most_mentioned = util.vars.options_db['ticker'].value_counts().index[0]
+        
         e.add_field(name="Calls/Puts", value=f"{num_calls}/{num_puts}", inline=True)
         e.add_field(name="Bullish/Bearish", value=f"{num_bulls}/{num_bears}", inline=True)
+        e.add_field(name="Most Mentioned Ticker", value=most_mentioned, inline=True)
         
         # First show the top 10 bullish options, ranked by count and volume
         bullish = util.vars.options_db[util.vars.options_db["bull/'bear"] == '🐂']
-        
-        # TODO: make this a function
-        top20 = bullish['ticker'].value_counts().head(20)
-        
-        for ticker, count in top20:
-            pass
-
+        bull_counts, bull_options, bull_volumes = self.get_top20(bullish)
+                                    
         # Then show the top 10 bearish options
         bearish = util.vars.options_db[util.vars.options_db["bull/'bear"] == '🐻']
+        bear_counts, bear_options, bear_volumes = self.get_top20(bearish)
+        
+        e.add_field(name="Bullish", value=bull_counts, inline=True)
+        e.add_field(name="Options", value=bull_options, inline=True)
+        e.add_field(name="Volume", value=bull_volumes, inline=True)
+        
+        e.add_field(name="Bearish", value=bear_counts, inline=True)
+        e.add_field(name="Options", value=bear_options, inline=True)
+        e.add_field(name="Volume", value=bear_volumes, inline=True)
+        
+        await self.overview_channel.purge(limit=1)
+        await self.overview_channel.send(embed=e)
+        
+    def get_top20(df):
+        df['occur'] = df.groupby('ticker')['ticker'].transform(pd.Series.value_counts)
+        
+        # Sort by occur and volume
+        top20 = df.sort_values(by=['occur', 'volume'], ascending=False).head(20)
+        
+        counts = []
+        options = []
+        volumes = []
+        
+        for _, row in top20.iterrows():
+            counts.append(row['occur'])
+            options.append(f"${row['ticker']} {row['expiration']} {row['option_type']} ${row['strike_price']}")
+            volumes.append(row['volume'])
+            
+        return counts, options, volumes
             
 def update_options_db(ticker, expiration, option_type, strike, volume, emojis):
     
