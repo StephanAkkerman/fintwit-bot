@@ -17,7 +17,10 @@ import util.vars
 from util.ticker_classifier import classify_ticker, get_financials
 from util.sentiment_analyis import add_sentiment
 from util.vars import filter_dict
-from util.db import merge_and_update, remove_old_rows
+from util.db import merge_and_update, remove_old_rows, update_tweet_db
+from cogs.loops.overview import Overview
+
+tweet_overview = None
 
 async def make_tweet_embed(
         text: str,
@@ -59,8 +62,9 @@ async def make_tweet_embed(
     -------
     None
     """
-    category = sentiment = None
-    categories = base_symbols = []
+    
+    category = None
+    base_symbols = []
     
     # Ensure the tickers are unique
     symbols = get_clean_symbols(tickers, hashtags)[:24]
@@ -69,11 +73,11 @@ async def make_tweet_embed(
 
     # Max 25 fields
     if symbols:
-        e, category, sentiment, base_symbols, categories = await add_financials(
+        e, category, base_symbols = await add_financials(
             e, symbols, tickers, text, user, bot
         )
         
-    return e, category, sentiment, base_symbols, categories
+    return e, category, base_symbols
     
 def make_embed(user, symbols, retweeted_user, url, text, profile_pic, images) -> discord.Embed:
     # Set the properties of the embed
@@ -119,7 +123,7 @@ async def add_financials(
     text: str,
     user: str,
     bot: commands.Bot,
-) -> tuple[discord.Embed, str, str, List[str], List[str]]:
+) -> tuple[discord.Embed, str, List[str]]:
     """
     Adds the financial data to the embed and returns the corresponding category.
 
@@ -145,23 +149,19 @@ async def add_financials(
             The embed with the data added.
         str
             The category of the tweet.
-        str
-            The sentiment of the tweet.
         List[str]
             The base symbols of the tickers.
-        List[str]
-            The category of each ticker.
     """
+    global tweet_overview
 
     # In case multiple tickers get send
-    crypto = 0
-    stocks = 0
-    forex = 0
-
+    crypto = stocks = forex = 0
+    
     base_symbols = []
     categories = []
     do_last = []
     classified_tickers = []
+    changes = []
     
     if not util.vars.classified_tickers.empty:
         # Drop tickers older than 3 days
@@ -236,6 +236,11 @@ async def add_financials(
         
         # Add to base symbol list to prevent duplicates
         base_symbols.append(base_symbol)
+        
+        if type(change) == list:
+            changes.append(change[-1])
+        else:
+            changes.append(change)
 
         # Determine if this is a crypto or stock
         if website:
@@ -256,7 +261,6 @@ async def add_financials(
             # Default category is crypto
             categories.append("crypto")
 
-        
         # If there is no TA for a symbol, add it at the end of the embed
         if four_h_ta is None:
             do_last.append((title, change, price, website))
@@ -288,9 +292,22 @@ async def add_financials(
         category = None
     else:
         category = ("crypto", "stocks", "forex")[np.argmax([crypto, stocks, forex])]
+        
+    # If there are base symbols, add them to the database
+    # Also post the overview of mentioned tickers
+    if base_symbols:
+        print(changes)
+        update_tweet_db(base_symbols, user, prediction, categories, changes)
+        
+        if not tweet_overview:
+            tweet_overview = Overview(bot)
+        
+        await tweet_overview.overview(
+            category, base_symbols, prediction
+        )
 
     # Return just the prediction without emoji
-    return e, category, prediction, base_symbols, categories
+    return e, category, base_symbols
 
 def get_clean_symbols(tickers, hashtags):
     

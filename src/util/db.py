@@ -172,7 +172,7 @@ def clean_tweets_db() -> None:
     util.vars.tweets_db = remove_old_rows(util.vars.tweets_db, 1)
 
 
-def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list) -> None:
+def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list, changes: list) -> None:
     """
     Updates thet tweet database variable using the info provided.
 
@@ -198,6 +198,7 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list) 
                 "user": user,
                 "sentiment": sentiment,
                 "category": categories[i],
+                "change": changes[i]
             }
         )
 

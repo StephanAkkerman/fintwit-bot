@@ -22,8 +22,6 @@ from util.vars import config, bearer_token, get_json_data
 from util.disc_util import get_channel, get_tagged_users, get_webhook
 from util.tweet_embed import make_tweet_embed
 from util.tweet_decoder import decode_tweet
-from util.db import update_tweet_db
-from cogs.loops.overview import Overview
 
 async def get_following_ids() -> None:
     """
@@ -245,8 +243,6 @@ class Streamer(AsyncStreamingClient):
         # Get all text channels
         self.all_txt_channels.start()
 
-        self.tweet_overview = Overview(self.bot)
-
     @loop(minutes=60)
     async def all_txt_channels(self) -> None:
         """
@@ -315,58 +311,13 @@ class Streamer(AsyncStreamingClient):
         if formatted_tweet == None:
             return
         else:
-            await self.post_tweet(*formatted_tweet)
-
-    async def post_tweet(
-        self,
-        text: str,
-        user: str,
-        profile_pic: str,
-        url: str,
-        images: List[str],
-        tickers: List[str],
-        hashtags: List[str],
-        retweeted_user: str,
-    ) -> None:
-        """
-        Pre-processing the tweet data before uploading it to the Discord channels.
-        This function creates the embed object and tags the user after it is correctly uploaded.
-
-        Parameters
-        ----------
-            text : str
-                The text of the tweet.
-            user : str
-                The user that posted this tweet.
-            profile_pic : str
-                The url to the profile pic of the user.
-            url : str
-                The url to the tweet.
-            images : list
-                The images contained in this tweet.
-            tickers : list
-                The tickers contained in this tweet (i.e. $BTC).
-            hashtags : list
-                The hashtags contained in this tweet.
-            retweeted_user : str
-                The user that was retweeted by this tweet.
-
-        Returns
-        -------
-        None
-        """
-
-        e, category, sentiment, base_symbols, categories = await make_tweet_embed(text, user, profile_pic, url, images, tickers, hashtags, retweeted_user, self.bot)
-
-        # Upload the tweet to the Discord.
-        await self.upload_tweet(
-            e, category, images, user, base_symbols
-        )
-
-        if base_symbols:
-            update_tweet_db(base_symbols, user, sentiment, categories)
-            await self.tweet_overview.overview(
-                category, base_symbols, sentiment
+            text, user, profile_pic, url, images, tickers, hashtags, retweeted_user = formatted_tweet
+            
+            e, category, base_symbols = await make_tweet_embed(text, user, profile_pic, url, images, tickers, hashtags, retweeted_user, self.bot)
+           
+            # Upload the tweet to the Discord.
+            await self.upload_tweet(
+                e, category, images, user, base_symbols
             )
 
     async def upload_tweet(

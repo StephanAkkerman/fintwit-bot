@@ -98,6 +98,7 @@ class Overview:
 
             # Get the sentiment for the ticker
             sentiment = db.loc[db["ticker"] == ticker]["sentiment"].tolist()
+            change = db.loc[db["ticker"] == ticker]["change"].tolist()[0]
 
             # Convert sentiment into a single str, i.e. "6🐂 2🦆 2🐻"
             sentiment = dict(Counter(sentiment))
@@ -121,7 +122,7 @@ class Overview:
 
             if ticker in tickers:
                 # Make bold
-                ticker = f"**{ticker}**"
+                ticker = f"**{ticker} ({change})**"
                 count = f"**{count}**"
 
             # Add count, symbol, sentiment to embed lists

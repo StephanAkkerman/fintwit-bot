@@ -355,7 +355,7 @@ async def p2e_games():
         status = allItems_td[6].get_text('title') 
         social_24h_change = allItems_td[10].find_all('span')
         social_24h = social_24h_change[0].text
-        social_change = social_24h_change[1].text.replace('%', '')
+        social_change = social_24h_change[1].text.replace('%', '').replace(',', '')
         
         data['name'] = f"[{name}]({url})"
         data['status'] = status
