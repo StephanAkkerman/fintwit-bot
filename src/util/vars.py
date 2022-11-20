@@ -66,6 +66,7 @@ assets_db = None
 portfolio_db = None
 cg_db = None
 tweets_db = None
+options_db = None
 
 # These variables save the TradingView tickers
 stocks = None

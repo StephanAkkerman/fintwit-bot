@@ -34,6 +34,7 @@ class DB(commands.Cog):
         self.set_reddit_ids_db()
         self.set_ideas_ids_db()
         self.set_classified_tickers_db()
+        self.set_options_db()
 
     def set_portfolio_db(self):
         util.vars.portfolio_db = get_db("portfolio")
@@ -45,6 +46,9 @@ class DB(commands.Cog):
 
     def set_tweets_db(self):
         util.vars.tweets_db = get_db("tweets")
+        
+    def set_options_db(self):
+        util.vars.options_db = get_db("options")
 
     def set_reddit_ids_db(self):
         util.vars.reddit_ids = get_db("reddit_ids")
@@ -144,7 +148,7 @@ def merge_and_update(main_db : pd.DataFrame, new_data : pd.DataFrame, db_name : 
     update_db(merged, db_name)
     return merged
 
-def clean_tweets_db() -> None:
+def clean_old_db(db, type_dict : dict, days : int = 1) -> None:
     """
     Cleans the tweets database and returns it.
 
@@ -155,21 +159,13 @@ def clean_tweets_db() -> None:
     """
 
     # If the database is empty, do nothing and return
-    if util.vars.tweets_db.empty:
-        return util.vars.tweets_db
+    if db.empty:
+        return db
 
     # Set the types
-    util.vars.tweets_db = util.vars.tweets_db.astype(
-        {
-            "ticker": str,
-            "user": str,
-            "sentiment": str,
-            "category": str,
-            "timestamp": "datetime64[ns]",
-        }
-    )
+    db = db.astype(type_dict)
 
-    util.vars.tweets_db = remove_old_rows(util.vars.tweets_db, 1)
+    db = remove_old_rows(db, days)
 
 
 def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list, changes: list) -> None:
@@ -208,7 +204,15 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list, 
     # Add current time
     tweet_db["timestamp"] = datetime.datetime.now()
     
-    clean_tweets_db()
+    type_dict = {
+        "ticker": str,
+        "user": str,
+        "sentiment": str,
+        "category": str,
+        "timestamp": "datetime64[ns]",
+    }
+    
+    clean_old_db(util.vars.tweets_db, type_dict, 1)
     util.vars.tweets_db = merge_and_update(util.vars.tweets_db, tweet_db, "tweets")
 
 def get_db(database_name: str) -> pd.DataFrame:

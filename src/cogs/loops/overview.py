@@ -10,12 +10,13 @@ from discord.ext.tasks import loop
 # Local dependencies
 import util.vars
 from util.vars import config, get_json_data, bearer_token
-from util.disc_util import get_channel
+from util.disc_util import get_channel, get_guild
 
 
 class Overview:
     def __init__(self, bot):
         self.bot = bot
+        self.guild = get_guild()
         self.global_crypto = {}
         self.global_stocks = {}
 
@@ -134,7 +135,7 @@ class Overview:
         e = discord.Embed(
             title=f"Top {category.capitalize()} Mentions Of The Last 24 Hours",
             description="",
-            color=0x090844,
+            color=self.guild.self_role.color,
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
 

@@ -296,7 +296,6 @@ async def add_financials(
     # If there are base symbols, add them to the database
     # Also post the overview of mentioned tickers
     if base_symbols:
-        print(changes)
         update_tweet_db(base_symbols, user, prediction, categories, changes)
         
         if not tweet_overview:

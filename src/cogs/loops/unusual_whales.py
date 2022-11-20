@@ -13,10 +13,11 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
+import util.vars
 from util.vars import config, get_json_data
-from util.disc_util import get_channel, get_tagged_users
+from util.disc_util import get_channel, get_tagged_users, get_guild
 from util.afterhours import afterHours
-
+from util.db import clean_old_db, merge_and_update
 
 class UW(commands.Cog):
     """
@@ -36,6 +37,7 @@ class UW(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.emoji_dict = {}
+        self.guild = get_guild()
 
         self.channel = get_channel(
             self.bot, config["LOOPS"]["UNUSUAL_WHALES"]["CHANNEL"]
@@ -214,6 +216,82 @@ class UW(commands.Cog):
             await self.channel.send(
                 content=get_tagged_users([row["ticker_symbol"]]), embed=e
             )
+            
+            # Add the data to the database
+            #update_options_db(row['ticker_symbol'], row['expires_at'], option_type, row['strike_price'], row['volume'], emojis)
+            
+            #await self.options_overview()
+            
+    async def options_overview(self):
+        
+        if util.vars.options_db.empty:
+            return
+        
+        # Gather the data for the summary
+        num_calls = len(util.vars.options_db[util.vars.options_db['option_type'] == 'C'])
+        num_puts = len(util.vars.options_db[util.vars.options_db['option_type'] == 'P'])
+        
+        num_bears = len(util.vars.options_db[util.vars.options_db["bull/'bear"] == '🐻'])
+        num_bulls = len(util.vars.options_db[util.vars.options_db["bull/'bear"] == '🐂'])
+        
+        # Top row of the embed shows an summary of P/C ratio, Bullish/Bearish
+        e = discord.Embed(
+            title=f"Options Overview",
+            description="",
+            color=self.guild.self_role.color,
+            timestamp=datetime.datetime.now(datetime.timezone.utc),
+        )
+        
+        e.add_field(name="Calls/Puts", value=f"{num_calls}/{num_puts}", inline=True)
+        e.add_field(name="Bullish/Bearish", value=f"{num_bulls}/{num_bears}", inline=True)
+        
+        # First show the top 10 bullish options, ranked by count and volume
+        bullish = util.vars.options_db[util.vars.options_db["bull/'bear"] == '🐂']
+        
+        # TODO: make this a function
+        top20 = bullish['ticker'].value_counts().head(20)
+        
+        for ticker, count in top20:
+            pass
+
+        # Then show the top 10 bearish options
+        bearish = util.vars.options_db[util.vars.options_db["bull/'bear"] == '🐻']
+            
+def update_options_db(ticker, expiration, option_type, strike, volume, emojis):
+    
+    if '🐻' in emojis:
+        emoji = '🐻'
+    elif '🐂' in emojis:
+        emoji = '🐂'
+    
+    option_dict = {
+        "ticker": ticker,
+        "expiration": expiration,
+        "option_type": option_type,
+        "strike": strike,
+        "volume": volume,
+        "bull/'bear": emoji
+    }
+    
+    # Convert it to a dataframe
+    option_db = pd.DataFrame([option_dict])
+
+    # Add timestamp
+    option_db["timestamp"] = datetime.datetime.now()
+    
+    type_dict = {
+        "ticker": str,
+        "expiration": str,
+        "option_type": str,
+        "strike": float,
+        "bull/'bear": str,
+        "volume": int,
+        "timestamp": "datetime64[ns]"
+    }
+    
+    # Clean the old db
+    clean_old_db(util.vars.options_db, type_dict, 1)
+    util.vars.options_db = merge_and_update(util.vars.options_db, option_db, "options")
 
 
 def setup(bot: commands.Bot) -> None:
