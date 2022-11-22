@@ -5,3 +5,4 @@ config.yaml
 models/*
 data/*
 *.lnk
+yield.png

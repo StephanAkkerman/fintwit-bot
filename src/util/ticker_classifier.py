@@ -19,10 +19,7 @@ async def get_financials(ticker: str, website : str):
     elif "forex" in website:
         _, _, _, price, change, _ = await get_stock_info(ticker, "forex")
         four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "forex")
-        
-    if change == []:
-        change = "N/A"
-        
+                
     return price, change, four_h_ta, one_d_ta
     
 

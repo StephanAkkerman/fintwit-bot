@@ -339,15 +339,15 @@ async def p2e_games():
     html = await get_json_data(URL, text=True)
     soup = BeautifulSoup(html, 'html.parser')
     items = soup.find('table', class_='table table-bordered mainlist')
+    allItems = items.find_all('tr')
 
     p2e_games = []
 
     # Skip header + ad
     iterator = 2
-    for item in items.find_all('div', class_='dapp_profilepic dapp_profilepic_list'):
+    for iterator in range(2, 12):
         data = {}
-        
-        allItems = items.find_all('tr')
+            
         allItems_td = allItems[iterator].find_all('td')
         
         name = allItems_td[2].find('div', class_='dapp_name').find_next('span').text
@@ -355,17 +355,15 @@ async def p2e_games():
         status = allItems_td[6].get_text('title') 
         social_24h_change = allItems_td[10].find_all('span')
         social_24h = social_24h_change[0].text
-        social_change = social_24h_change[1].text.replace('%', '').replace(',', '')
+        if len(social_24h_change) > 1:
+            social_change = social_24h_change[1].text.replace('%', '').replace(',', '')
+        else:
+            social_change = 0
         
         data['name'] = f"[{name}]({url})"
         data['status'] = status
         data['social'] = f"{social_24h} ({format_change(float(social_change))})"
 
         p2e_games.append(data)
-
-        iterator += 1
-        
-        if iterator == 12:
-            break
         
     return pd.DataFrame(p2e_games)

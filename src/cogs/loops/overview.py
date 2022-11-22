@@ -16,7 +16,7 @@ from util.disc_util import get_channel, get_guild
 class Overview:
     def __init__(self, bot):
         self.bot = bot
-        self.guild = get_guild()
+        self.guild = get_guild(bot)
         self.global_crypto = {}
         self.global_stocks = {}
 

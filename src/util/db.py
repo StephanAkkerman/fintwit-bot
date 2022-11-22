@@ -209,6 +209,7 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list, 
         "user": str,
         "sentiment": str,
         "category": str,
+        "change": str,
         "timestamp": "datetime64[ns]",
     }
     
@@ -258,4 +259,7 @@ def update_db(db: pd.DataFrame, database_name: str) -> None:
     """
 
     db_loc = f"data/{database_name}.db"
-    db.to_sql(database_name, sqlite3.connect(db_loc), if_exists="replace", index=False)
+    try:
+        db.to_sql(database_name, sqlite3.connect(db_loc), if_exists="replace", index=False)
+    except Exception as e:
+        print(f"Error updating {database_name}.db: {e}.\nTried to update database:\n{db.to_string()}")

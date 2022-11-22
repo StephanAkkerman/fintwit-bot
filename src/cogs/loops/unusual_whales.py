@@ -4,9 +4,6 @@ import pandas as pd
 import time
 import inspect
 
-# > 3rd party dependencies
-import numpy as np
-
 # > Discord dependencies
 import discord
 from discord.ext import commands
@@ -18,6 +15,7 @@ from util.vars import config, get_json_data
 from util.disc_util import get_channel, get_tagged_users, get_guild
 from util.afterhours import afterHours
 from util.db import clean_old_db, merge_and_update
+from util.formatting import human_format
 
 class UW(commands.Cog):
     """
@@ -37,7 +35,7 @@ class UW(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.emoji_dict = {}
-        self.guild = get_guild()
+        self.guild = get_guild(bot)
 
         self.channel = get_channel(
             self.bot, config["LOOPS"]["UNUSUAL_WHALES"]["CHANNEL"]
@@ -46,54 +44,67 @@ class UW(commands.Cog):
         self.overview_channel = get_channel(
             self.bot, config["LOOPS"]["UNUSUAL_WHALES"]["OVERVIEW_CHANNEL"], config["CATEGORIES"]["OPTIONS"]
         )
-
-        self.alerts.start()
-
-    async def set_emojis(self) -> None:
-        """
-        This function gets and sets the emojis for the UW alerts.
-        It gets the emojis used by Unusual Whales and stores them in a dictionary.
-
-        Returns
-        -------
-        None
-        """
-
-        # Use https://phx.unusualwhales.com/api/tags/all to get the emojis
-
-        # Necessary header
-        headers = {
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36"
-        }
-
-        # Get the emojis and store them in emoji_dict
-        self.emoji_dict = await get_json_data(
-            "https://phx.unusualwhales.com/api/tags/all", headers
+        
+        self.volume_channel = get_channel(
+            self.bot, config["LOOPS"]["UNUSUAL_WHALES"]["VOLUME_CHANNEL"], config["CATEGORIES"]["OPTIONS"]
         )
 
-    async def UW_data(self) -> dict:
-        """
-        Get the alerts data of the last 5 minutes.
-
-        Returns
-        -------
-        dict
-            Dictionary object of the JSON data from the Unusual Whales API.
-        """
-
-        # start_date and expiry_start_data depends on how often the function is called
-        last_5_min = int((time.time() - (5 * 60)) * 1000)
-
-        # Check the last 5 minutes on the API
-        url = f"https://phx.unusualwhales.com/api/option_quotes?offset=0&sort=timestamp&search=&sector=&tag=&end_date=9999999999999&start_date={last_5_min}&expiry_start_date={last_5_min}&expiry_end_date=9999999999999&min_ask=0&max_ask=9999999999999&volume_direction=desc&expiry_direction=desc&alerted_direction=desc&oi_direction=desc&normal=true"
-
-        # Use the token in the header
+        self.alerts.start()
+        self.volume.start()
+   
+    @loop(minutes=15)
+    async def volume(self):
+        url = "https://phx.unusualwhales.com/api/stock_feed"
+        
         headers = {
-            "authorization": config["LOOPS"]["UNUSUAL_WHALES"]["TOKEN"],
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36",
         }
+        
+        data = await get_json_data(url, headers)
+        df = pd.DataFrame(data)
+        
+        if df.empty:
+            return
+        
+        # Get the timestamp convert to datetime and local time
+        df["alert_time"] = pd.to_datetime(df["timestamp"], utc=True)
 
-        return await get_json_data(url, headers)
+        # Filter df on last 15 minutes
+        df = df[df["alert_time"] > datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=15)]
+
+        if df.empty:
+            return
+
+        df["alert_time"] = df["alert_time"].dt.tz_convert(
+            datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
+        )
+        
+        # Format to string
+        df["alert_time"] = df["alert_time"].dt.strftime("%I:%M %p")            
+        
+        # Iterate over each row and post the alert
+        for _, row in df.iterrows():
+            e = discord.Embed(
+                title=f"${row['ticker_symbol']}",
+                url=f"https://unusualwhales.com/alerts/{row['ticker_symbol']}",
+                # Use inspect.cleandoc() to remove the indentation
+                description="",
+                color=self.guild.self_role.color,
+                timestamp=datetime.datetime.now(datetime.timezone.utc),
+            )
+
+            e.add_field(name="Volume", value="${human_format(float(row['volume']))}", inline=True)
+            e.add_field(name="Average 30d Volume", value=f"${human_format(float(row['avg_volume_last_30_days']))}", inline=True)
+            e.add_field(name="Volume Deviation", value=f"{round(float(row['volume_dev_from_norm']))}", inline=True)
+            e.add_field(name="Price", value=f"${row['bid_price']}", inline=True)
+
+            e.set_footer(
+                # Use the time the alert was created in the footer
+                text=f"Alerted at {row['alert_time']}",
+                icon_url="https://docs.unusualwhales.com/images/banner.png",
+            )
+        
+            await self.volume_channel.send(embed=e)
 
     @loop(minutes=5)
     async def alerts(self) -> None:
@@ -106,14 +117,30 @@ class UW(commands.Cog):
         """
 
         # Check if the market is open
-        if afterHours():
-           return
+        #if afterHours():
+        #   return
 
         # Get the emojis if not already done
         if self.emoji_dict == {}:
-            await self.set_emojis()
+            # Get the emojis and store them in emoji_dict
+            self.emoji_dict = await get_json_data(
+                "https://phx.unusualwhales.com/api/tags/all", {"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36"}
+            )   
+            
+        # start_date and expiry_start_data depends on how often the function is called
+        last_5_min = int((time.time() - (5 * 60)) * 1000)
+        
+        # Check the last 5 minutes on the API
+        url = f"https://phx.unusualwhales.com/api/option_quotes?offset=0&sort=timestamp&search=&sector=&tag=&end_date=9999999999999&start_date={last_5_min}&expiry_start_date={last_5_min}&expiry_end_date=9999999999999&min_ask=0&max_ask=9999999999999&volume_direction=desc&expiry_direction=desc&alerted_direction=desc&oi_direction=desc&normal=true"
 
-        df = pd.DataFrame(await self.UW_data())
+        # Use the token in the header
+        headers = {
+            "authorization": config["LOOPS"]["UNUSUAL_WHALES"]["TOKEN"],
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36",
+        }
+
+        data = await get_json_data(url, headers)
+        df = pd.DataFrame(data)
 
         if df.empty:
             return
@@ -235,8 +262,8 @@ class UW(commands.Cog):
         num_calls = len(util.vars.options_db[util.vars.options_db['option_type'] == 'C'])
         num_puts = len(util.vars.options_db[util.vars.options_db['option_type'] == 'P'])
         
-        num_bears = len(util.vars.options_db[util.vars.options_db["bull/'bear"] == '🐻'])
-        num_bulls = len(util.vars.options_db[util.vars.options_db["bull/'bear"] == '🐂'])
+        num_bears = len(util.vars.options_db[util.vars.options_db["bull/bear"] == 'bear'])
+        num_bulls = len(util.vars.options_db[util.vars.options_db["bull/bear"] == 'bull'])
         
         # Top row of the embed shows an summary of P/C ratio, Bullish/Bearish
         e = discord.Embed(
@@ -246,80 +273,83 @@ class UW(commands.Cog):
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
         
-        most_mentioned = util.vars.options_db['ticker'].value_counts().index[0]
+        most_mentioned = util.vars.options_db['ticker'].value_counts()
         
-        e.add_field(name="Calls/Puts", value=f"{num_calls}/{num_puts}", inline=True)
-        e.add_field(name="Bullish/Bearish", value=f"{num_bulls}/{num_bears}", inline=True)
-        e.add_field(name="Most Mentioned Ticker", value=most_mentioned, inline=True)
+        e.add_field(name="Calls - Puts", value=f"{num_calls} - {num_puts}", inline=True)
+        e.add_field(name="Bullish - Bearish", value=f"{num_bulls} - {num_bears}", inline=True)
+        e.add_field(name="Most Active Ticker", value=f"{most_mentioned.index[0]} ({most_mentioned.iloc[0]})", inline=True)
+        
+        # Sort by volume
+        util.vars.options_db["volume"] = util.vars.options_db["volume"].astype(int)
+        util.vars.options_db = util.vars.options_db.sort_values(by=['volume'], ascending=False)
         
         # First show the top 10 bullish options, ranked by count and volume
-        bullish = util.vars.options_db[util.vars.options_db["bull/'bear"] == '🐂']
-        bull_counts, bull_options, bull_volumes = self.get_top20(bullish)
+        bullish = util.vars.options_db[util.vars.options_db["bull/bear"] == 'bull']
                                     
         # Then show the top 10 bearish options
-        bearish = util.vars.options_db[util.vars.options_db["bull/'bear"] == '🐻']
-        bear_counts, bear_options, bear_volumes = self.get_top20(bearish)
+        bearish = util.vars.options_db[util.vars.options_db["bull/bear"] == 'bear']
         
-        e.add_field(name="Bullish", value=bull_counts, inline=True)
-        e.add_field(name="Options", value=bull_options, inline=True)
-        e.add_field(name="Volume", value=bull_volumes, inline=True)
+        if not bullish.empty:
+            bull_counts, bull_options, bull_volumes = self.get_top20(bullish)
+            e.add_field(name="Bullish", value="\n".join(bull_counts), inline=True)
+            e.add_field(name="Options", value="\n".join(bull_options), inline=True)
+            e.add_field(name="Volume", value="\n".join(bull_volumes), inline=True)
         
-        e.add_field(name="Bearish", value=bear_counts, inline=True)
-        e.add_field(name="Options", value=bear_options, inline=True)
-        e.add_field(name="Volume", value=bear_volumes, inline=True)
+        if not bearish.empty:
+            bear_counts, bear_options, bear_volumes = self.get_top20(bearish)
+            e.add_field(name="Bearish", value="\n".join(bear_counts), inline=True)
+            e.add_field(name="Options", value="\n".join(bear_options), inline=True)
+            e.add_field(name="Volume", value="\n".join(bear_volumes), inline=True)
         
         await self.overview_channel.purge(limit=1)
         await self.overview_channel.send(embed=e)
         
-    def get_top20(df):
-        df['occur'] = df.groupby('ticker')['ticker'].transform(pd.Series.value_counts)
-        
-        # Sort by occur and volume
-        top20 = df.sort_values(by=['occur', 'volume'], ascending=False).head(20)
-        
+    def get_top20(self, df):        
         counts = []
         options = []
         volumes = []
         
-        for _, row in top20.iterrows():
-            counts.append(row['occur'])
-            options.append(f"${row['ticker']} {row['expiration']} {row['option_type']} ${row['strike_price']}")
-            volumes.append(row['volume'])
+        for _, row in df.head(20).iterrows():
+            counts.append(f"${row['ticker']}")
+            options.append(f"{row['expiration']} {row['option_type']} ${row['strike_price']}")
+            volumes.append(str(row['volume']))
             
         return counts, options, volumes
             
 def update_options_db(ticker, expiration, option_type, strike, volume, emojis):
     
     if '🐻' in emojis:
-        emoji = '🐻'
+        emoji = 'bear'
     elif '🐂' in emojis:
-        emoji = '🐂'
+        emoji = 'bull'
+    else:
+        emoji = 'none'
     
     option_dict = {
         "ticker": ticker,
         "expiration": expiration,
         "option_type": option_type,
-        "strike": strike,
+        "strike_price": strike,
         "volume": volume,
-        "bull/'bear": emoji
+        "bull/bear": emoji
     }
     
     # Convert it to a dataframe
     option_db = pd.DataFrame([option_dict])
 
     # Add timestamp
-    option_db["timestamp"] = datetime.datetime.now()
+    option_db["timestamp"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     type_dict = {
-        "ticker": str,
-        "expiration": str,
-        "option_type": str,
-        "strike": float,
-        "bull/'bear": str,
-        "volume": int,
-        "timestamp": "datetime64[ns]"
+       "ticker": str,
+       "expiration": str,
+       "option_type": str,
+       "strike_price": float,
+       "volume": int,
+       "bull/bear": str,
+       "timestamp" : str,
     }
-    
+
     # Clean the old db
     clean_old_db(util.vars.options_db, type_dict, 1)
     util.vars.options_db = merge_and_update(util.vars.options_db, option_db, "options")

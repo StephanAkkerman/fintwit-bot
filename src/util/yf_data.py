@@ -109,6 +109,9 @@ async def get_stock_info(
                 # Return the important information
                 # Could also try 'volume' or 'volume24Hr' (is None if market is closed)
                 volume = stock_info.info["regularMarketVolume"] * price
+                
+                if changes == []:
+                    changes = "N/A"
 
                 return (
                     volume,
@@ -130,6 +133,6 @@ async def get_stock_info(
         website,
         exchange,
         price,
-        format_change(perc_change) if perc_change else None,
+        format_change(perc_change) if perc_change else "N/A",
         ticker,
     )
