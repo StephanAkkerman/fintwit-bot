@@ -11,7 +11,7 @@ from discord.ext.tasks import loop
 import util.vars
 from util.vars import config, get_json_data, bearer_token
 from util.disc_util import get_channel, get_guild
-
+from util.formatting import format_change
 
 class Overview:
     def __init__(self, bot):
@@ -100,6 +100,12 @@ class Overview:
             # Get the sentiment for the ticker
             sentiment = db.loc[db["ticker"] == ticker]["sentiment"].tolist()
             change = db.loc[db["ticker"] == ticker]["change"].tolist()[0]
+            change = change.replace("%", "").replace("+", "")
+            
+            try:
+                change = format_change(float(change))
+            except ValueError:
+                change = "N/A"
 
             # Convert sentiment into a single str, i.e. "6🐂 2🦆 2🐻"
             sentiment = dict(Counter(sentiment))

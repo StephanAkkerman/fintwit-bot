@@ -46,65 +46,21 @@ class UW(commands.Cog):
         )
         
         self.volume_channel = get_channel(
-            self.bot, config["LOOPS"]["UNUSUAL_WHALES"]["VOLUME_CHANNEL"], config["CATEGORIES"]["OPTIONS"]
+            self.bot, config["LOOPS"]["UNUSUAL_WHALES"]["VOLUME_CHANNEL"]
+        )
+        
+        self.spacs_channel = get_channel(
+            self.bot, config["LOOPS"]["UNUSUAL_WHALES"]["SPACS_CHANNEL"]
+        )
+        
+        self.shorts_channel = get_channel(
+            self.bot, config["LOOPS"]["UNUSUAL_WHALES"]["SHORTS_CHANNEL"]
         )
 
         self.alerts.start()
         self.volume.start()
-   
-    @loop(minutes=15)
-    async def volume(self):
-        url = "https://phx.unusualwhales.com/api/stock_feed"
-        
-        headers = {
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36",
-        }
-        
-        data = await get_json_data(url, headers)
-        df = pd.DataFrame(data)
-        
-        if df.empty:
-            return
-        
-        # Get the timestamp convert to datetime and local time
-        df["alert_time"] = pd.to_datetime(df["timestamp"], utc=True)
-
-        # Filter df on last 15 minutes
-        df = df[df["alert_time"] > datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=15)]
-
-        if df.empty:
-            return
-
-        df["alert_time"] = df["alert_time"].dt.tz_convert(
-            datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
-        )
-        
-        # Format to string
-        df["alert_time"] = df["alert_time"].dt.strftime("%I:%M %p")            
-        
-        # Iterate over each row and post the alert
-        for _, row in df.iterrows():
-            e = discord.Embed(
-                title=f"${row['ticker_symbol']}",
-                url=f"https://unusualwhales.com/alerts/{row['ticker_symbol']}",
-                # Use inspect.cleandoc() to remove the indentation
-                description="",
-                color=self.guild.self_role.color,
-                timestamp=datetime.datetime.now(datetime.timezone.utc),
-            )
-
-            e.add_field(name="Volume", value="${human_format(float(row['volume']))}", inline=True)
-            e.add_field(name="Average 30d Volume", value=f"${human_format(float(row['avg_volume_last_30_days']))}", inline=True)
-            e.add_field(name="Volume Deviation", value=f"{round(float(row['volume_dev_from_norm']))}", inline=True)
-            e.add_field(name="Price", value=f"${row['bid_price']}", inline=True)
-
-            e.set_footer(
-                # Use the time the alert was created in the footer
-                text=f"Alerted at {row['alert_time']}",
-                icon_url="https://docs.unusualwhales.com/images/banner.png",
-            )
-        
-            await self.volume_channel.send(embed=e)
+        self.spacs.start()
+        self.shorts.start()
 
     @loop(minutes=5)
     async def alerts(self) -> None:
@@ -315,6 +271,137 @@ class UW(commands.Cog):
             volumes.append(str(row['volume']))
             
         return counts, options, volumes
+    
+    async def get_UW_data(self, url):
+        headers = {
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36",
+        }
+        
+        data = await get_json_data(url, headers)
+        df = pd.DataFrame(data)
+        
+        if df.empty:
+            return
+        
+        # Get the timestamp convert to datetime and local time
+        df["alert_time"] = pd.to_datetime(df["timestamp"], utc=True)
+
+        # Filter df on last 15 minutes
+        df = df[df["alert_time"] > datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=15)]
+
+        if df.empty:
+            return
+
+        df["alert_time"] = df["alert_time"].dt.tz_convert(
+            datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
+        )
+        
+        # Format to string
+        df["alert_time"] = df["alert_time"].dt.strftime("%I:%M %p")            
+        
+        return df
+
+    def make_UW_embed(self, row):
+        e = discord.Embed(
+            title=f"${row['ticker_symbol']}",
+            url=f"https://unusualwhales.com/stock/{row['ticker_symbol']}",
+            description="",
+            color=self.guild.self_role.color,
+            timestamp=datetime.datetime.now(datetime.timezone.utc),
+        )
+
+        e.add_field(name="Volume", value=f"${human_format(float(row['volume']))}", inline=True)
+        e.add_field(name="Average 30d Volume", value=f"${human_format(float(row['avg_volume_last_30_days']))}", inline=True)
+        e.add_field(name="Volume Deviation", value=f"{round(float(row['volume_dev_from_norm']))}", inline=True)
+        e.add_field(name="Price", value=f"${row['bid_price']}", inline=True)
+
+        e.set_footer(
+            # Use the time the alert was created in the footer
+            text=f"Alerted at {row['alert_time']}",
+            icon_url="https://docs.unusualwhales.com/images/banner.png",
+        )
+        
+        return e
+
+    @loop(minutes=15)
+    async def volume(self):
+        url = "https://phx.unusualwhales.com/api/stock_feed"
+        df = await self.get_UW_data(url)
+        
+        if df:
+            # Iterate over each row and post the alert
+            for _, row in df.iterrows():
+                e = self.make_UW_embed(row)        
+                await self.volume_channel.send(embed=e)
+                
+    @loop(minutes=15)
+    async def spacs(self):
+        url = "https://phx.unusualwhales.com/api/warrant_alerts"        
+        df = await self.get_UW_data(url)
+        
+        if df:
+            # Iterate over each row and post the alert
+            for _, row in df.iterrows():
+                e = self.make_UW_embed(row)
+                await self.spacs_channel.send(embed=e)
+            
+    @loop(hours=24)
+    async def shorts(self):
+        url = "https://phx.unusualwhales.com/api/short_interest_low"
+        headers = {
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36",
+        }
+        
+        data = await get_json_data(url, headers)
+        df = pd.DataFrame(data["data"])
+        
+        if df.empty:
+            return
+        
+        # Cast to float
+        df["short_interest"] = df["short_interest"].astype(float)
+        
+        # Sort on short_interest
+        df = df.sort_values(by="short_interest", ascending=False)
+        df["float_shares"] = df["float_shares"].astype(float)
+        df["float_shares"] = df["float_shares"].apply(lambda x: human_format(x))
+        
+        df["outstanding"] = df["outstanding"].astype(float)
+        df["outstanding"] = df["outstanding"].apply(lambda x: human_format(x))
+        
+        df["short_interest"] = df["short_interest"].astype(str)
+        
+        # Combine both in 1 string
+        df["float - outstanding"] = df["float_shares"] + " - " + df["outstanding"]
+        
+        top20 = df.head(20)
+        
+        symbols = "\n".join(top20["symbol"].tolist())
+        float_oustanding = "\n".join(top20["float - outstanding"].tolist())
+        short_interest = "\n".join(top20["short_interest"].tolist())
+        
+        # Only show the top 20 as embed
+        e = discord.Embed(
+            title=f"Top Short Interest Reported",
+            url=f"https://unusualwhales.com/shorts",
+            description="",
+            color=self.guild.self_role.color,
+            timestamp=datetime.datetime.now(datetime.timezone.utc),
+        )
+        
+        e.set_footer(
+            # Use the time the alert was created in the footer
+            text="\u200b",
+            icon_url="https://docs.unusualwhales.com/images/banner.png",
+        )
+        
+        e.add_field(name="Symbol", value=symbols, inline=True)
+        e.add_field(name="Float - Outstanding", value=float_oustanding, inline=True)
+        e.add_field(name="Short Interest", value=short_interest, inline=True)
+        
+        await self.shorts_channel.purge(limit=1)
+        await self.shorts_channel.send(embed=e)
+        
             
 def update_options_db(ticker, expiration, option_type, strike, volume, emojis):
     

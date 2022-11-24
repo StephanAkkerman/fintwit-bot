@@ -163,9 +163,13 @@ def clean_old_db(db, type_dict : dict, days : int = 1) -> None:
         return db
 
     # Set the types
-    db = db.astype(type_dict)
-
-    db = remove_old_rows(db, days)
+    try:
+        db = db.astype(type_dict)
+        db = remove_old_rows(db, days)
+    except Exception as e:
+        print("Error in clean_old_db:", e)
+        print(db.to_string())
+        print("Using this type_dict:\n", type_dict)
 
 
 def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list, changes: list) -> None:
@@ -194,7 +198,7 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list, 
                 "user": user,
                 "sentiment": sentiment,
                 "category": categories[i],
-                "change": changes[i]
+                "change": changes[i][:-1] # Remove emoji at end
             }
         )
 
@@ -202,7 +206,7 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list, 
     tweet_db = pd.DataFrame(dict_list)
 
     # Add current time
-    tweet_db["timestamp"] = datetime.datetime.now()
+    tweet_db["timestamp"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     type_dict = {
         "ticker": str,
@@ -210,7 +214,7 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list, 
         "sentiment": str,
         "category": str,
         "change": str,
-        "timestamp": "datetime64[ns]",
+        "timestamp": str,
     }
     
     clean_old_db(util.vars.tweets_db, type_dict, 1)
