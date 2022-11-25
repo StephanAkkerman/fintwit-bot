@@ -5,11 +5,20 @@ from __future__ import annotations
 # > Third party libraries
 import discord
 from transformers import BertTokenizer, BertForSequenceClassification, pipeline
+import nltk
+import numpy as np
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+
 
 # Load model
-finbert = BertForSequenceClassification.from_pretrained('./models')
-tokenizer = BertTokenizer.from_pretrained("yiyanghkust/finbert-tone")
-nlp = pipeline("text-classification", model=finbert, tokenizer=tokenizer)
+try:
+    finbert = BertForSequenceClassification.from_pretrained('./models')
+    tokenizer = BertTokenizer.from_pretrained("yiyanghkust/finbert-tone")
+    nlp = pipeline("text-classification", model=finbert, tokenizer=tokenizer)
+    use_finbert = True
+except Exception as e:
+    use_finbert = False
+    print("Did not load premium model...")
 
 def classify_sentiment(text: str) -> tuple[str,str]:
     """
@@ -64,7 +73,27 @@ def add_sentiment(e : discord.Embed, text: str) -> tuple[discord.Embed, str]:
     """
     
     # Remove quote tweet formatting
-    prediction, emoji = classify_sentiment(text.split('\n\n> [@')[0])
+    if use_finbert:
+        prediction, emoji = classify_sentiment(text.split('\n\n> [@')[0])
+    else:
+        try:
+            analyzer = SentimentIntensityAnalyzer()
+            sentiment = analyzer.polarity_scores(text)
+        except LookupError:
+            # Download the NLTK packages
+            nltk.download("vader_lexicon")
+
+            # Try again
+            analyzer = SentimentIntensityAnalyzer()
+            sentiment = analyzer.polarity_scores(text)
+            
+        neg = sentiment['neg']
+        neu = sentiment['neu']
+        pos = sentiment['pos']
+            
+        # Pick the highest value
+        prediction = ['🐻 - Bearish', '🦆 - Neutral', '🐂 - Bullish'][np.argmax([neg, neu, pos])]
+        emoji = prediction[0]
     
     e.add_field(
         name="Sentiment",

@@ -6,3 +6,4 @@ models/*
 data/*
 *.lnk
 yield.png
+src/cogs/loops/option_alert.py

@@ -61,6 +61,10 @@ class NFTS(commands.Cog):
         await self.top_channel.purge(limit=2)
         
         for df, name in [(opensea_top, "Opensea"), (cmc_top, "CoinMarketCap")]:
+            if df.empty:
+                print("No top NFTs found for " + name)
+                return
+            
             if name == "Opensea":
                 url = "https://opensea.io/rankings"
                 color = 0x3685df
@@ -77,7 +81,7 @@ class NFTS(commands.Cog):
                 color=color,
                 timestamp=datetime.datetime.now(datetime.timezone.utc),
             )
-                        
+                              
             e.add_field(
                 name="NFT",
                 value="\n".join(df["symbol"].tolist()),
@@ -95,7 +99,7 @@ class NFTS(commands.Cog):
                 value="\n".join(df["volume"].astype(str).tolist()),
                 inline=True,
             )
-            
+                
             # Set empty text as footer, so we can see the icon
             e.set_footer(text="\u200b", icon_url=icon_url)
             
