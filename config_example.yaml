@@ -1,0 +1,239 @@
+DISCORD:
+  TOKEN: 
+  GUILD_NAME: FinTwit
+
+TWITTER: 
+  # Consumer Keys
+  CONSUMER_KEY: 
+  CONSUMER_SECRET: 
+
+  # Authentication tokens
+  BEARER_TOKEN: 
+  ACCESS_TOKEN_KEY: 
+  ACCESS_TOKEN_SECRET: 
+
+  # OAuth 2.0
+  CLIENT_ID: 
+  CLIENT_SECRET: 
+
+REDDIT:
+  USERNAME: 
+  PASSWORD: 
+
+  APP_NAME: 
+  PERSONAL_USE: 
+  SECRET: 
+
+CATEGORIES:
+  INFORMATION: ━━ 🔑 Information ━━
+  TWITTER: ━━━ 🐦Twitter ━━━
+  STOCKS: ━━━ 💵 Stocks ━━━
+  CRYPTO: ━━━ 🎰 Crypto ━━━
+  FOREX: ━━━ 💱 Forex ━━━
+  USERS: ━━━ 👨 Users ━━━
+  REDDIT: ━━━ 👽 Reddit ━━━
+  NFTS: ━━━ 🐒 NFTs ━━━
+  OPTIONS: ━━━🎯 Options ━━━
+
+###############
+###  LOOPS  ###
+###############
+LOOPS:
+
+  # The main function of this program
+  TIMELINE:
+    ENABLED: True
+    CHARTS_CHANNEL: 📈┃charts
+    TEXT_CHANNEL: 💬┃text
+
+    # The channels related to crypto
+    CRYPTO:
+      ENABLED: True
+
+    # The channels related to stocks
+    STOCKS:
+      ENABLED: True
+
+    FOREX:
+      ENABLED: True
+
+    # Tweets that contain images without financial info
+    IMAGES:
+      ENABLED: True
+      CHANNEL: 📷┃images
+
+    # Tweets that contain text without financial info
+    OTHER: 
+      ENABLED: True
+      CHANNEL: ❓┃other  
+
+    NEWS:
+      ENABLED: True
+      # https://twitter.com/DeItaone
+      # https://twitter.com/FirstSquawk
+      # https://twitter.com/EPSGUID
+      # https://twitter.com/eWhispers
+      # Make sure to follow these accounts to get the tweets
+      FOLLOWING: ["DeItaone", "FirstSquawk", "EPSGUID", "eWhispers"]
+      CHANNEL: 📰┃news
+
+      CRYPTO:
+        ENABLED: True
+        FOLLOWING: ["BrieflyCrypto"]
+
+  ASSETS:
+    ENABLED: True
+    CHANNEL_PREFIX: 🌟┃
+
+  EARNINGS_OVERVIEW:
+    ENABLED: True
+    CHANNEL: 📅┃earnings
+
+  EVENTS:
+    ENABLED: True
+    CHANNEL: 📣┃events
+
+  FUNDING:
+    ENABLED: True
+    CHANNEL: 🏦┃funding
+
+  GAINERS:
+    ENABLED: True
+    CHANNEL: 🚀┃gainers
+
+    CRYPTO:
+      ENABLED: True
+
+    STOCKS:
+      ENABLED: True
+      
+  IDEAS:
+    ENABLED: True
+    CHANNEL: 💡┃ideas
+
+    CRYPTO:
+      ENABLED: True
+
+    STOCKS:
+      ENABLED: True
+
+    FOREX:
+      ENABLED: True
+    
+  INDEX:
+    ENABLED: True
+    CHANNEL: 📊┃index
+
+    STOCKS:
+      ENABLED: True
+      
+    CRYPTO:
+      ENABLED: True
+
+    FOREX:
+      ENABLED: True
+
+  LIQUIDATIONS:
+    ENABLED: True
+    CHANNEL: 💸┃liquidations
+
+  LOSERS:
+    ENABLED: True
+    CHANNEL: 💩┃losers
+
+    CRYPTO:
+      ENABLED: True
+
+    STOCKS:
+      ENABLED: True
+
+  NEW_LISTINGS:
+    ENABLED: True
+    CHANNEL: 🆕┃listings
+
+  NFTS:
+    ENABLED: True
+    TOP: 🏆┃top
+    UPCOMING: 🌠┃upcoming
+    P2E: 🎮┃p2e
+
+  OVERVIEW:
+    ENABLED: True
+    CHANNEL: 🏆┃overview
+
+    STOCKS:
+      ENABLED: True
+      
+    CRYPTO:
+      ENABLED: True
+
+  REDDIT:
+    ENABLED: True
+
+    WALLSTREETBETS:
+      ENABLED: True
+      CHANNEL: 🤑┃wallstreetbets
+
+  STOCKTWITS:
+    ENABLED: True
+    CHANNEL: 🎤┃stocktwits
+
+  TRENDING:
+    ENABLED: True
+    CHANNEL: 🔥┃trending
+
+    CRYPTO:
+      ENABLED: True
+
+    STOCKS:
+      ENABLED: True
+      
+    NFTS:
+      ENABLED: True
+
+  TRADES:
+    ENABLED: True
+    CHANNEL: 💲┃trades
+      
+  OPTIONS:
+    ENABLED: True
+
+    ALERTS_CHANNEL: 🚨┃alerts
+    ALERTS_TOKEN: 
+    
+    OVERVIEW_CHANNEL: 🏆┃overview
+    VOLUME_CHANNEL: 💣┃volume
+    SPACS_CHANNEL: 💰┃spacs
+    SHORTS_CHANNEL: 📉┃shorts
+
+  YIELD:
+    ENABLED: True
+    CHANNEL: 🏢┃yield
+
+##################
+###  COMMANDS  ###
+##################
+
+COMMANDS:
+  ANALYZE: True
+  EARNINGS: True
+  FOLLOW: True
+  HELP: True
+  PORTFOLIO: True
+  SENTIMENT: True
+  STOCK: True
+
+#################
+### Listeners ###
+#################
+
+# Reports command usage in console
+LISTENERS:
+
+  # This allows people to highlight tweets
+  ON_RAW_REACTION_ADD:
+    ENABLED: True
+    CHANNEL: 💸┃highlights
+
+  ON_MEMBER_JOIN: 
+    ENABLED: True

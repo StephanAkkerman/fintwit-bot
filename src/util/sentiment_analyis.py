@@ -28,7 +28,6 @@ def classify_sentiment(text: str) -> tuple[str,str]:
     
     pred = nlp(text)[0]
     label = pred['label']
-    score = pred['score']
     
     if label == "Positive":
         label = "🐂 - Bullish"

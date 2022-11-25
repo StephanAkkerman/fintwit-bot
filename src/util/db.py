@@ -41,7 +41,8 @@ class DB(commands.Cog):
 
     def set_assets_db(self):
         assets_db = get_db("assets")
-        assets_db["id"] = assets_db["id"].astype(np.int64)
+        if not assets_db.empty:
+            assets_db["id"] = assets_db["id"].astype(np.int64)
         util.vars.assets_db = assets_db
 
     def set_tweets_db(self):

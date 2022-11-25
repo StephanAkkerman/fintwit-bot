@@ -46,7 +46,6 @@ async def get_best_guess(ticker: str, asset_type: str):
     if asset_type == "crypto" and ticker.endswith("BTC") and ticker != "BTC":
         get_TA = True
         ticker = ticker[:-3]
-        print(ticker)
 
     if asset_type == "crypto":
         (

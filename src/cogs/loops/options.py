@@ -17,7 +17,7 @@ from util.afterhours import afterHours
 from util.db import clean_old_db, merge_and_update
 from util.formatting import human_format
 
-class UW(commands.Cog):
+class Options(commands.Cog):
     """
     This class contains the cog for posting the latest Unusual Whales alerts.
     It can be enabled / disabled in the config under ["LOOPS"]["UNUSUAL_WHALES"].
@@ -37,27 +37,29 @@ class UW(commands.Cog):
         self.emoji_dict = {}
         self.guild = get_guild(bot)
 
-        self.channel = get_channel(
-            self.bot, config["LOOPS"]["UNUSUAL_WHALES"]["CHANNEL"]
-        )
-        
-        self.overview_channel = get_channel(
-            self.bot, config["LOOPS"]["UNUSUAL_WHALES"]["OVERVIEW_CHANNEL"], config["CATEGORIES"]["OPTIONS"]
-        )
+        if config["LOOPS"]["OPTIONS"]["ALERTS_TOKEN"]:
+            self.alerts_channel = get_channel(
+                self.bot, config["LOOPS"]["OPTIONS"]["ALERTS_CHANNEL"]
+            )
+            
+            self.overview_channel = get_channel(
+                self.bot, config["LOOPS"]["OPTIONS"]["OVERVIEW_CHANNEL"], config["CATEGORIES"]["OPTIONS"]
+            )
+            
+            self.alerts.start()
         
         self.volume_channel = get_channel(
-            self.bot, config["LOOPS"]["UNUSUAL_WHALES"]["VOLUME_CHANNEL"]
+            self.bot, config["LOOPS"]["OPTIONS"]["VOLUME_CHANNEL"]
         )
         
         self.spacs_channel = get_channel(
-            self.bot, config["LOOPS"]["UNUSUAL_WHALES"]["SPACS_CHANNEL"]
+            self.bot, config["LOOPS"]["OPTIONS"]["SPACS_CHANNEL"]
         )
         
         self.shorts_channel = get_channel(
-            self.bot, config["LOOPS"]["UNUSUAL_WHALES"]["SHORTS_CHANNEL"]
+            self.bot, config["LOOPS"]["OPTIONS"]["SHORTS_CHANNEL"]
         )
-
-        self.alerts.start()
+       
         self.volume.start()
         self.spacs.start()
         self.shorts.start()
@@ -73,8 +75,8 @@ class UW(commands.Cog):
         """
 
         # Check if the market is open
-        #if afterHours():
-        #   return
+        if afterHours():
+           return
 
         # Get the emojis if not already done
         if self.emoji_dict == {}:
@@ -91,7 +93,7 @@ class UW(commands.Cog):
 
         # Use the token in the header
         headers = {
-            "authorization": config["LOOPS"]["UNUSUAL_WHALES"]["TOKEN"],
+            "authorization": config["LOOPS"]["UNUSUAL_WHALES"]["ALERTS_TOKEN"],
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36",
         }
 
@@ -200,7 +202,7 @@ class UW(commands.Cog):
                 icon_url="https://docs.unusualwhales.com/images/banner.png",
             )
 
-            await self.channel.send(
+            await self.alerts_channel.send(
                 content=get_tagged_users([row["ticker_symbol"]]), embed=e
             )
             
@@ -443,4 +445,4 @@ def update_options_db(ticker, expiration, option_type, strike, volume, emojis):
 
 
 def setup(bot: commands.Bot) -> None:
-    bot.add_cog(UW(bot))
+    bot.add_cog(Options(bot))

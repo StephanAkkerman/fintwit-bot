@@ -29,12 +29,6 @@ class NFTS(commands.Cog):
                 config["CATEGORIES"]["NFTS"],
             )
             
-            self.trending_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["NFTS"]["TRENDING"],
-                config["CATEGORIES"]["NFTS"],
-            )
-            
             self.upcoming_channel = get_channel(
                 self.bot,
                 config["LOOPS"]["NFTS"]["UPCOMING"],
@@ -48,9 +42,16 @@ class NFTS(commands.Cog):
             )
 
             self.top_nfts.start()
-            self.trending_nfts.start()
             self.upcoming_nfts.start()
             self.top_p2e.start()
+            
+        if config["LOOPS"]["TRENDING"]["NFTS"]:
+            self.trending_channel = get_channel(
+                self.bot,
+                config["LOOPS"]["TRENDING"]["CHANNEL"],
+                config["CATEGORIES"]["NFTS"],
+            )
+            self.trending_nfts.start()
             
     @loop(hours=1)
     async def top_nfts(self):
