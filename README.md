@@ -79,8 +79,9 @@ Or follow these written instructions:
 - Invite the bot to your server.
 
 Then you need to add the custom emojis to the server (can be skipped).
-- Download the custom emoji pictures [here](https://github.com/StephanAkkerman/Axie_Manager_Bot/tree/main/emojis).
+- Download the custom emoji pictures [here](https://github.com/StephanAkkerman/FinTwit_Bot/tree/main/emojis).
 - Add them to your server ([instructions](https://support.discord.com/hc/en-us/articles/360036479811-Custom-Emojis)).
+- You can add any exchange emoji, for instance FTX, as long as the image is supported by Discord and the name is the same name as the exchange.
 
 Last you need to fill in the important information in `config_example.yaml`, so the bot knows which server it should be connected to.
 - Open `config_example.yaml` 
