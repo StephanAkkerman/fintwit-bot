@@ -86,6 +86,16 @@ Last you need to fill in the important information in `config_example.yaml`, so 
 - Generate a bearer token through your apps Keys and Tokens tab under the [Twitter Developer Portal Projects & Apps page](https://developer.twitter.com/en/portal/projects-and-apps).
 - Similarly, the simplest way to authenticate as your developer account is to generate an access token and access token secret through your apps Keys and Tokens tab under the [Twitter Developer Portal Projects & Apps page](https://developer.twitter.com/en/portal/projects-and-apps). You’ll also need the app’s API / consumer key and secret that can be found on that page.
 
+Now you can fill in this information in the `TWITTER` section of `config_example.yaml`.
+- Paste the consumer key and consumer secret on lines 7 and 8.
+- Paste the bearer token on line 11.
+- Past the acces token key and access token secret on line 12 and 13.
+
+### Optional: Create Reddit App
+This is necessary to scrape information off of Reddit, if you do not plan to use this functionality you can skip this step. Otherwise you can find all the instructions [here](https://github.com/reddit-archive/reddit/wiki/OAuth2-Quick-Start-Example#first-steps).
+- Paste your Reddit username and password on lines 16 and 17.
+- Paste your app name, personal use token, and secret key on lines 19 to 21.
+
 ### Discord Category and Channel Creation
 Since there are multiple channels that are about the same topic, we need to put them in different categories so the bot knows where to find this channel. The categories are specified in the config file, feel free to change the names. Below you can find an example showing how we set up our Discord channel.
 
