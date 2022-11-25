@@ -13,8 +13,8 @@ The bot is able to distuingish multiple markets based on the tickers mentioned i
 To run this bot you need to host it yourself, meaning that you should have something that functions as a server. I use my Raspberry PI for this, but there are many other options available for hosting a Discord bot, such as virtual private servers provided by Google, Amazon, Microsoft, and more.
 
 However, if you do not want to host the bot yourself feel free to join our server. It comes with multiple **premium features** which are not part of this GitHub repository. These features include:
-- Sentiment analysis
-- Option alerts
+- Sentiment analysis on all Tweets, using a state-of-the-art analysis model.
+- Option alerts of unusual option activity.
 
 If you would like to join our server, you can do by [donating](https://github.com/sponsors/StephanAkkerman) to this project or help by contributing something useful.
 
@@ -168,7 +168,6 @@ This is an optional category, where the github channel tracks the commits of thi
 <details closed>
 <summary>━━━🎯 Options ━━━</summary>
 
-* 🚨┃alerts
 * 🏆┃overview
 * 💣┃volume
 * 💰┃spacs
