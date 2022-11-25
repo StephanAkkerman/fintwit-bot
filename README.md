@@ -86,9 +86,109 @@ Last you need to fill in the important information in `config_example.yaml`, so 
 - Similarly, the simplest way to authenticate as your developer account is to generate an access token and access token secret through your apps Keys and Tokens tab under the [Twitter Developer Portal Projects & Apps page](https://developer.twitter.com/en/portal/projects-and-apps). You’ll also need the app’s API / consumer key and secret that can be found on that page.
 
 ### Discord Category and Channel Creation
-Since there are multiple channels that are about the same topic, we need to put them in different categories so the bot knows where to find this channel. The categories are specified in the config file, feel free to change the names. Below you can find images showing how we set up our Discord channel.
-![example1](https://github.com/StephanAkkerman/Axie_Manager_Bot/blob/main/img/server_example1.png)
-![example2](https://github.com/StephanAkkerman/Axie_Manager_Bot/blob/main/img/server_example2.png)
+Since there are multiple channels that are about the same topic, we need to put them in different categories so the bot knows where to find this channel. The categories are specified in the config file, feel free to change the names. Below you can find an example showing how we set up our Discord channel.
+
+#### Example of Discord Categories and Channels
+<details closed>
+<summary>━━ 🔑 Information ━━</summary>
+
+This is an optional category, where the github channel tracks the commits of this repo using the [GitHub webhook for Discord](https://gist.github.com/jagrosh/5b1761213e33fc5b54ec7f6379034a22).
+* 🌐┃general
+* 💻┃github
+* ⌨┃commands
+
+</details>
+<details closed>
+<summary>━━━ 🐦Twitter ━━━</summary>
+
+* 📰┃news
+* 📷┃images
+* ❓┃other
+* 💸┃highlights
+
+</details>
+<details closed>
+<summary>━━━ 🎰 Crypto ━━━</summary>
+
+* 📈┃charts
+* 💬┃text
+* 📊┃index
+* 💡┃ideas
+* 🔥┃trending
+* 🚀┃gainers
+* 💩┃losers
+* 🏦┃funding
+* 🆕┃listings
+* 📰┃news
+* 💸┃liquidations
+* 🏆┃overview
+
+</details>
+<details closed>
+<summary>━━━ 🐒 NFTs ━━━</summary>
+
+* 🏆┃top
+* 🔥┃trending
+* 🌠┃upcoming
+* 🎮┃p2e
+
+</details>
+<details closed>
+<summary>━━━ 💵 Stocks ━━━</summary>
+
+* 📈┃charts
+* 💬┃text
+* 📊┃index
+* 💡┃ideas
+* 🔥┃trending
+* 🚀┃gainers
+* 💩┃losers
+* 📅┃earnings
+* 🎤┃stocktwits
+* 🏆┃overview
+
+</details>
+<details closed>
+<summary>━━━🎯 Options ━━━</summary>
+
+* 🚨┃alerts
+* 🏆┃overview
+* 💣┃volume
+* 💰┃spacs
+* 📉┃shorts
+
+</details>
+<details closed>
+<summary>━━━ 💱 Forex ━━━</summary>
+
+* 📈┃charts
+* 💬┃text
+* 📊┃index
+* 📣┃events
+* 🏢┃yield
+
+</details>
+<details closed>
+<summary>━━━ 👨 Users ━━━</summary>
+
+* 💲┃trades
+
+</details>
+<details closed>
+<summary>━━━ 👽 Reddit ━━━</summary>
+
+* 🤑┃wallstreetbets
+
+</details>
+<details closed>
+<summary>━ Selected Traders━</summary>
+
+This is also optional, but these are one of my favorite traders on Twitter.
+* 🐺┃hsakatrades
+* 🦁┃anbessa100
+* 🔫┃cryptobullet1
+
+</details>
 
 ## Contributors
 ![https://github.com/StephanAkkerman/FinTwit_Bot/graphs/contributors](https://contributors-img.firebaseapp.com/image?repo=StephanAkkerman/FinTwit_Bot)
