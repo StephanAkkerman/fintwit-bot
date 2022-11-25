@@ -12,6 +12,12 @@ The bot is able to distuingish multiple markets based on the tickers mentioned i
 ## Important
 To run this bot you need to host it yourself, meaning that you should have something that functions as a server. I use my Raspberry PI for this, but there are many other options available for hosting a Discord bot, such as virtual private servers provided by Google, Amazon, Microsoft, and more.
 
+However, if you do not want to host the bot yourself feel free to join our server. It comes with multiple **premium features** which are not part of this GitHub repository. These features include:
+- Sentiment analysis
+- Option alerts
+
+If you would like to join our server, you can do by [donating](https://github.com/sponsors/StephanAkkerman) to this project or help by contributing something useful.
+
 ## Features
 This bot was made with configurability in mind, meaning that every feature listed below can be turned on or off, and be changed easily. If you do not want a feature, just turn it off, all automation and listeners works for your custom roles and channels, so be sure to check out the settings in config_example.yaml and change them to your liking!
 
