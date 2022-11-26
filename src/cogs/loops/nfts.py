@@ -178,6 +178,9 @@ class NFTS(commands.Cog):
     async def top_p2e(self):
         p2e = await p2e_games()
         
+        if p2e.empty:
+            return
+        
         url = 'https://playtoearn.net/blockchaingames/All-Blockchain/All-Genre/All-Status/All-Device/NFT/nft-crypto-PlayToEarn/nft-required-FreeToPlay'
 
         e = discord.Embed(
@@ -344,6 +347,10 @@ async def p2e_games():
     html = await get_json_data(URL, text=True)
     soup = BeautifulSoup(html, 'html.parser')
     items = soup.find('table', class_='table table-bordered mainlist')
+    
+    if items is None:
+        return pd.DataFrame()
+    
     allItems = items.find_all('tr')
 
     p2e_games = []

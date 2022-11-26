@@ -313,7 +313,8 @@ class Streamer(AsyncStreamingClient):
             text, user, profile_pic, url, images, tickers, hashtags, retweeted_user = formatted_tweet
             
             e, category, base_symbols = await make_tweet_embed(text, user, profile_pic, url, images, tickers, hashtags, retweeted_user, self.bot)
-           
+            print(tickers, base_symbols, category)
+            
             # Upload the tweet to the Discord.
             await self.upload_tweet(
                 e, category, images, user, base_symbols
@@ -361,33 +362,33 @@ class Streamer(AsyncStreamingClient):
             user_channel = self.text_channels[self.text_channel_names.index(user.lower())]
 
         # News posters
-        elif user in config["LOOPS"]["TIMELINE"]["NEWS"]["FOLLOWING"]:
+        if user in config["LOOPS"]["TIMELINE"]["NEWS"]["FOLLOWING"]:
             channel = self.news_channel
-        elif user in config["LOOPS"]["TIMELINE"]["NEWS"]["CRYPTO"]["FOLLOWING"]:
+        if user in config["LOOPS"]["TIMELINE"]["NEWS"]["CRYPTO"]["FOLLOWING"]:
             channel = self.crypto_news_channel
 
         # Tweets without financial information
-        elif category == None and not images:
+        if category == None and not images:
             channel = self.other_channel
-        elif category == None and images:
+        if category == None and images:
             channel = self.images_channel
 
         # If we do not know what category it is, assume it is crypto
-        elif (category == "crypto" or category == "🤷‍♂️") and not images:
+        if (category == "crypto" or category == "🤷‍♂️") and not images:
             channel = self.crypto_text_channel
-        elif (category == "crypto" or category == "🤷‍♂️") and images:
+        if (category == "crypto" or category == "🤷‍♂️") and images:
             channel = self.crypto_charts_channel
 
         # Stocks tweet channels
-        elif category == "stocks" and not images:
+        if category == "stocks" and not images:
             channel = self.stocks_text_channel
-        elif category == "stocks" and images:
+        if category == "stocks" and images:
             channel = self.stocks_charts_channel
 
         # Forex tweet channels
-        elif category == "forex" and not images:
+        if category == "forex" and not images:
             channel = self.forex_text_channel
-        elif category == "forex" and images:
+        if category == "forex" and images:
             channel = self.forex_charts_channel
 
         try:
@@ -398,16 +399,12 @@ class Streamer(AsyncStreamingClient):
 
             # If there are multiple images to be sent, use a webhook to send them all at once
             if len(image_e) > 1:
-                webhook = await get_webhook(channel)
-
-                # Wait so we can use this message as reference
-                msg = await webhook.send(
-                    content=get_tagged_users(tickers),
-                    embeds=image_e,
-                    username="FinTwit",
-                    wait=True,
-                    avatar_url=self.bot.user.avatar.url,
-                )
+                msg = await self.make_and_send_webhook(channel, tickers, image_e)
+                msgs.append(msg)
+                
+                if user_channel:
+                    msg = await self.make_and_send_webhook(user_channel, tickers, image_e)
+                    msgs.append(msg)
 
             else:
                 # Use the normal send function
@@ -415,7 +412,7 @@ class Streamer(AsyncStreamingClient):
                 msgs.append(msg)
                 
                 if user_channel:
-                    msg2 = await user_channel.send(content=get_tagged_users(tickers), embed=e)
+                    msg = await user_channel.send(content=get_tagged_users(tickers), embed=e)
                     msgs.append(msg)
 
             # Do this for every message
@@ -427,6 +424,7 @@ class Streamer(AsyncStreamingClient):
                         await msg.add_reaction("🐂")
                         await msg.add_reaction("🦆")
                         await msg.add_reaction("🐻")
+                        
             except discord.DiscordServerError:
                 print("Could not add reaction to message")
 
@@ -436,3 +434,17 @@ class Streamer(AsyncStreamingClient):
         except Exception as error:
             print("Error posting tweet on timeline", error)
             print(traceback.format_exc())
+            
+    async def make_and_send_webhook(self, channel, tickers, image_e):
+        webhook = await get_webhook(channel)
+
+        # Wait so we can use this message as reference
+        msg = await webhook.send(
+            content=get_tagged_users(tickers),
+            embeds=image_e,
+            username="FinTwit",
+            wait=True,
+            avatar_url=self.bot.user.avatar.url,
+        )
+        
+        return msg

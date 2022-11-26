@@ -47,14 +47,10 @@ class Analyze(commands.Cog):
 
         soup = BeautifulSoup(req, "html.parser")
 
-        table_div = soup.find(
-            "div", {"class": "analyst-ratings__AggegrateTableContainer-ckk206-1 hBEyHZ"}
-        )
-        table = table_div.find("table")
+        tables = soup.find_all("tbody")
+        table = tables[1]
 
-        headers = []
-        for row in table.find_all("th"):
-            headers.append(row.text)
+        headers = ["Buy", "Overweight", "Hold", "Underweight", "Sell"]
 
         data = []
         for row in table.find_all("td"):

@@ -65,20 +65,20 @@ def get_coin_price(coin_dict: dict) -> float:
 
 
 def get_coin_exchanges(coin_dict: dict) -> tuple[str, list]:
-    base = "N/A"
+    base = None
     exchanges = []
     if "tickers" in coin_dict.keys():
         for info in coin_dict["tickers"]:
             if "base" in info.keys():
                 # Somtimes the base is a contract instead of ticker
-                if base == "N/A":
+                if base == None:
                     # > 7, because $KOMPETE
                     if not(info["base"].startswith("0X") or len(info["base"]) > 7):
                         base = info["base"]
 
             if "market" in info.keys():
                 exchanges.append(info["market"]["name"])
-
+                
     return base, exchanges
 
 
@@ -188,6 +188,11 @@ async def get_coin_info(
     if exchanges:
         exchanges = [x.lower().replace(" exchange", "") for x in exchanges]
         exchanges = list(set(exchanges))
+        
+    # Look into this!
+    if total_vol != 0 and base == None:
+        print("No base symbol found for:", ticker)
+        base = ticker
 
     # Return the information
     return (

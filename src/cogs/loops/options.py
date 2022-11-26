@@ -24,7 +24,7 @@ async def get_UW_data(url, overwrite_headers = None):
     df = pd.DataFrame(data)
     
     if df.empty:
-        return
+        return df
     
     # Get the timestamp convert to datetime and local time
     df["alert_time"] = pd.to_datetime(df["timestamp"], utc=True)
@@ -33,7 +33,7 @@ async def get_UW_data(url, overwrite_headers = None):
     df = df[df["alert_time"] > datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=15)]
 
     if df.empty:
-        return
+        return df
 
     df["alert_time"] = df["alert_time"].dt.tz_convert(
         datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
@@ -102,7 +102,7 @@ class Options(commands.Cog):
         url = "https://phx.unusualwhales.com/api/stock_feed"
         df = await get_UW_data(url)
         
-        if df:
+        if not df.empty:
             # Iterate over each row and post the alert
             for _, row in df.iterrows():
                 e = self.make_UW_embed(row)        
@@ -113,7 +113,7 @@ class Options(commands.Cog):
         url = "https://phx.unusualwhales.com/api/warrant_alerts"        
         df = await get_UW_data(url)
         
-        if df:
+        if not df.empty:
             # Iterate over each row and post the alert
             for _, row in df.iterrows():
                 e = self.make_UW_embed(row)
