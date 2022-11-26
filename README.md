@@ -25,7 +25,7 @@ This bot was made with configurability in mind, meaning that every feature liste
 The following commands can be found under `src/cogs/commands` where you view the Python code for it. These commands can be turned on or off, in the section `COMMANDS` in the config file.
 - `/anayze`: Shows an overview of analyst ratings of the specified stock based on [bezinga.com](https://www.benzinga.com).
 - `/earnings`: Shows the upcoming earnings data for the specified stock.
-- `/(un)follow`: Follows a Twitter user, the bot will then track this user's tweets. Important: This does require setting up Twitter V1 API. If you do not want to do this, then turn disable this command.
+- `/(un)follow`: Follows a Twitter user, the bot will then track this user's tweets. Important: This does require setting up Twitter V1 API. If you do not want to do this or cannot get access to the V1 API, then disable this command in the config.
 - `/help`: Custom help command, provides help for each command and will show a description for all available commands to you.
 - `/portfolio (add, remove, show)`: Add, remove, or show your portfolio settings. Currently only support Binance API keys for tracking your portfolio.
 - `/sentiment`: Shows the sentiment of the provided stock, based on [finviz.com](https://finviz.com) data. Uses NLTK's VADER to determine sentiment.
@@ -198,7 +198,7 @@ This is an optional category, where the github channel tracks the commits of thi
 
 </details>
 <details closed>
-<summary>━ Selected Traders━</summary>
+<summary>━━ Selected Traders ━━</summary>
 
 This is also optional, but these are one of my favorite traders on Twitter.
 * 🐺┃hsakatrades
