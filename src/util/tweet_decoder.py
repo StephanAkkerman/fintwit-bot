@@ -306,7 +306,11 @@ def get_tags(as_json: dict, keyword : str) -> List[str]:
     if "entities" in as_json.keys():
         if keyword in as_json["entities"].keys():
             for tag in as_json["entities"][keyword]:
-                tags.append(tag["tag"].upper())
+                tag = tag["tag"].upper()
+                
+                # Ignore #crypto
+                if tag != "CRYPTO":
+                    tags.append(tag)
 
     return tags
 

@@ -55,7 +55,7 @@ class Losers(commands.Cog):
             e = await format_embed(si.get_day_losers().head(10), "Losers", "yahoo")
             await self.channel.send(embed=e)
         except Exception as e:
-            print("Error getting or posting stock losers,error:", e)
+            print("Error getting or posting stock losers, error:", e)
 
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(Losers(bot))

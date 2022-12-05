@@ -301,6 +301,10 @@ class Streamer(AsyncStreamingClient):
         tweet_data = json.loads(raw_data)
 
         if "data" not in tweet_data.keys():
+            if "errors" in tweet_data.keys():
+                print(tweet_data["errors"])
+                return
+            
             # For instance if the stream was temporarily disconnected
             print("No ['data'] found in tweet", tweet_data)
             return
@@ -313,7 +317,6 @@ class Streamer(AsyncStreamingClient):
             text, user, profile_pic, url, images, tickers, hashtags, retweeted_user = formatted_tweet
             
             e, category, base_symbols = await make_tweet_embed(text, user, profile_pic, url, images, tickers, hashtags, retweeted_user, self.bot)
-            print(tickers, base_symbols, category)
             
             # Upload the tweet to the Discord.
             await self.upload_tweet(

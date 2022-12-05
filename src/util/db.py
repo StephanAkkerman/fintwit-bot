@@ -193,13 +193,21 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list, 
     dict_list = []
 
     for i in range(len(tickers)):
+        
+        # Remove emoji at end
+        change = changes[i]
+        if change is not None:
+            change = change[:-1]
+        else:
+            change = "None"
+            
         dict_list.append(
             {
                 "ticker": tickers[i],
                 "user": user,
                 "sentiment": sentiment,
                 "category": categories[i],
-                "change": changes[i][:-1] # Remove emoji at end
+                "change": change 
             }
         )
 
