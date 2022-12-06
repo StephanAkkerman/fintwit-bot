@@ -355,7 +355,6 @@ class Streamer(AsyncStreamingClient):
         """
         
         user_channel = None
-        msgs = []
 
         # Default channel
         channel = self.other_channel
@@ -364,11 +363,16 @@ class Streamer(AsyncStreamingClient):
         if user.lower() in self.text_channel_names:
             user_channel = self.text_channels[self.text_channel_names.index(user.lower())]
 
-        # News posters
+        # News posters (Do not post news in other channels)
         if user in config["LOOPS"]["TIMELINE"]["NEWS"]["FOLLOWING"]:
             channel = self.news_channel
+            await self.post_tweet(channel, e, images, tickers, user_channel, category)
+            return
+        
         if user in config["LOOPS"]["TIMELINE"]["NEWS"]["CRYPTO"]["FOLLOWING"]:
             channel = self.crypto_news_channel
+            await self.post_tweet(channel, e, images, tickers, user_channel, category)
+            return
 
         # Tweets without financial information
         if category == None and not images:
@@ -394,6 +398,25 @@ class Streamer(AsyncStreamingClient):
         if category == "forex" and images:
             channel = self.forex_charts_channel
 
+        await self.post_tweet(channel, e, images, tickers, user_channel, category)
+            
+    async def make_and_send_webhook(self, channel, tickers, image_e):
+        webhook = await get_webhook(channel)
+
+        # Wait so we can use this message as reference
+        msg = await webhook.send(
+            content=get_tagged_users(tickers),
+            embeds=image_e,
+            username="FinTwit",
+            wait=True,
+            avatar_url=self.bot.user.avatar.url,
+        )
+        
+        return msg
+    
+    async def post_tweet(self, channel, e, images, tickers, user_channel, category):
+        msgs = []
+        
         try:
             # Create a list of image embeds, max 10 images per post
             image_e = [e] + [
@@ -437,17 +460,3 @@ class Streamer(AsyncStreamingClient):
         except Exception as error:
             print("Error posting tweet on timeline", error)
             print(traceback.format_exc())
-            
-    async def make_and_send_webhook(self, channel, tickers, image_e):
-        webhook = await get_webhook(channel)
-
-        # Wait so we can use this message as reference
-        msg = await webhook.send(
-            content=get_tagged_users(tickers),
-            embeds=image_e,
-            username="FinTwit",
-            wait=True,
-            avatar_url=self.bot.user.avatar.url,
-        )
-        
-        return msg

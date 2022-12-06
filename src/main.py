@@ -16,6 +16,8 @@ from discord.ext import commands
 from util.vars import config
 from util.disc_util import get_guild, set_emoji
 
+# If getting the error about "command_prefix" run
+# `pip install git+https://github.com/Pycord-Development/pycord`
 bot = commands.Bot(intents=discord.Intents.all())
 
 
