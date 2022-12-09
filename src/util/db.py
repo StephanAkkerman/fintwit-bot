@@ -1,5 +1,6 @@
 # > Standard library
 import datetime
+from collections import defaultdict
 
 # > 3rd party dependencies
 import pandas as pd
@@ -17,7 +18,8 @@ import util.vars
 from util.tv_symbols import crypto_indices, stock_indices, all_forex_indices
 from util.tv_data import get_tv_ticker_data
 
-
+# Convert emoji to text
+convert_emoji = defaultdict(lambda: 'neutral', {'🐻': 'bear', '🐂': 'bull', '🦆': 'neutral'})
 class DB(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
@@ -149,7 +151,7 @@ def merge_and_update(main_db : pd.DataFrame, new_data : pd.DataFrame, db_name : 
     update_db(merged, db_name)
     return merged
 
-def clean_old_db(db, type_dict : dict, days : int = 1) -> None:
+def clean_old_db(db, days : int = 1) -> pd.DataFrame:
     """
     Cleans the tweets database and returns it.
 
@@ -165,12 +167,11 @@ def clean_old_db(db, type_dict : dict, days : int = 1) -> None:
 
     # Set the types
     try:
-        db = db.astype(type_dict)
         db = remove_old_rows(db, days)
+        return db
     except Exception as e:
         print("Error in clean_old_db:", e)
         print(db.to_string())
-        print("Using this type_dict:\n", type_dict)
 
 
 def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list, changes: list) -> None:
@@ -196,7 +197,7 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list, 
         
         # Remove emoji at end
         change = changes[i]
-        if change is not None:
+        if '%' in change:
             change = change[:-1]
         else:
             change = "None"
@@ -205,7 +206,7 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list, 
             {
                 "ticker": tickers[i],
                 "user": user,
-                "sentiment": sentiment,
+                "sentiment": convert_emoji[sentiment],
                 "category": categories[i],
                 "change": change 
             }
@@ -217,18 +218,9 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list, 
     # Add current time
     tweet_db["timestamp"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    type_dict = {
-        "ticker": str,
-        "user": str,
-        "sentiment": str,
-        "category": str,
-        "change": str,
-        "timestamp": str,
-    }
-    
-    clean_old_db(util.vars.tweets_db, type_dict, 1)
+    util.vars.tweets_db = clean_old_db(util.vars.tweets_db, 1)
     util.vars.tweets_db = merge_and_update(util.vars.tweets_db, tweet_db, "tweets")
-
+    
 def get_db(database_name: str) -> pd.DataFrame:
     """
     Get the database saved under data/<database_name>.pkl.
@@ -272,6 +264,10 @@ def update_db(db: pd.DataFrame, database_name: str) -> None:
     """
 
     db_loc = f"data/{database_name}.db"
+    
+    # Convert everything to string to prevent errors
+    db = db.applymap(str)
+    
     try:
         db.to_sql(database_name, sqlite3.connect(db_loc), if_exists="replace", index=False)
     except Exception as e:

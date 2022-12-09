@@ -245,7 +245,13 @@ async def get_opensea(url = ""):
         nft_dict = {}
         
         name = re.search(r"\"name\":\"(.*?)\"", row).group(1)
-        slug = re.search(r"\"slug\":\"(.*?)\"", row).group(1)
+        slug = re.search(r"\"slug\":\"(.*?)\"", row)
+        
+        if slug:
+            slug = slug.group(1)
+        else:
+            slug = ""
+            
         price_data = re.findall(r"\"unit\":\"(.*?)\"", row)
         change = re.search(r"\"volumeChange\":(.*?),", row)
         symbol = re.search(r"\"symbol\":\"(.*?)\"", row).group(1)

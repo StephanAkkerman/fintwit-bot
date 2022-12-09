@@ -12,7 +12,7 @@ from util.vars import config, get_json_data
 from util.disc_util import get_channel, get_guild
 from util.formatting import human_format
 
-async def get_UW_data(url, overwrite_headers = None):
+async def get_UW_data(url, overwrite_headers = None, last_15min = False):
     if not overwrite_headers:
         headers = {
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36",
@@ -30,10 +30,11 @@ async def get_UW_data(url, overwrite_headers = None):
     df["alert_time"] = pd.to_datetime(df["timestamp"], utc=True)
 
     # Filter df on last 15 minutes
-    df = df[df["alert_time"] > datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=15)]
+    if last_15min:
+        df = df[df["alert_time"] > datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=15)]
 
-    if df.empty:
-        return df
+        if df.empty:
+            return df
 
     df["alert_time"] = df["alert_time"].dt.tz_convert(
         datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
@@ -100,7 +101,7 @@ class Options(commands.Cog):
     @loop(minutes=15)
     async def volume(self):
         url = "https://phx.unusualwhales.com/api/stock_feed"
-        df = await get_UW_data(url)
+        df = await get_UW_data(url, last_15min=True)
         
         if not df.empty:
             # Iterate over each row and post the alert
@@ -111,7 +112,7 @@ class Options(commands.Cog):
     @loop(minutes=15)
     async def spacs(self):
         url = "https://phx.unusualwhales.com/api/warrant_alerts"        
-        df = await get_UW_data(url)
+        df = await get_UW_data(url, last_15min=True)
         
         if not df.empty:
             # Iterate over each row and post the alert
