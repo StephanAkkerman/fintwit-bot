@@ -41,7 +41,8 @@ async def get_following_ids() -> None:
             f"https://api.twitter.com/2/users/{id['data']['id']}/following?max_results=1000",
             headers={"Authorization": f"Bearer {bearer_token}"},
         )
-        return [user["id"] for user in following["data"]]
+        
+        return following["data"]
     except Exception as e:
         print("Failed to get following ids. Error: ", e)
 
@@ -69,7 +70,7 @@ class Timeline(commands.Cog):
         """
 
         # Set the following IDs, used in get_rules()
-        self.following_ids = await get_following_ids()
+        self.following = await get_following_ids()
 
         # These values are all imported from config.yaml
         printer = Streamer(self.bot)
@@ -132,16 +133,27 @@ class Timeline(commands.Cog):
         List[StreamRule]
             List of StreamRules to filter on.
         """
+        
+        # Max 25 rules
+        # Max 512 characters
 
         rules = []
         text_rule = ""
-        for user in self.following_ids:
-            if len(text_rule) + len(str(user)) + 2 < 512:
-                text_rule += f"from:{user} OR "
+        for user in self.following:
+            user_id = user["id"]
+            
+            if len(text_rule) + len(str(f"from:{user_id} OR ")) < 512:
+                text_rule += f"from:{user_id} OR "
             else:
                 # https://docs.tweepy.org/en/stable/streamrule.html#tweepy.StreamRule
-                rules.append(StreamRule(value=text_rule[:-4], tag="user"))
+                rules.append(StreamRule(value=text_rule[:-len(" OR ")], tag="user"))
+
+                # Reset the text_rule
                 text_rule = ""
+                
+        # Add the last rule
+        if len(text_rule) > 0: 
+            rules.append(StreamRule(value=text_rule[:-len(" OR ")], tag="user"))
 
         return rules
 

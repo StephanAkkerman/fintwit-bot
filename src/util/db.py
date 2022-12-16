@@ -197,8 +197,11 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list, 
         
         # Remove emoji at end
         change = changes[i]
-        if '%' in change:
-            change = change[:-1]
+        if change:
+            if '%' in change:
+                change = change[:-1]
+            else:
+                change = "None"
         else:
             change = "None"
             

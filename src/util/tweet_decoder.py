@@ -5,8 +5,6 @@ from typing import Optional, List
 import datetime
 from traceback import format_exc
 
-from pyparsing import str_type
-
 # Local dependencies
 from util.vars import  get_json_data, bearer_token
 
@@ -49,7 +47,6 @@ async def decode_tweet(
     """
 
     #print(as_json)
-
     (
         text,
         tickers,
@@ -76,7 +73,7 @@ async def decode_tweet(
             text,
             user,
             profile_pic,
-            f"https://twitter.com/{as_json['includes']['users'][0]['username']}/status/{as_json['data']['id']}",
+            f"https://twitter.com/{user}/status/{as_json['data']['id']}",
             images,
             tickers,
             hashtags,

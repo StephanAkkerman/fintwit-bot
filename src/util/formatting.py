@@ -91,7 +91,7 @@ def format_embed_length(data: list) -> list:
 
 
 # Used in gainers, losers loops
-async def format_embed(df: pd.DataFrame, type: str, source: str) -> discord.Embed:
+async def format_embed(og_df: pd.DataFrame, type: str, source: str) -> discord.Embed:
     """
     Formats the dataframe to an embed.
 
@@ -113,6 +113,8 @@ async def format_embed(df: pd.DataFrame, type: str, source: str) -> discord.Embe
     discord.Embed
         A Discord embed containing the formatted data
     """
+    
+    df = og_df.copy()
 
     if source == "binance":
         url = "https://www.binance.com/en/altcoins/gainers-losers"
