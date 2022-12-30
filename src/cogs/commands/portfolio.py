@@ -1,8 +1,6 @@
-##> Imports
-import traceback
-
 # > 3rd Party Dependencies
 import pandas as pd
+import ccxt
 
 # > Discord dependencies
 from discord.ext import commands
@@ -75,6 +73,7 @@ class Portfolio(commands.Cog):
         exchange = input[0]
         key = input[1]
         secret = input[2]
+        passphrase = None
 
         # Check if the exchange is supported
         if exchange.lower() not in ["binance", "kucoin"]:
@@ -90,11 +89,13 @@ class Portfolio(commands.Cog):
         if exchange.lower() == "binance":
             if len(input) != 3:
                 raise commands.BadArgument()
+            
+            exchange = ccxt.binance({'apiKey': key, 'secret': secret})
 
         new_data = pd.DataFrame(
             {
                 "id": ctx.author.id,
-                "user": ctx.message.author.name,
+                "user": ctx.author.name,
                 "exchange": exchange.lower(),
                 "key": key,
                 "secret": secret,
@@ -102,11 +103,17 @@ class Portfolio(commands.Cog):
             },
             index=[0],
         )
+        
+        # Before adding the portfolio, check if it already exists
+        
+        # Check if the API keys are valid
+        print(exchange.fetch_status())
 
         # Update the databse
         util.vars.portfolio_db = pd.concat(
             [util.vars.portfolio_db, new_data], ignore_index=True
         )
+        update_db(util.vars.portfolio_db, "portfolio")
 
         await ctx.respond(
             "Succesfully added your portfolio to the database!\nPlease ensure that you set the API for read-only access."
@@ -157,7 +164,7 @@ class Portfolio(commands.Cog):
         ctx: commands.Context,
     ) -> None:
         """
-        `!portfolio show` to show your portfolio(s) in our database.
+        `/portfolio show` to show your portfolio(s) in our database.
         """
 
         db = util.vars.portfolio_db
@@ -186,6 +193,7 @@ class Portfolio(commands.Cog):
                 "Please only use the `/portfolio` command in private messages for security reasons."
             )
         else:
+            print(error)
             await ctx.respond(f"An error has occurred. Please try again later.")
 
     @remove.error

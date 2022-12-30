@@ -1,18 +1,17 @@
 ##> Imports
 import asyncio
-import datetime
-import threading
 
 # > Discord dependencies
-import discord
 from discord.ext import commands
 
 # > 3rd Party Dependencies
 import pandas as pd
 import ccxt.pro as ccxt
+import ccxt
 
 # Local dependencies
-from util.db import get_db
+import util.vars
+from util.db import get_db, update_db
 from util.disc_util import get_channel, get_user
 from util.vars import config
 from util.trades_msg import on_msg
@@ -44,6 +43,11 @@ class Trades(commands.Cog):
             try:
                 msg = await exchange.watchMyTrades()
                 await on_msg(msg, exchange, self.trades_channel, row, user)
+            except ccxt.base.errors.AuthenticationError:
+                # Send message to user and delete from database
+                print(row)
+                break
+                
             except Exception as e:
                 # Maybe do: await exchange.close() and restart the socket
                 print(f"Error in trade websocket for {row['user']} and {exchange.id}: ", e)
@@ -68,29 +72,45 @@ class Trades(commands.Cog):
             kucoin = db.loc[db["exchange"] == "kucoin"]
 
             if not binance.empty:
-                for _, row in binance.iterrows():
+                for i, row in binance.iterrows():
+                    
                     # If using await, it will block other connections
                     exchange = ccxt.binance({'apiKey': row['key'], 'secret':row['secret']})
-                    exchange.streaming['keepAlive'] = 30000 * 2 # 2x more than original
+                    user = await get_user(self.bot, row['id'])
+                    
+                    # Make sure that the API keys are valid
+                    try:
+                        exchange.fetch_balance()
+                    except Exception:
+                        # Send message to user and delete from database
+                        await user.send(f"Your Binance API key is invalid, we have removed it from our database.")
+                        
+                        # Get the portfolio
+                        util.vars.portfolio_db.drop(i, inplace=True)
+                        
+                        update_db(util.vars.portfolio_db, "portfolio")
+                        
+                        print(f"Removed Binance API key for {row['user']}")
+                    
                     task = asyncio.create_task(
                         self.start_sockets(exchange, 
                                            row,
-                                           await get_user(self.bot, row['id']))
+                                           user)
                     )
                     tasks.append(task)
+                    exchanges.append(exchange)
                     print(f"Started Binance socket for {row['user']}")
 
             if not kucoin.empty:
                 for _, row in kucoin.iterrows():
-                    # keepAlive should be < 60000
                     exchange = ccxt.kucoin({'apiKey': row['key'], 'secret':row['secret'], 'password': row['passphrase']})
-                    exchange.streaming['keepAlive'] = 40000
                     task = asyncio.create_task(
                         self.start_sockets(exchange, 
                                            row,
                                            await get_user(self.bot, row['id']))
                     )
                     tasks.append(task)
+                    exchanges.append(exchange)
                     print(f"Started KuCoin socket for {row['user']}")
                     
         # After 24 hours close the exchange and start again

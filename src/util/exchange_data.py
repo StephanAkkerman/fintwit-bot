@@ -13,9 +13,13 @@ async def get_data(row) -> pd.DataFrame:
     elif row['exchange'] == 'kucoin':
         exchange_info['password'] = row['passphrase']
         exchange = ccxt.kucoin(exchange_info)
-        
+
     try:
         balances = await get_balance(exchange)
+        
+        if balances == "invalid API key":
+            await exchange.close()
+            return "invalid API key"
         
         # Create a list of dictionaries
         owned = []
@@ -53,8 +57,11 @@ async def get_data(row) -> pd.DataFrame:
 async def get_balance(exchange) -> dict:
     try:
         balances = await exchange.fetchBalance()
-        return {k: v for k, v in balances['total'].items() if v > 0}
-    except ccxt.RequestTimeout:
+        total_balance = balances['total']
+        if total_balance is None:
+            return "invalid API key"
+        return {k: v for k, v in total_balance.items() if v > 0}
+    except Exception:
         return {}
 
 async def get_usd_price(exchange, symbol) -> float:

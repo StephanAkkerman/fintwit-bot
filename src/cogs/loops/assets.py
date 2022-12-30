@@ -70,8 +70,10 @@ class Assets(commands.Cog):
             _, _, _, usd_val, change, _ = await get_coin_info(asset)
         else:
             _, _, _, usd_val, change, _ = await get_stock_info(asset)
-            usd_val = usd_val[0]
-            change = change[0]
+            if type(usd_val) == list:
+                usd_val = usd_val[0]
+            if type(change) == list:
+                change = change[0]
             
         return usd_val, change
 
@@ -106,7 +108,7 @@ class Assets(commands.Cog):
         if not portfolio_db.empty:    
             for _, row in portfolio_db.iterrows():
                 # Add this data to the assets.db database
-                exch_data = await get_data(row)
+                exch_data = await get_data(row)                   
 
                 assets_db = pd.concat([assets_db, exch_data], ignore_index=True) 
             
