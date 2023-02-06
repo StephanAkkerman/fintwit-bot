@@ -1,5 +1,5 @@
 yahoo-fin==0.8.9.1
-numpy==1.24.1
+numpy==1.24.2
 yfinance==0.2.9
 py-cord==2.3.2
 tweepy==4.12.1
