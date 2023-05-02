@@ -6,7 +6,7 @@ tweepy==4.14.0
 pycoingecko==3.1.0
 pandas==2.0.1
 requests==2.29.0
-discord==2.2.2
+discord==2.2.3
 PyYAML==6.0
 tradingview-ta==3.3.0
 aiohttp>=3.8.0
