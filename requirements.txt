@@ -4,7 +4,7 @@ yfinance==0.2.22
 py-cord==2.4.1
 tweepy==4.14.0
 pycoingecko==3.1.0
-pandas==2.0.2
+pandas==2.0.3
 requests==2.31.0
 discord==2.3.1
 PyYAML==6.0
