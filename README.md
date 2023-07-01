@@ -1,7 +1,7 @@
 # FinTwit_Bot
 [![Python 3.10.6](https://img.shields.io/badge/python-3.10.6-blue.svg)](https://www.python.org/downloads/release/python-3106/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![MIT License](https://img.shields.io/github/license/StephanAkkerman/Axie_Manager_Bot.svg?color=brightgreen)](https://opensource.org/licenses/MIT)
+[![MIT License](https://img.shields.io/github/license/StephanAkkerman/Fintwit_Bot.svg?color=brightgreen)](https://opensource.org/licenses/MIT)
 
 ---
 
