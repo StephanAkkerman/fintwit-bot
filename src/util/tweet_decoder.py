@@ -6,11 +6,11 @@ import datetime
 from traceback import format_exc
 
 # Local dependencies
-from util.vars import  get_json_data, bearer_token
+from util.vars import get_json_data, bearer_token
+
 
 async def decode_tweet(
     as_json: dict,
-    following_ids: List[str],
 ) -> Optional[
     tuple[str, str, str, str, List[str], List[str], List[str], Optional[str]]
 ]:
@@ -46,14 +46,14 @@ async def decode_tweet(
             The user that was retweeted.
     """
 
-    #print(as_json)
+    # print(as_json)
     (
         text,
         tickers,
         images,
         retweeted_user,
         hashtags,
-    ) = await get_tweet(as_json, following_ids)
+    ) = await get_tweet(as_json)
 
     # Post tweets that contain images
     if text == "" and images == []:
@@ -68,7 +68,7 @@ async def decode_tweet(
     try:
         # Get the user info
         user, profile_pic = get_user_info(as_json)
-        
+
         return (
             text,
             user,
@@ -87,6 +87,7 @@ async def decode_tweet(
         print(format_exc())
         return
 
+
 def get_user_info(as_json: dict) -> tuple[str, str]:
     # Get the user name
     if "includes" in as_json.keys():
@@ -99,7 +100,8 @@ def get_user_info(as_json: dict) -> tuple[str, str]:
 
     return user, profile_pic
 
-async def add_quote_tweet(quote_data : dict, retweeted_user : str):
+
+async def add_quote_tweet(quote_data: dict, retweeted_user: str):
     (
         user_text,
         user_ticker_list,
@@ -125,9 +127,10 @@ async def add_quote_tweet(quote_data : dict, retweeted_user : str):
 
     return text, ticker_list, images, hashtags
 
-def get_basic_tweet_info(as_json : dict) -> tuple[str, Optional[str]]:
+
+def get_basic_tweet_info(as_json: dict) -> tuple[str, Optional[str]]:
     retweeted_user = None
-    
+
     # Tweet type can be "retweeted", "quoted" or "replied_to"
     tweet_type = as_json["data"]["referenced_tweets"][0]["type"]
 
@@ -138,10 +141,11 @@ def get_basic_tweet_info(as_json : dict) -> tuple[str, Optional[str]]:
         else:
             # If the user retweeted themselves
             retweeted_user = as_json["includes"]["users"][0]["username"]
-            
+
     return tweet_type, retweeted_user
 
-async def add_replied_tweet(reply_data : dict):
+
+async def add_replied_tweet(reply_data: dict):
     """
     Basically the same as add_quote_tweet but then turned around.
 
@@ -169,22 +173,24 @@ async def add_replied_tweet(reply_data : dict):
 
     # Combine the information
     images = image + user_image
-    ticker_list = ticker_list + user_ticker_list 
+    ticker_list = ticker_list + user_ticker_list
     hashtags = hashtags + user_hashtags
-    
+
     # Add > to show it's a quote
     if text != "":
         text = "\n".join(map(lambda line: "> " + line, text.split("\n")))
-        
+
     replied_to = reply_data["includes"]["users"][0]["username"]
 
-    text = f"> [@{replied_to}](https://twitter.com/{replied_to}):\n{text}\n\n{user_text}"
+    text = (
+        f"> [@{replied_to}](https://twitter.com/{replied_to}):\n{text}\n\n{user_text}"
+    )
 
     return text, ticker_list, images, hashtags
 
+
 async def get_tweet(
-    as_json: dict,
-    following_ids: List[str]
+    as_json: dict, following_ids: List[str]
 ) -> tuple[str, List[str], List[str], Optional[str], List[str]]:
     """
     Returns the info of the tweet that was quote retweeted
@@ -208,18 +214,18 @@ async def get_tweet(
         List[str]
             The hashtags in the tweet.
     """
-    
+
     retweeted_user = None
 
     # Check for any referenced tweets
     if "referenced_tweets" in as_json["data"].keys():
         tweet_type, retweeted_user = get_basic_tweet_info(as_json)
-        
+
         # Could also add the tweet that it was replied to
         if tweet_type == "replied_to":
             author = as_json["data"]["author_id"]
             replied_to = as_json["data"]["in_reply_to_user_id"]
-            
+
             # Only post tweets that are replies to people we follow
             if author in following_ids and replied_to in following_ids:
                 text, ticker_list, images, hashtags = await add_replied_tweet(as_json)
@@ -246,9 +252,12 @@ async def get_tweet(
 
             # Standard retweet
             else:
-                (text, ticker_list, images, hashtags,) = await standard_tweet_info(
-                    as_json, "retweeted"
-                )
+                (
+                    text,
+                    ticker_list,
+                    images,
+                    hashtags,
+                ) = await standard_tweet_info(as_json, "retweeted")
 
         # Add the user text to it
         elif tweet_type == "quoted":
@@ -258,7 +267,7 @@ async def get_tweet(
             )
 
     # If there is no reference then it is a normal tweet
-    else:        
+    else:
         text, ticker_list, images, hashtags = await standard_tweet_info(
             as_json, "tweet"
         )
@@ -279,10 +288,11 @@ def get_tweet_img(as_json: dict) -> List[str]:
             for media in as_json["includes"]["media"]:
                 if media["type"] == "photo":
                     images.append(media["url"])
-                    
+
     return images
 
-def get_tags(as_json: dict, keyword : str) -> List[str]:
+
+def get_tags(as_json: dict, keyword: str) -> List[str]:
     """
     Gets the hashtags or cashtags from the tweet.
 
@@ -304,19 +314,21 @@ def get_tags(as_json: dict, keyword : str) -> List[str]:
         if keyword in as_json["entities"].keys():
             for tag in as_json["entities"][keyword]:
                 tag = tag["tag"].upper()
-                
+
                 # Ignore #crypto
                 if tag != "CRYPTO":
                     tags.append(tag)
 
     return tags
 
-async def get_missing_img(conversation_id : str) -> List[str]:
+
+async def get_missing_img(conversation_id: str) -> List[str]:
     image_data = await get_json_data(
         url=f"https://api.twitter.com/2/tweets/{conversation_id}?expansions=attachments.media_keys&media.fields=url",
         headers={"Authorization": f"Bearer {bearer_token}"},
     )
     return get_tweet_img(image_data)
+
 
 async def standard_tweet_info(
     as_json: dict, tweet_type: str = "tweet"
@@ -342,12 +354,12 @@ async def standard_tweet_info(
             The images in the tweet.
         List[str]
             The hashtags in the tweet.
-    """    
+    """
     # Check for images, do not do this for quoted tweet, otherwise images will get added twice
     images = []
     if tweet_type != "quoted tweet" and tweet_type != "replied tweet":
         images = get_tweet_img(as_json)
-                
+
     tweet_data = as_json["data"]
 
     # Unpack json data
@@ -356,14 +368,20 @@ async def standard_tweet_info(
             if "tweets" in as_json["includes"].keys():
                 tweet_data = as_json["includes"]["tweets"][-1]
             else:
-                print(f"Could not find tweet data in json at {datetime.datetime.now()}:\n", as_json)
+                print(
+                    f"Could not find tweet data in json at {datetime.datetime.now()}:\n",
+                    as_json,
+                )
     elif tweet_type == "reply" or tweet_type == "replied tweet":
         if "includes" in as_json.keys():
             if "tweets" in as_json["includes"].keys():
                 tweet_data = as_json["includes"]["tweets"][0]
             else:
-                print(f"Could not find tweet data in json at {datetime.datetime.now()}:\n", as_json)
-        
+                print(
+                    f"Could not find tweet data in json at {datetime.datetime.now()}:\n",
+                    as_json,
+                )
+
     text = tweet_data["text"]
 
     # Remove image urls and extend other urls
@@ -376,12 +394,22 @@ async def standard_tweet_info(
                     if images == []:
                         if tweet_type == "replied tweet":
                             if "referenced_tweets" in tweet_data.keys():
-                                images = await get_missing_img(tweet_data["referenced_tweets"][0]["id"])
+                                images = await get_missing_img(
+                                    tweet_data["referenced_tweets"][0]["id"]
+                                )
                             else:
-                                images = await get_missing_img(tweet_data["conversation_id"])
-                                print(f"No referenced tweet found for replied tweet at:", datetime.datetime.now(), as_json)
+                                images = await get_missing_img(
+                                    tweet_data["conversation_id"]
+                                )
+                                print(
+                                    f"No referenced tweet found for replied tweet at:",
+                                    datetime.datetime.now(),
+                                    as_json,
+                                )
                         else:
-                            images = await get_missing_img(tweet_data["conversation_id"])
+                            images = await get_missing_img(
+                                tweet_data["conversation_id"]
+                            )
                 else:
                     if tweet_type == "quoted" and url["expanded_url"].startswith(
                         "https://twitter.com"
@@ -390,7 +418,7 @@ async def standard_tweet_info(
                         text = text.replace(url["url"], "")
                     else:
                         text = text.replace(url["url"], url["expanded_url"])
-                        
+
     tickers = get_tags(tweet_data, "cashtags")
     hashtags = get_tags(tweet_data, "hashtags")
 

@@ -31,10 +31,10 @@ async def on_ready() -> None:
 
     guild = get_guild(bot)
     print(f"{bot.user} is connected to {guild.name} at {datetime.datetime.now()} \n")
-    
+
     await set_emoji(guild)
-    
-    
+
+
 def load_folder(foldername: str) -> None:
     """
     Loads all the cogs in the given folder.
@@ -96,7 +96,6 @@ def load_folder(foldername: str) -> None:
 
 
 if __name__ == "__main__":
-
     # Start by loading the database
     bot.load_extension("util.db")
 

@@ -67,6 +67,7 @@ portfolio_db = None
 cg_db = None
 tweets_db = None
 options_db = None
+latest_tweet_id = None
 
 # These variables save the TradingView tickers
 stocks = None
@@ -82,7 +83,10 @@ classified_tickers = pd.DataFrame()
 
 custom_emojis = {}
 
-async def get_json_data(url: str, headers: dict = None, text: bool = False) -> dict:
+
+async def get_json_data(
+    url: str, headers: dict = None, cookies: dict = None, text: bool = False
+) -> dict:
     """
     Asynchronous function to get JSON data from a website.
 
@@ -99,7 +103,7 @@ async def get_json_data(url: str, headers: dict = None, text: bool = False) -> d
         The response as a dict.
     """
 
-    async with aiohttp.ClientSession(headers=headers) as session:
+    async with aiohttp.ClientSession(headers=headers, cookies=cookies) as session:
         async with session.get(
             url,
         ) as r:
@@ -109,7 +113,7 @@ async def get_json_data(url: str, headers: dict = None, text: bool = False) -> d
                 else:
                     response = await r.json()
             except Exception as e:
-                print(f"Error with get request for {url}.", "Error:", e)
+                print(f"Error with get request for {url}.\nError:", e)
                 response = {}
 
             # Close the connection
