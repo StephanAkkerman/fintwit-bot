@@ -22,12 +22,12 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
             print(tweet)
 
     # Ignore Tweets that are
-    tweet_id = tweet["result"]["legacy"]["id_str"]
+    tweet_id = int(tweet["result"]["legacy"]["id_str"])
 
     # So we can use this function recursively
     if update_tweet_id:
         # Skip this tweet
-        if util.vars.latest_tweet_id == tweet_id:
+        if tweet_id <= util.vars.latest_tweet_id:
             return
         util.vars.latest_tweet_id = tweet_id
 
@@ -70,9 +70,6 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
 
     # Quote tweet
     if "quoted_status_result" in tweet["result"].keys():
-        # Remove t.co url from text
-        text = remove_twitter_url_at_end(text)
-
         (
             q_text,
             q_user_name,
@@ -97,9 +94,6 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
         retweeted_user = q_user_name
 
     if "retweeted_status_result" in tweet["result"]["legacy"].keys():
-        # Remove t.co url from text
-        text = remove_twitter_url_at_end(text)
-
         # Get retweeted_info
         (
             r_text,
@@ -118,9 +112,6 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
         retweeted_user = r_user_name
 
     if reply:
-        # Remove t.co url from text
-        text = remove_twitter_url_at_end(text)
-
         # Get reply info
         (
             r_text,
@@ -145,15 +136,25 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
         # Disable retweeted_user if reply
         retweeted_user = None
 
-        # Replace &amp; etc.
-        text = text.replace("&amp;", "&")
-        text = text.replace("&gt;", ">")
-        text = text.replace("&lt;", "<")
+    # Remove t.co url from text
+    text = remove_twitter_url_at_end(text)
 
-        # Convert media, tickers, hasthtags to sets to remove duplicates
-        media = list(set(media))
-        tickers = list(set(tickers))
-        hashtags = list(set(hashtags))
+    # Replace &amp; etc.
+    text = text.replace("&amp;", "&")
+    text = text.replace("&gt;", ">")
+    text = text.replace("&lt;", "<")
+
+    # Convert media, tickers, hasthtags to sets to remove duplicates
+    media = list(set(media))
+    tickers = list(set(tickers))
+    hashtags = list(set(hashtags))
+
+    # tickers and hashtags all uppercase
+    tickers = [ticker.upper() for ticker in tickers]
+    hashtags = [hashtag.upper() for hashtag in hashtags]
+
+    # Remove #crypto
+    hashtags = [hashtag for hashtag in hashtags if hashtag != "CRYPTO"]
 
     # Maybe create the Discord title here as well
     # title = ...
