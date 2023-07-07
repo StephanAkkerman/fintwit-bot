@@ -125,7 +125,8 @@ class Timeline(commands.Cog):
     @loop(seconds=5)
     async def get_latest_tweet(self):
         tweet = await get_tweet()
-        await self.on_data(tweet)
+        if tweet:
+            await self.on_data(tweet)
 
     async def on_data(self, tweet: str | bytes) -> None:
         """
