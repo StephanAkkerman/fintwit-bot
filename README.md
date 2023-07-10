@@ -65,10 +65,20 @@ The required packages to run this code can be found in the `requirements.txt` fi
 ```
 $ pip install -r requirements.txt 
 ```
-Alternatively, you can install the required packages manually like this:
+Alternatively, you can install the development version of this repository by running the following command.
 ```
 $ pip install <package>
 ```
+> **Warning**
+> Pycord can throw the following error when starting the bot:
+> ```
+> Traceback (most recent call last):
+> File "/FinTwit_Bot/src/main.py", line 21, in <module>
+>   bot = commands.Bot(intents=discord.Intents.all())
+> TypeError: __init__() missing 1 required positional argument: 'command_prefix'
+> ```
+> To fix this, try installing the latest version of Pycord using `pip install -U py-cord` or `pip install git+https://github.com/Pycord-Development/pycord.git`
+
 
 ### Making a Discord Bot
 This part is about creating the Discord bot, setting up the basics, and inviting it to your server. For the first part you can watch this [video (watch until 2:20)](https://www.youtube.com/watch?v=Pbq7vPsHDtc).
