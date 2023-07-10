@@ -128,15 +128,15 @@ class Timeline(commands.Cog):
         last_tweet = len(tweets) - 1
         print(f"Got {last_tweet} tweets")
 
-        for i, tweet in enumerate(reversed(tweets)):
+        # Loop from oldest to newest tweet
+        for tweet in reversed(tweets):
             tweet = tweet["content"]
+
+            # Skip if the tweet is not a timeline item
             if tweet["entryType"] != "TimelineTimelineItem":
                 continue
 
-            if i == last_tweet:
-                await self.on_data(tweet, update_tweet_id=True)
-            else:
-                await self.on_data(tweet)
+            await self.on_data(tweet, update_tweet_id=True)
 
     async def on_data(self, tweet: dict, update_tweet_id: bool = False) -> None:
         """
