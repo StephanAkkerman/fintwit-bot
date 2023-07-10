@@ -1,4 +1,5 @@
 import sys
+import json
 
 # > 3rd Party Dependencies
 import yaml
@@ -90,23 +91,18 @@ async def get_json_data(
         The response as a dict.
     """
 
-    async with aiohttp.ClientSession(headers=headers, cookies=cookies) as session:
-        async with session.get(
-            url,
-        ) as r:
-            try:
+    try:
+        async with aiohttp.ClientSession(headers=headers, cookies=cookies) as session:
+            async with session.get(url) as r:
                 if text:
-                    response = await r.text()
+                    return await r.text()
                 else:
-                    response = await r.json()
-            except Exception as e:
-                print(f"Error with get request for {url}.\nError:", e)
-                response = {}
-
-            # Close the connection
-            await session.close()
-
-            return response
+                    return await r.json()
+    except aiohttp.ClientError as e:
+        print(f"Error with get request for {url}.\nError: {e}")
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON from {url}.\nError: {e}")
+    return {}
 
 
 async def post_json_data(
@@ -130,15 +126,11 @@ async def post_json_data(
         The response as a dict.
     """
 
-    async with aiohttp.ClientSession(headers=headers) as session:
-        async with session.post(url, data=data) as r:
-            try:
-                response = await r.json(content_type=None)
-            except Exception as e:
-                print(f"Error with POST request for {url}.", "Error:", e)
-                response = {}
+    try:
+        async with aiohttp.ClientSession(headers=headers) as session:
+            async with session.post(url, data=data) as r:
+                return await r.json(content_type=None)
+    except Exception as e:
+        print(f"Error with POST request for {url}.", "Error:", e)
 
-            # Close the connection
-            await session.close()
-
-            return response
+    return {}

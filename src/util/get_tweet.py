@@ -2,6 +2,8 @@ import json
 
 from util.vars import config, get_json_data
 
+# Maybe improve this using params with variables and features
+# see https://github.com/HitomaruKonpaku/twspace-crawler/blob/7c98653f4915a8690491052e2a1415cc7beb74ab/src/api/api/twitter-graphql.api.ts#L213
 url = "https://twitter.com/i/api/graphql/g9l6dvixcXvObSkIE8Pajg/HomeLatestTimeline?variables=%7B%22count%22%3A40%2C%22cursor%22%3A%22DAABCgABF0rqRkTAJxEKAAIXSuo3TZYAAQgAAwAAAAEAAA%22%2C%22includePromotedContent%22%3Atrue%2C%22latestControlAvailable%22%3Atrue%2C%22requestContext%22%3A%22ptr%22%7D&features=%7B%22rweb_lists_timeline_redesign_enabled%22%3Atrue%2C%22responsive_web_graphql_exclude_directive_enabled%22%3Atrue%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22tweetypie_unmention_optimization_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Afalse%2C%22tweet_awards_web_tipping_enabled%22%3Afalse%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Atrue%2C%22responsive_web_media_download_video_enabled%22%3Afalse%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Afalse%7D"
 
 headers = {
@@ -28,14 +30,12 @@ headers = {
 
 cookies = {
     "_ga": config["TWITTER"]["COOKIES"]["_GA"],
-    #'_gid': gid,
     "g_state": '{"i_l":0}',
     "lang": "en",
     "guest_id": config["TWITTER"]["COOKIES"]["GUEST_ID"],
-    #'gt': gt,
     "kdt": config["TWITTER"]["COOKIES"]["KDT"],
     "auth_token": config["TWITTER"]["COOKIES"]["AUTH_TOKEN"],
-    "ct0": config["TWITTER"]["COOKIES"]["CT0"],
+    "ct0": config["TWITTER"]["HEADERS"]["X-CRSF-TOKEN"],
     "twid": config["TWITTER"]["COOKIES"]["TWID"],
     "guest_id_marketing": config["TWITTER"]["COOKIES"]["GUEST_ID"],
     "guest_id_ads": config["TWITTER"]["COOKIES"]["GUEST_ID"],
@@ -48,18 +48,16 @@ async def get_tweet():
         url,
         headers=headers,
         cookies=cookies,
-        text=True,
+        text=False,
     )
 
-    parsed_data = json.loads(result)
-
-    if "data" in parsed_data:
-        tweet = parsed_data["data"]["home"]["home_timeline_urt"]["instructions"][0][
+    if "data" in result:
+        tweet = result["data"]["home"]["home_timeline_urt"]["instructions"][0][
             "entries"
         ]
     else:
         print("Error: No data found in parsed_data")
-        print(parsed_data)
+        print(result)
 
         return
 
