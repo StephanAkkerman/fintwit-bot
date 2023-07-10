@@ -124,9 +124,7 @@ class Timeline(commands.Cog):
     @loop(minutes=5)
     async def get_latest_tweet(self):
         tweets = await get_tweet()
-
         last_tweet = len(tweets) - 1
-        print(f"\nGot {len(tweets)} tweets!\n")
 
         for i, tweet in enumerate(reversed(tweets)):
             tweet = tweet["content"]

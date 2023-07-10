@@ -64,7 +64,7 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
     text = tweet["legacy"]["full_text"]
 
     # Tweet url
-    tweet_url = f"https://twitter.com/user/status/{tweet['result']['legacy']['id_str']}"
+    tweet_url = f"https://twitter.com/user/status/{tweet_id}"
 
     # Tickers
     tickers = tweet["legacy"]["entities"]["symbols"]
