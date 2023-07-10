@@ -16,7 +16,6 @@ from discord.ext.tasks import loop
 from util.vars import config
 from util.disc_util import get_channel, get_tagged_users, get_webhook
 from util.tweet_embed import make_tweet_embed
-from util.tweet_decoder import decode_tweet
 from util.parse_tweet import parse_tweet
 from util.get_tweet import get_tweet
 
@@ -122,17 +121,25 @@ class Timeline(commands.Cog):
         self.text_channels = text_channel_list
         self.text_channel_names = text_channel_names
 
-    @loop(seconds=5)
+    @loop(minutes=5)
     async def get_latest_tweet(self):
-        tweet = await get_tweet()
-        if tweet:
-            await self.on_data(tweet)
+        tweets = await get_tweet()
 
-    async def on_data(self, tweet: str | bytes) -> None:
+        last_tweet = len(tweets) - 1
+        print(f"\nGot {len(tweets)} tweets!\n")
+
+        for i, tweet in enumerate(reversed(tweets)):
+            tweet = tweet["content"]
+            if tweet["entryType"] != "TimelineTimelineItem":
+                continue
+
+            if i == last_tweet:
+                await self.on_data(tweet, update_tweet_id=True)
+            else:
+                await self.on_data(tweet)
+
+    async def on_data(self, tweet: dict, update_tweet_id: bool = False) -> None:
         """
-        This method is called whenever data is received from the stream.
-        The name of this method cannot be changed, since it is called by the Tweepy stream automatically.
-
         Parameters
         ----------
         raw_data : str
@@ -143,20 +150,7 @@ class Timeline(commands.Cog):
         None
         """
 
-        # Convert the string json data to json object
-        # tweet_data = json.loads(raw_data)
-        #
-        # if "data" not in tweet_data.keys():
-        #    if "errors" in tweet_data.keys():
-        #        print(tweet_data["errors"])
-        #        return
-        #
-        #    # For instance if the stream was temporarily disconnected
-        #    print("No ['data'] found in tweet", tweet_data)
-        #    return
-        # else:
-        #    formatted_tweet = await decode_tweet(tweet_data)
-        formatted_tweet = parse_tweet(tweet, update_tweet_id=True)
+        formatted_tweet = parse_tweet(tweet, update_tweet_id=update_tweet_id)
 
         if formatted_tweet == None:
             return

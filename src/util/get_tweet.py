@@ -56,7 +56,7 @@ async def get_tweet():
     if "data" in parsed_data:
         tweet = parsed_data["data"]["home"]["home_timeline_urt"]["instructions"][0][
             "entries"
-        ][0]["content"]
+        ]
     else:
         print("Error: No data found in parsed_data")
         print(parsed_data)

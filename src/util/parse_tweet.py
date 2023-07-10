@@ -21,8 +21,16 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
         else:
             print(tweet)
 
-    # Ignore Tweets that are
-    tweet_id = int(tweet["result"]["legacy"]["id_str"])
+    tweet = tweet["result"]
+
+    # Ignore Tweets that are older than the latest tweet
+    if "legacy" not in tweet:
+        tweet_id = int(tweet["tweet"]["rest_id"])
+    else:
+        tweet_id = int(tweet["legacy"]["id_str"])
+
+    if "core" not in tweet:
+        tweet = tweet["tweet"]
 
     # So we can use this function recursively
     if update_tweet_id:
@@ -35,41 +43,41 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
     retweeted_user = None
 
     # Get user info
-    user_name = tweet["result"]["core"]["user_results"]["result"]["legacy"]["name"]
-    user_screen_name = tweet["result"]["core"]["user_results"]["result"]["legacy"][
+    user_name = tweet["core"]["user_results"]["result"]["legacy"]["name"]
+    user_screen_name = tweet["core"]["user_results"]["result"]["legacy"][
         "screen_name"
     ]  # The @username
-    user_img = tweet["result"]["core"]["user_results"]["result"]["legacy"][
+    user_img = tweet["core"]["user_results"]["result"]["legacy"][
         "profile_image_url_https"
     ]
 
     # Media
     media = []
-    if "extended_entities" in tweet["result"]["legacy"].keys():
-        if "media" in tweet["result"]["legacy"]["extended_entities"].keys():
+    if "extended_entities" in tweet["legacy"].keys():
+        if "media" in tweet["legacy"]["extended_entities"].keys():
             media = [
                 image["media_url_https"]
-                for image in tweet["result"]["legacy"]["extended_entities"]["media"]
+                for image in tweet["legacy"]["extended_entities"]["media"]
             ]
 
     # Text
-    text = tweet["result"]["legacy"]["full_text"]
+    text = tweet["legacy"]["full_text"]
 
     # Tweet url
     tweet_url = f"https://twitter.com/user/status/{tweet['result']['legacy']['id_str']}"
 
     # Tickers
-    tickers = tweet["result"]["legacy"]["entities"]["symbols"]
+    tickers = tweet["legacy"]["entities"]["symbols"]
     if tickers:
         tickers = [ticker["text"] for ticker in tickers]
 
     # Hashtags
-    hashtags = tweet["result"]["legacy"]["entities"]["hashtags"]
+    hashtags = tweet["legacy"]["entities"]["hashtags"]
     if hashtags:
         hashtags = [hashtag["text"] for hashtag in hashtags]
 
     # Quote tweet
-    if "quoted_status_result" in tweet["result"].keys():
+    if "quoted_status_result" in tweet.keys():
         (
             q_text,
             q_user_name,
@@ -80,7 +88,7 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
             q_tickers,
             q_hashtags,
             _,
-        ) = parse_tweet(tweet["result"]["quoted_status_result"])
+        ) = parse_tweet(tweet["quoted_status_result"])
 
         # Format the text to add the quoted tweet text
         q_text = "\n".join(map(lambda line: "> " + line, q_text.split("\n")))
@@ -93,7 +101,7 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
 
         retweeted_user = q_user_name
 
-    if "retweeted_status_result" in tweet["result"]["legacy"].keys():
+    if "retweeted_status_result" in tweet["legacy"].keys():
         # Get retweeted_info
         (
             r_text,
@@ -105,7 +113,7 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
             r_tickers,
             r_hashtags,
             _,
-        ) = parse_tweet(tweet["result"]["legacy"]["retweeted_status_result"])
+        ) = parse_tweet(tweet["legacy"]["retweeted_status_result"])
 
         # Overwrite text
         text = r_text

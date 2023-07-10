@@ -10,11 +10,12 @@ from discord.ext.tasks import loop
 
 # Local dependencies
 import util.vars
-from util.vars import config, get_json_data, bearer_token
+from util.vars import config, get_json_data
 from util.disc_util import get_channel, get_guild
 from util.formatting import format_change
 
 text_to_emoji = defaultdict(lambda: "🦆", {"bear": "🐻", "bull": "🐂", "neutral": "🦆"})
+
 
 class Overview:
     def __init__(self, bot):
@@ -27,7 +28,9 @@ class Overview:
 
         if config["LOOPS"]["OVERVIEW"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = get_channel(
-                self.bot, config["LOOPS"]["OVERVIEW"]["CHANNEL"], config["CATEGORIES"]["STOCKS"]
+                self.bot,
+                config["LOOPS"]["OVERVIEW"]["CHANNEL"],
+                config["CATEGORIES"]["STOCKS"],
             )
             self.do_stocks = True
         else:
@@ -35,7 +38,9 @@ class Overview:
 
         if config["LOOPS"]["OVERVIEW"]["CRYPTO"]["ENABLED"]:
             self.crypto_channel = get_channel(
-                self.bot, config["LOOPS"]["OVERVIEW"]["CHANNEL"], config["CATEGORIES"]["CRYPTO"]
+                self.bot,
+                config["LOOPS"]["OVERVIEW"]["CHANNEL"],
+                config["CATEGORIES"]["CRYPTO"],
             )
             self.do_crypto = True
         else:
@@ -53,7 +58,7 @@ class Overview:
     async def global_overview(self):
         if util.vars.tweets_db.empty:
             return
-        
+
         categories = []
         if self.do_stocks:
             categories.append("stocks")
@@ -72,17 +77,15 @@ class Overview:
             for ticker, _ in top50.items():
                 # Get the global tweets about the ticker using the API
                 if category == "stocks":
-                    global_mentions = await count_tweets(ticker)
+                    global_mentions = None  # await count_tweets(ticker)
                     if global_mentions is not None:
                         self.global_stocks[ticker] = global_mentions
                 elif category == "crypto":
-                    global_mentions = await count_tweets(ticker)
+                    global_mentions = None  # await count_tweets(ticker)
                     if global_mentions is not None:
                         self.global_crypto[ticker] = await count_tweets(ticker)
 
-    async def make_overview(
-        self, category: str, tickers: list, last_sentiment: str
-    ):
+    async def make_overview(self, category: str, tickers: list, last_sentiment: str):
         # Post the overview for stocks and crypto
         db = util.vars.tweets_db.loc[util.vars.tweets_db["category"] == category]
 
@@ -99,17 +102,16 @@ class Overview:
 
         # Add overview of sentiment for each ticker
         for ticker, count in top50.items():
-
             # Get the sentiment for the ticker
             sentiment = db.loc[db["ticker"] == ticker]["sentiment"].tolist()
-            
+
             change = db.loc[db["ticker"] == ticker]["change"].tolist()[0]
             change = change.replace("%", "").replace("+", "")
-            
+
             try:
                 change = format_change(float(change))
             except ValueError:
-                change = "" # Do not specify it
+                change = ""  # Do not specify it
 
             # Convert sentiment into a single str, i.e. "6🐂 2🦆 2🐻"
             sentiment = [text_to_emoji[sent] for sent in sentiment]
@@ -178,6 +180,7 @@ class Overview:
             await self.stocks_channel.purge(limit=1)
             await self.stocks_channel.send(embed=e)
 
+
 async def count_tweets(ticker: str) -> int:
     """
     Counts the number of tweets for a ticker during the last 24 hours.
@@ -201,9 +204,7 @@ async def count_tweets(ticker: str) -> int:
         datetime.datetime.utcnow() - datetime.timedelta(days=1)
     ).isoformat() + "Z"
     url = f"https://api.twitter.com/2/tweets/counts/recent?query={ticker}&granularity=day&start_time={start_time}"
-    counts = await get_json_data(
-        url=url, headers={"Authorization": f"Bearer {bearer_token}"}
-    )
+    counts = await get_json_data(url=url, headers={"Authorization": f"Bearer {None}"})
 
     if "meta" in counts.keys():
         if "total_tweet_count" in counts["meta"].keys():

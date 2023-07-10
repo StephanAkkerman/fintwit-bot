@@ -3,24 +3,11 @@ import sys
 # > 3rd Party Dependencies
 import yaml
 import aiohttp
-import tweepy
 import pandas as pd
 
 # Read config.yaml content
 with open("config.yaml", "r", encoding="utf-8") as f:
     config = yaml.full_load(f)
-
-# Set variables
-consumer_key = config["TWITTER"]["CONSUMER_KEY"]
-consumer_secret = config["TWITTER"]["CONSUMER_SECRET"]
-access_token = config["TWITTER"]["ACCESS_TOKEN_KEY"]
-access_token_secret = config["TWITTER"]["ACCESS_TOKEN_SECRET"]
-bearer_token = config["TWITTER"]["BEARER_TOKEN"]
-
-# Init v1 API
-auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_token_secret)
-api = tweepy.API(auth)
 
 guild_name = (
     config["DEBUG"]["GUILD_NAME"]
