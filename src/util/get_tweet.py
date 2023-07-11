@@ -56,14 +56,16 @@ async def get_tweet():
         if "entries" in instructions:
             tweet = instructions["entries"]
         else:
-            print("Error: No entries found in parsed_data")
-            print(result)
+            print("Error: No entries found in parsed_data, saved to no_entries.json")
+            with open("no_entries.json", "w") as f:
+                json.dump(result, f, indent=4)
 
-            return
+            return []
     else:
-        print("Error: No data found in parsed_data")
-        print(result)
+        print("Error: No data found in parsed_data, saved to no_data.json")
+        with open("no_data.json", "w") as f:
+            json.dump(result, f, indent=4)
 
-        return
+        return []
 
     return tweet
