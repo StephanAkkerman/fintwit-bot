@@ -170,6 +170,7 @@ class Timeline(commands.Cog):
             e, category, base_symbols = await make_tweet_embed(
                 text,
                 user_name,
+                user_screen_name,
                 user_img,
                 tweet_url,
                 media,
@@ -180,14 +181,14 @@ class Timeline(commands.Cog):
             )
 
             # Upload the tweet to the Discord.
-            await self.upload_tweet(e, category, media, user_name, base_symbols)
+            await self.upload_tweet(e, category, media, user_screen_name, base_symbols)
 
     async def upload_tweet(
         self,
         e: discord.Embed,
         category: str,
-        images: List[str],
-        user: str,
+        media: List[str],
+        user_screen_name: str,
         tickers: List[str],
     ) -> None:
         """
@@ -219,47 +220,50 @@ class Timeline(commands.Cog):
         channel = self.other_channel
 
         # Check if there is a user specific channel
-        if user.lower() in self.text_channel_names:
+        if user_screen_name.lower() in self.text_channel_names:
             user_channel = self.text_channels[
-                self.text_channel_names.index(user.lower())
+                self.text_channel_names.index(user_screen_name.lower())
             ]
 
         # News posters (Do not post news in other channels)
-        if user in config["LOOPS"]["TIMELINE"]["NEWS"]["FOLLOWING"]:
+        if user_screen_name in config["LOOPS"]["TIMELINE"]["NEWS"]["FOLLOWING"]:
             channel = self.news_channel
-            await self.post_tweet(channel, e, images, tickers, user_channel, category)
+            await self.post_tweet(channel, e, media, tickers, user_channel, category)
             return
 
-        if user in config["LOOPS"]["TIMELINE"]["NEWS"]["CRYPTO"]["FOLLOWING"]:
+        if (
+            user_screen_name
+            in config["LOOPS"]["TIMELINE"]["NEWS"]["CRYPTO"]["FOLLOWING"]
+        ):
             channel = self.crypto_news_channel
-            await self.post_tweet(channel, e, images, tickers, user_channel, category)
+            await self.post_tweet(channel, e, media, tickers, user_channel, category)
             return
 
         # Tweets without financial information
-        if category == None and not images:
+        if category == None and not media:
             channel = self.other_channel
-        if category == None and images:
+        if category == None and media:
             channel = self.images_channel
 
         # If we do not know what category it is, assume it is crypto
-        if (category == "crypto" or category == "🤷‍♂️") and not images:
+        if (category == "crypto" or category == "🤷‍♂️") and not media:
             channel = self.crypto_text_channel
-        if (category == "crypto" or category == "🤷‍♂️") and images:
+        if (category == "crypto" or category == "🤷‍♂️") and media:
             channel = self.crypto_charts_channel
 
         # Stocks tweet channels
-        if category == "stocks" and not images:
+        if category == "stocks" and not media:
             channel = self.stocks_text_channel
-        if category == "stocks" and images:
+        if category == "stocks" and media:
             channel = self.stocks_charts_channel
 
         # Forex tweet channels
-        if category == "forex" and not images:
+        if category == "forex" and not media:
             channel = self.forex_text_channel
-        if category == "forex" and images:
+        if category == "forex" and media:
             channel = self.forex_charts_channel
 
-        await self.post_tweet(channel, e, images, tickers, user_channel, category)
+        await self.post_tweet(channel, e, media, tickers, user_channel, category)
 
     async def make_and_send_webhook(self, channel, tickers, image_e):
         webhook = await get_webhook(channel)
@@ -275,13 +279,13 @@ class Timeline(commands.Cog):
 
         return msg
 
-    async def post_tweet(self, channel, e, images, tickers, user_channel, category):
+    async def post_tweet(self, channel, e, media, tickers, user_channel, category):
         msgs = []
 
         try:
             # Create a list of image embeds, max 10 images per post
             image_e = [e] + [
-                discord.Embed(url=e.url).set_image(url=img) for img in images[1:10]
+                discord.Embed(url=e.url).set_image(url=img) for img in media[1:10]
             ]
 
             # If there are multiple images to be sent, use a webhook to send them all at once

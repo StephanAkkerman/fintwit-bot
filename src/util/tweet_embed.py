@@ -22,17 +22,19 @@ from cogs.loops.overview import Overview
 
 tweet_overview = None
 
+
 async def make_tweet_embed(
-        text: str,
-        user: str,
-        profile_pic: str,
-        url: str,
-        images: List[str],
-        tickers: List[str],
-        hashtags: List[str],
-        retweeted_user: str,
-        bot : commands.Bot,
-    ) -> tuple[discord.Embed, str, str, list, list]:
+    text: str,
+    user_name: str,
+    user_screen_name: str,
+    profile_pic: str,
+    url: str,
+    images: List[str],
+    tickers: List[str],
+    hashtags: List[str],
+    retweeted_user: str,
+    bot: commands.Bot,
+) -> tuple[discord.Embed, str, str, list, list]:
     """
     Pre-processing the tweet data before uploading it to the Discord channels.
     This function creates the embed object and tags the user after it is correctly uploaded.
@@ -62,35 +64,38 @@ async def make_tweet_embed(
     -------
     None
     """
-    
+
     category = None
     base_symbols = []
-    
+
     # Ensure the tickers are unique
     symbols = get_clean_symbols(tickers, hashtags)[:24]
 
-    e = make_embed(user, symbols, retweeted_user, url, text, profile_pic, images)
+    e = make_embed(user_name, symbols, retweeted_user, url, text, profile_pic, images)
 
     # Max 25 fields
     if symbols:
         e, category, base_symbols = await add_financials(
-            e, symbols, tickers, text, user, bot
+            e, symbols, tickers, text, user_name, bot
         )
-        
+
     return e, category, base_symbols
-    
-def make_embed(user, symbols, retweeted_user, url, text, profile_pic, images) -> discord.Embed:
+
+
+def make_embed(
+    user_name, symbols, retweeted_user, url, text, profile_pic, images
+) -> discord.Embed:
     # Set the properties of the embed
     e = discord.Embed(
-        title=embed_title(user, symbols, retweeted_user),
+        title=embed_title(user_name, symbols, retweeted_user),
         url=url,
         description=text,
         color=0x1DA1F2,
         timestamp=datetime.datetime.now(datetime.timezone.utc),
     )
-    
+
     e.set_thumbnail(url=profile_pic)
-    
+
     # Set image if an image is included in the tweet
     if images:
         e.set_image(url=images[0])
@@ -100,22 +105,24 @@ def make_embed(user, symbols, retweeted_user, url, text, profile_pic, images) ->
         text="\u200b",
         icon_url="https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
     )
-    
+
     return e
-    
-def embed_title(user, tickers, retweeted_user) -> str:
+
+
+def embed_title(user_name, tickers, retweeted_user) -> str:
     title = (
-        f"{user} tweeted about {', '.join(tickers)}"
+        f"{user_name} tweeted about {', '.join(tickers)}"
         if retweeted_user == None
-        else f"{user} 🔁 {retweeted_user} about {', '.join(tickers)}"
+        else f"{user_name} 🔁 {retweeted_user} about {', '.join(tickers)}"
     )
-    
+
     # The max length of the title is 256 characters
     if len(title) > 256:
         title = title[:253] + "..."
-        
+
     return title
-    
+
+
 async def add_financials(
     e: discord.Embed,
     symbols: List[str],
@@ -156,20 +163,19 @@ async def add_financials(
 
     # In case multiple tickers get send
     crypto = stocks = forex = 0
-    
+
     base_symbols = []
     categories = []
     do_last = []
     classified_tickers = []
     changes = []
-    
+
     if not util.vars.classified_tickers.empty:
         # Drop tickers older than 3 days
         util.vars.classified_tickers = remove_old_rows(util.vars.classified_tickers, 3)
-        classified_tickers = util.vars.classified_tickers['ticker'].tolist()
+        classified_tickers = util.vars.classified_tickers["ticker"].tolist()
 
     for ticker in symbols:
-
         if crypto > stocks and crypto > forex:
             majority = "crypto"
         elif stocks > crypto and stocks > forex:
@@ -193,28 +199,35 @@ async def add_financials(
                     one_d_ta,
                     base_symbol,
                 ) = ticker_info
-                
+
                 # Skip if this ticker has been done before, for instance in tweets containing Solana and SOL
                 if base_symbol in base_symbols:
                     continue
-                                
+
                 # Db cannot save lists
                 if exchanges == []:
                     exchanges = None
-                
+
                 # Convert info to a dataframe
-                df = pd.DataFrame([{'ticker':ticker,
-                                    'website':website,
-                                    'exchanges':";".join(exchanges),
-                                    'base_symbol':base_symbol,
-                                    'timestamp':datetime.datetime.now()}])                
-                
+                df = pd.DataFrame(
+                    [
+                        {
+                            "ticker": ticker,
+                            "website": website,
+                            "exchanges": ";".join(exchanges),
+                            "base_symbol": base_symbol,
+                            "timestamp": datetime.datetime.now(),
+                        }
+                    ]
+                )
+
                 # Save the ticker info in a database
-                util.vars.classified_tickers = merge_and_update(util.vars.classified_tickers, df, 'classified_tickers')
+                util.vars.classified_tickers = merge_and_update(
+                    util.vars.classified_tickers, df, "classified_tickers"
+                )
 
             else:
                 if ticker in tickers:
-
                     e.add_field(name=f"${ticker}", value=majority)
                     print(
                         f"No crypto or stock match found for ${ticker} in {user}'s tweet at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
@@ -223,20 +236,22 @@ async def add_financials(
                 # Go to next in symbols
                 continue
         else:
-            ticker_info = util.vars.classified_tickers[util.vars.classified_tickers['ticker'] == ticker]            
-            website = ticker_info['website'].values[0]
-            exchanges = ticker_info['exchanges'].values[0]
-            exchanges = exchanges.split(';')
-            base_symbol = ticker_info['base_symbol'].values[0]
-            
+            ticker_info = util.vars.classified_tickers[
+                util.vars.classified_tickers["ticker"] == ticker
+            ]
+            website = ticker_info["website"].values[0]
+            exchanges = ticker_info["exchanges"].values[0]
+            exchanges = exchanges.split(";")
+            base_symbol = ticker_info["base_symbol"].values[0]
+
             # Still need the price, change, TA info
             price, change, four_h_ta, one_d_ta = await get_financials(ticker, website)
 
         title = f"${ticker}"
-        
+
         # Add to base symbol list to prevent duplicates
         base_symbols.append(base_symbol)
-        
+
         if type(change) == list:
             changes.append(change[-1])
         else:
@@ -282,7 +297,7 @@ async def add_financials(
         )
 
     # Finally add the sentiment to the embed
-    if base_symbols: # or if categories:
+    if base_symbols:  # or if categories:
         e, prediction = add_sentiment(e, text)
     else:
         prediction = None
@@ -292,26 +307,24 @@ async def add_financials(
         category = None
     else:
         category = ("crypto", "stocks", "forex")[np.argmax([crypto, stocks, forex])]
-        
+
     # If there are base symbols, add them to the database
     # Also post the overview of mentioned tickers
     if base_symbols:
         update_tweet_db(base_symbols, user, prediction, categories, changes)
-        
+
         if not tweet_overview:
             tweet_overview = Overview(bot)
-        
-        await tweet_overview.overview(
-            category, base_symbols, prediction
-        )
+
+        await tweet_overview.overview(category, base_symbols, prediction)
 
     # Return just the prediction without emoji
     return e, category, base_symbols
 
+
 def get_clean_symbols(tickers, hashtags):
-    
     # Remove #NFT from the list
-    hashtags = [hashtag for hashtag in hashtags if hashtag != 'NFT']
+    hashtags = [hashtag for hashtag in hashtags if hashtag != "NFT"]
 
     # First remove the duplicates
     symbols = list(set(tickers + hashtags))
@@ -320,7 +333,6 @@ def get_clean_symbols(tickers, hashtags):
 
     # Check the filter dict
     for symbol in symbols:
-
         # Filter beforehand
         if symbol in filter_dict.keys():
             # For instance Ethereum -> ETH
@@ -346,7 +358,7 @@ def format_description(
 def get_description(change, price, website):
     if not change and not price:
         return "\u200b"
-    
+
     # Change can be a list (if the information is from Yahoo Finance) or a string
     if type(change) == list and type(price) == list:
         # If the length is 2 then we know the after-hour prices

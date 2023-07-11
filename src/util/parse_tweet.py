@@ -43,7 +43,9 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
     retweeted_user = None
 
     # Get user info
-    user_name = tweet["core"]["user_results"]["result"]["legacy"]["name"]
+    user_name = tweet["core"]["user_results"]["result"]["legacy"][
+        "name"
+    ]  # The name of the account (not @username)
     user_screen_name = tweet["core"]["user_results"]["result"]["legacy"][
         "screen_name"
     ]  # The @username
@@ -92,7 +94,7 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
 
         # Format the text to add the quoted tweet text
         q_text = "\n".join(map(lambda line: "> " + line, q_text.split("\n")))
-        text = f"{text}\n\n> [@{q_user_screen_name}](https://twitter.com/{q_user_name}):\n{q_text}"
+        text = f"{text}\n\n> [@{q_user_screen_name}](https://twitter.com/{q_user_screen_name}):\n{q_text}"
 
         # Add media, tickers, and hashtags together
         media += q_media
@@ -134,7 +136,7 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
         ) = parse_tweet(reply)
 
         text = "\n".join(map(lambda line: "> " + line, text.split("\n")))
-        text = f"> [@{r_user_screen_name}](https://twitter.com/{user_name}):\n{text}\n\n{r_text}"
+        text = f"> [@{r_user_screen_name}](https://twitter.com/{r_user_screen_name}):\n{text}\n\n{r_text}"
 
         # Add media, tickers, and hashtags together
         media += r_media
