@@ -42,28 +42,33 @@ class Yield(commands.Cog):
         -------
         None
         """
-        
-        # Remove spines
+
+        plt.style.use("dark_background")  # Set the style first
+
         mpl.rcParams["axes.spines.right"] = False
         mpl.rcParams["axes.spines.left"] = False
         mpl.rcParams["axes.spines.top"] = False
         mpl.rcParams["axes.spines.bottom"] = False
 
+        mpl.rcParams["axes.edgecolor"] = "white"  # Set edge color to white
+        mpl.rcParams["xtick.color"] = "white"  # Set x tick color to white
+        mpl.rcParams["ytick.color"] = "white"  # Set y tick color to white
+        mpl.rcParams["axes.labelcolor"] = "white"  # Set label color to white
+        mpl.rcParams["text.color"] = "white"  # Set text color to white
+
         await self.plot_US_yield()
         await self.plot_EU_yield()
-        
-        plt.style.use('dark_background')
-        
+
         # Add gridlines
-        plt.grid(axis = 'y', color ='grey', linewidth = 0.5, alpha = 0.5)
-        plt.tick_params(axis='y', which='both', left=False)
-        
+        plt.grid(axis="y", color="grey", linewidth=0.5, alpha=0.5)
+        plt.tick_params(axis="y", which="both", left=False)
+
         frame = plt.gca()
         frame.axes.get_xaxis().set_major_formatter(lambda x, _: f"{int(x)}Y")
-        
+
         frame.axes.set_ylim(0)
         frame.axes.get_yaxis().set_major_formatter(lambda x, _: f"{int(x)}%")
-        
+
         # Set plot parameters
         plt.legend(loc="lower center", ncol=2)
         plt.xlabel("Residual Maturity")
@@ -163,6 +168,7 @@ class Yield(commands.Cog):
         plt.rcParams["figure.figsize"] = (10, 5)  # Set the figure size
         plt.plot(new_X, smooth, color, label=label)
         plt.plot(years, yield_percentage, f"{color}o")
+
 
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(Yield(bot))
