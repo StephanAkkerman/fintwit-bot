@@ -36,15 +36,22 @@ class Timeline(commands.Cog):
         self.set_channels("STOCKS", charts_channel, text_channel)
         self.set_channels("CRYPTO", charts_channel, text_channel)
         self.set_channels("FOREX", charts_channel, text_channel)
-        self.set_channels("IMAGES", charts_channel, text_channel)
-        self.set_channels("OTHER", charts_channel, text_channel)
-        self.set_channels("NEWS", charts_channel, text_channel)
+
+        # These channels are not crypto or stocks
+        self.set_channels("IMAGES")
+        self.set_channels("OTHER")
+        self.set_channels("NEWS")
 
         # Get all text channels
         self.all_txt_channels.start()
         self.get_latest_tweet.start()
 
-    def set_channels(self, name: str, charts_channel: str, text_channel: str) -> None:
+    def set_channels(
+        self,
+        name: str,
+        charts_channel: str = None,
+        text_channel: str = None,
+    ) -> None:
         """Set channels for each category.
 
         Parameters
@@ -57,12 +64,30 @@ class Timeline(commands.Cog):
             The name of the text channel.
         """
         if config["LOOPS"]["TIMELINE"][name]["ENABLED"]:
-            self.__dict__[f"{name.lower()}_charts_channel"] = get_channel(
-                self.bot, charts_channel, config["CATEGORIES"][name]
-            )
-            self.__dict__[f"{name.lower()}_text_channel"] = get_channel(
-                self.bot, text_channel, config["CATEGORIES"][name]
-            )
+            if name in ["STOCKS", "CRYPTO", "FOREX"]:
+                self.__dict__[f"{name.lower()}_charts_channel"] = get_channel(
+                    self.bot, charts_channel, config["CATEGORIES"][name]
+                )
+                self.__dict__[f"{name.lower()}_text_channel"] = get_channel(
+                    self.bot, text_channel, config["CATEGORIES"][name]
+                )
+            elif name in ["IMAGES", "OTHER"]:
+                self.__dict__[f"{name.lower()}_channel"] = get_channel(
+                    self.bot, config["LOOPS"]["TIMELINE"][name]["CHANNEL"]
+                )
+            elif name in ["NEWS"]:
+                self.__dict__[f"{name.lower()}_channel"] = get_channel(
+                    self.bot,
+                    config["LOOPS"]["TIMELINE"][name]["CHANNEL"],
+                    config["CATEGORIES"]["TWITTER"],
+                )
+
+                if config["LOOPS"]["TIMELINE"]["NEWS"]["CRYPTO"]["ENABLED"]:
+                    self.crypto_news_channel = get_channel(
+                        self.bot,
+                        config["LOOPS"]["TIMELINE"]["NEWS"]["CHANNEL"],
+                        config["CATEGORIES"]["CRYPTO"],
+                    )
 
     @loop(hours=1)
     async def all_txt_channels(self) -> None:

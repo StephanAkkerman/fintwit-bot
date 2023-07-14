@@ -1,5 +1,5 @@
 import re
-from typing import List, Tuple, Optional
+from typing import List
 
 # > Local imports
 import util.vars
@@ -23,23 +23,8 @@ def remove_twitter_url_at_end(text: str) -> str:
     return re.sub(pattern, "", text)
 
 
-def get_legacy_info(tweet: dict, key: str) -> Optional[str]:
-    """
-    Retrieves legacy information from a tweet.
-
-    Parameters
-    ----------
-    tweet : dict
-        The tweet from which to retrieve information.
-    key : str
-        The key of the information to retrieve.
-
-    Returns
-    -------
-    Optional[str]
-        The retrieved information, or None if the key does not exist.
-    """
-    return tweet["core"]["user_results"]["result"]["legacy"].get(key)
+def get_user_info(tweet: dict, key: str) -> str:
+    return tweet["core"]["user_results"]["result"]["legacy"][key]
 
 
 def get_entities(tweet: dict, key: str) -> List[str]:
@@ -62,60 +47,61 @@ def get_entities(tweet: dict, key: str) -> List[str]:
     return [entity["text"] for entity in entities] if entities else []
 
 
-def parse_tweet(
-    tweet: dict, update_tweet_id: bool = False
-) -> Tuple[str, str, str, str, str, List[str], List[str], List[str], Optional[str]]:
-    """
-    Parses a tweet and returns a tuple with all important information.
-
-    Parameters
-    ----------
-    tweet : dict
-        The tweet to parse.
-    update_tweet_id : bool, optional
-        If this Tweet should update the database, by default False.
-
-    Returns
-    -------
-    Tuple[str, str, str, str, str, List[str], List[str], List[str], Optional[str]]
-        The parsed tweet.
-    """
+def parse_tweet(tweet: dict, update_tweet_id: bool = False):
     reply = None
 
-    if "items" in tweet:
-        reply = tweet["items"][1]["item"]["itemContent"].get("tweet_results")
-        tweet = tweet["items"][0]["item"]["itemContent"].get("tweet_results")
-    elif "itemContent" in tweet:
-        tweet = tweet["itemContent"].get("tweet_results")
+    if "items" in tweet.keys():
+        reply = tweet["items"][1]["item"]["itemContent"]["tweet_results"]
+        tweet = tweet["items"][0]["item"]["itemContent"]["tweet_results"]
 
-    tweet = tweet.get("result")
+    elif "itemContent" in tweet.keys():
+        if "tweet_results" in tweet["itemContent"]:
+            tweet = tweet["itemContent"]["tweet_results"]
+        else:
+            print(tweet)
 
-    tweet_id = int(tweet.get("legacy", {}).get("id_str", tweet["tweet"]["rest_id"]))
+    tweet = tweet["result"]
 
+    # Ignore Tweets that are older than the latest tweet
+    if "legacy" not in tweet:
+        tweet_id = int(tweet["tweet"]["rest_id"])
+    else:
+        tweet_id = int(tweet["legacy"]["id_str"])
+
+    if "core" not in tweet:
+        tweet = tweet["tweet"]
+
+    # So we can use this function recursively
     if update_tweet_id:
+        # Skip this tweet
         if tweet_id <= util.vars.latest_tweet_id:
             return
         util.vars.latest_tweet_id = tweet_id
 
-    tweet = tweet.get("core", tweet)
+    # Get user info
+    user_name = get_user_info(tweet, "name")  # The name of the account (not @username)
+    user_screen_name = get_user_info(tweet, "screen_name")  # The @username
+    user_img = get_user_info(tweet, "profile_image_url_https")
 
-    user_name = get_legacy_info(tweet, "name")
-    user_screen_name = get_legacy_info(tweet, "screen_name")
-    user_img = get_legacy_info(tweet, "profile_image_url_https")
-
+    # Media
     media = []
-    if "extended_entities" in tweet["legacy"]:
-        media = [
-            image["media_url_https"]
-            for image in tweet["legacy"]["extended_entities"].get("media", [])
-        ]
+    if "extended_entities" in tweet["legacy"].keys():
+        if "media" in tweet["legacy"]["extended_entities"].keys():
+            media = [
+                image["media_url_https"]
+                for image in tweet["legacy"]["extended_entities"]["media"]
+            ]
 
-    text = tweet["legacy"]["full_text"]
-    text = remove_twitter_url_at_end(text)
+    # Remove t.co url from text
+    text = remove_twitter_url_at_end(tweet["legacy"]["full_text"])
 
+    # Tweet url
     tweet_url = f"https://twitter.com/user/status/{tweet_id}"
 
+    # Tickers
     tickers = get_entities(tweet, "symbols")
+
+    # Hashtags
     hashtags = get_entities(tweet, "hashtags")
 
     quoted_status_result = tweet.get("quoted_status_result")
@@ -142,14 +128,20 @@ def parse_tweet(
         tickers += r_tickers
         hashtags += r_hashtags
 
+    # Replace &amp; etc.
     text = text.replace("&amp;", "&").replace("&gt;", ">").replace("&lt;", "<")
 
+    # Convert media, tickers, hasthtags to sets to remove duplicates
     media = list(set(media))
     tickers = list(set(tickers))
     hashtags = list(set(hashtags))
 
+    # tickers and hashtags all uppercase
     tickers = [ticker.upper() for ticker in tickers]
     hashtags = [hashtag.upper() for hashtag in hashtags if hashtag != "CRYPTO"]
+
+    # Maybe create the Discord title here as well
+    # title = ...
 
     return (
         text,

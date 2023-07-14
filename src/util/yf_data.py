@@ -11,17 +11,18 @@ from util.formatting import format_change
 from util.afterhours import afterHours
 from util.tv_data import tv
 
-def get_AH_info(stock_info):    
+
+def get_AH_info(stock_info):
     price = change = None
-    
-    if stock_info.info["preMarketPrice"] != None and stock_info.info["bid"] != None:        
+
+    if stock_info.info["preMarketPrice"] != None and stock_info.info["bid"] != None:
         # Use bid if premarket price is not available
         price = (
             round(stock_info.info["preMarketPrice"], 2)
             if stock_info.info["preMarketPrice"] != None
             else stock_info.info["bid"]
         )
-        
+
         if price and stock_info.info["regularMarketPrice"]:
             change = round(
                 (price - stock_info.info["regularMarketPrice"])
@@ -30,15 +31,16 @@ def get_AH_info(stock_info):
                 2,
             )
             change = format_change(change)
-            
+
     return price, change
+
 
 def get_standard_info(stock_info):
     price = change = None
-    
+
     if stock_info.info["regularMarketPrice"] != None:
         price = round(stock_info.info["regularMarketPrice"], 2)
-        
+
         if price and stock_info.info["regularMarketPreviousClose"]:
             change = round(
                 (price - stock_info.info["regularMarketPreviousClose"])
@@ -47,8 +49,9 @@ def get_standard_info(stock_info):
                 2,
             )
             change = format_change(change)
-            
+
     return price, change
+
 
 async def get_stock_info(
     ticker: str, asset_type: str = "stock"
@@ -79,21 +82,19 @@ async def get_stock_info(
         str
             The ticker, to match the crypto function.
     """
-    
-    if asset_type == "stock":
 
+    if asset_type == "stock":
         stock_info = yf.Ticker(ticker)
 
         try:
             if stock_info.info["regularMarketPrice"] != None:
-
                 prices = []
                 changes = []
 
                 # Return prices corresponding to market hours
                 if afterHours():
                     price, change = get_AH_info(stock_info)
-                    
+
                     if price and change:
                         # Dont add if prices are 0
                         if price != 0:
@@ -102,14 +103,14 @@ async def get_stock_info(
 
                 # Could try 'currentPrice' as well
                 price, change = get_standard_info(stock_info)
-                
+
                 prices.append(price)
                 changes.append(change)
 
                 # Return the important information
                 # Could also try 'volume' or 'volume24Hr' (is None if market is closed)
                 volume = stock_info.info["regularMarketVolume"] * price
-                
+
                 if changes == []:
                     changes = "N/A"
 
@@ -127,7 +128,8 @@ async def get_stock_info(
 
     # Check TradingView data
     tv_data = await tv.get_tv_data(ticker, asset_type)
-    price, perc_change, volume, exchange, website = tv_data
+    if tv_data:
+        price, perc_change, volume, exchange, website = tv_data
     return (
         volume,
         website,
