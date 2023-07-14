@@ -121,8 +121,14 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
             _,
         ) = parse_tweet(result)
 
-        text = "\n".join(map(lambda line: "> " + line, text.split("\n")))
-        text = f"> [@{r_user_screen_name}](https://twitter.com/{r_user_screen_name}):\n{text}\n\n{r_text}"
+        if reply:
+            text = "\n".join(map(lambda line: "> " + line, text.split("\n")))
+            text = f"> [@{r_user_screen_name}](https://twitter.com/{r_user_screen_name}):\n{text}\n\n{r_text}"
+
+        # Add text on top
+        if quoted_status_result:
+            q_text = "\n".join(map(lambda line: "> " + line, q_text.split("\n")))
+            text = f"{text}\n\n> [@{r_user_screen_name}](https://twitter.com/{r_user_screen_name}):\n{q_text}"
 
         media += r_media
         tickers += r_tickers
