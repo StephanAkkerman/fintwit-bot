@@ -57,7 +57,9 @@ async def get_tweet():
                 if "instructions" in result["data"]["home"]["home_timeline_urt"]:
                     if (
                         "entries"
-                        in ["data"]["home"]["home_timeline_urt"]["instructions"][0]
+                        in result["data"]["home"]["home_timeline_urt"]["instructions"][
+                            0
+                        ]
                     ):
                         return result["data"]["home"]["home_timeline_urt"][
                             "instructions"
@@ -65,9 +67,9 @@ async def get_tweet():
 
     try:
         result["data"]["home"]["home_timeline_urt"]["instructions"][0]["entries"]
-    except KeyError as e:
+    except Exception as e:
         print("Error: wrong json format\n", e)
-        with open("no_entries.json", "w") as f:
+        with open("tweet_error.json", "w") as f:
             json.dump(result, f, indent=4)
 
         return []
