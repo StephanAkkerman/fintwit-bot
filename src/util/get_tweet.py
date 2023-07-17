@@ -52,20 +52,22 @@ async def get_tweet():
     )
 
     if "data" in result:
-        instructions = result["data"]["home"]["home_timeline_urt"]["instructions"][0]
-        if "entries" in instructions:
-            tweet = instructions["entries"]
-        else:
-            print("Error: No entries found in parsed_data, saved to no_entries.json")
-            with open("no_entries.json", "w") as f:
-                json.dump(result, f, indent=4)
+        if "home" in result["data"]:
+            if "home_timeline_urt" in result["data"]["home"]:
+                if "instructions" in result["data"]["home"]["home_timeline_urt"]:
+                    if (
+                        "entries"
+                        in ["data"]["home"]["home_timeline_urt"]["instructions"][0]
+                    ):
+                        return result["data"]["home"]["home_timeline_urt"][
+                            "instructions"
+                        ][0]["entries"]
 
-            return []
-    else:
-        print("Error: No data found in parsed_data, saved to no_data.json")
-        with open("no_data.json", "w") as f:
+    try:
+        result["data"]["home"]["home_timeline_urt"]["instructions"][0]["entries"]
+    except KeyError as e:
+        print("Error: wrong json format\n", e)
+        with open("no_entries.json", "w") as f:
             json.dump(result, f, indent=4)
 
         return []
-
-    return tweet
