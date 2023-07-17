@@ -133,7 +133,7 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
             e_title = (
                 f"{util.vars.custom_emojis['quote_tweet']} {user_name} quote tweeted"
             )
-            q_text = "\n".join(map(lambda line: "> " + line, q_text.split("\n")))
+            q_text = "\n".join(map(lambda line: "> " + line, r_text.split("\n")))
             text = f"{text}\n\n> [@{r_user_screen_name}](https://twitter.com/{r_user_screen_name}):\n{q_text}"
 
         if retweeted_status_result:
