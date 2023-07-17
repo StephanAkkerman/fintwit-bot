@@ -11,6 +11,7 @@ from discord.ext.tasks import loop
 # Local dependencies
 from util.vars import config, post_json_data
 from util.disc_util import get_channel, get_tagged_users
+from util.afterhours import afterHours
 
 
 class StockHalts(commands.Cog):
@@ -22,6 +23,10 @@ class StockHalts(commands.Cog):
 
     @loop(minutes=15)
     async def halt_embed(self):
+        # Dont send if the market is closed
+        if afterHours():
+            return
+
         # Remove previous message first
         await self.channel.purge(limit=1)
 
