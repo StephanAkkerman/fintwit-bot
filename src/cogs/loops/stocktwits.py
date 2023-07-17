@@ -116,14 +116,14 @@ class StockTwits(commands.Cog):
             url="https://stocktwits.com/rankings/trending",
             description="",
             color=0xFFFFFF,
-            timestamp=datetime.datetime.utcnow(),
+            timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
 
         e = await self.get_data(e, "ts")
         e = await self.get_data(e, "m_day")
         e = await self.get_data(e, "wl_ct_day")
 
-        # Set datetime and binance icon
+        # Set datetime and icon
         e.set_footer(
             text="\u200b",
             icon_url="https://miro.medium.com/max/400/1*Jp-O_IoMusXAlj1-KrYmrw.jpeg",

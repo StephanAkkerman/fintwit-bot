@@ -100,7 +100,7 @@ class Liquidations(commands.Cog):
         ax1.set_title("Total Liquidations")
 
         # Set price axis
-        ax2.plot(df_price.index, df_price, color="#edba35", label="Price")
+        ax2.plot(df_price.index, df_price, color="#edba35", label="BTC Price")
         ax2.set_xlim([df_price.index[0], df_price.index[-1]])
         ax2.set_ylim(
             bottom=df_price.min().values * 0.95, top=df_price.max().values * 1.05

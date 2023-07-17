@@ -109,6 +109,7 @@ async def post_json_data(
     url: str,
     headers: dict = None,
     data: dict = None,
+    json: dict = None,
 ) -> dict:
     """
     Asynchronous function to post JSON data from a website.
@@ -128,7 +129,7 @@ async def post_json_data(
 
     try:
         async with aiohttp.ClientSession(headers=headers) as session:
-            async with session.post(url, data=data) as r:
+            async with session.post(url, data=data, json=json) as r:
                 return await r.json(content_type=None)
     except Exception as e:
         print(f"Error with POST request for {url}.", "Error:", e)
