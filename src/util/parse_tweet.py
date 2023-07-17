@@ -122,13 +122,20 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
         ) = parse_tweet(result)
 
         if reply:
+            e_title = f"{util.vars.custom_emojis['reply']} {user_name} replied to {r_user_name}"
             text = "\n".join(map(lambda line: "> " + line, text.split("\n")))
             text = f"> [@{r_user_screen_name}](https://twitter.com/{r_user_screen_name}):\n{text}\n\n{r_text}"
 
         # Add text on top
         if quoted_status_result:
+            e_title = (
+                f"{util.vars.custom_emojis['quote_tweet']} {user_name} quote tweeted"
+            )
             q_text = "\n".join(map(lambda line: "> " + line, q_text.split("\n")))
             text = f"{text}\n\n> [@{r_user_screen_name}](https://twitter.com/{r_user_screen_name}):\n{q_text}"
+
+        if retweeted_status_result:
+            e_title = f"{util.vars.custom_emojis['retweet']} {user_name} retweeted"
 
         media += r_media
         tickers += r_tickers
@@ -146,8 +153,7 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
     tickers = [ticker.upper() for ticker in tickers]
     hashtags = [hashtag.upper() for hashtag in hashtags if hashtag != "CRYPTO"]
 
-    # Maybe create the Discord title here as well
-    # title = ...
+    # Create the embed title
 
     return (
         text,
@@ -158,5 +164,5 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
         media,
         tickers,
         hashtags,
-        r_user_name if reply else None,
+        e_title,
     )

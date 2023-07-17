@@ -147,19 +147,18 @@ class Timeline(commands.Cog):
                 media,
                 tickers,
                 hashtags,
-                retweeted_user,
+                e_title,
             ) = formatted_tweet
 
             e, category, base_symbols = await make_tweet_embed(
                 text,
                 user_name,
-                user_screen_name,
                 user_img,
                 tweet_url,
                 media,
                 tickers,
                 hashtags,
-                retweeted_user,
+                e_title,
                 self.bot,
             )
 

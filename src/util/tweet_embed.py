@@ -26,13 +26,12 @@ tweet_overview = None
 async def make_tweet_embed(
     text: str,
     user_name: str,
-    user_screen_name: str,
     profile_pic: str,
     url: str,
     images: List[str],
     tickers: List[str],
     hashtags: List[str],
-    retweeted_user: str,
+    e_title: str,
     bot: commands.Bot,
 ) -> tuple[discord.Embed, str, str, list, list]:
     """
@@ -71,7 +70,7 @@ async def make_tweet_embed(
     # Ensure the tickers are unique
     symbols = get_clean_symbols(tickers, hashtags)[:24]
 
-    e = make_embed(user_name, symbols, retweeted_user, url, text, profile_pic, images)
+    e = make_embed(symbols, url, text, profile_pic, images, e_title)
 
     # Max 25 fields
     if symbols:
@@ -82,12 +81,10 @@ async def make_tweet_embed(
     return e, category, base_symbols
 
 
-def make_embed(
-    user_name, symbols, retweeted_user, url, text, profile_pic, images
-) -> discord.Embed:
+def make_embed(symbols, url, text, profile_pic, images, e_title) -> discord.Embed:
     # Set the properties of the embed
     e = discord.Embed(
-        title=embed_title(user_name, symbols, retweeted_user),
+        title=embed_title(e_title, symbols),
         url=url,
         description=text,
         color=0x1DA1F2,
@@ -109,12 +106,8 @@ def make_embed(
     return e
 
 
-def embed_title(user_name, tickers, retweeted_user) -> str:
-    title = (
-        f"{user_name} tweeted about {', '.join(tickers)}"
-        if retweeted_user == None
-        else f"{user_name} 🔁 {retweeted_user} about {', '.join(tickers)}"
-    )
+def embed_title(e_title, tickers) -> str:
+    title = f"{e_title} about {', '.join(tickers)}"
 
     # The max length of the title is 256 characters
     if len(title) > 256:
