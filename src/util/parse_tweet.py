@@ -107,6 +107,8 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
     quoted_status_result = tweet.get("quoted_status_result")
     retweeted_status_result = tweet["legacy"].get("retweeted_status_result")
 
+    e_title = f"{user_name} tweeted"
+
     if quoted_status_result or retweeted_status_result or reply:
         result = quoted_status_result or retweeted_status_result or reply
         (
