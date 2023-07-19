@@ -18,6 +18,7 @@ from util.vars import get_json_data, config
 from util.disc_util import get_channel
 from util.formatting import format_change
 
+
 class NFTS(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
@@ -28,13 +29,13 @@ class NFTS(commands.Cog):
                 config["LOOPS"]["NFTS"]["TOP"],
                 config["CATEGORIES"]["NFTS"],
             )
-            
+
             self.upcoming_channel = get_channel(
                 self.bot,
                 config["LOOPS"]["NFTS"]["UPCOMING"],
                 config["CATEGORIES"]["NFTS"],
             )
-            
+
             self.p2e_channel = get_channel(
                 self.bot,
                 config["LOOPS"]["NFTS"]["P2E"],
@@ -44,7 +45,7 @@ class NFTS(commands.Cog):
             self.top_nfts.start()
             self.upcoming_nfts.start()
             self.top_p2e.start()
-            
+
         if config["LOOPS"]["TRENDING"]["NFTS"]:
             self.trending_channel = get_channel(
                 self.bot,
@@ -52,28 +53,28 @@ class NFTS(commands.Cog):
                 config["CATEGORIES"]["NFTS"],
             )
             self.trending_nfts.start()
-            
+
     @loop(hours=1)
     async def top_nfts(self):
         opensea_top = await get_opensea()
         cmc_top = await top_cmc()
-        
+
         await self.top_channel.purge(limit=2)
-        
+
         for df, name in [(opensea_top, "Opensea"), (cmc_top, "CoinMarketCap")]:
             if df.empty:
                 print("No top NFTs found for " + name)
                 return
-            
+
             if name == "Opensea":
                 url = "https://opensea.io/rankings"
-                color = 0x3685df
+                color = 0x3685DF
                 icon_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/OpenSea_icon.svg/2048px-OpenSea_icon.svg.png"
             elif name == "CoinMarketCap":
                 url = "https://coinmarketcap.com/nft/collections/"
                 color = 0x0D3EFD
                 icon_url = "https://coinmarketcap.com/favicon.ico"
-            
+
             e = discord.Embed(
                 title=f"Top {len(df)} {name} NFTs",
                 url=url,
@@ -81,7 +82,7 @@ class NFTS(commands.Cog):
                 color=color,
                 timestamp=datetime.datetime.now(datetime.timezone.utc),
             )
-                              
+
             e.add_field(
                 name="NFT",
                 value="\n".join(df["symbol"].tolist()),
@@ -99,23 +100,23 @@ class NFTS(commands.Cog):
                 value="\n".join(df["volume"].astype(str).tolist()),
                 inline=True,
             )
-                
+
             # Set empty text as footer, so we can see the icon
             e.set_footer(text="\u200b", icon_url=icon_url)
-            
+
             await self.top_channel.send(embed=e)
-    
+
     @loop(hours=1)
     async def trending_nfts(self):
         trending = await get_opensea("trending")
-        
+
         e = discord.Embed(
             title=f"Top {len(trending)} Trending NFTs",
             url="https://opensea.io/rankings/trending",
             description="",
-            color=0x3685df,
+            color=0x3685DF,
             timestamp=datetime.datetime.now(datetime.timezone.utc),
-        )        
+        )
         e.add_field(
             name="NFT",
             value="\n".join(trending["symbol"].tolist()),
@@ -133,17 +134,25 @@ class NFTS(commands.Cog):
             value="\n".join(trending["volume"].astype(str).tolist()),
             inline=True,
         )
-        
-        e.set_footer(text="\u200b", icon_url="https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/OpenSea_icon.svg/2048px-OpenSea_icon.svg.png")
-        
+
+        e.set_footer(
+            text="\u200b",
+            icon_url="https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/OpenSea_icon.svg/2048px-OpenSea_icon.svg.png",
+        )
+
         await self.trending_channel.purge(limit=1)
         await self.trending_channel.send(embed=e)
-    
+
     @loop(hours=1)
     async def upcoming_nfts(self):
         upcoming = await upcoming_cmc()
+
+        if upcoming.empty:
+            print("No upcoming NFTs found")
+            return
+
         upcoming = upcoming.head(10)
-        
+
         e = discord.Embed(
             title=f"Top {len(upcoming)} Upcoming NFTs",
             url="https://coinmarketcap.com/nft/upcoming/",
@@ -152,7 +161,7 @@ class NFTS(commands.Cog):
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
         e.set_footer(text="\u200b", icon_url="https://coinmarketcap.com/favicon.ico")
-        
+
         e.add_field(
             name="NFT",
             value="\n".join(upcoming["symbol"].tolist()),
@@ -170,28 +179,30 @@ class NFTS(commands.Cog):
             value="\n".join(upcoming["start_time"].astype(str).tolist()),
             inline=True,
         )
-        
+
         await self.upcoming_channel.purge(limit=1)
         await self.upcoming_channel.send(embed=e)
-    
+
     @loop(hours=1)
     async def top_p2e(self):
         p2e = await p2e_games()
-        
+
         if p2e.empty:
             return
-        
-        url = 'https://playtoearn.net/blockchaingames/All-Blockchain/All-Genre/All-Status/All-Device/NFT/nft-crypto-PlayToEarn/nft-required-FreeToPlay'
+
+        url = "https://playtoearn.net/blockchaingames/All-Blockchain/All-Genre/All-Status/All-Device/NFT/nft-crypto-PlayToEarn/nft-required-FreeToPlay"
 
         e = discord.Embed(
             title=f"Top {len(p2e)} Blockchain Games",
             url=url,
             description="",
-            color=0x4792c9,
+            color=0x4792C9,
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
-        e.set_footer(text="\u200b", icon_url="https://playtoearn.net/apple-touch-icon.png")
-        
+        e.set_footer(
+            text="\u200b", icon_url="https://playtoearn.net/apple-touch-icon.png"
+        )
+
         e.add_field(
             name="Game",
             value="\n".join(p2e["name"].tolist()),
@@ -209,14 +220,16 @@ class NFTS(commands.Cog):
             value="\n".join(p2e["status"].tolist()),
             inline=True,
         )
-        
+
         await self.p2e_channel.purge(limit=1)
         await self.p2e_channel.send(embed=e)
-        
+
+
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(NFTS(bot))
 
-async def get_opensea(url = ""):
+
+async def get_opensea(url=""):
     """
     _summary_
 
@@ -230,56 +243,60 @@ async def get_opensea(url = ""):
     _type_
         _description_
     """
-    
-    html_doc = await get_json_data(f"https://opensea.io/rankings/{url}", headers={'User-Agent': 'Mozilla/5.0'}, text=True)
 
-    html_doc = html_doc[html_doc.find(':pageInfo"}},') + len(':pageInfo"}},'):]
-    html_doc = html_doc[:html_doc.find(':edges:10')]
+    html_doc = await get_json_data(
+        f"https://opensea.io/rankings/{url}",
+        headers={"User-Agent": "Mozilla/5.0"},
+        text=True,
+    )
+
+    html_doc = html_doc[html_doc.find(':pageInfo"}},') + len(':pageInfo"}},') :]
+    html_doc = html_doc[: html_doc.find(":edges:10")]
 
     rows = html_doc.split('"node":{')
 
     opensea_nfts = []
 
     for row in rows[1:]:
-        
         nft_dict = {}
-        
+
         name = re.search(r"\"name\":\"(.*?)\"", row).group(1)
         slug = re.search(r"\"slug\":\"(.*?)\"", row)
-        
+
         if slug:
             slug = slug.group(1)
         else:
             slug = ""
-            
+
         price_data = re.findall(r"\"unit\":\"(.*?)\"", row)
         change = re.search(r"\"volumeChange\":(.*?),", row)
         symbol = re.search(r"\"symbol\":\"(.*?)\"", row).group(1)
-        
+
         if len(price_data) == 2:
             floor_price = f"{round(float(price_data[0]),3)} {symbol}"
             volume = price_data[1]
         else:
             floor_price = "?"
             volume = price_data[0]
-           
+
         volume = f"{int(float(volume))} {symbol}"
-        change = float(change.group(1))*100
-    
+        change = float(change.group(1)) * 100
+
         if change != 0:
             if change > 1:
                 change = int(change)
             else:
                 change = round(change, 2)
             volume = f"{volume} ({format_change(change)})"
-            
-        nft_dict['symbol'] = f"[{name}](https://opensea.io/collection/{slug})"
-        nft_dict['price'] = floor_price
-        nft_dict['volume'] = volume
-        
+
+        nft_dict["symbol"] = f"[{name}](https://opensea.io/collection/{slug})"
+        nft_dict["price"] = floor_price
+        nft_dict["volume"] = volume
+
         opensea_nfts.append(nft_dict)
-        
+
     return pd.DataFrame(opensea_nfts)
+
 
 async def top_cmc():
     """
@@ -289,75 +306,76 @@ async def top_cmc():
 
     session = AsyncHTMLSession()
     r = await session.get("https://coinmarketcap.com/nft/collections/")
-    rows = r.html.find('tbody tr')
+    rows = r.html.find("tbody tr")
 
     for row in rows:
         d = {}
-        columns = row.find('td')
-        
-        if columns[1].find('div', first=True) is not None:
-            
-            url = columns[1].find('a', first=True)
+        columns = row.find("td")
+
+        if columns[1].find("div", first=True) is not None:
+            url = columns[1].find("a", first=True)
             if url:
-                url = url.attrs['href']
-                
-            name_and_net = columns[1].find('span')
+                url = url.attrs["href"]
+
+            name_and_net = columns[1].find("span")
             name = name_and_net[0].text.strip()
-            volume_and_change = columns[2].text.split('\n\n')
-            avg_price_and_change = columns[5].text.split('\n\n')
-            change = avg_price_and_change[1].replace('%', '')
-            
-            if change != '-':
+            volume_and_change = columns[2].text.split("\n\n")
+            avg_price_and_change = columns[5].text.split("\n\n")
+            change = avg_price_and_change[1].replace("%", "")
+
+            if change != "-":
                 price = f"{avg_price_and_change[0]} ({format_change(float(change))})"
             else:
                 price = avg_price_and_change[0]
-            
-            d['symbol'] = f"[{name}]({url})"
-            d['volume'] = volume_and_change[0]            
-            d['price'] = price
-            
+
+            d["symbol"] = f"[{name}]({url})"
+            d["volume"] = volume_and_change[0]
+            d["price"] = price
+
             nfts.append(d)
 
     await session.close()
     return pd.DataFrame(nfts)
+
 
 async def upcoming_cmc():
     nfts = []
 
     session = AsyncHTMLSession()
     r = await session.get("https://coinmarketcap.com/nft/upcoming/")
-    rows = r.html.find('tbody tr')
+    rows = r.html.find("tbody tr")
 
     for row in rows:
         d = {}
-        columns = row.find('td')
-        
-        if columns[0].find('div', first=True) is not None:
-            name = columns[0].find('span', first=True).text
-            url = columns[1].find('a')[2].attrs['href']
-            start_time = columns[2].find('span', first=True).text
-            sale_info = columns[3].find('span', first=True).text.split('Sale: ')
+        columns = row.find("td")
 
-            d['symbol'] = f"[{name}]({url})"
-            d['start_time'] = start_time
-            d['price'] = sale_info[-1]
-        
+        if columns[0].find("div", first=True) is not None:
+            name = columns[0].find("span", first=True).text
+            url = columns[1].find("a")[2].attrs["href"]
+            start_time = columns[2].find("span", first=True).text
+            sale_info = columns[3].find("span", first=True).text.split("Sale: ")
+
+            d["symbol"] = f"[{name}]({url})"
+            d["start_time"] = start_time
+            d["price"] = sale_info[-1]
+
             nfts.append(d)
-            
+
     await session.close()
     return pd.DataFrame(nfts)
 
+
 async def p2e_games():
-    URL = 'https://playtoearn.net/blockchaingames/All-Blockchain/All-Genre/All-Status/All-Device/NFT/nft-crypto-PlayToEarn/nft-required-FreeToPlay'
+    URL = "https://playtoearn.net/blockchaingames/All-Blockchain/All-Genre/All-Status/All-Device/NFT/nft-crypto-PlayToEarn/nft-required-FreeToPlay"
 
     html = await get_json_data(URL, text=True)
-    soup = BeautifulSoup(html, 'html.parser')
-    items = soup.find('table', class_='table table-bordered mainlist')
-    
+    soup = BeautifulSoup(html, "html.parser")
+    items = soup.find("table", class_="table table-bordered mainlist")
+
     if items is None:
         return pd.DataFrame()
-    
-    allItems = items.find_all('tr')
+
+    allItems = items.find_all("tr")
 
     p2e_games = []
 
@@ -365,23 +383,23 @@ async def p2e_games():
     iterator = 2
     for iterator in range(2, 12):
         data = {}
-            
-        allItems_td = allItems[iterator].find_all('td')
-        
-        name = allItems_td[2].find('div', class_='dapp_name').find_next('span').text
-        url = allItems_td[2].find_next('a')['href']    
-        status = allItems_td[6].get_text('title') 
-        social_24h_change = allItems_td[10].find_all('span')
+
+        allItems_td = allItems[iterator].find_all("td")
+
+        name = allItems_td[2].find("div", class_="dapp_name").find_next("span").text
+        url = allItems_td[2].find_next("a")["href"]
+        status = allItems_td[6].get_text("title")
+        social_24h_change = allItems_td[10].find_all("span")
         social_24h = social_24h_change[0].text
         if len(social_24h_change) > 1:
-            social_change = social_24h_change[1].text.replace('%', '').replace(',', '')
+            social_change = social_24h_change[1].text.replace("%", "").replace(",", "")
         else:
             social_change = 0
-        
-        data['name'] = f"[{name}]({url})"
-        data['status'] = status
-        data['social'] = f"{social_24h} ({format_change(float(social_change))})"
+
+        data["name"] = f"[{name}]({url})"
+        data["status"] = status
+        data["social"] = f"{social_24h} ({format_change(float(social_change))})"
 
         p2e_games.append(data)
-        
+
     return pd.DataFrame(p2e_games)

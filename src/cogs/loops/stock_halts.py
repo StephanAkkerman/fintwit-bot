@@ -45,12 +45,15 @@ class StockHalts(commands.Cog):
         # Get the values as string
         time = "\n".join(df["Time"].to_list())
         symbol = "\n".join(df["Issue Symbol"].to_list())
-        resumption = "\n".join(df["Resumption Time"].to_list())
+        
 
         # Add the values to the embed
         e.add_field(name="Time", value=time, inline=True)
         e.add_field(name="Symbol", value=symbol, inline=True)
-        e.add_field(name="Resumption Time", value=resumption, inline=True)
+        
+        if "Resumption Time" in df.columns:
+            resumption = "\n".join(df["Resumption Time"].to_list())
+            e.add_field(name="Resumption Time", value=resumption, inline=True)
 
         e.set_footer(
             text="\u200b",
@@ -64,6 +67,9 @@ class StockHalts(commands.Cog):
     def format_df(self, html):
         df = pd.read_html(html["result"])[0]
 
+        # Drop NaN columns
+        df = df.dropna(axis=1, how="all")
+
         # Drop columns where halt date is not today
         df = df[df["Halt Date"] == pd.Timestamp.today().strftime("%m/%d/%Y")]
 
@@ -71,31 +77,40 @@ class StockHalts(commands.Cog):
         df["Time"] = df["Halt Date"] + " " + df["Halt Time"]
         df["Time"] = pd.to_datetime(df["Time"], format="%m/%d/%Y %H:%M:%S")
 
-        # Do for resumption as well
-        df["Resumption Time"] = (
-            df["Resumption Date"] + " " + df["Resumption Trade Time"]
-        )
-        df["Resumption Time"] = pd.to_datetime(
-            df["Resumption Time"], format="%m/%d/%Y %H:%M:%S"
-        )
+        # Do for resumption as well if the column is not NaN
+        if "Resumption Date" in df.columns and "Resumption Trade Time" in df.columns:
+            # Combine columns into one singular datetime column
+            df["Resumption Time"] = (
+                df["Resumption Date"] + " " + df["Resumption Trade Time"]
+            )
+            df["Resumption Time"] = pd.to_datetime(
+                df["Resumption Time"], format="%m/%d/%Y %H:%M:%S"
+            )
+
+            df["Resumption Time"] = (
+                df["Resumption Time"]
+                .dt.tz_localize("US/Eastern")
+                .dt.tz_convert(tz.tzlocal())
+            )
+
+            df["Resumption Time"] = df["Resumption Time"].dt.strftime("%H:%M:%S")
 
         # Convert to my own timezone
         df["Time"] = df["Time"].dt.tz_localize("US/Eastern").dt.tz_convert(tz.tzlocal())
-        df["Resumption Time"] = (
-            df["Resumption Time"]
-            .dt.tz_localize("US/Eastern")
-            .dt.tz_convert(tz.tzlocal())
-        )
 
         # Convert times to string
         df["Time"] = df["Time"].dt.strftime("%H:%M:%S")
-        df["Resumption Time"] = df["Resumption Time"].dt.strftime("%H:%M:%S")
 
         # Replace NaN with ?
         df = df.fillna("?")
 
         # Keep the necessary columns
-        return df[["Time", "Issue Symbol", "Resumption Time"]]
+        if "Resumption Time" in df.columns:
+            df = df[["Time", "Issue Symbol", "Resumption Time"]]
+        else:
+            df = df[["Time", "Issue Symbol"]]
+
+        return df
 
     async def get_halt_data(self) -> dict:
         # Based on https://github.com/reorx/nasdaqtrader-rss/blob/e675af99ace7d384950d6c75144e9efb1d80b5a7/rss/index.py#L18
