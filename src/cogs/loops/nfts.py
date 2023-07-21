@@ -66,6 +66,9 @@ class NFTS(commands.Cog):
                 print("No top NFTs found for " + name)
                 return
 
+            if "symbol" not in df.columns:
+                return
+
             if name == "Opensea":
                 url = "https://opensea.io/rankings"
                 color = 0x3685DF
@@ -149,6 +152,9 @@ class NFTS(commands.Cog):
 
         if upcoming.empty:
             print("No upcoming NFTs found")
+            return
+
+        if "symbol" not in upcoming.columns:
             return
 
         upcoming = upcoming.head(10)
@@ -312,6 +318,9 @@ async def top_cmc():
         d = {}
         columns = row.find("td")
 
+        if len(columns) < 6:
+            continue
+
         if columns[1].find("div", first=True) is not None:
             url = columns[1].find("a", first=True)
             if url:
@@ -349,6 +358,9 @@ async def upcoming_cmc():
         d = {}
         columns = row.find("td")
 
+        if len(columns) < 4:
+            continue
+
         if columns[0].find("div", first=True) is not None:
             name = columns[0].find("span", first=True).text
             url = columns[1].find("a")[2].attrs["href"]
@@ -385,6 +397,8 @@ async def p2e_games():
         data = {}
 
         allItems_td = allItems[iterator].find_all("td")
+        if len(allItems_td) < 11:
+            continue
 
         name = allItems_td[2].find("div", class_="dapp_name").find_next("span").text
         url = allItems_td[2].find_next("a")["href"]
