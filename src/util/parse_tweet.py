@@ -58,9 +58,14 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
         if "tweet_results" in tweet["itemContent"]:
             tweet = tweet["itemContent"]["tweet_results"]
         else:
-            print(tweet)
+            print("Tweet contains no tweet_results key")
+            return
 
-    tweet = tweet["result"]
+    try:
+        tweet = tweet["result"]
+    except KeyError:
+        print("Tweet contains no result key")
+        return
 
     # Ignore Tweets that are older than the latest tweet
     if "legacy" not in tweet:
