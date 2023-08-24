@@ -3,8 +3,8 @@ authentication.json
 *.bat
 config.yaml
 models/*
-data/*
 *.lnk
 yield.png
 src/cogs/loops/option_alert.py
 .vscode/
+data/
