@@ -21,11 +21,6 @@ class Reddit(commands.Cog):
     """
     This class contains the cog for posting the top reddit posts.
     It can be enabled / disabled in the config under ["LOOPS"]["REDDIT"].
-
-    Methods
-    -------
-    function() -> None:
-        _description_
     """
 
     def __init__(self, bot: commands.bot.Bot) -> None:
@@ -40,7 +35,6 @@ class Reddit(commands.Cog):
         )
 
         if config["LOOPS"]["REDDIT"]["WALLSTREETBETS"]["ENABLED"]:
-
             self.channel = get_channel(
                 self.bot, config["LOOPS"]["REDDIT"]["WALLSTREETBETS"]["CHANNEL"]
             )
@@ -144,10 +138,10 @@ class Reddit(commands.Cog):
                     elif "v.redd.it" in url:
                         video = True
                         descr = ""
-                        
+
                 if descr == "" and not video and not img_url:
                     continue
-                        
+
                 e = discord.Embed(
                     title=title,
                     url="https://www.reddit.com" + submission.permalink,
@@ -186,10 +180,11 @@ class Reddit(commands.Cog):
                     )
                 else:
                     if video:
-                        await self.channel.send(content = f"https://www.reddit.com{submission.permalink}")
+                        await self.channel.send(
+                            content=f"https://www.reddit.com{submission.permalink}"
+                        )
                     else:
                         await self.channel.send(embed=e)
-
 
                 counter += 1
 

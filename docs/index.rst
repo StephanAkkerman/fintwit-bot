@@ -10,7 +10,7 @@ Welcome to FinTwit Bot's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   modules
+   Modules<modules>
 
 Indices and tables
 ==================

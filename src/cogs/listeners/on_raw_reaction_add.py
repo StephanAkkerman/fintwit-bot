@@ -15,15 +15,6 @@ class On_raw_reaction_add(commands.Cog):
     """
     This class is used to handle the on_raw_reaction_add event.
     You can enable / disable this command in the config, under ["LISTENERS"]["ON_RAW_REACTION_ADD"].
-
-    Methods
-    ----------
-    on_raw_reaction_add(reaction : discord.RawReactionActionEvent) -> None:
-        This function is called when a reaction is added to a message.
-    classify_reaction(reaction : discord.RawReactionActionEvent, message : discord.Message) -> None:
-        This function gets called if a reaction was used for classifying a tweet.
-    highlight(message : discord.Message, user : discord.User) -> None:
-        This function gets called if a reaction was used for highlighting a tweet.
     """
 
     def __init__(self, bot):

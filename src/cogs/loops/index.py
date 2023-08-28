@@ -20,16 +20,6 @@ class Index(commands.Cog):
     """
     This class contains the cog for posting the crypto and stocks indices.
     It can be enabled / disabled in the config under ["LOOPS"]["INDEX"].
-
-    Methods
-    -------
-    get_feargread() -> tuple[int, str] | None:
-        Gets the last 2 Fear and Greed indices from the API.
-    crypto() -> None:
-        This function will get the current prices of crypto indices on TradingView and the Fear and Greed index.
-        It will then post the prices in the configured channel.
-    stocks() -> None:
-        Posts the stock indices in the configured channel, only posts if the market is open.
     """
 
     def __init__(self, bot: commands.Bot) -> None:

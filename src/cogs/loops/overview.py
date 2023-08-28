@@ -18,6 +18,11 @@ text_to_emoji = defaultdict(lambda: "🦆", {"bear": "🐻", "bull": "🐂", "ne
 
 
 class Overview:
+    """
+    This class contains the cog for posting the top crypto and stocks mentions.
+    It can be configured in the config.yaml file under ["LOOPS"]["OVERVIEW"].
+    """
+
     def __init__(self, bot):
         self.bot = bot
         self.guild = get_guild(bot)

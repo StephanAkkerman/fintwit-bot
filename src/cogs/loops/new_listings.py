@@ -15,12 +15,6 @@ class Exchange_Listings:
     """
     This class contains the cog for posting the new Binance listings
     It can be enabled / disabled in the config under ["LOOPS"]["NEW_LISTINGS"].
-
-    Methods
-    -------
-    get_symbols() -> list:
-        Gets the symbols currently listed on the exchange.
-
     """
 
     def __init__(self, bot: commands.Bot, exchange: str) -> None:

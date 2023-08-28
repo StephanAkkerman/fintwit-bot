@@ -8,6 +8,10 @@ from util.disc_util import get_guild
 
 
 class Help(commands.Cog):
+    """
+    Custom help command.
+    """
+
     def __init__(self, bot):
         self.bot = bot
         self.cmd_dict = {}

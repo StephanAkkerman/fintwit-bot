@@ -16,6 +16,11 @@ from util.disc_util import get_channel
 
 
 class Events(commands.Cog):
+    """
+    This class is responsible for sending weekly overview of upcoming events.
+    You can enable / disable this command in the config, under ["LOOPS"]["EVENTS"].
+    """
+
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.channel = get_channel(self.bot, config["LOOPS"]["EVENTS"]["CHANNEL"])
@@ -116,13 +121,12 @@ class Events(commands.Cog):
         # Send this message every friday at 23:00 UTC
         if datetime.datetime.today().weekday() == 4:
             if datetime.datetime.utcnow().hour == 23:
-                
                 events_df = await self.get_events()
 
                 # Split dataframe based on date
                 for date in events_df["date"].unique():
                     date_df = events_df.loc[events_df["date"] == date]
-                    
+
                     if date_df.empty:
                         continue
 
@@ -141,7 +145,9 @@ class Events(commands.Cog):
                     )
                     for_prev = "\n".join(date_df_copy["forecast|previous"].astype(str))
 
-                    date_df_copy["info"] = date_df_copy["zone"] + ": " + date_df_copy["event"]
+                    date_df_copy["info"] = (
+                        date_df_copy["zone"] + ": " + date_df_copy["event"]
+                    )
                     info = "\n".join(date_df_copy["info"])
 
                     # Make an embed with these tickers and their earnings date + estimation

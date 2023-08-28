@@ -12,13 +12,6 @@ class Earnings(commands.Cog):
     """
     This class is used to handle the earnings command.
     You can enable / disable this command in the config, under ["COMMANDS"]["EARNINGS"].
-
-    Methods
-    -------
-    earnings(ctx : commands.context.Context, stock : str) -> None:
-        This method is used to handle the earnings command.
-    earnings_error(ctx : commands.context.Context, error : Exception) -> None:
-        This method is used to handle the errors when using the `!earnings` command.
     """
 
     def __init__(self, bot: commands.Bot):

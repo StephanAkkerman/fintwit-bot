@@ -15,6 +15,11 @@ from util.vars import get_json_data
 
 
 class Analyze(commands.Cog):
+    """
+    This class is used to handle the analyze command.
+    You can enable / disable this command in the config, under ["COMMANDS"]["ANALYZE"].
+    """
+
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 

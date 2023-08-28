@@ -19,28 +19,24 @@ from util.disc_util import get_channel, get_tagged_users
 class Earnings_Overview(commands.Cog):
     """
     This class is responsible for sending weekly overview of upcoming earnings.
-
-    Methods
-    ----------
-    earnings() -> None:
-        Sends the earnings overview to the channel.
+    You can enable / disable this command in the config, under ["LOOPS"]["EARNINGS_OVERVIEW"].
     """
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.channel = get_channel(self.bot, config["LOOPS"]["EARNINGS_OVERVIEW"]["CHANNEL"])
+        self.channel = get_channel(
+            self.bot, config["LOOPS"]["EARNINGS_OVERVIEW"]["CHANNEL"]
+        )
 
         self.earnings.start()
-        
+
     def earnings_embed(self, df: pd.DataFrame, date: str) -> tuple[str, discord.Embed]:
         # Create lists of the important info
         tickers = "\n".join(df["ticker"].to_list())
-        
+
         time_type = "\n".join(df["startdatetimetype"].to_list())
 
-        epsestimate = "\n".join(
-            df["epsestimate"].replace("nan", "N/A").to_list()
-        )
+        epsestimate = "\n".join(df["epsestimate"].replace("nan", "N/A").to_list())
 
         # Make an embed with these tickers and their earnings date + estimation
         e = discord.Embed(
@@ -61,7 +57,7 @@ class Earnings_Overview(commands.Cog):
         )
 
         tags = get_tagged_users(df["ticker"].to_list())
-        
+
         return tags, e
 
     @loop(hours=1)
@@ -78,7 +74,6 @@ class Earnings_Overview(commands.Cog):
         # Send this message every friday at 23:00 UTC
         if datetime.datetime.today().weekday() == 4:
             if datetime.datetime.utcnow().hour == 23:
-
                 earnings = get_earnings_in_date_range(
                     datetime.datetime.now(),
                     datetime.datetime.now() + datetime.timedelta(days=7),
@@ -104,23 +99,30 @@ class Earnings_Overview(commands.Cog):
 
                     # Necessary for using inplace operations below
                     date_df_copy = date_df.copy()
-                    
+
                     # Format the dataframe
                     date_df_copy.sort_values(by="ticker", inplace=True)
-                    
+
                     # AMC after market close (After-hours)
                     # BMO before market open (Pre-market)
                     # TNS Time not supplied (Unknown)
                     date_df_copy["startdatetimetype"].replace(
-                        {"AMC": "After-hours", "BMO": "Pre-market", "TNS": "Unknown", "TAS": "Unknown"},
+                        {
+                            "AMC": "After-hours",
+                            "BMO": "Pre-market",
+                            "TNS": "Unknown",
+                            "TAS": "Unknown",
+                        },
                         inplace=True,
                     )
-                    
+
                     date_df_copy = date_df_copy.astype({"epsestimate": str})
-                    
+
                     split = 50
-                    while not date_df_copy.iloc[split-50:split].empty:
-                        tags, e = self.earnings_embed(date_df_copy.iloc[split-50:split], date)            
+                    while not date_df_copy.iloc[split - 50 : split].empty:
+                        tags, e = self.earnings_embed(
+                            date_df_copy.iloc[split - 50 : split], date
+                        )
                         await self.channel.send(content=tags, embed=e)
                         split += split
 

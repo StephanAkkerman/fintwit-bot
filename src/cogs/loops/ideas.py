@@ -141,15 +141,6 @@ class TradingView_Ideas(commands.Cog):
     """
     This class contains the cog for posting the latest Trading View ideas.
     It can be enabled / disabled in the config under ["LOOPS"]["TV_IDEAS"].
-
-    Methods
-    -------
-    send_embed(df: pd.DataFrame, type: str) -> None:
-        This function creates and sends the embed with the latest ideas.
-    crypto_ideas() -> None:
-        Manages the loop for the crypto ideas.
-    stock_ideas() -> None
-        Manages the loop for the stock ideas.
     """
 
     def __init__(self, bot: commands.Bot) -> None:

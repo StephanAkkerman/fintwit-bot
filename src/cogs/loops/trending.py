@@ -18,15 +18,6 @@ class Trending(commands.Cog):
     """
     This class contains the cog for posting the top trending crypto and stocks.
     It can be enabled / disabled in the config under ["LOOPS"]["TRENDING"].
-
-    Methods
-    -------
-    cmc() -> None
-        Gets the data from the CoinMarketCap API and posts in the trending crypto channel.
-    coingecko() -> None
-        Gets the data from the CoinGecko API and posts in the trending crypto channel.
-    stocks() -> None
-        Gets the data from the yahoo_fin API and posts in the trending stocks channel.
     """
 
     def __init__(self, bot: commands.Bot) -> None:
@@ -83,7 +74,7 @@ class Trending(commands.Cog):
         cmc_df["Volume"] = cmc_df["priceChange"].apply(lambda x: x["volume24h"])
 
         cmc_e = await format_embed(cmc_df, "Trending On CoinMarketCap", "coinmarketcap")
-        
+
         cg_df = await get_trending_coins()
 
         if cg_df.empty:
@@ -94,7 +85,7 @@ class Trending(commands.Cog):
 
         await self.crypto_channel.purge(limit=2)
         await self.crypto_channel.send(embed=cg_e)
-        await self.crypto_channel.send(embed=cmc_e)        
+        await self.crypto_channel.send(embed=cmc_e)
 
     @loop(hours=1)
     async def stocks(self) -> None:
@@ -111,11 +102,14 @@ class Trending(commands.Cog):
 
         # Only use the top 10 stocks
         try:
-            e = await format_embed(si.get_day_most_active().head(15), "Most Active Stocks", "yahoo")
+            e = await format_embed(
+                si.get_day_most_active().head(15), "Most Active Stocks", "yahoo"
+            )
             await self.stocks_channel.purge(limit=1)
             await self.stocks_channel.send(embed=e)
         except Exception as e:
             print("Error getting most active stocks: ", e)
-        
+
+
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(Trending(bot))

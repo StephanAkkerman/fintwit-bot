@@ -16,13 +16,7 @@ from cogs.loops.assets import Assets
 class Portfolio(commands.Cog):
     """
     This class is used to handle the portfolio command.
-
-    Methods
-    ----------
-    portfolio(ctx : commands.context.Context, *input : tuple) -> None:
-        Adds or removes your portfolio to the database.
-    portfolio_error(ctx : commands.context.Context, *input : tuple) -> None:
-        Handles the errors when using the `!portfolio` command.
+    You can enable / disable this command in the config, under ["COMMANDS"]["PORTFOLIO"].
     """
 
     # Create a slash command group
@@ -32,7 +26,6 @@ class Portfolio(commands.Cog):
         self.bot = bot
 
     def update_portfolio_db(self, new_db):
-
         # Set the new portfolio so other functions can access it
         util.vars.portfolio_db = new_db
 
@@ -89,8 +82,8 @@ class Portfolio(commands.Cog):
         if exchange.lower() == "binance":
             if len(input) != 3:
                 raise commands.BadArgument()
-            
-            exchange = ccxt.binance({'apiKey': key, 'secret': secret})
+
+            exchange = ccxt.binance({"apiKey": key, "secret": secret})
 
         new_data = pd.DataFrame(
             {
@@ -103,9 +96,9 @@ class Portfolio(commands.Cog):
             },
             index=[0],
         )
-        
+
         # Before adding the portfolio, check if it already exists
-        
+
         # Check if the API keys are valid
         print(exchange.fetch_status())
 
@@ -146,7 +139,7 @@ class Portfolio(commands.Cog):
                 (old_db["id"] == ctx.author.id) & (old_db["exchange"] == exchange)
             ].tolist()
         else:
-            rows = old_db.index[old_db["id"] == ctx.author.id].tolist()            
+            rows = old_db.index[old_db["id"] == ctx.author.id].tolist()
 
         # Update database
         self.update_portfolio_db(old_db.drop(rows))
@@ -179,7 +172,7 @@ class Portfolio(commands.Cog):
 
     @add.error
     async def add_error(self, ctx: commands.Context, error: Exception) -> None:
-        #print(traceback.format_exc())
+        # print(traceback.format_exc())
         if isinstance(error, commands.BadArgument):
             await ctx.respond(
                 f"The exchange you specified is currently not supported! \nSupported exchanges: Kucoin, Binance"
@@ -198,12 +191,12 @@ class Portfolio(commands.Cog):
 
     @remove.error
     async def remove_error(self, ctx: commands.Context, error: Exception) -> None:
-        #print(traceback.format_exc())
+        # print(traceback.format_exc())
         await ctx.respond(f"An error has occurred. Please try again later.")
 
     @show.error
     async def show_error(self, ctx: commands.Context, error: Exception) -> None:
-        #print(traceback.format_exc())
+        # print(traceback.format_exc())
         if isinstance(error, commands.PrivateMessageOnly):
             await ctx.respond(
                 "Please only use the `/portfolio` command in private messages for security reasons."

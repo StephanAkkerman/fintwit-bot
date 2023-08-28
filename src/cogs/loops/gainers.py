@@ -17,13 +17,6 @@ class Gainers(commands.Cog):
     """
     This class contains the cog for posting the top crypto and stocks gainers.
     It can be enabled / disabled in the config under ["LOOPS"]["GAINERS"].
-
-    Methods
-    -------
-    crypto() -> None:
-        This function will check the gainers and losers on Binance, using USDT as the base currency.
-    stocks() -> None:
-        This function uses the yahoo_fin.stock_info module to get the gainers for todays stocks.
     """
 
     def __init__(self, bot: commands.Bot) -> None:
@@ -31,18 +24,24 @@ class Gainers(commands.Cog):
 
         if config["LOOPS"]["GAINERS"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = get_channel(
-                self.bot, config["LOOPS"]["GAINERS"]["CHANNEL"], config["CATEGORIES"]["STOCKS"]
+                self.bot,
+                config["LOOPS"]["GAINERS"]["CHANNEL"],
+                config["CATEGORIES"]["STOCKS"],
             )
             self.stocks.start()
 
         if config["LOOPS"]["GAINERS"]["CRYPTO"]["ENABLED"]:
             self.crypto_gainers_channel = get_channel(
-                self.bot, config["LOOPS"]["GAINERS"]["CHANNEL"], config["CATEGORIES"]["CRYPTO"]
+                self.bot,
+                config["LOOPS"]["GAINERS"]["CHANNEL"],
+                config["CATEGORIES"]["CRYPTO"],
             )
 
         if config["LOOPS"]["LOSERS"]["CRYPTO"]["ENABLED"]:
             self.crypto_losers_channel = get_channel(
-                self.bot, config["LOOPS"]["LOSERS"]["CHANNEL"], config["CATEGORIES"]["CRYPTO"]
+                self.bot,
+                config["LOOPS"]["LOSERS"]["CHANNEL"],
+                config["CATEGORIES"]["CRYPTO"],
             )
 
         if (
@@ -93,9 +92,15 @@ class Gainers(commands.Cog):
             },
             inplace=True,
         )
-        
+
         # Add website to symbol
-        sorted["Symbol"] = "[" + sorted["Symbol"] + "](https://www.binance.com/en/price/" + sorted["Symbol"] + ")"
+        sorted["Symbol"] = (
+            "["
+            + sorted["Symbol"]
+            + "](https://www.binance.com/en/price/"
+            + sorted["Symbol"]
+            + ")"
+        )
 
         # Post the top 10 highest
         gainers = sorted.head(10)

@@ -15,12 +15,8 @@ from util.disc_util import get_channel
 
 class Funding(commands.Cog):
     """
-    This class is used to handle the funding loop, this can be enabled / disabled in the config, under ["LOOPS"]["FUNDING"].
-
-    Methods
-    -------
-    funding() -> None:
-        This function gets the data from the funding API and posts it in the funding channel.
+    This class is used to handle the funding loop.
+    This can be enabled / disabled in the config, under ["LOOPS"]["FUNDING"].
     """
 
     def __init__(self, bot: commands.Bot) -> None:

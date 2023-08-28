@@ -22,32 +22,22 @@ from util.disc_util import get_guild
 from util.formatting import format_embed_length, format_change
 from util.exchange_data import get_data
 
+
 class Assets(commands.Cog):
     """
     The class is responsible for posting the assets of Discord users.
     You can enabled / disable it in config under ["LOOPS"]["ASSETS"].
-
-    Methods
-    ----------
-    usd_value(asset : str, owned : float, exchange : str) -> float:
-        Get the USD value of an asset, based on the exchange.
-    assets(db : pd.DataFrame) -> None:
-        Checks the account balances of accounts saved in portfolio db, then updates the assets db.
-    format_exchange(exchange_df : pd.DataFrame, exchange : str, e : discord.Embed, old_worth : str, old_assets : str) -> discord.Embed:
-        Formats the embed used for updating user's assets.
-    post_assets() -> None:
-        Posts the assets of the users that added their portfolio.
     """
 
     def __init__(
         self, bot: commands.Bot, db: pd.DataFrame = util.vars.portfolio_db
     ) -> None:
         self.bot = bot
-        
-        # Refresh assets
-        asyncio.create_task(self.assets(db))        
 
-    async def usd_value(self, asset: str, exchange: str) -> tuple[float,str]:
+        # Refresh assets
+        asyncio.create_task(self.assets(db))
+
+    async def usd_value(self, asset: str, exchange: str) -> tuple[float, str]:
         """
         Get the USD value of an asset, based on the exchange.
 
@@ -65,7 +55,7 @@ class Assets(commands.Cog):
         """
 
         usd_val = change = None
-        
+
         if exchange != "Stock":
             _, _, _, usd_val, change, _ = await get_coin_info(asset)
         else:
@@ -74,7 +64,7 @@ class Assets(commands.Cog):
                 usd_val = usd_val[0]
             if type(change) == list:
                 change = change[0]
-            
+
         return usd_val, change
 
     async def assets(self, portfolio_db: pd.DataFrame) -> None:
@@ -97,27 +87,36 @@ class Assets(commands.Cog):
             old_db = util.vars.assets_db
             if not old_db.empty:
                 crypto_rows = old_db.index[old_db["exchange"] != "stock"].tolist()
-                
+
                 assets_db = old_db.drop(index=crypto_rows)
             else:
-                assets_db = pd.DataFrame(columns=['asset', 'buying_price', 'owned', 'exchange', 'id', 'user'])
+                assets_db = pd.DataFrame(
+                    columns=["asset", "buying_price", "owned", "exchange", "id", "user"]
+                )
         else:
             # Add it to the old assets db, since this call is for a specific person
             assets_db = util.vars.assets_db
-            
-        if not portfolio_db.empty:    
+
+        if not portfolio_db.empty:
             for _, row in portfolio_db.iterrows():
                 # Add this data to the assets.db database
-                exch_data = await get_data(row)                   
+                exch_data = await get_data(row)
 
-                assets_db = pd.concat([assets_db, exch_data], ignore_index=True) 
-            
+                assets_db = pd.concat([assets_db, exch_data], ignore_index=True)
+
         # Ensure that the db knows the right types
         assets_db = assets_db.astype(
-            {"asset": str, "buying_price": float, "owned": float, "exchange": str, "id": np.int64, "user": str}
+            {
+                "asset": str,
+                "buying_price": float,
+                "owned": float,
+                "exchange": str,
+                "id": np.int64,
+                "user": str,
+            }
         )
-            
-        # Update the assets db    
+
+        # Update the assets db
         update_db(assets_db, "assets")
         util.vars.assets_db = assets_db
 
@@ -150,31 +149,33 @@ class Assets(commands.Cog):
         discord.Embed
             The new embed.
         """
-        
+
         # Necessary to prevent panda warnings
         new_df = exchange_df.copy()
-        
+
         # Get the price of the assets
         prices = []
         changes = []
         for _, row in new_df.iterrows():
             price, change = await self.usd_value(row["asset"], exchange)
-            
+
             if price is None:
                 price = 0
             if change is None:
                 change = 0
-                
-            prices.append(round(price,2))
+
+            prices.append(round(price, 2))
             # Add without emoji
             changes.append(change)
-            
+
         new_df["price"] = prices
         new_df["change"] = changes
-                
+
         # Format price and change
-        new_df["price_change"] = '$' + new_df["price"].astype(str) + ' (' + new_df["change"] + ')'
-            
+        new_df["price_change"] = (
+            "$" + new_df["price"].astype(str) + " (" + new_df["change"] + ")"
+        )
+
         # Calculate the most recent worth
         new_df["worth"] = prices * new_df["owned"]
 
@@ -182,18 +183,22 @@ class Assets(commands.Cog):
         new_df = new_df.round({"worth": 2})
 
         # Drop it if it's worth less than 1$
-        new_df = new_df.drop(new_df[new_df.worth < 1].index)        
-        
+        new_df = new_df.drop(new_df[new_df.worth < 1].index)
+
         # Calculate the increase in worth since the original buy
         new_df["worth_change"] = new_df["price"] - new_df["buying_price"]
         new_df["worth_change"] = new_df["worth_change"] / new_df["buying_price"] * 100
         new_df["worth_change"] = new_df["worth_change"].round(2)
-        new_df["worth_change"] = new_df["worth_change"].apply(lambda x: format_change(x))
+        new_df["worth_change"] = new_df["worth_change"].apply(
+            lambda x: format_change(x)
+        )
 
         # Sort by usd value
         new_df = new_df.sort_values(by=["worth"], ascending=False)
 
-        new_df["worth"] = '$' + new_df["worth"].astype(str) + ' (' + new_df["worth_change"] + ')'
+        new_df["worth"] = (
+            "$" + new_df["worth"].astype(str) + " (" + new_df["worth_change"] + ")"
+        )
 
         # Create the list of string values
         assets = "\n".join(new_df["asset"].to_list())
@@ -202,11 +207,11 @@ class Assets(commands.Cog):
 
         # Ensure that the length is not bigger than allowed
         assets, prices, worth = format_embed_length([assets, prices, worth])
-        
+
         exchange_title = exchange
         if exchange.lower() in util.vars.custom_emojis.keys():
             exchange_title = f"{exchange} {util.vars.custom_emojis[exchange.lower()]}"
-        
+
         # These are the new fields added to the embed
         e.add_field(name=exchange_title, value=assets, inline=True)
         e.add_field(name="Price", value=prices, inline=True)
@@ -228,13 +233,12 @@ class Assets(commands.Cog):
         for name in util.vars.assets_db["user"].unique():
             # Get the assets of this user
             user_assets = util.vars.assets_db.loc[util.vars.assets_db["user"] == name]
-            
+
             # Only post if there are assets
             if not user_assets.empty:
-                
                 # Get the Discord objects
                 channel = await self.get_user_channel(name)
-                disc_user = await self.get_user(user_assets)      
+                disc_user = await self.get_user(user_assets)
 
                 e = discord.Embed(
                     title="",
@@ -249,17 +253,19 @@ class Assets(commands.Cog):
                         icon_url=disc_user.display_avatar.url,
                     )
 
-                # Finally, format the embed before posting it                
-                for exchange in ["Binance","KuCoin","Stock"]:
-                    exchange_df = user_assets.loc[user_assets["exchange"] == exchange.lower()]
+                # Finally, format the embed before posting it
+                for exchange in ["Binance", "KuCoin", "Stock"]:
+                    exchange_df = user_assets.loc[
+                        user_assets["exchange"] == exchange.lower()
+                    ]
 
                     if not exchange_df.empty:
                         e = await self.format_exchange(exchange_df, exchange, e)
 
                 await channel.purge(limit=1)
                 await channel.send(embed=e)
-                
-    async def get_user_channel(self, name:str) -> discord.TextChannel:
+
+    async def get_user_channel(self, name: str) -> discord.TextChannel:
         """
         Based on the username returns the user specific channel.
 
@@ -283,9 +289,9 @@ class Assets(commands.Cog):
                 channel_name, category=config["CATEGORIES"]["USERS"]
             )
             print(f"Created channel {channel_name}")
-            
+
         return channel
-    
+
     async def get_user(self, assets):
         id = assets["id"].values[0]
         disc_user = self.bot.get_user(id)
@@ -295,8 +301,9 @@ class Assets(commands.Cog):
                 disc_user = await get_user(self.bot, id)
             except Exception as e:
                 print(f"Could not get user with id: {id}.\n{assets} \nError:", e)
-            
+
         return disc_user
+
 
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(Assets(bot))

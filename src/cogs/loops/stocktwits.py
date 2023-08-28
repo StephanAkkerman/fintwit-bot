@@ -19,13 +19,6 @@ class StockTwits(commands.Cog):
     """
     This class contains the cog for posting the most discussed StockTwits tickers.
     It can be enabled / disabled in the config under ["LOOPS"]["STOCKTWITS"].
-
-    Methods
-    -------
-    function() -> None:
-        Gets the data and formats it into an embed.
-    stocktwits() -> None:
-        The function posts the StockTwits embeds in the configured channel.
     """
 
     def __init__(self, bot: commands.Bot) -> None:

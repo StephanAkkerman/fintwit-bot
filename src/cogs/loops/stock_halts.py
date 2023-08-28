@@ -15,6 +15,11 @@ from util.afterhours import afterHours
 
 
 class StockHalts(commands.Cog):
+    """
+    This class contains the cog for posting the halted stocks.
+    It can be configured in the config.yaml file under ["LOOPS"]["STOCK_HALTS"].
+    """
+
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.channel = get_channel(self.bot, config["LOOPS"]["STOCK_HALTS"]["CHANNEL"])
@@ -45,12 +50,11 @@ class StockHalts(commands.Cog):
         # Get the values as string
         time = "\n".join(df["Time"].to_list())
         symbol = "\n".join(df["Issue Symbol"].to_list())
-        
 
         # Add the values to the embed
         e.add_field(name="Time", value=time, inline=True)
         e.add_field(name="Symbol", value=symbol, inline=True)
-        
+
         if "Resumption Time" in df.columns:
             resumption = "\n".join(df["Resumption Time"].to_list())
             e.add_field(name="Resumption Time", value=resumption, inline=True)

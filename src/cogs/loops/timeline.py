@@ -17,6 +17,7 @@ from util.get_tweet import get_tweet
 class Timeline(commands.Cog):
     """
     The main Class of this project. This class is responsible for streaming tweets from the Twitter API.
+    It can be configured in the config.yaml file under ["LOOPS"]["TIMELINE"].
     """
 
     def __init__(self, bot: commands.Bot) -> None:

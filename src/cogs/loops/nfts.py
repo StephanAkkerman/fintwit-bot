@@ -20,6 +20,11 @@ from util.formatting import format_change
 
 
 class NFTS(commands.Cog):
+    """
+    This class contains the cog for posting the top NFTs.
+    It can be configured in the config.yaml file under ["LOOPS"]["NFTS"].
+    """
+
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 

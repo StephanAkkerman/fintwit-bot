@@ -21,13 +21,6 @@ class Sentiment(commands.Cog):
     """
     This class is used to handle the sentiment command.
     You can enable / disable this command in the config, under ["COMMANDS"]["SENTIMENT"].
-
-    Methods
-    -------
-    sentiment(ctx : commands.context.Context, stock : str) -> None:
-        This method is used to handle the earnings command.
-    get_news(ticker : str) -> None:
-        This method is used to handle the errors when using the `!earnings` command.
     """
 
     def __init__(self, bot: commands.Bot) -> None:

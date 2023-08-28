@@ -19,11 +19,6 @@ class Losers(commands.Cog):
     """
     This class contains the cog for posting the top crypto and stocks losers.
     It can be enabled / disabled in the config under ["LOOPS"]["LOSERS"].
-
-    Methods
-    -------
-    losers() -> None:
-        If the market is open, this function posts the top 50 losers for todays stocks.
     """
 
     def __init__(self, bot: commands.Bot) -> None:
@@ -56,6 +51,7 @@ class Losers(commands.Cog):
             await self.channel.send(embed=e)
         except Exception as e:
             print("Error getting or posting stock losers, error:", e)
+
 
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(Losers(bot))
