@@ -21,11 +21,17 @@ class Earnings(commands.Cog):
         This method is used to handle the errors when using the `!earnings` command.
     """
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.slash_command(name="earnings", description="Gets next earnings date for a given stock.")
-    async def earnings(self, ctx: commands.Context, stock: Option(str, description="The requested stock.", required=True)) -> None:
+    @commands.slash_command(
+        name="earnings", description="Gets next earnings date for a given stock."
+    )
+    async def earnings(
+        self,
+        ctx: commands.Context,
+        stock: Option(str, description="The requested stock.", required=True),
+    ):
         """
         Gets next earnings date for a given stock.
         For instance `/earnings AAPL` will return the next earnings date for Apple.
@@ -41,10 +47,6 @@ class Earnings(commands.Cog):
         ------
         commands.UserInputError
             If the provided stock ticker is not valid.
-
-        Returns
-        -------
-        None
         """
 
         if input:
@@ -61,9 +63,17 @@ class Earnings(commands.Cog):
             raise commands.UserInputError()
 
     @earnings.error
-    async def earnings_error(
-        self, ctx: commands.context.Context, error: Exception
-    ) -> None:
+    async def earnings_error(self, ctx: commands.context.Context, error: Exception):
+        """
+        Catches the errors when using the `!earnings` command.
+
+        Parameters
+        ----------
+        ctx : commands.Context
+            Necessary Discord context object.
+        error : Exception
+            The exception that was raised when using the `!earnings` command.
+        """
         print(error)
         if isinstance(error, commands.UserInputError):
             await ctx.send(
@@ -75,5 +85,5 @@ class Earnings(commands.Cog):
             )
 
 
-def setup(bot: commands.Bot) -> None:
+def setup(bot: commands.Bot):
     bot.add_cog(Earnings(bot))

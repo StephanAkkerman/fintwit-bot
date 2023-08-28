@@ -1,4 +1,5 @@
 import sys
+import os
 import json
 
 # > 3rd Party Dependencies
@@ -7,7 +8,8 @@ import aiohttp
 import pandas as pd
 
 # Read config.yaml content
-with open("config.yaml", "r", encoding="utf-8") as f:
+config_path = os.path.join(os.path.dirname(__file__), "..", "..", "config.yaml")
+with open(config_path, "r", encoding="utf-8") as f:
     config = yaml.full_load(f)
 
 guild_name = (

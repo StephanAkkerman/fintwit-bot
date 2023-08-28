@@ -1,4 +1,5 @@
 # > Standard library
+import os
 import datetime
 from collections import defaultdict
 
@@ -19,7 +20,11 @@ from util.tv_symbols import crypto_indices, stock_indices, all_forex_indices
 from util.tv_data import get_tv_ticker_data
 
 # Convert emoji to text
-convert_emoji = defaultdict(lambda: 'neutral', {'🐻': 'bear', '🐂': 'bull', '🦆': 'neutral'})
+convert_emoji = defaultdict(
+    lambda: "neutral", {"🐻": "bear", "'🐂": "bull", "'🦆": "neutral"}
+)
+
+
 class DB(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
@@ -28,7 +33,7 @@ class DB(commands.Cog):
         self.set_tv_db.start()
         self.set_cg_db.start()
         self.set_nasdaq_tickers.start()
-        
+
         # Set the portfolio and assets db
         self.set_portfolio_db()
         self.set_assets_db()
@@ -49,16 +54,16 @@ class DB(commands.Cog):
 
     def set_tweets_db(self):
         util.vars.tweets_db = get_db("tweets")
-        
+
     def set_options_db(self):
         util.vars.options_db = get_db("options")
 
     def set_reddit_ids_db(self):
         util.vars.reddit_ids = get_db("reddit_ids")
-        
+
     def set_ideas_ids_db(self):
         util.vars.ideas_ids = get_db("ideas_ids")
-        
+
     def set_classified_tickers_db(self):
         util.vars.classified_tickers = get_db("classified_tickers")
 
@@ -136,22 +141,27 @@ class DB(commands.Cog):
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(DB(bot))
 
-def remove_old_rows(db: pd.DataFrame, days : int) -> pd.DataFrame:
+
+def remove_old_rows(db: pd.DataFrame, days: int) -> pd.DataFrame:
     """
     Removes the old rows from the database and return it.
     """
-    
+
     # Set timestamp column to datetime
     db["timestamp"] = pd.to_datetime(db["timestamp"])
-    
+
     return db[db["timestamp"] > datetime.datetime.now() - datetime.timedelta(days=days)]
 
-def merge_and_update(main_db : pd.DataFrame, new_data : pd.DataFrame, db_name : str) -> pd.DataFrame:
+
+def merge_and_update(
+    main_db: pd.DataFrame, new_data: pd.DataFrame, db_name: str
+) -> pd.DataFrame:
     merged = pd.concat([main_db, new_data], ignore_index=True)
     update_db(merged, db_name)
     return merged
 
-def clean_old_db(db, days : int = 1) -> pd.DataFrame:
+
+def clean_old_db(db, days: int = 1) -> pd.DataFrame:
     """
     Cleans the tweets database and returns it.
 
@@ -174,7 +184,9 @@ def clean_old_db(db, days : int = 1) -> pd.DataFrame:
         print(db.to_string())
 
 
-def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list, changes: list) -> None:
+def update_tweet_db(
+    tickers: list, user: str, sentiment: str, categories: list, changes: list
+) -> None:
     """
     Updates thet tweet database variable using the info provided.
 
@@ -194,24 +206,23 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list, 
     dict_list = []
 
     for i in range(len(tickers)):
-        
         # Remove emoji at end
         change = changes[i]
         if change:
-            if '%' in change:
+            if "%" in change:
                 change = change[:-1]
             else:
                 change = "None"
         else:
             change = "None"
-            
+
         dict_list.append(
             {
                 "ticker": tickers[i],
                 "user": user,
                 "sentiment": convert_emoji[sentiment],
                 "category": categories[i],
-                "change": change 
+                "change": change,
             }
         )
 
@@ -220,10 +231,11 @@ def update_tweet_db(tickers: list, user: str, sentiment: str, categories: list, 
 
     # Add current time
     tweet_db["timestamp"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
+
     util.vars.tweets_db = clean_old_db(util.vars.tweets_db, 1)
     util.vars.tweets_db = merge_and_update(util.vars.tweets_db, tweet_db, "tweets")
-    
+
+
 def get_db(database_name: str) -> pd.DataFrame:
     """
     Get the database saved under data/<database_name>.pkl.
@@ -240,7 +252,8 @@ def get_db(database_name: str) -> pd.DataFrame:
         Database saved under data/<database_name>.pkl.
     """
 
-    db_loc = f"data/{database_name}.db"
+    script_dir = os.path.dirname(__file__)
+    db_loc = os.path.join(script_dir, "..", "..", "data", f"{database_name}.db")
     cnx = sqlite3.connect(db_loc)
 
     try:
@@ -267,11 +280,15 @@ def update_db(db: pd.DataFrame, database_name: str) -> None:
     """
 
     db_loc = f"data/{database_name}.db"
-    
+
     # Convert everything to string to prevent errors
     db = db.applymap(str)
-    
+
     try:
-        db.to_sql(database_name, sqlite3.connect(db_loc), if_exists="replace", index=False)
+        db.to_sql(
+            database_name, sqlite3.connect(db_loc), if_exists="replace", index=False
+        )
     except Exception as e:
-        print(f"Error updating {database_name}.db: {e}.\nTried to update database:\n{db.to_string()}")
+        print(
+            f"Error updating {database_name}.db: {e}.\nTried to update database:\n{db.to_string()}"
+        )

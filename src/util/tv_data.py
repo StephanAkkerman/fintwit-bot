@@ -57,7 +57,6 @@ class TV_data:
     """
 
     def __init__(self) -> None:
-
         self.stock_indices_without_exch = [sym.split(":")[1] for sym in stock_indices]
         self.crypto_indices_without_exch = [sym.split(":")[1] for sym in crypto_indices]
         self.forex_indices_without_exch = [
@@ -127,7 +126,7 @@ class TV_data:
         ws : aiohttp.ClientWebSocketResponse
             The websocket object to send the message from.
         func : str
-            The function to call, all start with "quote_" followed by the function name.
+            The function to call, all start with ``quote_`` followed by the function name.
         args : List[str]
             The list of arguments to send in the message.
         """
@@ -135,13 +134,12 @@ class TV_data:
         as_json = json.dumps({"m": func, "p": args}, separators=(",", ":"))
         prepended = "~m~" + str(len(as_json)) + "~m~" + as_json
         await ws.send_str(prepended)
-        
+
     def get_usd_info(self, tv_crypto, symbol: str, suffix: str):
         if not symbol.endswith(suffix):
-
             # If it crypto try adding USD or USDT
             crypto_USD = tv_crypto.loc[tv_crypto["stock"] == symbol + suffix]
-            
+
             if not crypto_USD.empty:
                 return (
                     crypto_USD["exchange"].values[0],
@@ -232,8 +230,8 @@ class TV_data:
             website_suffix = "/?forex"
         elif asset == "crypto":
             website_suffix = "/?coingecko"
-            
-        website = f"https://www.tradingview.com/symbols/{symbol}{website_suffix}" 
+
+        website = f"https://www.tradingview.com/symbols/{symbol}{website_suffix}"
 
         try:
             symbol_data = self.get_symbol_data(symbol, asset)
@@ -244,22 +242,15 @@ class TV_data:
                 website = f"https://www.tradingview.com/symbols/{symbol_data[2]}{website_suffix}"
 
             else:
-                return (
-                    0,
-                    None,
-                    0,
-                    None,
-                    website
-                )
+                return (0, None, 0, None, website)
 
             # Create a session
             session = aiohttp.ClientSession()
-            
+
             async with session.ws_connect(
                 url="wss://data.tradingview.com/socket.io/websocket",
                 headers={"Origin": "https://data.tradingview.com"},
             ) as ws:
-
                 # This is mandatory to get the data
                 auth_str = "qs_" + "".join(
                     random.choice(string.ascii_lowercase) for i in range(12)
@@ -290,39 +281,21 @@ class TV_data:
                                 resp[1],
                                 resp[0] * resp[2] if asset == "crypto" else resp[2],
                                 exchange.lower(),
-                                website
+                                website,
                             )
 
                         elif counter == 3:
                             await session.close()
-                            return (
-                                0,
-                                None,
-                                0,
-                                None,
-                                website
-                            )
+                            return (0, None, 0, None, website)
 
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         # self.restart_sockets()
                         print("TradingView websocket Error")
                         await session.close()
-                        return (
-                            0,
-                            None,
-                            0,
-                            None,
-                            website
-                        )
+                        return (0, None, 0, None, website)
         except aiohttp.ClientConnectionError:
             print("Temporary TradingView websocket error")
-            return (
-                    0,
-                    None,
-                    0,
-                    None,
-                    website
-                )
+            return (0, None, 0, None, website)
 
         except Exception:
             print(traceback.format_exc())
@@ -394,11 +367,11 @@ class TV_data:
                     interval=Interval.INTERVAL_1_DAY,
                     timeout=5,
                 ).get_analysis()
-                
+
             except Exception as e:
                 print(f"TradingView TA error for ticker: {symbol}, error:", e)
                 return None, None
-            
+
             if four_h_analysis:
                 four_h_analysis = self.format_analysis(four_h_analysis.summary)
 
@@ -409,5 +382,6 @@ class TV_data:
             return four_h_analysis, one_d_analysis
 
         return None, None
+
 
 tv = TV_data()

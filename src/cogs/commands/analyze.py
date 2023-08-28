@@ -3,7 +3,6 @@
 import datetime
 
 # > 3rd Party Dependencies
-import pandas as pd
 from bs4 import BeautifulSoup
 
 # > Discord imports
@@ -16,7 +15,6 @@ from util.vars import get_json_data
 
 
 class Analyze(commands.Cog):
-
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 

@@ -117,10 +117,33 @@ class Sentiment(commands.Cog):
 
     @sentiment.error
     async def sentiment_error(self, ctx: commands.Context, error: Exception) -> None:
+        """
+        Catches the errors when using the `!sentiment` command.
+
+        Parameters
+        ----------
+        ctx : commands.Context
+            The context of the command.
+        error : Exception
+            The exception that was raised when using the `!sentiment` command.
+        """
         print(error)
         await ctx.respond(f"An error has occurred. Please try again later.")
 
-    async def get_news(self, ticker: str):
+    async def get_news(self, ticker: str) -> pd.DataFrame:
+        """
+        Get the latest news for a given stock ticker.
+
+        Parameters
+        ----------
+        ticker : str
+            The stock ticker to get the news for.
+
+        Returns
+        -------
+        pd.DataFrame
+            The latest news for a given stock ticker.
+        """
 
         html = await get_json_data(
             url=f"https://finviz.com/quote.ashx?t={ticker}",
@@ -145,7 +168,6 @@ class Sentiment(commands.Cog):
         sentiment = []
 
         for headline in headlines:
-
             date = headline[
                 headline.find('style="white-space:nowrap">')
                 + len('style="white-space:nowrap">') : headline.find("&nbsp;")

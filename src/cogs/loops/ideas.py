@@ -19,6 +19,7 @@ from util.vars import get_json_data, config
 from util.disc_util import get_channel, get_tagged_users
 from util.db import update_db
 
+
 async def scraper(type: str) -> pd.DataFrame:
     """
     Extract the front page of trading ideas on TradingView.
@@ -95,7 +96,6 @@ async def scraper(type: str) -> pd.DataFrame:
 
     # Get the Labels, timeFrame and Symbol
     for info_row in content.find_all("div", class_="tv-widget-idea__info-row"):
-
         if "type-long" in str(info_row):
             label = "Long"
         elif "type-short" in str(info_row):
@@ -181,7 +181,7 @@ class TradingView_Ideas(commands.Cog):
             )
 
             self.forex_ideas.start()
-            
+
     def add_id_to_db(self, id: str) -> None:
         """
         Adds the given id to the database.
@@ -218,7 +218,7 @@ class TradingView_Ideas(commands.Cog):
         -------
         None
         """
-        
+
         # Get the database
         if not util.vars.ideas_ids.empty:
             # Set the types
@@ -237,12 +237,11 @@ class TradingView_Ideas(commands.Cog):
 
         counter = 1
         for _, row in df.iterrows():
-            
             if not util.vars.ideas_ids.empty:
                 if row["Url"] in util.vars.ideas_ids["id"].tolist():
                     counter += 1
                     continue
-            
+
             self.add_id_to_db(row["Url"])
 
             if row["Label"] == "Long":
@@ -283,9 +282,9 @@ class TradingView_Ideas(commands.Cog):
                 channel = self.forex_channel
 
             await channel.send(content=get_tagged_users([row["Symbol"]]), embed=e)
-            
+
             counter += 1
-            
+
             # Only show the top 10 ideas
             if counter == 11:
                 break
