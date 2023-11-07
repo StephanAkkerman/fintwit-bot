@@ -1,5 +1,6 @@
 # Standard libraries
 import datetime
+import html
 
 # > 3rd party dependencies
 import asyncpraw
@@ -109,13 +110,13 @@ class Reddit(commands.Cog):
                 # If it is a new submission add it to the db
                 self.add_id_to_db(submission.id)
 
-                descr = submission.selftext
+                descr = html.unescape(submission.selftext)
 
                 # Make sure the description and title are not too long
                 if len(descr) > 4000:
                     descr = descr[:4000] + "..."
 
-                title = submission.title
+                title = html.unescape(submission.title)
                 if len(title) > 250:
                     title = title[:250] + "..."
 
