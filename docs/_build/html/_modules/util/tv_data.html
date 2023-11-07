@@ -1,0 +1,760 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>util.tv_data &#8212; FinTwit Bot 1.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=eafc0fe6" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+
+    <script src="../../_static/documentation_options.js?v=7ff6d70c"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/util/tv_data';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  <div class="navbar-header-items__start">
+    
+      <div class="navbar-item">
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    <p class="title logo__title">FinTwit Bot 1.1 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../modules.html">
+                        Modules
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+    </div>
+  
+
+  
+</div>
+
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../modules.html">
+                        Modules
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumbs">
+  <ul class="bd-breadcrumbs" role="navigation" aria-label="Breadcrumb">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">util.tv_data</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <h1>Source code for util.tv_data</h1><div class="highlight"><pre>
+<span></span><span class="c1">## &gt; Imports</span>
+<span class="c1"># &gt; Standard libaries</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span>
+
+<span class="c1"># &gt; 3rd party dependencies</span>
+<span class="kn">import</span> <span class="nn">aiohttp</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">tradingview_ta</span> <span class="kn">import</span> <span class="n">TA_Handler</span><span class="p">,</span> <span class="n">Interval</span>
+
+<span class="c1"># &gt; Local dependencies</span>
+<span class="kn">import</span> <span class="nn">util.vars</span>
+<span class="kn">from</span> <span class="nn">util.vars</span> <span class="kn">import</span> <span class="n">get_json_data</span>
+<span class="kn">from</span> <span class="nn">util.tv_symbols</span> <span class="kn">import</span> <span class="n">stock_indices</span><span class="p">,</span> <span class="n">crypto_indices</span><span class="p">,</span> <span class="n">all_forex_indices</span>
+
+
+<div class="viewcode-block" id="get_tv_ticker_data">
+<a class="viewcode-back" href="../../util.html#util.tv_data.get_tv_ticker_data">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">get_tv_ticker_data</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">append_to</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_json_data</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span> <span class="ow">or</span> <span class="n">data</span> <span class="o">==</span> <span class="p">{}</span> <span class="ow">or</span> <span class="s2">&quot;data&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+    <span class="c1"># Convert data to pandas df</span>
+    <span class="n">tv_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;d&quot;</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">append_to</span><span class="p">:</span>
+        <span class="c1"># This adds additional information to the dataframe</span>
+        <span class="n">tv_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">tv_data</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">append_to</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">])])</span>
+
+    <span class="c1"># Split the information in exchange and stock</span>
+    <span class="n">tv_data</span><span class="p">[[</span><span class="s2">&quot;exchange&quot;</span><span class="p">,</span> <span class="s2">&quot;stock&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">tv_data</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">tv_data</span></div>
+
+
+
+<div class="viewcode-block" id="TV_data">
+<a class="viewcode-back" href="../../util.html#util.tv_data.TV_data">[docs]</a>
+<span class="k">class</span> <span class="nc">TV_data</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class is used to get the current price, 24h change, and volume of a stock.</span>
+<span class="sd">    It also includes methods to get the TradingView TA data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stock_indices_without_exch</span> <span class="o">=</span> <span class="p">[</span><span class="n">sym</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">sym</span> <span class="ow">in</span> <span class="n">stock_indices</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">crypto_indices_without_exch</span> <span class="o">=</span> <span class="p">[</span><span class="n">sym</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">sym</span> <span class="ow">in</span> <span class="n">crypto_indices</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forex_indices_without_exch</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">sym</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">sym</span> <span class="ow">in</span> <span class="n">all_forex_indices</span>
+        <span class="p">]</span>
+
+<div class="viewcode-block" id="TV_data.on_msg">
+<a class="viewcode-back" href="../../util.html#util.tv_data.TV_data.on_msg">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_msg</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">ws</span><span class="p">:</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientWebSocketResponse</span><span class="p">,</span> <span class="n">msg</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parses the message from the TradingView API.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Optional[tuple[float, float, float, str]]</span>
+<span class="sd">            float</span>
+<span class="sd">                The current price.</span>
+<span class="sd">            float</span>
+<span class="sd">                The current 24h change.</span>
+<span class="sd">            float</span>
+<span class="sd">                The current volume.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Try again</span>
+            <span class="k">if</span> <span class="s1">&#39;&quot;m&quot;:&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">msg</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">elif</span> <span class="n">Res</span> <span class="o">:=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;^.*?({.*)$&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+                <span class="n">jsonRes</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">Res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;~m~&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s2">&quot;m&quot;</span> <span class="ow">in</span> <span class="n">jsonRes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">jsonRes</span><span class="p">[</span><span class="s2">&quot;m&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;qsd&quot;</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">price</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">jsonRes</span><span class="p">[</span><span class="s2">&quot;p&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;v&quot;</span><span class="p">][</span><span class="s2">&quot;lp&quot;</span><span class="p">])</span>
+                            <span class="n">change</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">jsonRes</span><span class="p">[</span><span class="s2">&quot;p&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;v&quot;</span><span class="p">][</span><span class="s2">&quot;ch&quot;</span><span class="p">])</span>
+                            <span class="n">volume</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">jsonRes</span><span class="p">[</span><span class="s2">&quot;p&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;v&quot;</span><span class="p">][</span><span class="s2">&quot;volume&quot;</span><span class="p">])</span>
+                        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;KeyError in TradingView ws_data&quot;</span><span class="p">)</span>
+                            <span class="k">return</span> <span class="kc">None</span>
+
+                        <span class="k">if</span> <span class="n">price</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">perc_change</span> <span class="o">=</span> <span class="nb">round</span><span class="p">((</span><span class="n">change</span> <span class="o">/</span> <span class="n">price</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;TradingView returns price=0&quot;</span><span class="p">)</span>
+                            <span class="k">return</span> <span class="kc">None</span>
+
+                        <span class="k">return</span> <span class="n">price</span><span class="p">,</span> <span class="n">perc_change</span><span class="p">,</span> <span class="n">volume</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># ping packet</span>
+                <span class="n">pingStr</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;.......(.*)&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pingStr</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">pingStr</span> <span class="o">=</span> <span class="n">pingStr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">ws</span><span class="o">.</span><span class="n">send_str</span><span class="p">(</span><span class="s2">&quot;~m~&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pingStr</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;~m~&quot;</span> <span class="o">+</span> <span class="n">pingStr</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="TV_data.sendMessage">
+<a class="viewcode-back" href="../../util.html#util.tv_data.TV_data.sendMessage">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">sendMessage</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">ws</span><span class="p">:</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientWebSocketResponse</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sends a message to the TradingView API.</span>
+<span class="sd">        This needs to be done before any data can be retrieved.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ws : aiohttp.ClientWebSocketResponse</span>
+<span class="sd">            The websocket object to send the message from.</span>
+<span class="sd">        func : str</span>
+<span class="sd">            The function to call, all start with ``quote_`` followed by the function name.</span>
+<span class="sd">        args : List[str]</span>
+<span class="sd">            The list of arguments to send in the message.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">as_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s2">&quot;m&quot;</span><span class="p">:</span> <span class="n">func</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">:</span> <span class="n">args</span><span class="p">},</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">))</span>
+        <span class="n">prepended</span> <span class="o">=</span> <span class="s2">&quot;~m~&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">as_json</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;~m~&quot;</span> <span class="o">+</span> <span class="n">as_json</span>
+        <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">send_str</span><span class="p">(</span><span class="n">prepended</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TV_data.get_usd_info">
+<a class="viewcode-back" href="../../util.html#util.tv_data.TV_data.get_usd_info">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_usd_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tv_crypto</span><span class="p">,</span> <span class="n">symbol</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">symbol</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">suffix</span><span class="p">):</span>
+            <span class="c1"># If it crypto try adding USD or USDT</span>
+            <span class="n">crypto_USD</span> <span class="o">=</span> <span class="n">tv_crypto</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">tv_crypto</span><span class="p">[</span><span class="s2">&quot;stock&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">symbol</span> <span class="o">+</span> <span class="n">suffix</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">crypto_USD</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span>
+                    <span class="n">crypto_USD</span><span class="p">[</span><span class="s2">&quot;exchange&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s2">&quot;crypto&quot;</span><span class="p">,</span>
+                    <span class="n">crypto_USD</span><span class="p">[</span><span class="s2">&quot;stock&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TV_data.get_symbol_data">
+<a class="viewcode-back" href="../../util.html#util.tv_data.TV_data.get_symbol_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_symbol_data</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">asset</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function to get the symbol data from the TradingView API.</span>
+<span class="sd">        This data included the exchange and market this symbol is traded on.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        symbol : str</span>
+<span class="sd">            The ticker of the stock / crypto.</span>
+<span class="sd">        asset : str</span>
+<span class="sd">            The type of asset, either &quot;stock&quot; or &quot;crypto&quot;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Optional[tuple[str, str, str]]</span>
+<span class="sd">            str</span>
+<span class="sd">                The exchange the symbol is traded on, e.g. &quot;FTX&quot; or &quot;Binance&quot;.</span>
+<span class="sd">            str</span>
+<span class="sd">                The market the symbol is traded on, e.g. &quot;crypto&quot;, &quot;america&quot;, &quot;forex&quot;.</span>
+<span class="sd">            str</span>
+<span class="sd">                The symbol itself.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">tv_stocks</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">stocks</span>
+        <span class="n">tv_crypto</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">crypto</span>
+        <span class="n">tv_forex</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">forex</span>
+
+        <span class="k">if</span> <span class="n">asset</span> <span class="o">==</span> <span class="s2">&quot;stock&quot;</span><span class="p">:</span>
+            <span class="n">stock</span> <span class="o">=</span> <span class="n">tv_stocks</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">tv_stocks</span><span class="p">[</span><span class="s2">&quot;stock&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">symbol</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">stock</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">stock</span><span class="p">[</span><span class="s2">&quot;exchange&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;america&quot;</span><span class="p">,</span> <span class="n">symbol</span>
+
+        <span class="k">elif</span> <span class="n">asset</span> <span class="o">==</span> <span class="s2">&quot;forex&quot;</span><span class="p">:</span>
+            <span class="n">forex</span> <span class="o">=</span> <span class="n">tv_forex</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">tv_forex</span><span class="p">[</span><span class="s2">&quot;stock&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">symbol</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">forex</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">forex</span><span class="p">[</span><span class="s2">&quot;exchange&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;forex&quot;</span><span class="p">,</span> <span class="n">symbol</span>
+
+        <span class="k">elif</span> <span class="n">asset</span> <span class="o">==</span> <span class="s2">&quot;crypto&quot;</span><span class="p">:</span>
+            <span class="n">crypto</span> <span class="o">=</span> <span class="n">tv_crypto</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">tv_crypto</span><span class="p">[</span><span class="s2">&quot;stock&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">symbol</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">crypto</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">crypto</span><span class="p">[</span><span class="s2">&quot;exchange&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;crypto&quot;</span><span class="p">,</span> <span class="n">symbol</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Iterate over some USD suffixes</span>
+                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;USD&quot;</span><span class="p">,</span> <span class="s2">&quot;USDT&quot;</span><span class="p">,</span> <span class="s2">&quot;USDTPERP&quot;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">data</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_usd_info</span><span class="p">(</span><span class="n">tv_crypto</span><span class="p">,</span> <span class="n">symbol</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+                        <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="TV_data.get_tv_data">
+<a class="viewcode-back" href="../../util.html#util.tv_data.TV_data.get_tv_data">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_tv_data</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">asset</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the current price, volume, 24h change, and TA data from the TradingView API.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        symbol: string</span>
+<span class="sd">            The ticker of the stock / crypto, e.g. &quot;AAPL&quot; or &quot;BTCUSDT&quot;.</span>
+<span class="sd">        asset: string</span>
+<span class="sd">            The type of asset, either &quot;stock&quot;, &quot;crypto&quot;, or &quot;forex&quot;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Optional[tuple[float, float, float, str]]</span>
+<span class="sd">            float</span>
+<span class="sd">                The current price.</span>
+<span class="sd">            float</span>
+<span class="sd">                The current 24h change.</span>
+<span class="sd">            float</span>
+<span class="sd">                The current volume.</span>
+<span class="sd">            str</span>
+<span class="sd">                The exchange that this symbol is listed on.</span>
+<span class="sd">            str</span>
+<span class="sd">                The url to the TradingView chart for this symbol.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">asset</span> <span class="o">==</span> <span class="s2">&quot;stock&quot;</span><span class="p">:</span>
+            <span class="n">website_suffix</span> <span class="o">=</span> <span class="s2">&quot;/?yahoo&quot;</span>
+        <span class="k">elif</span> <span class="n">asset</span> <span class="o">==</span> <span class="s2">&quot;forex&quot;</span><span class="p">:</span>
+            <span class="n">website_suffix</span> <span class="o">=</span> <span class="s2">&quot;/?forex&quot;</span>
+        <span class="k">elif</span> <span class="n">asset</span> <span class="o">==</span> <span class="s2">&quot;crypto&quot;</span><span class="p">:</span>
+            <span class="n">website_suffix</span> <span class="o">=</span> <span class="s2">&quot;/?coingecko&quot;</span>
+
+        <span class="n">website</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;https://www.tradingview.com/symbols/</span><span class="si">{</span><span class="n">symbol</span><span class="si">}{</span><span class="n">website_suffix</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">symbol_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_symbol_data</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">asset</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">symbol_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Format it &quot;exchange:symbol&quot;</span>
+                <span class="n">exchange</span> <span class="o">=</span> <span class="n">symbol_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">symbol</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">exchange</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">symbol_data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">website</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;https://www.tradingview.com/symbols/</span><span class="si">{</span><span class="n">symbol_data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}{</span><span class="n">website_suffix</span><span class="si">}</span><span class="s2">&quot;</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">website</span><span class="p">)</span>
+
+            <span class="c1"># Create a session</span>
+            <span class="n">session</span> <span class="o">=</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientSession</span><span class="p">()</span>
+
+            <span class="k">async</span> <span class="k">with</span> <span class="n">session</span><span class="o">.</span><span class="n">ws_connect</span><span class="p">(</span>
+                <span class="n">url</span><span class="o">=</span><span class="s2">&quot;wss://data.tradingview.com/socket.io/websocket&quot;</span><span class="p">,</span>
+                <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Origin&quot;</span><span class="p">:</span> <span class="s2">&quot;https://data.tradingview.com&quot;</span><span class="p">},</span>
+            <span class="p">)</span> <span class="k">as</span> <span class="n">ws</span><span class="p">:</span>
+                <span class="c1"># This is mandatory to get the data</span>
+                <span class="n">auth_str</span> <span class="o">=</span> <span class="s2">&quot;qs_&quot;</span> <span class="o">+</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_lowercase</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Send messages via websocket</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="n">ws</span><span class="p">,</span> <span class="s2">&quot;quote_create_session&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">auth_str</span><span class="p">])</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span>
+                    <span class="n">ws</span><span class="p">,</span> <span class="s2">&quot;quote_set_fields&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">auth_str</span><span class="p">,</span> <span class="s2">&quot;ch&quot;</span><span class="p">,</span> <span class="s2">&quot;lp&quot;</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="n">ws</span><span class="p">,</span> <span class="s2">&quot;quote_add_symbols&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">auth_str</span><span class="p">,</span> <span class="n">symbol</span><span class="p">])</span>
+
+                <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+
+                <span class="c1"># Check for response</span>
+                <span class="k">async</span> <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="n">ws</span><span class="p">:</span>
+                    <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                    <span class="k">if</span> <span class="n">msg</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">WSMsgType</span><span class="o">.</span><span class="n">TEXT</span><span class="p">:</span>
+                        <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_msg</span><span class="p">(</span><span class="n">ws</span><span class="p">,</span> <span class="n">msg</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+                        <span class="k">if</span> <span class="n">resp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                            <span class="k">await</span> <span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                            <span class="c1"># Convert to USD volume if asset is crypto</span>
+                            <span class="k">return</span> <span class="p">(</span>
+                                <span class="n">resp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                <span class="n">resp</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                <span class="n">resp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">resp</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="n">asset</span> <span class="o">==</span> <span class="s2">&quot;crypto&quot;</span> <span class="k">else</span> <span class="n">resp</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                                <span class="n">exchange</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
+                                <span class="n">website</span><span class="p">,</span>
+                            <span class="p">)</span>
+
+                        <span class="k">elif</span> <span class="n">counter</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                            <span class="k">await</span> <span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                            <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">website</span><span class="p">)</span>
+
+                    <span class="k">elif</span> <span class="n">msg</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">WSMsgType</span><span class="o">.</span><span class="n">ERROR</span><span class="p">:</span>
+                        <span class="c1"># self.restart_sockets()</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;TradingView websocket Error&quot;</span><span class="p">)</span>
+                        <span class="k">await</span> <span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                        <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">website</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientConnectionError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Temporary TradingView websocket error&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">website</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="TV_data.format_analysis">
+<a class="viewcode-back" href="../../util.html#util.tv_data.TV_data.format_analysis">[docs]</a>
+    <span class="k">def</span> <span class="nf">format_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">analysis</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Simple helper function to format the TA data into one string.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        analysis : dict</span>
+<span class="sd">            The original TA data from the TradingView API.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The formatted TA data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">analysis</span><span class="p">[</span><span class="s1">&#39;RECOMMENDATION&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">analysis</span><span class="p">[</span><span class="s1">&#39;BUY&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">📈 </span><span class="si">{</span><span class="n">analysis</span><span class="p">[</span><span class="s1">&#39;NEUTRAL&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">⌛️ </span><span class="si">{</span><span class="n">analysis</span><span class="p">[</span><span class="s1">&#39;SELL&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">📉&quot;</span></div>
+
+
+<div class="viewcode-block" id="TV_data.get_tv_TA">
+<a class="viewcode-back" href="../../util.html#util.tv_data.TV_data.get_tv_TA">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_tv_TA</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">asset</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the current TA (technical analysis) data from the TradingView API.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        symbol : str</span>
+<span class="sd">            The ticker of the stock / crypto.</span>
+<span class="sd">        asset : str</span>
+<span class="sd">            The type of asset, either &quot;stock&quot;, &quot;crypto&quot; or &quot;forex&quot;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Optional[tuple[str,str]]</span>
+<span class="sd">            The 4h and 1d TA data as formatted strings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># There is no TA for indices</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">symbol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stock_indices_without_exch</span>
+            <span class="ow">or</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">crypto_indices_without_exch</span>
+            <span class="ow">or</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">forex_indices_without_exch</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+        <span class="n">symbol_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_symbol_data</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">asset</span><span class="p">)</span>
+        <span class="n">four_h_analysis</span> <span class="o">=</span> <span class="n">one_d_analysis</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Get the TradingView TA for symbol</span>
+        <span class="c1"># Interval can be 1m, 5m, 15m, 30m, 1h, 2h, 4h, 1d, 1W, 1M</span>
+        <span class="k">if</span> <span class="n">symbol_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">exchange</span><span class="p">,</span> <span class="n">market</span><span class="p">,</span> <span class="n">symbol</span> <span class="o">=</span> <span class="n">symbol_data</span>
+
+            <span class="c1"># Wait max 5 sec</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">four_h_analysis</span> <span class="o">=</span> <span class="n">TA_Handler</span><span class="p">(</span>
+                    <span class="n">symbol</span><span class="o">=</span><span class="n">symbol</span><span class="p">,</span>
+                    <span class="n">screener</span><span class="o">=</span><span class="n">market</span><span class="p">,</span>
+                    <span class="n">exchange</span><span class="o">=</span><span class="n">exchange</span><span class="p">,</span>
+                    <span class="n">interval</span><span class="o">=</span><span class="n">Interval</span><span class="o">.</span><span class="n">INTERVAL_4_HOURS</span><span class="p">,</span>
+                    <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">get_analysis</span><span class="p">()</span>
+
+                <span class="n">one_d_analysis</span> <span class="o">=</span> <span class="n">TA_Handler</span><span class="p">(</span>
+                    <span class="n">symbol</span><span class="o">=</span><span class="n">symbol</span><span class="p">,</span>
+                    <span class="n">screener</span><span class="o">=</span><span class="n">market</span><span class="p">,</span>
+                    <span class="n">exchange</span><span class="o">=</span><span class="n">exchange</span><span class="p">,</span>
+                    <span class="n">interval</span><span class="o">=</span><span class="n">Interval</span><span class="o">.</span><span class="n">INTERVAL_1_DAY</span><span class="p">,</span>
+                    <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">get_analysis</span><span class="p">()</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;TradingView TA error for ticker: </span><span class="si">{</span><span class="n">symbol</span><span class="si">}</span><span class="s2">, error:&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="n">four_h_analysis</span><span class="p">:</span>
+                <span class="n">four_h_analysis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_analysis</span><span class="p">(</span><span class="n">four_h_analysis</span><span class="o">.</span><span class="n">summary</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">one_d_analysis</span><span class="p">:</span>
+                <span class="n">one_d_analysis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_analysis</span><span class="p">(</span><span class="n">one_d_analysis</span><span class="o">.</span><span class="n">summary</span><span class="p">)</span>
+
+            <span class="c1"># Format the analysis</span>
+            <span class="k">return</span> <span class="n">four_h_analysis</span><span class="p">,</span> <span class="n">one_d_analysis</span>
+
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span></div>
+</div>
+
+
+
+<span class="n">tv</span> <span class="o">=</span> <span class="n">TV_data</span><span class="p">()</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+                <footer class="bd-footer-article">
+                  
+<div class="footer-article-items footer-article__inner">
+  
+    <div class="footer-article-item"><!-- Previous / next buttons -->
+<div class="prev-next-area">
+</div></div>
+  
+</div>
+
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+  <p class="copyright">
+    
+      © Copyright 2023, Stephan Akkerman.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.13.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

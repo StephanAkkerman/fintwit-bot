@@ -42,18 +42,6 @@ class TV_data:
     """
     This class is used to get the current price, 24h change, and volume of a stock.
     It also includes methods to get the TradingView TA data.
-
-    Methods
-    -------
-    on_msg(ws: aiohttp.ClientWebSocketResponse, msg) -> Optional[tuple[float, float, float]]:
-        Parses the message from the TradingView API.
-    sendMessage(ws: aiohttp.ClientWebSocketResponse, func: str, args: List[str]) -> None:
-        Sends a message to the TradingView API.
-    get_symbol_data(symbol: str, asset: str) -> Optional[tuple[str, str]]:
-        Helper function to get the symbol data from the TradingView API.
-
-    get_tv_TA(symbol: str, asset: dict) -> Optional[tuple[str,str]]:
-        Gets the current TA (technical analysis) data from the TradingView API.
     """
 
     def __init__(self) -> None:

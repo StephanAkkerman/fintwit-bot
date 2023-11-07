@@ -1,0 +1,718 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>cogs package &#8212; FinTwit Bot 1.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=eafc0fe6" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+
+    <script src="_static/documentation_options.js?v=7ff6d70c"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'cogs';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="cogs.commands package" href="cogs.commands.html" />
+    <link rel="prev" title="main module" href="main.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  <div class="navbar-header-items__start">
+    
+      <div class="navbar-item">
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    <p class="title logo__title">FinTwit Bot 1.1 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="modules.html">
+                        Modules
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+    </div>
+  
+
+  
+    <label class="sidebar-toggle secondary-toggle" for="__secondary">
+      <span class="fa-solid fa-outdent"></span>
+    </label>
+  
+</div>
+
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="modules.html">
+                        Modules
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="main.html">main module</a></li>
+<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">cogs package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="cogs.commands.html">cogs.commands package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.listeners.html">cogs.listeners package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html">cogs.loops package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cogs.commands.html">cogs.commands package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cogs.listeners.html">cogs.listeners package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cogs.loops.html">cogs.loops package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="util.html">util package</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumbs">
+  <ul class="bd-breadcrumbs" role="navigation" aria-label="Breadcrumb">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="modules.html" class="nav-link">src</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">cogs package</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <section id="cogs-package">
+<h1>cogs package<a class="headerlink" href="#cogs-package" title="Link to this heading">#</a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading">#</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cogs.commands.html">cogs.commands package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cogs.commands.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.commands.html#cogs-commands-analyze-module">cogs.commands.analyze module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.commands.html#cogs.commands.analyze.Analyze"><code class="docutils literal notranslate"><span class="pre">Analyze</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.commands.html#cogs-commands-earnings-module">cogs.commands.earnings module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.commands.html#cogs.commands.earnings.Earnings"><code class="docutils literal notranslate"><span class="pre">Earnings</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.commands.html#cogs.commands.earnings.Earnings.earnings_error"><code class="docutils literal notranslate"><span class="pre">Earnings.earnings_error()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.commands.html#cogs-commands-help-module">cogs.commands.help module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.commands.html#cogs.commands.help.Help"><code class="docutils literal notranslate"><span class="pre">Help</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.commands.html#cogs.commands.help.Help.get_cmd_dict"><code class="docutils literal notranslate"><span class="pre">Help.get_cmd_dict()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.commands.html#cogs-commands-portfolio-module">cogs.commands.portfolio module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.commands.html#cogs.commands.portfolio.Portfolio"><code class="docutils literal notranslate"><span class="pre">Portfolio</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.commands.html#cogs.commands.portfolio.Portfolio.add_error"><code class="docutils literal notranslate"><span class="pre">Portfolio.add_error()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.commands.html#cogs.commands.portfolio.Portfolio.remove_error"><code class="docutils literal notranslate"><span class="pre">Portfolio.remove_error()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.commands.html#cogs.commands.portfolio.Portfolio.show_error"><code class="docutils literal notranslate"><span class="pre">Portfolio.show_error()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.commands.html#cogs.commands.portfolio.Portfolio.update_portfolio_db"><code class="docutils literal notranslate"><span class="pre">Portfolio.update_portfolio_db()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.commands.html#cogs-commands-sentiment-module">cogs.commands.sentiment module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.commands.html#cogs.commands.sentiment.Sentiment"><code class="docutils literal notranslate"><span class="pre">Sentiment</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.commands.html#cogs.commands.sentiment.Sentiment.get_news"><code class="docutils literal notranslate"><span class="pre">Sentiment.get_news()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.commands.html#cogs.commands.sentiment.Sentiment.sentiment_error"><code class="docutils literal notranslate"><span class="pre">Sentiment.sentiment_error()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.commands.html#cogs-commands-stock-module">cogs.commands.stock module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.commands.html#cogs.commands.stock.Stock"><code class="docutils literal notranslate"><span class="pre">Stock</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.commands.html#cogs.commands.stock.Stock.update_assets_db"><code class="docutils literal notranslate"><span class="pre">Stock.update_assets_db()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.commands.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cogs.listeners.html">cogs.listeners package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cogs.listeners.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.listeners.html#cogs-listeners-on-member-join-module">cogs.listeners.on_member_join module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.listeners.html#cogs.listeners.on_member_join.On_member_join"><code class="docutils literal notranslate"><span class="pre">On_member_join</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.listeners.html#cogs.listeners.on_member_join.On_member_join.on_member_join"><code class="docutils literal notranslate"><span class="pre">On_member_join.on_member_join()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.listeners.html#cogs-listeners-on-raw-reaction-add-module">cogs.listeners.on_raw_reaction_add module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.listeners.html#cogs.listeners.on_raw_reaction_add.On_raw_reaction_add"><code class="docutils literal notranslate"><span class="pre">On_raw_reaction_add</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.listeners.html#cogs.listeners.on_raw_reaction_add.On_raw_reaction_add.classify_reaction"><code class="docutils literal notranslate"><span class="pre">On_raw_reaction_add.classify_reaction()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.listeners.html#cogs.listeners.on_raw_reaction_add.On_raw_reaction_add.highlight"><code class="docutils literal notranslate"><span class="pre">On_raw_reaction_add.highlight()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.listeners.html#cogs.listeners.on_raw_reaction_add.On_raw_reaction_add.on_raw_reaction_add"><code class="docutils literal notranslate"><span class="pre">On_raw_reaction_add.on_raw_reaction_add()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.listeners.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cogs.loops.html">cogs.loops package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-assets-module">cogs.loops.assets module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.assets.Assets"><code class="docutils literal notranslate"><span class="pre">Assets</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.assets.Assets.assets"><code class="docutils literal notranslate"><span class="pre">Assets.assets()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.assets.Assets.format_exchange"><code class="docutils literal notranslate"><span class="pre">Assets.format_exchange()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.assets.Assets.get_user"><code class="docutils literal notranslate"><span class="pre">Assets.get_user()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.assets.Assets.get_user_channel"><code class="docutils literal notranslate"><span class="pre">Assets.get_user_channel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.assets.Assets.post_assets"><code class="docutils literal notranslate"><span class="pre">Assets.post_assets</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.assets.Assets.usd_value"><code class="docutils literal notranslate"><span class="pre">Assets.usd_value()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-earnings-overview-module">cogs.loops.earnings_overview module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.earnings_overview.Earnings_Overview"><code class="docutils literal notranslate"><span class="pre">Earnings_Overview</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.earnings_overview.Earnings_Overview.earnings"><code class="docutils literal notranslate"><span class="pre">Earnings_Overview.earnings</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.earnings_overview.Earnings_Overview.earnings_embed"><code class="docutils literal notranslate"><span class="pre">Earnings_Overview.earnings_embed()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-events-module">cogs.loops.events module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.events.Events"><code class="docutils literal notranslate"><span class="pre">Events</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.events.Events.get_events"><code class="docutils literal notranslate"><span class="pre">Events.get_events()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.events.Events.post_events"><code class="docutils literal notranslate"><span class="pre">Events.post_events</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-funding-module">cogs.loops.funding module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.funding.Funding"><code class="docutils literal notranslate"><span class="pre">Funding</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.funding.Funding.funding"><code class="docutils literal notranslate"><span class="pre">Funding.funding</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-gainers-module">cogs.loops.gainers module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.gainers.Gainers"><code class="docutils literal notranslate"><span class="pre">Gainers</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.gainers.Gainers.crypto"><code class="docutils literal notranslate"><span class="pre">Gainers.crypto</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.gainers.Gainers.stocks"><code class="docutils literal notranslate"><span class="pre">Gainers.stocks</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-ideas-module">cogs.loops.ideas module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.ideas.TradingView_Ideas"><code class="docutils literal notranslate"><span class="pre">TradingView_Ideas</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.ideas.TradingView_Ideas.add_id_to_db"><code class="docutils literal notranslate"><span class="pre">TradingView_Ideas.add_id_to_db()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.ideas.TradingView_Ideas.crypto_ideas"><code class="docutils literal notranslate"><span class="pre">TradingView_Ideas.crypto_ideas</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.ideas.TradingView_Ideas.forex_ideas"><code class="docutils literal notranslate"><span class="pre">TradingView_Ideas.forex_ideas</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.ideas.TradingView_Ideas.send_embed"><code class="docutils literal notranslate"><span class="pre">TradingView_Ideas.send_embed()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.ideas.TradingView_Ideas.stock_ideas"><code class="docutils literal notranslate"><span class="pre">TradingView_Ideas.stock_ideas</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.ideas.scraper"><code class="docutils literal notranslate"><span class="pre">scraper()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-index-module">cogs.loops.index module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.index.Index"><code class="docutils literal notranslate"><span class="pre">Index</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.index.Index.crypto"><code class="docutils literal notranslate"><span class="pre">Index.crypto</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.index.Index.forex"><code class="docutils literal notranslate"><span class="pre">Index.forex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.index.Index.get_feargread"><code class="docutils literal notranslate"><span class="pre">Index.get_feargread()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.index.Index.stocks"><code class="docutils literal notranslate"><span class="pre">Index.stocks</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-liquidations-module">cogs.loops.liquidations module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.liquidations.Liquidations"><code class="docutils literal notranslate"><span class="pre">Liquidations</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.liquidations.Liquidations.get_df"><code class="docutils literal notranslate"><span class="pre">Liquidations.get_df()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.liquidations.Liquidations.post_liquidations"><code class="docutils literal notranslate"><span class="pre">Liquidations.post_liquidations</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-losers-module">cogs.loops.losers module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.losers.Losers"><code class="docutils literal notranslate"><span class="pre">Losers</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.losers.Losers.losers"><code class="docutils literal notranslate"><span class="pre">Losers.losers</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-new-listings-module">cogs.loops.new_listings module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.new_listings.Binance"><code class="docutils literal notranslate"><span class="pre">Binance</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.new_listings.CoinBase"><code class="docutils literal notranslate"><span class="pre">CoinBase</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.new_listings.Exchange_Listings"><code class="docutils literal notranslate"><span class="pre">Exchange_Listings</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.new_listings.Exchange_Listings.create_embed"><code class="docutils literal notranslate"><span class="pre">Exchange_Listings.create_embed()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.new_listings.Exchange_Listings.get_symbols"><code class="docutils literal notranslate"><span class="pre">Exchange_Listings.get_symbols()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.new_listings.Exchange_Listings.new_listings"><code class="docutils literal notranslate"><span class="pre">Exchange_Listings.new_listings</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.new_listings.Exchange_Listings.set_old_symbols"><code class="docutils literal notranslate"><span class="pre">Exchange_Listings.set_old_symbols()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.new_listings.KuCoin"><code class="docutils literal notranslate"><span class="pre">KuCoin</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-nfts-module">cogs.loops.nfts module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.nfts.NFTS"><code class="docutils literal notranslate"><span class="pre">NFTS</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.nfts.NFTS.top_nfts"><code class="docutils literal notranslate"><span class="pre">NFTS.top_nfts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.nfts.NFTS.top_p2e"><code class="docutils literal notranslate"><span class="pre">NFTS.top_p2e</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.nfts.NFTS.trending_nfts"><code class="docutils literal notranslate"><span class="pre">NFTS.trending_nfts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.nfts.NFTS.upcoming_nfts"><code class="docutils literal notranslate"><span class="pre">NFTS.upcoming_nfts</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.nfts.get_opensea"><code class="docutils literal notranslate"><span class="pre">get_opensea()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.nfts.p2e_games"><code class="docutils literal notranslate"><span class="pre">p2e_games()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.nfts.top_cmc"><code class="docutils literal notranslate"><span class="pre">top_cmc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.nfts.upcoming_cmc"><code class="docutils literal notranslate"><span class="pre">upcoming_cmc()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-option-alert-module">cogs.loops.option_alert module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.option_alert.Option_alert"><code class="docutils literal notranslate"><span class="pre">Option_alert</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.option_alert.Option_alert.alerts"><code class="docutils literal notranslate"><span class="pre">Option_alert.alerts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.option_alert.Option_alert.get_top20"><code class="docutils literal notranslate"><span class="pre">Option_alert.get_top20()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.option_alert.Option_alert.options_overview"><code class="docutils literal notranslate"><span class="pre">Option_alert.options_overview()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.option_alert.update_options_db"><code class="docutils literal notranslate"><span class="pre">update_options_db()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-options-module">cogs.loops.options module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.options.Options"><code class="docutils literal notranslate"><span class="pre">Options</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.options.Options.make_UW_embed"><code class="docutils literal notranslate"><span class="pre">Options.make_UW_embed()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.options.Options.shorts"><code class="docutils literal notranslate"><span class="pre">Options.shorts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.options.Options.spacs"><code class="docutils literal notranslate"><span class="pre">Options.spacs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.options.Options.volume"><code class="docutils literal notranslate"><span class="pre">Options.volume</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.options.get_UW_data"><code class="docutils literal notranslate"><span class="pre">get_UW_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-overview-module">cogs.loops.overview module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.overview.Overview"><code class="docutils literal notranslate"><span class="pre">Overview</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.overview.Overview.global_overview"><code class="docutils literal notranslate"><span class="pre">Overview.global_overview</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.overview.Overview.make_overview"><code class="docutils literal notranslate"><span class="pre">Overview.make_overview()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.overview.Overview.overview"><code class="docutils literal notranslate"><span class="pre">Overview.overview()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.overview.count_tweets"><code class="docutils literal notranslate"><span class="pre">count_tweets()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-reddit-module">cogs.loops.reddit module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.reddit.Reddit"><code class="docutils literal notranslate"><span class="pre">Reddit</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.reddit.Reddit.add_id_to_db"><code class="docutils literal notranslate"><span class="pre">Reddit.add_id_to_db()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.reddit.Reddit.wsb"><code class="docutils literal notranslate"><span class="pre">Reddit.wsb</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-stock-halts-module">cogs.loops.stock_halts module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.stock_halts.StockHalts"><code class="docutils literal notranslate"><span class="pre">StockHalts</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.stock_halts.StockHalts.format_df"><code class="docutils literal notranslate"><span class="pre">StockHalts.format_df()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.stock_halts.StockHalts.get_halt_data"><code class="docutils literal notranslate"><span class="pre">StockHalts.get_halt_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.stock_halts.StockHalts.halt_embed"><code class="docutils literal notranslate"><span class="pre">StockHalts.halt_embed</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-stocktwits-module">cogs.loops.stocktwits module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.stocktwits.StockTwits"><code class="docutils literal notranslate"><span class="pre">StockTwits</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.stocktwits.StockTwits.get_data"><code class="docutils literal notranslate"><span class="pre">StockTwits.get_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.stocktwits.StockTwits.stocktwits"><code class="docutils literal notranslate"><span class="pre">StockTwits.stocktwits</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-timeline-module">cogs.loops.timeline module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.timeline.Timeline"><code class="docutils literal notranslate"><span class="pre">Timeline</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.timeline.Timeline.all_txt_channels"><code class="docutils literal notranslate"><span class="pre">Timeline.all_txt_channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.timeline.Timeline.get_channel_based_on_category"><code class="docutils literal notranslate"><span class="pre">Timeline.get_channel_based_on_category()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.timeline.Timeline.get_latest_tweet"><code class="docutils literal notranslate"><span class="pre">Timeline.get_latest_tweet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.timeline.Timeline.make_and_send_webhook"><code class="docutils literal notranslate"><span class="pre">Timeline.make_and_send_webhook()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.timeline.Timeline.on_data"><code class="docutils literal notranslate"><span class="pre">Timeline.on_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.timeline.Timeline.post_tweet"><code class="docutils literal notranslate"><span class="pre">Timeline.post_tweet()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.timeline.Timeline.set_channels"><code class="docutils literal notranslate"><span class="pre">Timeline.set_channels()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.timeline.Timeline.upload_tweet"><code class="docutils literal notranslate"><span class="pre">Timeline.upload_tweet()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-trades-module">cogs.loops.trades module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.trades.Trades"><code class="docutils literal notranslate"><span class="pre">Trades</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.trades.Trades.start_sockets"><code class="docutils literal notranslate"><span class="pre">Trades.start_sockets()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.trades.Trades.trades"><code class="docutils literal notranslate"><span class="pre">Trades.trades()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-trending-module">cogs.loops.trending module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.trending.Trending"><code class="docutils literal notranslate"><span class="pre">Trending</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.trending.Trending.crypto"><code class="docutils literal notranslate"><span class="pre">Trending.crypto</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.trending.Trending.stocks"><code class="docutils literal notranslate"><span class="pre">Trending.stocks</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#cogs-loops-yield-module">cogs.loops.yield module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cogs.loops.html#cogs.loops.yield.Yield"><code class="docutils literal notranslate"><span class="pre">Yield</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.yield.Yield.get_yield"><code class="docutils literal notranslate"><span class="pre">Yield.get_yield()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.yield.Yield.make_plot"><code class="docutils literal notranslate"><span class="pre">Yield.make_plot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.yield.Yield.plot_EU_yield"><code class="docutils literal notranslate"><span class="pre">Yield.plot_EU_yield()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.yield.Yield.plot_US_yield"><code class="docutils literal notranslate"><span class="pre">Yield.plot_US_yield()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cogs.loops.html#cogs.loops.yield.Yield.post_curve"><code class="docutils literal notranslate"><span class="pre">Yield.post_curve</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<span class="target" id="module-cogs"></span></section>
+</section>
+
+
+                </article>
+              
+              
+              
+                <footer class="bd-footer-article">
+                  
+<div class="footer-article-items footer-article__inner">
+  
+    <div class="footer-article-item"><!-- Previous / next buttons -->
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="main.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">main module</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="cogs.commands.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">cogs.commands package</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div></div>
+  
+</div>
+
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#subpackages">Subpackages</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module contents</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div class="tocsection sourcelink">
+    <a href="_sources/cogs.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+  <p class="copyright">
+    
+      © Copyright 2023, Stephan Akkerman.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.13.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

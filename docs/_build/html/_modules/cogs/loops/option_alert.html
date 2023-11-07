@@ -1,0 +1,672 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cogs.loops.option_alert &#8212; FinTwit Bot 1.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=eafc0fe6" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+
+    <script src="../../../_static/documentation_options.js?v=7ff6d70c"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/cogs/loops/option_alert';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  <div class="navbar-header-items__start">
+    
+      <div class="navbar-item">
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    <p class="title logo__title">FinTwit Bot 1.1 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../modules.html">
+                        Modules
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+    </div>
+  
+
+  
+</div>
+
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../modules.html">
+                        Modules
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumbs">
+  <ul class="bd-breadcrumbs" role="navigation" aria-label="Breadcrumb">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">cogs.loops.option_alert</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <h1>Source code for cogs.loops.option_alert</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Standard libraries</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+
+<span class="c1"># &gt; Discord dependencies</span>
+<span class="kn">import</span> <span class="nn">discord</span>
+<span class="kn">from</span> <span class="nn">discord.ext</span> <span class="kn">import</span> <span class="n">commands</span>
+<span class="kn">from</span> <span class="nn">discord.ext.tasks</span> <span class="kn">import</span> <span class="n">loop</span>
+
+<span class="c1"># Local dependencies</span>
+<span class="kn">import</span> <span class="nn">util.vars</span>
+<span class="kn">from</span> <span class="nn">util.vars</span> <span class="kn">import</span> <span class="n">config</span><span class="p">,</span> <span class="n">get_json_data</span>
+<span class="kn">from</span> <span class="nn">util.disc_util</span> <span class="kn">import</span> <span class="n">get_channel</span><span class="p">,</span> <span class="n">get_tagged_users</span><span class="p">,</span> <span class="n">get_guild</span>
+<span class="kn">from</span> <span class="nn">util.afterhours</span> <span class="kn">import</span> <span class="n">afterHours</span>
+<span class="kn">from</span> <span class="nn">util.db</span> <span class="kn">import</span> <span class="n">clean_old_db</span><span class="p">,</span> <span class="n">merge_and_update</span>
+<span class="kn">from</span> <span class="nn">cogs.loops.options</span> <span class="kn">import</span> <span class="n">get_UW_data</span>
+
+
+<div class="viewcode-block" id="Option_alert">
+<a class="viewcode-back" href="../../../cogs.loops.html#cogs.loops.option_alert.Option_alert">[docs]</a>
+<span class="k">class</span> <span class="nc">Option_alert</span><span class="p">(</span><span class="n">commands</span><span class="o">.</span><span class="n">Cog</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class contains the cog for posting the latest Unusual Whales alerts.</span>
+<span class="sd">    It can be enabled / disabled in the config under [&quot;LOOPS&quot;][&quot;UNUSUAL_WHALES&quot;].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Bot</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bot</span> <span class="o">=</span> <span class="n">bot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">emoji_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">guild</span> <span class="o">=</span> <span class="n">get_guild</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;LOOPS&quot;</span><span class="p">][</span><span class="s2">&quot;OPTION_ALERT&quot;</span><span class="p">][</span><span class="s2">&quot;ENABLED&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">alerts_channel</span> <span class="o">=</span> <span class="n">get_channel</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="p">,</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;LOOPS&quot;</span><span class="p">][</span><span class="s2">&quot;OPTION_ALERT&quot;</span><span class="p">][</span><span class="s2">&quot;CHANNEL&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">overview_channel</span> <span class="o">=</span> <span class="n">get_channel</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="p">,</span>
+                <span class="n">config</span><span class="p">[</span><span class="s2">&quot;LOOPS&quot;</span><span class="p">][</span><span class="s2">&quot;OPTION_ALERT&quot;</span><span class="p">][</span><span class="s2">&quot;OVERVIEW_CHANNEL&quot;</span><span class="p">],</span>
+                <span class="n">config</span><span class="p">[</span><span class="s2">&quot;CATEGORIES&quot;</span><span class="p">][</span><span class="s2">&quot;OPTIONS&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">token</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;LOOPS&quot;</span><span class="p">][</span><span class="s2">&quot;OPTION_ALERT&quot;</span><span class="p">][</span><span class="s2">&quot;TOKEN&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">alerts</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="nd">@loop</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">alerts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function posts the Unusual Whales alerts on Discord.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Check if the market is open</span>
+        <span class="k">if</span> <span class="n">afterHours</span><span class="p">():</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Get the emojis if not already done</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">emoji_dict</span> <span class="o">==</span> <span class="p">{}:</span>
+            <span class="c1"># Get the emojis and store them in emoji_dict</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">emoji_dict</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_json_data</span><span class="p">(</span>
+                <span class="s2">&quot;https://phx.unusualwhales.com/api/tags/all&quot;</span><span class="p">,</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;user-agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36&quot;</span>
+                <span class="p">},</span>
+            <span class="p">)</span>
+
+        <span class="c1"># start_date and expiry_start_data depends on how often the function is called</span>
+        <span class="n">last_5_min</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="mi">60</span><span class="p">))</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
+
+        <span class="c1"># Check the last 5 minutes on the API</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;https://phx.unusualwhales.com/api/option_quotes?offset=0&amp;sort=timestamp&amp;search=&amp;sector=&amp;tag=&amp;end_date=9999999999999&amp;start_date=</span><span class="si">{</span><span class="n">last_5_min</span><span class="si">}</span><span class="s2">&amp;expiry_start_date=</span><span class="si">{</span><span class="n">last_5_min</span><span class="si">}</span><span class="s2">&amp;expiry_end_date=9999999999999&amp;min_ask=0&amp;max_ask=9999999999999&amp;volume_direction=desc&amp;expiry_direction=desc&amp;alerted_direction=desc&amp;oi_direction=desc&amp;normal=true&quot;</span>
+
+        <span class="c1"># Use the token in the header</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;authorization&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span><span class="p">,</span>
+            <span class="s2">&quot;user-agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">df</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_UW_data</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Only keep the important information</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span>
+            <span class="p">[</span>
+                <span class="s2">&quot;alert_time&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;id&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;ticker_symbol&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;option_type&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;strike_price&quot;</span><span class="p">,</span>  <span class="c1"># Also named underlying</span>
+                <span class="s2">&quot;expires_at&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;stock_price&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;bid&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;ask&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;min_ask&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;max_ask&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;volume&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;implied_volatility&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;sector&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;tags&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;tier&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;is_recommended&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;open_interest&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;delta&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;theta&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">]</span>
+
+        <span class="c1"># Calculate the percentual difference between current price and strike price</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;strike_price&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;strike_price&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;stock_price&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;stock_price&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;difference&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;strike_price&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;stock_price&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;stock_price&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">100</span>
+        <span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;difference&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;difference&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;difference&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;difference&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;%&quot;</span>
+
+        <span class="c1"># Convert IV to percent</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;implied_volatility&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;implied_volatility&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;IV&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;implied_volatility&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">100</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;IV&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;IV&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;IV&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;IV&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;%&quot;</span>
+
+        <span class="c1"># Round theta and delta</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;theta&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;theta&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;theta&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;theta&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;delta&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;delta&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;delta&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;delta&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="c1"># For each ticker in the df send a message</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="c1"># Only use the first letter of the option type</span>
+            <span class="n">option_type</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;option_type&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+            <span class="n">emojis</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">]:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">emojis</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">emoji_dict</span><span class="p">[</span><span class="n">tag</span><span class="p">][</span><span class="s2">&quot;emoji&quot;</span><span class="p">]</span>
+                <span class="c1"># In case emoji_dict is empty</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not find emoji for </span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Create the embed</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">discord</span><span class="o">.</span><span class="n">Embed</span><span class="p">(</span>
+                <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;$</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;ticker_symbol&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;expires_at&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">option_type</span><span class="si">}</span><span class="s2"> $</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;strike_price&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">url</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;https://unusualwhales.com/alerts/</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="c1"># Use inspect.cleandoc() to remove the indentation</span>
+                <span class="n">description</span><span class="o">=</span><span class="n">inspect</span><span class="o">.</span><span class="n">cleandoc</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                    </span><span class="si">{</span><span class="n">emojis</span><span class="si">}</span>
+<span class="s2">                    Bid-Ask: $</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;bid&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> - $</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;ask&#39;</span><span class="p">]</span><span class="si">}</span>
+<span class="s2">                    Interest: </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;open_interest&#39;</span><span class="p">]</span><span class="si">}</span>
+<span class="s2">                    Volume: </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;volume&#39;</span><span class="p">]</span><span class="si">}</span>
+<span class="s2">                    IV: </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;IV&#39;</span><span class="p">]</span><span class="si">}</span>
+<span class="s2">                    % Diff: </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;difference&quot;</span><span class="p">]</span><span class="si">}</span>
+<span class="s2">                    Underlying: $</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;stock_price&#39;</span><span class="p">]</span><span class="si">}</span>
+<span class="s2">                    Θ | Δ: </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;delta&#39;</span><span class="p">]</span><span class="si">}</span>
+<span class="s2">                    Sector: </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;sector&#39;</span><span class="p">]</span><span class="si">}</span>
+<span class="s2">                    Tier: </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;tier&#39;</span><span class="p">]</span><span class="si">}</span>
+<span class="s2">                    Recommended: </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;is_recommended&#39;</span><span class="p">]</span><span class="si">}</span>
+<span class="s2">                    </span><span class="si">{</span><span class="n">emojis</span><span class="si">}</span>
+<span class="s2">                    &quot;&quot;&quot;</span>
+                <span class="p">),</span>
+                <span class="n">color</span><span class="o">=</span><span class="mh">0xE40414</span> <span class="k">if</span> <span class="n">option_type</span> <span class="o">==</span> <span class="s2">&quot;P&quot;</span> <span class="k">else</span> <span class="mh">0x3CC474</span><span class="p">,</span>
+                <span class="n">timestamp</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+            <span class="p">)</span>
+
+            <span class="n">e</span><span class="o">.</span><span class="n">set_footer</span><span class="p">(</span>
+                <span class="c1"># Use the time the alert was created in the footer</span>
+                <span class="n">text</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Alerted at </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;alert_time&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">icon_url</span><span class="o">=</span><span class="s2">&quot;https://docs.unusualwhales.com/images/banner.png&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">alerts_channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span>
+                <span class="n">content</span><span class="o">=</span><span class="n">get_tagged_users</span><span class="p">([</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;ticker_symbol&quot;</span><span class="p">]]),</span> <span class="n">embed</span><span class="o">=</span><span class="n">e</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Add the data to the database</span>
+            <span class="n">update_options_db</span><span class="p">(</span>
+                <span class="n">row</span><span class="p">[</span><span class="s2">&quot;ticker_symbol&quot;</span><span class="p">],</span>
+                <span class="n">row</span><span class="p">[</span><span class="s2">&quot;expires_at&quot;</span><span class="p">],</span>
+                <span class="n">option_type</span><span class="p">,</span>
+                <span class="n">row</span><span class="p">[</span><span class="s2">&quot;strike_price&quot;</span><span class="p">],</span>
+                <span class="n">row</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">],</span>
+                <span class="n">emojis</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">options_overview</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Option_alert.options_overview">
+<a class="viewcode-back" href="../../../cogs.loops.html#cogs.loops.option_alert.Option_alert.options_overview">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">options_overview</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Gather the data for the summary</span>
+        <span class="n">num_calls</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span>
+            <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="p">[</span><span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="p">[</span><span class="s2">&quot;option_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;C&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">num_puts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="p">[</span><span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="p">[</span><span class="s2">&quot;option_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;P&quot;</span><span class="p">])</span>
+
+        <span class="n">num_bears</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span>
+            <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="p">[</span><span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="p">[</span><span class="s2">&quot;bull/bear&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;bear&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">num_bulls</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span>
+            <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="p">[</span><span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="p">[</span><span class="s2">&quot;bull/bear&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;bull&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Top row of the embed shows an summary of P/C ratio, Bullish/Bearish</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">discord</span><span class="o">.</span><span class="n">Embed</span><span class="p">(</span>
+            <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Options Overview&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">guild</span><span class="o">.</span><span class="n">self_role</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
+            <span class="n">timestamp</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">most_mentioned</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="p">[</span><span class="s2">&quot;ticker&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+
+        <span class="n">e</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Calls - Puts&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">num_calls</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">num_puts</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Bullish - Bearish&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">num_bulls</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">num_bears</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Most Active Ticker&quot;</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">most_mentioned</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">most_mentioned</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+            <span class="n">inline</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Sort by volume</span>
+        <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span>
+            <span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">],</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+
+        <span class="c1"># First show the top 10 bullish options, ranked by count and volume</span>
+        <span class="n">bullish</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="p">[</span><span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="p">[</span><span class="s2">&quot;bull/bear&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;bull&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Then show the top 10 bearish options</span>
+        <span class="n">bearish</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="p">[</span><span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="p">[</span><span class="s2">&quot;bull/bear&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;bear&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">bullish</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="n">bull_counts</span><span class="p">,</span> <span class="n">bull_options</span><span class="p">,</span> <span class="n">bull_volumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_top20</span><span class="p">(</span><span class="n">bullish</span><span class="p">)</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Bullish&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bull_counts</span><span class="p">),</span> <span class="n">inline</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Options&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bull_options</span><span class="p">),</span> <span class="n">inline</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Volume&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bull_volumes</span><span class="p">),</span> <span class="n">inline</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">bearish</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="n">bear_counts</span><span class="p">,</span> <span class="n">bear_options</span><span class="p">,</span> <span class="n">bear_volumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_top20</span><span class="p">(</span><span class="n">bearish</span><span class="p">)</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Bearish&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bear_counts</span><span class="p">),</span> <span class="n">inline</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Options&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bear_options</span><span class="p">),</span> <span class="n">inline</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Volume&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bear_volumes</span><span class="p">),</span> <span class="n">inline</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">overview_channel</span><span class="o">.</span><span class="n">purge</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">overview_channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">embed</span><span class="o">=</span><span class="n">e</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Option_alert.get_top20">
+<a class="viewcode-back" href="../../../cogs.loops.html#cogs.loops.option_alert.Option_alert.get_top20">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_top20</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">volumes</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">counts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;ticker&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;expiration&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;option_type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> $</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;strike_price&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="n">volumes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="n">counts</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">volumes</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="update_options_db">
+<a class="viewcode-back" href="../../../cogs.loops.html#cogs.loops.option_alert.update_options_db">[docs]</a>
+<span class="k">def</span> <span class="nf">update_options_db</span><span class="p">(</span><span class="n">ticker</span><span class="p">,</span> <span class="n">expiration</span><span class="p">,</span> <span class="n">option_type</span><span class="p">,</span> <span class="n">strike</span><span class="p">,</span> <span class="n">volume</span><span class="p">,</span> <span class="n">emojis</span><span class="p">):</span>
+    <span class="k">if</span> <span class="s2">&quot;🐻&quot;</span> <span class="ow">in</span> <span class="n">emojis</span><span class="p">:</span>
+        <span class="n">emoji</span> <span class="o">=</span> <span class="s2">&quot;bear&quot;</span>
+    <span class="k">elif</span> <span class="s2">&quot;🐂&quot;</span> <span class="ow">in</span> <span class="n">emojis</span><span class="p">:</span>
+        <span class="n">emoji</span> <span class="o">=</span> <span class="s2">&quot;bull&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">emoji</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span>
+
+    <span class="n">option_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;ticker&quot;</span><span class="p">:</span> <span class="n">ticker</span><span class="p">,</span>
+        <span class="s2">&quot;expiration&quot;</span><span class="p">:</span> <span class="n">expiration</span><span class="p">,</span>
+        <span class="s2">&quot;option_type&quot;</span><span class="p">:</span> <span class="n">option_type</span><span class="p">,</span>
+        <span class="s2">&quot;strike_price&quot;</span><span class="p">:</span> <span class="n">strike</span><span class="p">,</span>
+        <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="n">volume</span><span class="p">,</span>
+        <span class="s2">&quot;bull/bear&quot;</span><span class="p">:</span> <span class="n">emoji</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Convert it to a dataframe</span>
+    <span class="n">option_db</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">option_dict</span><span class="p">])</span>
+
+    <span class="c1"># Add timestamp</span>
+    <span class="n">option_db</span><span class="p">[</span><span class="s2">&quot;timestamp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Clean the old db</span>
+    <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span> <span class="o">=</span> <span class="n">clean_old_db</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span> <span class="o">=</span> <span class="n">merge_and_update</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">options_db</span><span class="p">,</span> <span class="n">option_db</span><span class="p">,</span> <span class="s2">&quot;options&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="n">bot</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Bot</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">bot</span><span class="o">.</span><span class="n">add_cog</span><span class="p">(</span><span class="n">Option_alert</span><span class="p">(</span><span class="n">bot</span><span class="p">))</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+                <footer class="bd-footer-article">
+                  
+<div class="footer-article-items footer-article__inner">
+  
+    <div class="footer-article-item"><!-- Previous / next buttons -->
+<div class="prev-next-area">
+</div></div>
+  
+</div>
+
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+  <p class="copyright">
+    
+      © Copyright 2023, Stephan Akkerman.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.13.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

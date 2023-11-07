@@ -36,6 +36,13 @@ async def scraper(type: str) -> pd.DataFrame:
         A dataframe with the ideas of the specified symbol.
     """
 
+    if type == "crypto":
+        url = "https://www.tradingview.com/markets/cryptocurrencies/ideas/"
+    elif type == "forex":
+        url = "https://www.tradingview.com/markets/currencies/ideas/"
+    else:
+        url = "https://www.tradingview.com/ideas/stocks/"
+
     # The information will be saved in these lists
     titleList = []
     descriptionList = []
@@ -49,9 +56,7 @@ async def scraper(type: str) -> pd.DataFrame:
     urlList = []
 
     # Fetch the page as text
-    response = await get_json_data(
-        f"https://www.tradingview.com/ideas/{type}/", text=True
-    )
+    response = await get_json_data(url, text=True)
 
     # The response is a HTML page
     soup = BeautifulSoup(response, "html.parser")

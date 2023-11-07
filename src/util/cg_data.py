@@ -3,23 +3,24 @@
 from __future__ import annotations
 from typing import Optional, List
 import numbers
-from bs4 import BeautifulSoup
-import pandas as pd
 
 # > Third party libraries
 from pycoingecko import CoinGeckoAPI
+import cloudscraper
+from bs4 import BeautifulSoup
+import pandas as pd
 
 # Local dependencies
 import util.vars
-from util.vars import stables, get_json_data
+from util.vars import stables
 from util.tv_data import tv
 from util.formatting import format_change
 
 cg = CoinGeckoAPI()
+scraper = cloudscraper.create_scraper()
 
 
 def get_crypto_info(ids):
-
     if len(ids) > 1:
         id = None
         best_vol = 0
@@ -73,12 +74,12 @@ def get_coin_exchanges(coin_dict: dict) -> tuple[str, list]:
                 # Somtimes the base is a contract instead of ticker
                 if base == None:
                     # > 7, because $KOMPETE
-                    if not(info["base"].startswith("0X") or len(info["base"]) > 7):
+                    if not (info["base"].startswith("0X") or len(info["base"]) > 7):
                         base = info["base"]
 
             if "market" in info.keys():
                 exchanges.append(info["market"]["name"])
-                
+
     return base, exchanges
 
 
@@ -149,14 +150,16 @@ async def get_coin_info(
     coin_dict = None
     if ticker in util.vars.cg_db["symbol"].values:
         # Check coin by symbol, i.e. "BTC"
-        coin_dict, id = get_crypto_info(util.vars.cg_db[util.vars.cg_db["symbol"] == ticker]["id"])
-        
+        coin_dict, id = get_crypto_info(
+            util.vars.cg_db[util.vars.cg_db["symbol"] == ticker]["id"]
+        )
+
         # Get the information from the dictionary
         if coin_dict:
             total_vol, price, change, exchanges, base = get_info_from_dict(coin_dict)
 
     # Try other methods if the information sucks
-    if total_vol < 50000 or exchanges == [] or change == 'N/A':
+    if total_vol < 50000 or exchanges == [] or change == "N/A":
         # As a second options check the TradingView data
         price, perc_change, volume, exchange, website = await tv.get_tv_data(
             ticker, "crypto"
@@ -179,7 +182,9 @@ async def get_coin_info(
 
         # Fourth option is to check by name, i.e. "Bitcoin"
         elif ticker in util.vars.cg_db["name"].values:
-            coin_dict, id = get_crypto_info(util.vars.cg_db[util.vars.cg_db["name"] == ticker]["id"])
+            coin_dict, id = get_crypto_info(
+                util.vars.cg_db[util.vars.cg_db["name"] == ticker]["id"]
+            )
 
         # Get the information from the dictionary
         total_vol, price, change, exchanges, base = get_info_from_dict(coin_dict)
@@ -188,7 +193,7 @@ async def get_coin_info(
     if exchanges:
         exchanges = [x.lower().replace(" exchange", "") for x in exchanges]
         exchanges = list(set(exchanges))
-        
+
     # Look into this!
     if total_vol != 0 and base == None:
         print("No base symbol found for:", ticker)
@@ -224,48 +229,49 @@ async def get_trending_coins() -> pd.DataFrame:
             The volumes of the trending coins.
     """
 
-    
-    html = await get_json_data("https://www.coingecko.com/en/watchlists/trending-crypto", text=True)
+    html = scraper.get("https://www.coingecko.com/en/watchlists/trending-crypto").text
 
-    soup = BeautifulSoup(html, 'html.parser')
+    soup = BeautifulSoup(html, "html.parser")
 
-    table = soup.find('table', class_="sort table mb-0 text-sm text-lg-normal table-scrollable")
+    table = soup.find(
+        "table", class_="sort table mb-0 text-sm text-lg-normal table-scrollable"
+    )
 
     data = []
-    for tr in table.find_all('tr'):
+    for tr in table.find_all("tr"):
         coin_data = {}
         td_count = 0
-        
-        for td in tr.find_all('td'):
+
+        for td in tr.find_all("td"):
             if td_count == 2:
-                ticker = td.find('a').text.split('\n')[-3]
+                ticker = td.find("a").text.split("\n")[-3]
                 website = f"https://www.coingecko.com{td.find('a').get('href')}"
                 coin_data["Symbol"] = f"[{ticker.upper()}]({website})"
-            
+
             if td_count == 3:
-                price = td.find('span').text.replace('$', '').replace(',', '')
+                price = td.find("span").text.replace("$", "").replace(",", "")
                 try:
-                    coin_data['Price'] = float(price)
+                    coin_data["Price"] = float(price)
                 except Exception:
-                    coin_data['Price'] = 0
+                    coin_data["Price"] = 0
 
             if td_count == 5:
-                change = td.find('span').text.replace('%', '')
+                change = td.find("span").text.replace("%", "")
                 try:
-                    coin_data['% Change'] = float(change)
+                    coin_data["% Change"] = float(change)
                 except Exception:
-                    coin_data['% Change'] = 0
-            
+                    coin_data["% Change"] = 0
+
             if td_count == 7:
-                volume = td.find('span').text.replace('$', '').replace(',', '')
+                volume = td.find("span").text.replace("$", "").replace(",", "")
                 try:
-                    coin_data['Volume'] = float(volume)
+                    coin_data["Volume"] = float(volume)
                 except Exception:
-                    coin_data['Volume'] = 0
-                
+                    coin_data["Volume"] = 0
+
             td_count += 1
-            
+
         if coin_data != {}:
             data.append(coin_data)
-        
+
     return pd.DataFrame(data)

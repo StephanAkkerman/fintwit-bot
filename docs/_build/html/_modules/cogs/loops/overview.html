@@ -1,0 +1,586 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cogs.loops.overview &#8212; FinTwit Bot 1.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=eafc0fe6" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+
+    <script src="../../../_static/documentation_options.js?v=7ff6d70c"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/cogs/loops/overview';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  <div class="navbar-header-items__start">
+    
+      <div class="navbar-item">
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    <p class="title logo__title">FinTwit Bot 1.1 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../modules.html">
+                        Modules
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+    </div>
+  
+
+  
+</div>
+
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../modules.html">
+                        Modules
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumbs">
+  <ul class="bd-breadcrumbs" role="navigation" aria-label="Breadcrumb">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">cogs.loops.overview</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <h1>Source code for cogs.loops.overview</h1><div class="highlight"><pre>
+<span></span><span class="c1">## &gt; Imports</span>
+<span class="c1"># &gt; Standard libraries</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="c1"># &gt; Discord dependencies</span>
+<span class="kn">import</span> <span class="nn">discord</span>
+<span class="kn">from</span> <span class="nn">discord.ext.tasks</span> <span class="kn">import</span> <span class="n">loop</span>
+
+<span class="c1"># Local dependencies</span>
+<span class="kn">import</span> <span class="nn">util.vars</span>
+<span class="kn">from</span> <span class="nn">util.vars</span> <span class="kn">import</span> <span class="n">config</span><span class="p">,</span> <span class="n">get_json_data</span>
+<span class="kn">from</span> <span class="nn">util.disc_util</span> <span class="kn">import</span> <span class="n">get_channel</span><span class="p">,</span> <span class="n">get_guild</span>
+<span class="kn">from</span> <span class="nn">util.formatting</span> <span class="kn">import</span> <span class="n">format_change</span>
+
+<span class="n">text_to_emoji</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="s2">&quot;🦆&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bear&quot;</span><span class="p">:</span> <span class="s2">&quot;🐻&quot;</span><span class="p">,</span> <span class="s2">&quot;bull&quot;</span><span class="p">:</span> <span class="s2">&quot;🐂&quot;</span><span class="p">,</span> <span class="s2">&quot;neutral&quot;</span><span class="p">:</span> <span class="s2">&quot;🦆&quot;</span><span class="p">})</span>
+
+
+<div class="viewcode-block" id="Overview">
+<a class="viewcode-back" href="../../../cogs.loops.html#cogs.loops.overview.Overview">[docs]</a>
+<span class="k">class</span> <span class="nc">Overview</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class contains the cog for posting the top crypto and stocks mentions.</span>
+<span class="sd">    It can be configured in the config.yaml file under [&quot;LOOPS&quot;][&quot;OVERVIEW&quot;].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bot</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bot</span> <span class="o">=</span> <span class="n">bot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">guild</span> <span class="o">=</span> <span class="n">get_guild</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_crypto</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_stocks</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_overview</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;LOOPS&quot;</span><span class="p">][</span><span class="s2">&quot;OVERVIEW&quot;</span><span class="p">][</span><span class="s2">&quot;STOCKS&quot;</span><span class="p">][</span><span class="s2">&quot;ENABLED&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stocks_channel</span> <span class="o">=</span> <span class="n">get_channel</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="p">,</span>
+                <span class="n">config</span><span class="p">[</span><span class="s2">&quot;LOOPS&quot;</span><span class="p">][</span><span class="s2">&quot;OVERVIEW&quot;</span><span class="p">][</span><span class="s2">&quot;CHANNEL&quot;</span><span class="p">],</span>
+                <span class="n">config</span><span class="p">[</span><span class="s2">&quot;CATEGORIES&quot;</span><span class="p">][</span><span class="s2">&quot;STOCKS&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">do_stocks</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">do_stocks</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;LOOPS&quot;</span><span class="p">][</span><span class="s2">&quot;OVERVIEW&quot;</span><span class="p">][</span><span class="s2">&quot;CRYPTO&quot;</span><span class="p">][</span><span class="s2">&quot;ENABLED&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">crypto_channel</span> <span class="o">=</span> <span class="n">get_channel</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="p">,</span>
+                <span class="n">config</span><span class="p">[</span><span class="s2">&quot;LOOPS&quot;</span><span class="p">][</span><span class="s2">&quot;OVERVIEW&quot;</span><span class="p">][</span><span class="s2">&quot;CHANNEL&quot;</span><span class="p">],</span>
+                <span class="n">config</span><span class="p">[</span><span class="s2">&quot;CATEGORIES&quot;</span><span class="p">][</span><span class="s2">&quot;CRYPTO&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">do_crypto</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">do_crypto</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="Overview.overview">
+<a class="viewcode-back" href="../../../cogs.loops.html#cogs.loops.overview.Overview.overview">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">overview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">category</span><span class="p">,</span> <span class="n">tickers</span><span class="p">,</span> <span class="n">sentiment</span><span class="p">):</span>
+        <span class="c1"># Make sure that the new db is not empty</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">tweets_db</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_stocks</span> <span class="ow">and</span> <span class="n">category</span> <span class="o">==</span> <span class="s2">&quot;stocks&quot;</span><span class="p">:</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_overview</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="n">tickers</span><span class="p">,</span> <span class="n">sentiment</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_crypto</span> <span class="ow">and</span> <span class="n">category</span> <span class="o">==</span> <span class="s2">&quot;crypto&quot;</span><span class="p">:</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_overview</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="n">tickers</span><span class="p">,</span> <span class="n">sentiment</span><span class="p">)</span></div>
+
+
+    <span class="nd">@loop</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">global_overview</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">tweets_db</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">categories</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_stocks</span><span class="p">:</span>
+            <span class="n">categories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;stocks&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_crypto</span><span class="p">:</span>
+            <span class="n">categories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;crypto&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">categories</span><span class="p">:</span>
+            <span class="n">db</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">tweets_db</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">tweets_db</span><span class="p">[</span><span class="s2">&quot;category&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">category</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">db</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="k">return</span>
+
+            <span class="c1"># Get the top 50 mentions</span>
+            <span class="n">top50</span> <span class="o">=</span> <span class="n">db</span><span class="p">[</span><span class="s2">&quot;ticker&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()[:</span><span class="mi">50</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">ticker</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">top50</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="c1"># Get the global tweets about the ticker using the API</span>
+                <span class="k">if</span> <span class="n">category</span> <span class="o">==</span> <span class="s2">&quot;stocks&quot;</span><span class="p">:</span>
+                    <span class="n">global_mentions</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># await count_tweets(ticker)</span>
+                    <span class="k">if</span> <span class="n">global_mentions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">global_stocks</span><span class="p">[</span><span class="n">ticker</span><span class="p">]</span> <span class="o">=</span> <span class="n">global_mentions</span>
+                <span class="k">elif</span> <span class="n">category</span> <span class="o">==</span> <span class="s2">&quot;crypto&quot;</span><span class="p">:</span>
+                    <span class="n">global_mentions</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># await count_tweets(ticker)</span>
+                    <span class="k">if</span> <span class="n">global_mentions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">global_crypto</span><span class="p">[</span><span class="n">ticker</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">count_tweets</span><span class="p">(</span><span class="n">ticker</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Overview.make_overview">
+<a class="viewcode-back" href="../../../cogs.loops.html#cogs.loops.overview.Overview.make_overview">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">make_overview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">category</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tickers</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">last_sentiment</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># Post the overview for stocks and crypto</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">tweets_db</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">tweets_db</span><span class="p">[</span><span class="s2">&quot;category&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">category</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">db</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Get the top 50 mentions</span>
+        <span class="n">top50</span> <span class="o">=</span> <span class="n">db</span><span class="p">[</span><span class="s2">&quot;ticker&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()[:</span><span class="mi">50</span><span class="p">]</span>
+
+        <span class="c1"># Make the list for embeds</span>
+        <span class="n">count_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ticker_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sentiment_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Add overview of sentiment for each ticker</span>
+        <span class="k">for</span> <span class="n">ticker</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">top50</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># Get the sentiment for the ticker</span>
+            <span class="n">sentiment</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">db</span><span class="p">[</span><span class="s2">&quot;ticker&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">ticker</span><span class="p">][</span><span class="s2">&quot;sentiment&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+            <span class="n">change</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">db</span><span class="p">[</span><span class="s2">&quot;ticker&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">ticker</span><span class="p">][</span><span class="s2">&quot;change&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">change</span> <span class="o">=</span> <span class="n">change</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;%&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">change</span> <span class="o">=</span> <span class="n">format_change</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">change</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">change</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>  <span class="c1"># Do not specify it</span>
+
+            <span class="c1"># Convert sentiment into a single str, i.e. &quot;6🐂 2🦆 2🐻&quot;</span>
+            <span class="n">sentiment</span> <span class="o">=</span> <span class="p">[</span><span class="n">text_to_emoji</span><span class="p">[</span><span class="n">sent</span><span class="p">]</span> <span class="k">for</span> <span class="n">sent</span> <span class="ow">in</span> <span class="n">sentiment</span><span class="p">]</span>
+            <span class="n">sentiment</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Counter</span><span class="p">(</span><span class="n">sentiment</span><span class="p">))</span>
+
+            <span class="n">formatted_sentiment</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="c1"># Use this method to sort the dict</span>
+            <span class="k">for</span> <span class="n">emoji</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;🐂&quot;</span><span class="p">,</span> <span class="s2">&quot;🦆&quot;</span><span class="p">,</span> <span class="s2">&quot;🐻&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">emoji</span> <span class="ow">in</span> <span class="n">sentiment</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">emoji</span> <span class="o">==</span> <span class="n">last_sentiment</span> <span class="ow">and</span> <span class="n">ticker</span> <span class="ow">in</span> <span class="n">tickers</span><span class="p">:</span>
+                        <span class="n">formatted_sentiment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;**</span><span class="si">{</span><span class="n">sentiment</span><span class="p">[</span><span class="n">emoji</span><span class="p">]</span><span class="si">}</span><span class="s2">**</span><span class="si">{</span><span class="n">emoji</span><span class="si">}</span><span class="s2"> &quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">formatted_sentiment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">sentiment</span><span class="p">[</span><span class="n">emoji</span><span class="p">]</span><span class="si">}{</span><span class="n">emoji</span><span class="si">}</span><span class="s2"> &quot;</span>
+
+            <span class="k">if</span> <span class="n">category</span> <span class="o">==</span> <span class="s2">&quot;stocks&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ticker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_stocks</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">count</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">global_stocks</span><span class="p">[</span><span class="n">ticker</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+
+            <span class="k">if</span> <span class="n">category</span> <span class="o">==</span> <span class="s2">&quot;crypto&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ticker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_crypto</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">count</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">global_crypto</span><span class="p">[</span><span class="n">ticker</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+
+            <span class="k">if</span> <span class="n">ticker</span> <span class="ow">in</span> <span class="n">tickers</span><span class="p">:</span>
+                <span class="c1"># Make bold</span>
+                <span class="n">ticker</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;**</span><span class="si">{</span><span class="n">ticker</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">change</span><span class="si">}</span><span class="s2">)**&quot;</span>
+                <span class="n">count</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;**</span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">**&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ticker</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ticker</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">change</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+            <span class="c1"># Add count, symbol, sentiment to embed lists</span>
+            <span class="n">count_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">))</span>
+            <span class="n">ticker_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ticker</span><span class="p">)</span>
+            <span class="n">sentiment_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">formatted_sentiment</span><span class="p">)</span>
+
+        <span class="c1"># Make the embed</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">discord</span><span class="o">.</span><span class="n">Embed</span><span class="p">(</span>
+            <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Top </span><span class="si">{</span><span class="n">category</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="si">}</span><span class="s2"> Mentions Of The Last 24 Hours&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">guild</span><span class="o">.</span><span class="n">self_role</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
+            <span class="n">timestamp</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">e</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Mentions&quot;</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">count_list</span><span class="p">),</span>
+            <span class="n">inline</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">e</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Ticker&quot;</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ticker_list</span><span class="p">),</span>
+            <span class="n">inline</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">e</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Sentiment&quot;</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sentiment_list</span><span class="p">),</span>
+            <span class="n">inline</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">category</span> <span class="o">==</span> <span class="s2">&quot;crypto&quot;</span><span class="p">:</span>
+            <span class="c1"># Delete previous message</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">crypto_channel</span><span class="o">.</span><span class="n">purge</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">crypto_channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">embed</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">stocks_channel</span><span class="o">.</span><span class="n">purge</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">stocks_channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">embed</span><span class="o">=</span><span class="n">e</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="count_tweets">
+<a class="viewcode-back" href="../../../cogs.loops.html#cogs.loops.overview.count_tweets">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">count_tweets</span><span class="p">(</span><span class="n">ticker</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Counts the number of tweets for a ticker during the last 24 hours.</span>
+<span class="sd">    https://developer.twitter.com/en/docs/twitter-api/tweets/counts/api-reference/get-tweets-counts-recent</span>
+<span class="sd">    Max 300 requests per 15 minutes, so 20 requests per minute.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ticker : str</span>
+<span class="sd">        The ticker to count the tweets for.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int</span>
+<span class="sd">        Returns the number of tweets for the ticker.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Count the last 24 hours</span>
+    <span class="c1"># Can add -is:retweet in query param to exclude retweets</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;https://api.twitter.com/2/tweets/counts/recent?query=</span><span class="si">{</span><span class="n">ticker</span><span class="si">}</span><span class="s2">&amp;granularity=day&amp;start_time=</span><span class="si">{</span><span class="n">start_time</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_json_data</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="kc">None</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">})</span>
+
+    <span class="k">if</span> <span class="s2">&quot;meta&quot;</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="s2">&quot;total_tweet_count&quot;</span> <span class="ow">in</span> <span class="n">counts</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">counts</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">][</span><span class="s2">&quot;total_tweet_count&quot;</span><span class="p">]</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+                <footer class="bd-footer-article">
+                  
+<div class="footer-article-items footer-article__inner">
+  
+    <div class="footer-article-item"><!-- Previous / next buttons -->
+<div class="prev-next-area">
+</div></div>
+  
+</div>
+
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+  <p class="copyright">
+    
+      © Copyright 2023, Stephan Akkerman.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.13.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

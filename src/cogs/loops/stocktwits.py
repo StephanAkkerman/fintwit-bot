@@ -45,7 +45,12 @@ class StockTwits(commands.Cog):
         """
 
         # Keyword can be "ts", "m_day", "wl_ct_day"
-        data = await get_json_data("https://api.stocktwits.com/api/2/charts/" + keyword)
+        data = await get_json_data(
+            "https://api.stocktwits.com/api/2/charts/" + keyword,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+            },
+        )
 
         # If no data could be found, return the embed
         if data == {}:
