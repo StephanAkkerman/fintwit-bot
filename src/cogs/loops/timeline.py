@@ -295,7 +295,10 @@ class Timeline(commands.Cog):
             # Do this for every message
             try:
                 for msg in msgs:
+                    # Post in highlight channel
                     await msg.add_reaction("💸")
+                    # Send to user DM
+                    await msg.add_reaction("❤️")
 
                     if category != None:
                         await msg.add_reaction("🐂")

@@ -62,8 +62,10 @@ class On_raw_reaction_add(commands.Cog):
                     or str(reaction.emoji) == "🦆"
                 ):
                     await self.classify_reaction(reaction, message)
-                if str(reaction.emoji) == "💸":
+                elif str(reaction.emoji) == "💸":
                     await self.highlight(message, reaction.member)
+                elif str(reaction.emoji) == "❤️":
+                    await self.send_dm(message, reaction.member)
 
         except commands.CommandError as e:
             print(e)
@@ -144,6 +146,28 @@ class On_raw_reaction_add(commands.Cog):
 
         else:
             await self.channel.send(embed=e)
+
+    async def send_dm(self, message: discord.Message, user: discord.User) -> None:
+        """
+        This function gets called if a reaction was used for sending a tweet via DM.
+
+        Parameters
+        ----------
+        message : discord.Message
+            The tweet that should be send to the DM of the user.
+        user : discord.User
+            The user that added this reaction to the tweet.
+
+        Returns
+        -------
+        None
+        """
+
+        # Get the old embed
+        e = message.embeds[0]
+
+        # Send the embed to the user
+        await user.send(embed=e)
 
 
 def setup(bot):
