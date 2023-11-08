@@ -14,7 +14,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # > Local
-from util.vars import get_json_data, config
+from util.vars import get_json_data, config, data_sources
 from util.disc_util import get_channel
 from util.formatting import format_change
 from util.cg_data import cg
@@ -77,12 +77,12 @@ class NFTS(commands.Cog):
 
             if name == "Opensea":
                 url = "https://opensea.io/rankings"
-                color = 0x3685DF
-                icon_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/OpenSea_icon.svg/2048px-OpenSea_icon.svg.png"
+                color = data_sources["opensea"]["color"]
+                icon_url = data_sources["opensea"]["icon"]
             elif name == "CoinMarketCap":
                 url = "https://coinmarketcap.com/nft/collections/"
-                color = 0x0D3EFD
-                icon_url = "https://coinmarketcap.com/favicon.ico"
+                color = data_sources["coinmarketcap"]["color"]
+                icon_url = data_sources["coinmarketcap"]["icon"]
 
             e = discord.Embed(
                 title=f"Top {len(df)} {name} NFTs",
@@ -129,7 +129,7 @@ class NFTS(commands.Cog):
             title=f"{len(trending)} Trending OpenSea NFTs",
             url="https://opensea.io/rankings/trending",
             description="",
-            color=0x3685DF,
+            color=data_sources["opensea"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
         e.add_field(
@@ -152,7 +152,7 @@ class NFTS(commands.Cog):
 
         e.set_footer(
             text="\u200b",
-            icon_url="https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/OpenSea_icon.svg/2048px-OpenSea_icon.svg.png",
+            icon_url=data_sources["opensea"]["icon"],
         )
 
         await self.trending_channel.send(embed=e)
@@ -177,7 +177,7 @@ class NFTS(commands.Cog):
             title=f"{len(df)} Trending CoinGecko NFTs",
             url="https://www.coingecko.com/en/nft",
             description="",
-            color=0x8CC63F,
+            color=data_sources["coingecko"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
         e.add_field(
@@ -200,7 +200,7 @@ class NFTS(commands.Cog):
 
         e.set_footer(
             text="\u200b",
-            icon_url="https://raw.githubusercontent.com/StephanAkkerman/fintwit-bot/main/img/icons/coingecko.png",
+            icon_url=data_sources["coingecko"]["icon"],
         )
 
         await self.trending_channel.send(embed=e)
@@ -222,10 +222,9 @@ class NFTS(commands.Cog):
             title=f"Top {len(upcoming)} Upcoming NFTs",
             url="https://coinmarketcap.com/nft/upcoming/",
             description="",
-            color=0x0D3EFD,
+            color=data_sources["coinmarketcap"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
-        e.set_footer(text="\u200b", icon_url="https://coinmarketcap.com/favicon.ico")
 
         e.add_field(
             name="NFT",
@@ -244,6 +243,7 @@ class NFTS(commands.Cog):
             value="\n".join(upcoming["start_time"].astype(str).tolist()),
             inline=True,
         )
+        e.set_footer(text="\u200b", icon_url=data_sources["coinmarketcap"]["icon"])
 
         await self.upcoming_channel.purge(limit=1)
         await self.upcoming_channel.send(embed=e)
@@ -261,11 +261,12 @@ class NFTS(commands.Cog):
             title=f"Top {len(p2e)} Blockchain Games",
             url=url,
             description="",
-            color=0x4792C9,
+            color=data_sources["playtoearn"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
         e.set_footer(
-            text="\u200b", icon_url="https://playtoearn.net/apple-touch-icon.png"
+            text="\u200b",
+            icon_url=data_sources["playtoearn"]["icon"],
         )
 
         e.add_field(

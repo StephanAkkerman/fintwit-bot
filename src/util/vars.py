@@ -32,6 +32,16 @@ filter_dict = {
     "DEFI": "DEFIPERP",
 }
 
+icon_url = (
+    "https://raw.githubusercontent.com/StephanAkkerman/fintwit-bot/main/img/icons/"
+)
+data_sources = {
+    "coingecko": {"color": 0x0D3EFD, "icon": icon_url + "coingecko.png"},
+    "opensea": {"color": 0x3685DF, "icon": icon_url + "opensea.png"},
+    "coinmarketcap": {"color": 0x0D3EFD, "icon": icon_url + "cmc.ico"},
+    "playtoearn": {"color": 0x4792C9, "icon": icon_url + "playtoearn.png"},
+}
+
 # Stable coins
 # Could update this on startup:
 # https://www.binance.com/bapi/composite/v1/public/promo/cmc/cryptocurrency/category?id=604f2753ebccdd50cd175fc1&limit=10
