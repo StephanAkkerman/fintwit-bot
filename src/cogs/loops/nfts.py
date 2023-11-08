@@ -264,11 +264,7 @@ class NFTS(commands.Cog):
             color=data_sources["playtoearn"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
-        e.set_footer(
-            text="\u200b",
-            icon_url=data_sources["playtoearn"]["icon"],
-        )
-
+        
         e.add_field(
             name="Game",
             value="\n".join(p2e["name"].tolist()),
@@ -285,6 +281,11 @@ class NFTS(commands.Cog):
             name="Status",
             value="\n".join(p2e["status"].tolist()),
             inline=True,
+        )
+        
+        e.set_footer(
+            text="\u200b",
+            icon_url=data_sources["playtoearn"]["icon"],
         )
 
         await self.p2e_channel.purge(limit=1)

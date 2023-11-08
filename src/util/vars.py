@@ -43,7 +43,7 @@ data_sources = {
     "coingecko": {"color": 0x0D3EFD, "icon": icon_url + "coingecko.png"},
     "opensea": {"color": 0x3685DF, "icon": icon_url + "opensea.png"},
     "coinmarketcap": {"color": 0x0D3EFD, "icon": icon_url + "cmc.ico"},
-    "playtoearn": {"color": 0x4792C9, "icon": icon_url + "playtoearn.webp"},
+    "playtoearn": {"color": 0x4792C9, "icon": icon_url + "playtoearn.png"},
     "tradingview": {"color": 0x131722, "icon": icon_url + "tradingview.png"},
     "coinglass": {"color": 0x000000, "icon": icon_url + "coinglass.png"},
     "kucoin": {"color": 0x24AE8F, "icon": icon_url + "kucoin.png"},

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>util.formatting &#8212; FinTwit Bot 1.1 documentation</title>
+    <title>util.formatting &#8212; FinTwit Bot 1.2.0 documentation</title>
   
   
   
@@ -34,10 +34,11 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
-    <script src="../../_static/documentation_options.js?v=7ff6d70c"></script>
+    <script src="../../_static/documentation_options.js?v=872021ae"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/util/formatting';</script>
+    <link rel="icon" href="../../_static/fintwit-nobg.ico"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -100,8 +101,14 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="../../_static/fintwit.png" class="logo__image only-light" alt="Logo image"/>
+    <script>document.write(`<img src="../../_static/fintwit.png" class="logo__image only-dark" alt="Logo image"/>`);</script>
   
-    <p class="title logo__title">FinTwit Bot 1.1 documentation</p>
   
 </a></div>
     
@@ -157,6 +164,22 @@ document.write(`
   </button>
 `);
 </script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/StephanAkkerman/fintwit-bot" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+</ul></div>
       
     </div>
     
@@ -226,6 +249,22 @@ document.write(`
 `);
 </script></div>
         
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/StephanAkkerman/fintwit-bot" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+</ul></div>
+        
       </div>
     
   </div>
@@ -291,6 +330,9 @@ document.write(`
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">discord</span>
 
+<span class="kn">from</span> <span class="nn">util.vars</span> <span class="kn">import</span> <span class="n">data_sources</span>
+
+
 <div class="viewcode-block" id="format_change">
 <a class="viewcode-back" href="../../util.html#util.formatting.format_change">[docs]</a>
 <span class="k">def</span> <span class="nf">format_change</span><span class="p">(</span><span class="n">change</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -311,9 +353,10 @@ document.write(`
     <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;+</span><span class="si">{</span><span class="n">change</span><span class="si">}</span><span class="s2">% 📈&quot;</span> <span class="k">if</span> <span class="n">change</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">change</span><span class="si">}</span><span class="s2">% 📉&quot;</span></div>
 
 
+
 <div class="viewcode-block" id="human_format">
 <a class="viewcode-back" href="../../util.html#util.formatting.human_format">[docs]</a>
-<span class="k">def</span> <span class="nf">human_format</span><span class="p">(</span><span class="n">number</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">absolute</span> <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">decimals</span> <span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">human_format</span><span class="p">(</span><span class="n">number</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">absolute</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">decimals</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Takes a number and returns a human readable string.</span>
 <span class="sd">    Taken from: https://stackoverflow.com/questions/579310/formatting-long-numbers-as-strings-in-python/45846841.</span>
@@ -332,7 +375,7 @@ document.write(`
 <span class="sd">    str</span>
 <span class="sd">        The formatted number as a string.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="k">if</span> <span class="n">number</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">&quot;0&quot;</span>
 
@@ -340,15 +383,15 @@ document.write(`
     <span class="n">units</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;K&quot;</span><span class="p">,</span> <span class="s2">&quot;M&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;q&quot;</span><span class="p">]</span>
     <span class="n">k</span> <span class="o">=</span> <span class="mf">1000.0</span>
     <span class="n">magnitude</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">floor</span><span class="p">(</span><span class="n">log</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">number</span><span class="p">),</span> <span class="n">k</span><span class="p">)))</span>
-    
+
     <span class="k">if</span> <span class="n">decimals</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">rounded_number</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">number</span> <span class="o">/</span> <span class="n">k</span><span class="o">**</span><span class="n">magnitude</span><span class="p">,</span> <span class="n">decimals</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">rounded_number</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">number</span> <span class="o">/</span> <span class="n">k</span><span class="o">**</span><span class="n">magnitude</span><span class="p">)</span>
-    
+
     <span class="k">if</span> <span class="n">absolute</span><span class="p">:</span>
         <span class="n">rounded_number</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">rounded_number</span><span class="p">)</span>
-        
+
     <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">rounded_number</span><span class="si">}{</span><span class="n">units</span><span class="p">[</span><span class="n">magnitude</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span></div>
 
 
@@ -409,28 +452,28 @@ document.write(`
 <span class="sd">    discord.Embed</span>
 <span class="sd">        A Discord embed containing the formatted data</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="n">df</span> <span class="o">=</span> <span class="n">og_df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">source</span> <span class="o">==</span> <span class="s2">&quot;binance&quot;</span><span class="p">:</span>
         <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://www.binance.com/en/altcoins/gainers-losers&quot;</span>
-        <span class="n">color</span> <span class="o">=</span> <span class="mh">0xF0B90B</span>
-        <span class="n">icon_url</span> <span class="o">=</span> <span class="s2">&quot;https://upload.wikimedia.org/wikipedia/commons/5/57/Binance_Logo.png&quot;</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">data_sources</span><span class="p">[</span><span class="s2">&quot;binance&quot;</span><span class="p">][</span><span class="s2">&quot;color&quot;</span><span class="p">]</span>
+        <span class="n">icon_url</span> <span class="o">=</span> <span class="n">data_sources</span><span class="p">[</span><span class="s2">&quot;binance&quot;</span><span class="p">][</span><span class="s2">&quot;icon&quot;</span><span class="p">]</span>
         <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Coin&quot;</span>
     <span class="k">elif</span> <span class="n">source</span> <span class="o">==</span> <span class="s2">&quot;yahoo&quot;</span><span class="p">:</span>
         <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://finance.yahoo.com/most-active&quot;</span>
-        <span class="n">color</span> <span class="o">=</span> <span class="mh">0x720E9E</span>
-        <span class="n">icon_url</span> <span class="o">=</span> <span class="s2">&quot;https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png&quot;</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">data_sources</span><span class="p">[</span><span class="s2">&quot;yahoo&quot;</span><span class="p">][</span><span class="s2">&quot;color&quot;</span><span class="p">]</span>
+        <span class="n">icon_url</span> <span class="o">=</span> <span class="n">data_sources</span><span class="p">[</span><span class="s2">&quot;yahoo&quot;</span><span class="p">][</span><span class="s2">&quot;icon&quot;</span><span class="p">]</span>
         <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Stock&quot;</span>
     <span class="k">elif</span> <span class="n">source</span> <span class="o">==</span> <span class="s2">&quot;coingecko&quot;</span><span class="p">:</span>
         <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://www.coingecko.com/en/watchlists/trending-crypto&quot;</span>
-        <span class="n">color</span> <span class="o">=</span> <span class="mh">0x8CC63F</span>
-        <span class="n">icon_url</span> <span class="o">=</span> <span class="s2">&quot;https://www.coingecko.com/favicon-96x96.png&quot;</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">data_sources</span><span class="p">[</span><span class="s2">&quot;coingecko&quot;</span><span class="p">][</span><span class="s2">&quot;color&quot;</span><span class="p">]</span>
+        <span class="n">icon_url</span> <span class="o">=</span> <span class="n">data_sources</span><span class="p">[</span><span class="s2">&quot;coingecko&quot;</span><span class="p">][</span><span class="s2">&quot;icon&quot;</span><span class="p">]</span>
         <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Coin&quot;</span>
     <span class="k">elif</span> <span class="n">source</span> <span class="o">==</span> <span class="s2">&quot;coinmarketcap&quot;</span><span class="p">:</span>
         <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://coinmarketcap.com/trending-cryptocurrencies/&quot;</span>
-        <span class="n">color</span> <span class="o">=</span> <span class="mh">0x0D3EFD</span>
-        <span class="n">icon_url</span> <span class="o">=</span> <span class="s2">&quot;https://coinmarketcap.com/favicon.ico&quot;</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">data_sources</span><span class="p">[</span><span class="s2">&quot;coinmarketcap&quot;</span><span class="p">][</span><span class="s2">&quot;color&quot;</span><span class="p">]</span>
+        <span class="n">icon_url</span> <span class="o">=</span> <span class="n">data_sources</span><span class="p">[</span><span class="s2">&quot;coinmarketcap&quot;</span><span class="p">][</span><span class="s2">&quot;icon&quot;</span><span class="p">]</span>
         <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Coin&quot;</span>
 
     <span class="n">e</span> <span class="o">=</span> <span class="n">discord</span><span class="o">.</span><span class="n">Embed</span><span class="p">(</span>
@@ -440,13 +483,19 @@ document.write(`
         <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
         <span class="n">timestamp</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
     <span class="p">)</span>
-    
+
     <span class="k">if</span> <span class="n">source</span> <span class="o">==</span> <span class="s2">&quot;yahoo&quot;</span><span class="p">:</span>
         <span class="c1"># Format the data</span>
         <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Price (Intraday)&quot;</span><span class="p">:</span> <span class="s2">&quot;Price&quot;</span><span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        
+
         <span class="c1"># Add website to symbol</span>
-        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Symbol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Symbol&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;](https://finance.yahoo.com/quote/&quot;</span> <span class="o">+</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Symbol&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Symbol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;[&quot;</span>
+            <span class="o">+</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Symbol&quot;</span><span class="p">]</span>
+            <span class="o">+</span> <span class="s2">&quot;](https://finance.yahoo.com/quote/&quot;</span>
+            <span class="o">+</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Symbol&quot;</span><span class="p">]</span>
+            <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
+        <span class="p">)</span>
 
     <span class="c1"># Only these columns are necessary</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s2">&quot;Symbol&quot;</span><span class="p">,</span> <span class="s2">&quot;Price&quot;</span><span class="p">,</span> <span class="s2">&quot;% Change&quot;</span><span class="p">,</span> <span class="s2">&quot;Volume&quot;</span><span class="p">]]</span>

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>util.cg_data &#8212; FinTwit Bot 1.1 documentation</title>
+    <title>util.cg_data &#8212; FinTwit Bot 1.2.0 documentation</title>
   
   
   
@@ -34,10 +34,11 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
-    <script src="../../_static/documentation_options.js?v=7ff6d70c"></script>
+    <script src="../../_static/documentation_options.js?v=872021ae"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/util/cg_data';</script>
+    <link rel="icon" href="../../_static/fintwit-nobg.ico"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -100,8 +101,14 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="../../_static/fintwit.png" class="logo__image only-light" alt="Logo image"/>
+    <script>document.write(`<img src="../../_static/fintwit.png" class="logo__image only-dark" alt="Logo image"/>`);</script>
   
-    <p class="title logo__title">FinTwit Bot 1.1 documentation</p>
   
 </a></div>
     
@@ -157,6 +164,22 @@ document.write(`
   </button>
 `);
 </script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/StephanAkkerman/fintwit-bot" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+</ul></div>
       
     </div>
     
@@ -226,6 +249,22 @@ document.write(`
 `);
 </script></div>
         
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/StephanAkkerman/fintwit-bot" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+</ul></div>
+        
       </div>
     
   </div>
@@ -288,25 +327,26 @@ document.write(`
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span>
 <span class="kn">import</span> <span class="nn">numbers</span>
-<span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 <span class="c1"># &gt; Third party libraries</span>
 <span class="kn">from</span> <span class="nn">pycoingecko</span> <span class="kn">import</span> <span class="n">CoinGeckoAPI</span>
+<span class="kn">import</span> <span class="nn">cloudscraper</span>
+<span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 <span class="c1"># Local dependencies</span>
 <span class="kn">import</span> <span class="nn">util.vars</span>
-<span class="kn">from</span> <span class="nn">util.vars</span> <span class="kn">import</span> <span class="n">stables</span><span class="p">,</span> <span class="n">get_json_data</span>
+<span class="kn">from</span> <span class="nn">util.vars</span> <span class="kn">import</span> <span class="n">stables</span>
 <span class="kn">from</span> <span class="nn">util.tv_data</span> <span class="kn">import</span> <span class="n">tv</span>
 <span class="kn">from</span> <span class="nn">util.formatting</span> <span class="kn">import</span> <span class="n">format_change</span>
 
 <span class="n">cg</span> <span class="o">=</span> <span class="n">CoinGeckoAPI</span><span class="p">()</span>
+<span class="n">scraper</span> <span class="o">=</span> <span class="n">cloudscraper</span><span class="o">.</span><span class="n">create_scraper</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="get_crypto_info">
 <a class="viewcode-back" href="../../util.html#util.cg_data.get_crypto_info">[docs]</a>
 <span class="k">def</span> <span class="nf">get_crypto_info</span><span class="p">(</span><span class="n">ids</span><span class="p">):</span>
-
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="nb">id</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">best_vol</span> <span class="o">=</span> <span class="mi">0</span>
@@ -369,12 +409,12 @@ document.write(`
                 <span class="c1"># Somtimes the base is a contract instead of ticker</span>
                 <span class="k">if</span> <span class="n">base</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="c1"># &gt; 7, because $KOMPETE</span>
-                    <span class="k">if</span> <span class="ow">not</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;base&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;0X&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;base&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">7</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;base&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;0X&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;base&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">7</span><span class="p">):</span>
                         <span class="n">base</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;base&quot;</span><span class="p">]</span>
 
             <span class="k">if</span> <span class="s2">&quot;market&quot;</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                 <span class="n">exchanges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;market&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
-                
+
     <span class="k">return</span> <span class="n">base</span><span class="p">,</span> <span class="n">exchanges</span></div>
 
 
@@ -451,14 +491,16 @@ document.write(`
     <span class="n">coin_dict</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">ticker</span> <span class="ow">in</span> <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">cg_db</span><span class="p">[</span><span class="s2">&quot;symbol&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
         <span class="c1"># Check coin by symbol, i.e. &quot;BTC&quot;</span>
-        <span class="n">coin_dict</span><span class="p">,</span> <span class="nb">id</span> <span class="o">=</span> <span class="n">get_crypto_info</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">cg_db</span><span class="p">[</span><span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">cg_db</span><span class="p">[</span><span class="s2">&quot;symbol&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">ticker</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
-        
+        <span class="n">coin_dict</span><span class="p">,</span> <span class="nb">id</span> <span class="o">=</span> <span class="n">get_crypto_info</span><span class="p">(</span>
+            <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">cg_db</span><span class="p">[</span><span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">cg_db</span><span class="p">[</span><span class="s2">&quot;symbol&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">ticker</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+
         <span class="c1"># Get the information from the dictionary</span>
         <span class="k">if</span> <span class="n">coin_dict</span><span class="p">:</span>
             <span class="n">total_vol</span><span class="p">,</span> <span class="n">price</span><span class="p">,</span> <span class="n">change</span><span class="p">,</span> <span class="n">exchanges</span><span class="p">,</span> <span class="n">base</span> <span class="o">=</span> <span class="n">get_info_from_dict</span><span class="p">(</span><span class="n">coin_dict</span><span class="p">)</span>
 
     <span class="c1"># Try other methods if the information sucks</span>
-    <span class="k">if</span> <span class="n">total_vol</span> <span class="o">&lt;</span> <span class="mi">50000</span> <span class="ow">or</span> <span class="n">exchanges</span> <span class="o">==</span> <span class="p">[]</span> <span class="ow">or</span> <span class="n">change</span> <span class="o">==</span> <span class="s1">&#39;N/A&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">total_vol</span> <span class="o">&lt;</span> <span class="mi">50000</span> <span class="ow">or</span> <span class="n">exchanges</span> <span class="o">==</span> <span class="p">[]</span> <span class="ow">or</span> <span class="n">change</span> <span class="o">==</span> <span class="s2">&quot;N/A&quot;</span><span class="p">:</span>
         <span class="c1"># As a second options check the TradingView data</span>
         <span class="n">price</span><span class="p">,</span> <span class="n">perc_change</span><span class="p">,</span> <span class="n">volume</span><span class="p">,</span> <span class="n">exchange</span><span class="p">,</span> <span class="n">website</span> <span class="o">=</span> <span class="k">await</span> <span class="n">tv</span><span class="o">.</span><span class="n">get_tv_data</span><span class="p">(</span>
             <span class="n">ticker</span><span class="p">,</span> <span class="s2">&quot;crypto&quot;</span>
@@ -481,7 +523,9 @@ document.write(`
 
         <span class="c1"># Fourth option is to check by name, i.e. &quot;Bitcoin&quot;</span>
         <span class="k">elif</span> <span class="n">ticker</span> <span class="ow">in</span> <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">cg_db</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
-            <span class="n">coin_dict</span><span class="p">,</span> <span class="nb">id</span> <span class="o">=</span> <span class="n">get_crypto_info</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">cg_db</span><span class="p">[</span><span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">cg_db</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">ticker</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
+            <span class="n">coin_dict</span><span class="p">,</span> <span class="nb">id</span> <span class="o">=</span> <span class="n">get_crypto_info</span><span class="p">(</span>
+                <span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">cg_db</span><span class="p">[</span><span class="n">util</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">cg_db</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">ticker</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
 
         <span class="c1"># Get the information from the dictionary</span>
         <span class="n">total_vol</span><span class="p">,</span> <span class="n">price</span><span class="p">,</span> <span class="n">change</span><span class="p">,</span> <span class="n">exchanges</span><span class="p">,</span> <span class="n">base</span> <span class="o">=</span> <span class="n">get_info_from_dict</span><span class="p">(</span><span class="n">coin_dict</span><span class="p">)</span>
@@ -490,7 +534,7 @@ document.write(`
     <span class="k">if</span> <span class="n">exchanges</span><span class="p">:</span>
         <span class="n">exchanges</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; exchange&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">exchanges</span><span class="p">]</span>
         <span class="n">exchanges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">exchanges</span><span class="p">))</span>
-        
+
     <span class="c1"># Look into this!</span>
     <span class="k">if</span> <span class="n">total_vol</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">base</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No base symbol found for:&quot;</span><span class="p">,</span> <span class="n">ticker</span><span class="p">)</span>
@@ -529,50 +573,51 @@ document.write(`
 <span class="sd">            The volumes of the trending coins.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    
-    <span class="n">html</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_json_data</span><span class="p">(</span><span class="s2">&quot;https://www.coingecko.com/en/watchlists/trending-crypto&quot;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">html</span> <span class="o">=</span> <span class="n">scraper</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;https://www.coingecko.com/en/watchlists/trending-crypto&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
 
-    <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">html</span><span class="p">,</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span>
+    <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">html</span><span class="p">,</span> <span class="s2">&quot;html.parser&quot;</span><span class="p">)</span>
 
-    <span class="n">table</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;table&#39;</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="s2">&quot;sort table mb-0 text-sm text-lg-normal table-scrollable&quot;</span><span class="p">)</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+        <span class="s2">&quot;table&quot;</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="s2">&quot;sort table mb-0 text-sm text-lg-normal table-scrollable&quot;</span>
+    <span class="p">)</span>
 
     <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">tr</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;tr&#39;</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">tr</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;tr&quot;</span><span class="p">):</span>
         <span class="n">coin_data</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">td_count</span> <span class="o">=</span> <span class="mi">0</span>
-        
-        <span class="k">for</span> <span class="n">td</span> <span class="ow">in</span> <span class="n">tr</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;td&#39;</span><span class="p">):</span>
+
+        <span class="k">for</span> <span class="n">td</span> <span class="ow">in</span> <span class="n">tr</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;td&quot;</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">td_count</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-                <span class="n">ticker</span> <span class="o">=</span> <span class="n">td</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+                <span class="n">ticker</span> <span class="o">=</span> <span class="n">td</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
                 <span class="n">website</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;https://www.coingecko.com</span><span class="si">{</span><span class="n">td</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;href&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="n">coin_data</span><span class="p">[</span><span class="s2">&quot;Symbol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">ticker</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">](</span><span class="si">{</span><span class="n">website</span><span class="si">}</span><span class="s2">)&quot;</span>
-            
+
             <span class="k">if</span> <span class="n">td_count</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-                <span class="n">price</span> <span class="o">=</span> <span class="n">td</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;span&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">price</span> <span class="o">=</span> <span class="n">td</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;span&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">coin_data</span><span class="p">[</span><span class="s1">&#39;Price&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">price</span><span class="p">)</span>
+                    <span class="n">coin_data</span><span class="p">[</span><span class="s2">&quot;Price&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">price</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                    <span class="n">coin_data</span><span class="p">[</span><span class="s1">&#39;Price&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">coin_data</span><span class="p">[</span><span class="s2">&quot;Price&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
             <span class="k">if</span> <span class="n">td_count</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
-                <span class="n">change</span> <span class="o">=</span> <span class="n">td</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;span&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">change</span> <span class="o">=</span> <span class="n">td</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;span&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;%&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">coin_data</span><span class="p">[</span><span class="s1">&#39;% Change&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">change</span><span class="p">)</span>
+                    <span class="n">coin_data</span><span class="p">[</span><span class="s2">&quot;% Change&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">change</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                    <span class="n">coin_data</span><span class="p">[</span><span class="s1">&#39;% Change&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-            
+                    <span class="n">coin_data</span><span class="p">[</span><span class="s2">&quot;% Change&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
             <span class="k">if</span> <span class="n">td_count</span> <span class="o">==</span> <span class="mi">7</span><span class="p">:</span>
-                <span class="n">volume</span> <span class="o">=</span> <span class="n">td</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;span&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">volume</span> <span class="o">=</span> <span class="n">td</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;span&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">coin_data</span><span class="p">[</span><span class="s1">&#39;Volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">volume</span><span class="p">)</span>
+                    <span class="n">coin_data</span><span class="p">[</span><span class="s2">&quot;Volume&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">volume</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                    <span class="n">coin_data</span><span class="p">[</span><span class="s1">&#39;Volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-                
+                    <span class="n">coin_data</span><span class="p">[</span><span class="s2">&quot;Volume&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
             <span class="n">td_count</span> <span class="o">+=</span> <span class="mi">1</span>
-            
+
         <span class="k">if</span> <span class="n">coin_data</span> <span class="o">!=</span> <span class="p">{}:</span>
             <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coin_data</span><span class="p">)</span>
-        
+
     <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
 </pre></div>
