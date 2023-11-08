@@ -17,6 +17,7 @@ from discord.ext.tasks import loop
 from util.vars import get_json_data, config
 from util.disc_util import get_channel
 from util.formatting import format_change
+from util.cg_data import cg
 
 
 class NFTS(commands.Cog):
@@ -116,10 +117,16 @@ class NFTS(commands.Cog):
 
     @loop(hours=1)
     async def trending_nfts(self):
+        await self.trending_channel.purge(limit=2)
+
+        await self.opensea_trending()
+        await self.gc_trending()
+
+    async def opensea_trending(self):
         trending = await get_opensea("trending")
 
         e = discord.Embed(
-            title=f"Top {len(trending)} Trending NFTs",
+            title=f"{len(trending)} Trending OpenSea NFTs",
             url="https://opensea.io/rankings/trending",
             description="",
             color=0x3685DF,
@@ -148,7 +155,56 @@ class NFTS(commands.Cog):
             icon_url="https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/OpenSea_icon.svg/2048px-OpenSea_icon.svg.png",
         )
 
-        await self.trending_channel.purge(limit=1)
+        await self.trending_channel.send(embed=e)
+
+    async def gc_trending(self):
+        df = pd.DataFrame(cg.get_search_trending()["nfts"])
+
+        # Add URL
+        df["url"] = "https://www.coingecko.com/en/nft/" + df["id"]
+        df["NFT"] = "[" + df["name"] + "]" + "(" + df["url"] + ")"
+
+        df["price"] = (
+            df["floor_price_in_native_currency"].astype(str)
+            + " "
+            + df["native_currency_symbol"].str.upper()
+        )
+        df["floor price increase"] = (
+            df["floor_price_24h_percentage_change"].round().apply(format_change)
+        )
+
+        e = discord.Embed(
+            title=f"{len(df)} Trending CoinGecko NFTs",
+            url="https://www.coingecko.com/en/nft",
+            description="",
+            color=0x8CC63F,
+            timestamp=datetime.datetime.now(datetime.timezone.utc),
+        )
+        e.add_field(
+            name="NFT",
+            value="\n".join(df["NFT"].tolist()),
+            inline=True,
+        )
+
+        e.add_field(
+            name="Floor Price",
+            value="\n".join(df["price"].tolist()),
+            inline=True,
+        )
+
+        e.add_field(
+            name="Floor Price Increase",
+            value="\n".join(df["floor price increase"].tolist()),
+            inline=True,
+        )
+
+        file = discord.File("img/icons/coingecko.png", filename="coingecko.png")
+
+        e.set_footer(
+            text="\u200b",
+            icon_url="attachment://coingecko.png",
+        )
+
         await self.trending_channel.send(embed=e)
 
     @loop(hours=1)
