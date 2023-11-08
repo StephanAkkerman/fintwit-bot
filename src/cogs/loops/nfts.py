@@ -198,11 +198,9 @@ class NFTS(commands.Cog):
             inline=True,
         )
 
-        file = discord.File("img/icons/coingecko.png", filename="coingecko.png")
-
         e.set_footer(
             text="\u200b",
-            icon_url="attachment://coingecko.png",
+            icon_url="https://github.com/StephanAkkerman/fintwit-bot/blob/main/img/icons/coingecko.ico",
         )
 
         await self.trending_channel.send(embed=e)

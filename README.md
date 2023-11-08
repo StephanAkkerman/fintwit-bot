@@ -7,7 +7,7 @@
 
 This is a Discord bot written in Python, with the purpose of providing an overview of the financial markets discussed on Twitter.
 The bot is able to distuingish multiple markets based on the tickers mentioned in the tweets and provides detailed information of the financial data discussed in a Tweet. Below you can view what this bot does with a financial tweet.
-<details><summary>Tweet Embed</summary><img src="https://github.com/StephanAkkerman/FinTwit_Bot/blob/main/img/tweet_example.png" width="500" /></details>
+<details><summary>Tweet Embed</summary><img src="https://github.com/StephanAkkerman/FinTwit_Bot/blob/main/img/examples/tweet_example.png" width="500" /></details>
 
 ## Important
 To run this bot you need to host it yourself, meaning that you should have something that functions as a server. I use my Raspberry PI for this, but there are many other options available for hosting a Discord bot, such as virtual private servers provided by Google, Amazon, Microsoft, and more.
@@ -89,7 +89,7 @@ Or follow these written instructions:
 - Invite the bot to your server.
 
 Then you need to add the custom emojis to the server (can be skipped).
-- Download the custom emoji pictures [here](https://github.com/StephanAkkerman/FinTwit_Bot/tree/main/emojis).
+- Download the custom emoji pictures [here](https://github.com/StephanAkkerman/FinTwit_Bot/tree/main/img/emojis).
 - Add them to your server ([instructions](https://support.discord.com/hc/en-us/articles/360036479811-Custom-Emojis)).
 - You can add any exchange emoji, for instance FTX, as long as the image is supported by Discord and the name is the same name as the exchange.
 
