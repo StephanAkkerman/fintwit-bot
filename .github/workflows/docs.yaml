@@ -36,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: | 
           python -m pip install --upgrade pip
-          pip install sphinx sphinx_rtd_theme ghp-import sphinx-autodoc-typehints sphinx-automodapi
+          pip install sphinx sphinx_rtd_theme ghp-import sphinx-autodoc-typehints sphinx-automodapi pydata-sphinx-theme
           pip install -r requirements.txt
       # The workflow will create the files shown below and then shortly after, import them into GitHub pages.
       - name: Build HTML
