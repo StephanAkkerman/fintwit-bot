@@ -13,7 +13,7 @@ from discord.ext.tasks import loop
 
 # Local dependencies
 import util.vars
-from util.vars import config
+from util.vars import config, data_sources
 from util.disc_util import get_channel, get_webhook
 from util.db import update_db
 
@@ -147,7 +147,7 @@ class Reddit(commands.Cog):
                     title=title,
                     url="https://www.reddit.com" + submission.permalink,
                     description=descr,
-                    color=0xFF3F18,
+                    color=data_sources["reddit"]["color"],
                     timestamp=datetime.datetime.utcfromtimestamp(
                         submission.created_utc
                     ),
@@ -155,13 +155,13 @@ class Reddit(commands.Cog):
                 if img_url:
                     e.set_image(url=img_url[0])
 
-                e.set_thumbnail(
-                    url="https://styles.redditmedia.com/t5_2th52/styles/communityIcon_wzrl8s0hx8a81.png?width=256&s=dcbf830170c1e8237335a3f046b36f723c5d55e7"
-                )
+                # e.set_thumbnail(
+                #    url="https://styles.redditmedia.com/t5_2th52/styles/communityIcon_wzrl8s0hx8a81.png?width=256&s=dcbf830170c1e8237335a3f046b36f723c5d55e7"
+                # )
 
                 e.set_footer(
                     text=f"🔼 {submission.score} | 💬 {submission.num_comments}",
-                    icon_url="https://external-preview.redd.it/iDdntscPf-nfWKqzHRGFmhVxZm4hZgaKe5oyFws-yzA.png?width=640&crop=smart&auto=webp&s=bfd318557bf2a5b3602367c9c4d9cd84d917ccd5",
+                    icon_url=data_sources["reddit"]["icon"],
                 )
 
                 if len(img_url) > 1:

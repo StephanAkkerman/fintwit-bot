@@ -6,6 +6,9 @@ import datetime
 import pandas as pd
 import discord
 
+from util.vars import data_sources
+
+
 def format_change(change: float) -> str:
     """
     Converts a float to a string with a plus sign if the float is positive, and a minus sign if the float is negative.
@@ -23,7 +26,8 @@ def format_change(change: float) -> str:
 
     return f"+{change}% 📈" if change > 0 else f"{change}% 📉"
 
-def human_format(number: float, absolute : bool = False, decimals : int = 0) -> str:
+
+def human_format(number: float, absolute: bool = False, decimals: int = 0) -> str:
     """
     Takes a number and returns a human readable string.
     Taken from: https://stackoverflow.com/questions/579310/formatting-long-numbers-as-strings-in-python/45846841.
@@ -42,7 +46,7 @@ def human_format(number: float, absolute : bool = False, decimals : int = 0) -> 
     str
         The formatted number as a string.
     """
-    
+
     if number == 0:
         return "0"
 
@@ -50,15 +54,15 @@ def human_format(number: float, absolute : bool = False, decimals : int = 0) -> 
     units = ["", "K", "M", "B", "t", "q"]
     k = 1000.0
     magnitude = int(floor(log(abs(number), k)))
-    
+
     if decimals > 0:
         rounded_number = round(number / k**magnitude, decimals)
     else:
         rounded_number = int(number / k**magnitude)
-    
+
     if absolute:
         rounded_number = abs(rounded_number)
-        
+
     return f"{rounded_number}{units[magnitude]}"
 
 
@@ -113,28 +117,28 @@ async def format_embed(og_df: pd.DataFrame, type: str, source: str) -> discord.E
     discord.Embed
         A Discord embed containing the formatted data
     """
-    
+
     df = og_df.copy()
 
     if source == "binance":
         url = "https://www.binance.com/en/altcoins/gainers-losers"
-        color = 0xF0B90B
-        icon_url = "https://upload.wikimedia.org/wikipedia/commons/5/57/Binance_Logo.png"
+        color = data_sources["binance"]["color"]
+        icon_url = data_sources["binance"]["icon"]
         name = "Coin"
     elif source == "yahoo":
         url = "https://finance.yahoo.com/most-active"
-        color = 0x720E9E
-        icon_url = "https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png"
+        color = data_sources["yahoo"]["color"]
+        icon_url = data_sources["yahoo"]["icon"]
         name = "Stock"
     elif source == "coingecko":
         url = "https://www.coingecko.com/en/watchlists/trending-crypto"
-        color = 0x8CC63F
-        icon_url = "https://www.coingecko.com/favicon-96x96.png"
+        color = data_sources["coingecko"]["color"]
+        icon_url = data_sources["coingecko"]["icon"]
         name = "Coin"
     elif source == "coinmarketcap":
         url = "https://coinmarketcap.com/trending-cryptocurrencies/"
-        color = 0x0D3EFD
-        icon_url = "https://coinmarketcap.com/favicon.ico"
+        color = data_sources["coinmarketcap"]["color"]
+        icon_url = data_sources["coinmarketcap"]["icon"]
         name = "Coin"
 
     e = discord.Embed(
@@ -144,13 +148,19 @@ async def format_embed(og_df: pd.DataFrame, type: str, source: str) -> discord.E
         color=color,
         timestamp=datetime.datetime.now(datetime.timezone.utc),
     )
-    
+
     if source == "yahoo":
         # Format the data
         df.rename(columns={"Price (Intraday)": "Price"}, inplace=True)
-        
+
         # Add website to symbol
-        df["Symbol"] = "[" + df["Symbol"] + "](https://finance.yahoo.com/quote/" + df["Symbol"] + ")"
+        df["Symbol"] = (
+            "["
+            + df["Symbol"]
+            + "](https://finance.yahoo.com/quote/"
+            + df["Symbol"]
+            + ")"
+        )
 
     # Only these columns are necessary
     df = df[["Symbol", "Price", "% Change", "Volume"]]

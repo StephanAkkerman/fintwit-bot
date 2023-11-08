@@ -13,7 +13,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
-from util.vars import get_json_data
+from util.vars import get_json_data, data_sources
 from util.formatting import human_format
 from util.vars import config
 from util.disc_util import get_channel
@@ -156,14 +156,15 @@ class Liquidations(commands.Cog):
         e = discord.Embed(
             title="Total Liquidations",
             description="",
-            color=0x000000,
+            color=data_sources["coinglass"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
             url="https://www.coinglass.com/LiquidationData",
         )
         file = discord.File(filename)
         e.set_image(url=f"attachment://{filename}")
         e.set_footer(
-            text="\u200b", icon_url="https://cdn.coinglasscdn.com/static/icon_200.png"
+            text="\u200b",
+            icon_url=data_sources["coinglass"]["icon"],
         )
 
         await self.channel.purge(limit=1)

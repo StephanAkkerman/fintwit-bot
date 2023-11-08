@@ -11,7 +11,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
-from util.vars import config, get_json_data
+from util.vars import config, get_json_data, data_sources
 from util.disc_util import get_channel
 
 
@@ -113,7 +113,7 @@ class StockTwits(commands.Cog):
             title=f"StockTwits Rankings",
             url="https://stocktwits.com/rankings/trending",
             description="",
-            color=0xFFFFFF,
+            color=data_sources["stocktwits"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
 
@@ -124,7 +124,7 @@ class StockTwits(commands.Cog):
         # Set datetime and icon
         e.set_footer(
             text="\u200b",
-            icon_url="https://miro.medium.com/max/400/1*Jp-O_IoMusXAlj1-KrYmrw.jpeg",
+            icon_url=data_sources["stocktwits"]["icon"],
         )
 
         await self.channel.send(embed=e)

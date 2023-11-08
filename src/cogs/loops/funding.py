@@ -9,7 +9,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
-from util.vars import config, get_json_data
+from util.vars import config, get_json_data, data_sources
 from util.disc_util import get_channel
 
 
@@ -79,7 +79,7 @@ class Funding(commands.Cog):
             title=f"Binance Top 15 Lowest Funding Rates",
             url="",
             description="",
-            color=0xF0B90B,
+            color=data_sources["binance"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
 
@@ -93,7 +93,7 @@ class Funding(commands.Cog):
         # Set datetime and icon
         e.set_footer(
             text=f"Next funding in {str(timeToNextFunding).split('.')[0]}",
-            icon_url="https://public.bnbstatic.com/20190405/eb2349c3-b2f8-4a93-a286-8f86a62ea9d8.png",
+            icon_url=data_sources["binance"]["icon"],
         )
 
         lowest_tickers = "\n".join(lowest["symbol"].tolist())

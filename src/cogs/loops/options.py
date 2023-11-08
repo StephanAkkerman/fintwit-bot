@@ -8,7 +8,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
-from util.vars import config, get_json_data
+from util.vars import config, get_json_data, data_sources
 from util.disc_util import get_channel, get_guild
 from util.formatting import human_format
 
@@ -104,7 +104,7 @@ class Options(commands.Cog):
         e.set_footer(
             # Use the time the alert was created in the footer
             text=f"Alerted at {row['alert_time']}",
-            icon_url="https://docs.unusualwhales.com/images/banner.png",
+            icon_url=data_sources["unusualwhales"]["icon"],
         )
 
         return e
@@ -178,7 +178,7 @@ class Options(commands.Cog):
         e.set_footer(
             # Use the time the alert was created in the footer
             text="\u200b",
-            icon_url="https://docs.unusualwhales.com/images/banner.png",
+            icon_url=data_sources["unusualwhales"]["icon"],
         )
 
         e.add_field(name="Symbol", value=symbols, inline=True)

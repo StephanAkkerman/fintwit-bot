@@ -9,7 +9,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
-from util.vars import config, post_json_data
+from util.vars import config, post_json_data, data_sources
 from util.disc_util import get_channel, get_tagged_users
 from util.afterhours import afterHours
 
@@ -43,7 +43,7 @@ class StockHalts(commands.Cog):
             title=f"Halted Stocks",
             url="https://www.nasdaqtrader.com/trader.aspx?id=tradehalts",
             description="",
-            color=0x0996C7,
+            color=data_sources["nasdaqtrader"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
 
@@ -61,7 +61,7 @@ class StockHalts(commands.Cog):
 
         e.set_footer(
             text="\u200b",
-            icon_url="https://s3-symbol-logo.tradingview.com/nasdaq--600.png",
+            icon_url=data_sources["nasdaqtrader"]["icon"],
         )
 
         tags = get_tagged_users(df["Issue Symbol"].to_list())

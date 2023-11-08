@@ -12,7 +12,7 @@ from discord.ext.tasks import loop
 
 # Local dependencies
 import util.vars
-from util.vars import config
+from util.vars import config, data_sources
 from util.disc_util import get_channel, get_tagged_users
 
 
@@ -43,7 +43,7 @@ class Earnings_Overview(commands.Cog):
             title=f"Earnings for {date}",
             url=f"https://finance.yahoo.com/calendar/earnings?day={date}",
             description="",
-            color=0x720E9E,
+            color=data_sources["yahoo"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
 
@@ -53,7 +53,7 @@ class Earnings_Overview(commands.Cog):
 
         e.set_footer(
             text="\u200b",
-            icon_url="https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png",
+            icon_url=data_sources["yahoo"]["icon"],
         )
 
         tags = get_tagged_users(df["ticker"].to_list())

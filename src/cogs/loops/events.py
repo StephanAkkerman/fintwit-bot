@@ -11,7 +11,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
-from util.vars import config, post_json_data
+from util.vars import config, post_json_data, data_sources
 from util.disc_util import get_channel
 
 
@@ -155,7 +155,7 @@ class Events(commands.Cog):
                         title=f"Events on {date}",
                         url=f"https://www.investing.com/economic-calendar/",
                         description="",
-                        color=0xDC8F02,
+                        color=data_sources["investing"]["color"],
                         timestamp=datetime.datetime.now(datetime.timezone.utc),
                     )
 
@@ -165,7 +165,7 @@ class Events(commands.Cog):
 
                     e.set_footer(
                         text="\u200b",
-                        icon_url="https://play-lh.googleusercontent.com/fJg2QmhVNd-LGxfBzNC6NPeUFY7EjoolG89dVOJ25ieyKpn3r7_ix1q93EFxI_s0RmE",
+                        icon_url=data_sources["investing"]["icon"],
                     )
 
                     await self.channel.send(embed=e)

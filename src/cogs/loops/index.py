@@ -8,7 +8,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
-from util.vars import config, get_json_data
+from util.vars import config, get_json_data, data_sources
 from util.tv_data import tv
 from util.disc_util import get_channel
 from util.afterhours import afterHours
@@ -89,7 +89,7 @@ class Index(commands.Cog):
         e = discord.Embed(
             title=f"Crypto Indices",
             description="",
-            color=0x131722,
+            color=data_sources["tradingview"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
 
@@ -151,7 +151,7 @@ class Index(commands.Cog):
 
         e.set_footer(
             text="\u200b",
-            icon_url="https://s3.tradingview.com/userpics/6171439-Hlns_orig.png",
+            icon_url=data_sources["tradingview"]["icon"],
         )
 
         await self.crypto_channel.purge(limit=1)
@@ -174,7 +174,7 @@ class Index(commands.Cog):
         e = discord.Embed(
             title=f"Stock Indices",
             description="",
-            color=0x131722,
+            color=data_sources["tradingview"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
 
@@ -225,7 +225,7 @@ class Index(commands.Cog):
 
         e.set_footer(
             text="\u200b",
-            icon_url="https://s3.tradingview.com/userpics/6171439-Hlns_orig.png",
+            icon_url=data_sources["tradingview"]["icon"],
         )
 
         await self.stocks_channel.purge(limit=1)
@@ -248,7 +248,7 @@ class Index(commands.Cog):
         e = discord.Embed(
             title=f"Forex Indices",
             description="",
-            color=0x131722,
+            color=data_sources["tradingview"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
 
@@ -297,7 +297,7 @@ class Index(commands.Cog):
 
         e.set_footer(
             text="\u200b",
-            icon_url="https://s3.tradingview.com/userpics/6171439-Hlns_orig.png",
+            icon_url=data_sources["tradingview"]["icon"],
         )
 
         await self.forex_channel.purge(limit=1)

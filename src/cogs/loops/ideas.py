@@ -15,7 +15,7 @@ from discord.ext.tasks import loop
 
 # > Local dependencies
 import util.vars
-from util.vars import get_json_data, config
+from util.vars import get_json_data, config, data_sources
 from util.disc_util import get_channel, get_tagged_users
 from util.db import update_db
 
@@ -267,7 +267,7 @@ class TradingView_Ideas(commands.Cog):
 
             e.set_footer(
                 text=f"👍 {row['Likes']} | 💬 {row['Comments']}",
-                icon_url="https://s3.tradingview.com/userpics/6171439-Hlns_big.png",
+                icon_url=data_sources["tradingview"]["icon"],
             )
 
             if type == "stocks":

@@ -16,7 +16,7 @@ import numpy as np
 import util.vars
 from util.ticker_classifier import classify_ticker, get_financials
 from util.sentiment_analyis import add_sentiment
-from util.vars import filter_dict
+from util.vars import filter_dict, data_sources
 from util.db import merge_and_update, remove_old_rows, update_tweet_db
 from cogs.loops.overview import Overview
 
@@ -87,7 +87,7 @@ def make_embed(symbols, url, text, profile_pic, images, e_title) -> discord.Embe
         title=embed_title(e_title, symbols),
         url=url,
         description=text,
-        color=0x1DA1F2,
+        color=data_sources["twitter"]["color"],
         timestamp=datetime.datetime.now(datetime.timezone.utc),
     )
 
@@ -100,7 +100,7 @@ def make_embed(symbols, url, text, profile_pic, images, e_title) -> discord.Embe
     # Set the twitter icon as footer image
     e.set_footer(
         text="\u200b",
-        icon_url="https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
+        icon_url=data_sources["twitter"]["icon"],
     )
 
     return e
