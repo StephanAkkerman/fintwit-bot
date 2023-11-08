@@ -165,7 +165,7 @@ class NFTS(commands.Cog):
         df["NFT"] = "[" + df["name"] + "]" + "(" + df["url"] + ")"
 
         df["price"] = (
-            df["floor_price_in_native_currency"].astype(str)
+            df["floor_price_in_native_currency"].round(3).astype(str)
             + " "
             + df["native_currency_symbol"].str.upper()
         )
@@ -200,7 +200,7 @@ class NFTS(commands.Cog):
 
         e.set_footer(
             text="\u200b",
-            icon_url="https://github.com/StephanAkkerman/fintwit-bot/blob/main/img/icons/coingecko.ico",
+            icon_url="https://raw.githubusercontent.com/StephanAkkerman/fintwit-bot/main/img/icons/coingecko.png",
         )
 
         await self.trending_channel.send(embed=e)
