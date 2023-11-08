@@ -16,3 +16,4 @@ matplotlib==3.7.2
 scipy==1.11.1
 brotli==1.0.9
 py-cord==2.4.1
+cloudscraper==1.2.71
