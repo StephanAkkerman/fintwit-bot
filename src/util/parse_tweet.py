@@ -90,11 +90,16 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
 
     # Media
     media = []
+    media_types = []
     if "extended_entities" in tweet["legacy"].keys():
         if "media" in tweet["legacy"]["extended_entities"].keys():
             media = [
                 image["media_url_https"]
                 for image in tweet["legacy"]["extended_entities"]["media"]
+            ]
+            # photo, video
+            media_types = [
+                image["type"] for image in tweet["legacy"]["extended_entities"]["media"]
             ]
 
     # Remove t.co url from text
@@ -126,6 +131,7 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
             r_tickers,
             r_hashtags,
             _,
+            r_media_types,
         ) = parse_tweet(result)
 
         if reply:
@@ -145,6 +151,7 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
             e_title = f"{util.vars.custom_emojis['retweet']} {user_name} retweeted"
 
         media += r_media
+        media_types += r_media_types
         tickers += r_tickers
         hashtags += r_hashtags
 
@@ -172,4 +179,5 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
         tickers,
         hashtags,
         e_title,
+        media_types,
     )

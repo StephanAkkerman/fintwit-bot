@@ -32,6 +32,7 @@ async def make_tweet_embed(
     tickers: List[str],
     hashtags: List[str],
     e_title: str,
+    media_types: List[str],
     bot: commands.Bot,
 ) -> tuple[discord.Embed, str, str, list, list]:
     """
@@ -70,7 +71,7 @@ async def make_tweet_embed(
     # Ensure the tickers are unique
     symbols = get_clean_symbols(tickers, hashtags)[:24]
 
-    e = make_embed(symbols, url, text, profile_pic, images, e_title)
+    e = make_embed(symbols, url, text, profile_pic, images, e_title, media_types)
 
     # Max 25 fields
     if symbols:
@@ -81,7 +82,9 @@ async def make_tweet_embed(
     return e, category, base_symbols
 
 
-def make_embed(symbols, url, text, profile_pic, images, e_title) -> discord.Embed:
+def make_embed(
+    symbols, url, text, profile_pic, images, e_title, media_types: List[str]
+) -> discord.Embed:
     # Set the properties of the embed
     e = discord.Embed(
         title=embed_title(e_title, symbols),
@@ -97,9 +100,16 @@ def make_embed(symbols, url, text, profile_pic, images, e_title) -> discord.Embe
     if images:
         e.set_image(url=images[0])
 
+    footer_text = "\u200b"
+
+    if "video" in media_types:
+        footer_text = "Video"
+    elif "animated_gif" in media_types:
+        footer_text = "GIF"
+
     # Set the twitter icon as footer image
     e.set_footer(
-        text="\u200b",
+        text=footer_text,
         icon_url=data_sources["twitter"]["icon"],
     )
 

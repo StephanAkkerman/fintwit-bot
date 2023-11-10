@@ -147,6 +147,7 @@ class Timeline(commands.Cog):
                 tickers,
                 hashtags,
                 e_title,
+                media_types,
             ) = formatted_tweet
 
             e, category, base_symbols = await make_tweet_embed(
@@ -158,6 +159,7 @@ class Timeline(commands.Cog):
                 tickers,
                 hashtags,
                 e_title,
+                media_types,
                 self.bot,
             )
 
