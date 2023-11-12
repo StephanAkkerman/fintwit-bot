@@ -86,6 +86,14 @@ class Portfolio(commands.Cog):
         elif exchange.lower() == "binance":
             ccxt_exchange = ccxt.binance({"apiKey": key, "secret": secret})
 
+        # Check if the API keys are valid
+        status = ccxt_exchange.fetch_status()
+        if status["status"] != "ok":
+            await ctx.respond(
+                f"Your API keys are not valid! Please check your API keys and try again."
+            )
+            return
+
         new_data = pd.DataFrame(
             {
                 "id": ctx.author.id,
@@ -98,14 +106,20 @@ class Portfolio(commands.Cog):
             index=[0],
         )
 
-        # TODO: Before adding the portfolio, check if it already exists
+        # Check if new_data already exists in portfolio_db
+        if not util.vars.portfolio_db.empty:  # ensure the DB isn't empty
+            # Check for duplicates based on a subset of columns that should be unique together
+            # Adjust the subset columns as per your data's unique constraints
+            duplicate_entries = util.vars.portfolio_db[
+                (util.vars.portfolio_db["user"] == new_data["user"].iloc[0])
+                & (util.vars.portfolio_db["exchange"] == new_data["exchange"].iloc[0])
+                & (util.vars.portfolio_db["key"] == new_data["key"].iloc[0])
+                & (util.vars.portfolio_db["secret"] == new_data["secret"].iloc[0])
+            ]
 
-        # Check if the API keys are valid
-        status = ccxt_exchange.fetch_status()
-        if status["status"] != "ok":
-            await ctx.respond(
-                f"Your API keys are not valid! Please check your API keys and try again."
-            )
+        if not duplicate_entries.empty:
+            # Handle the case where a duplicate is found
+            await ctx.respond("This portfolio already exists in the database.")
             return
 
         # Update the databse
