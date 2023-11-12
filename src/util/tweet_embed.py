@@ -116,7 +116,10 @@ def make_embed(
     return e
 
 
-def embed_title(e_title, tickers) -> str:
+def embed_title(e_title: str, tickers: list) -> str:
+    if not tickers:
+        return e_title
+
     title = f"{e_title} about {', '.join(tickers)}"
 
     # The max length of the title is 256 characters
