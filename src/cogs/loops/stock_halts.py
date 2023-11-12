@@ -32,10 +32,15 @@ class StockHalts(commands.Cog):
         if afterHours():
             return
 
+        # Get the data
+        html = await self.get_halt_data()
+
+        if html == {}:
+            return
+
         # Remove previous message first
         await self.channel.purge(limit=1)
 
-        html = await self.get_halt_data()
         df = self.format_df(html)
 
         # Create embed

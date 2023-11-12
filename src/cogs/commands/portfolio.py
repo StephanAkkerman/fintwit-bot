@@ -33,14 +33,31 @@ class Portfolio(commands.Cog):
         update_db(new_db, "portfolio")
 
     @commands.dm_only()
-    @portfolios.command(name="add", description="Add a portfolio to the database.")
+    @portfolios.command(
+        name="add", description="Add a cryptocurrency portfolio to the database."
+    )
     async def add(
         self,
         ctx: commands.Context,
-        input: Option(
+        exchange: Option(
             str,
-            description="Provide the follow information: <exchange> <key> <secret> (<passphrase>).",
+            description="Provide the name of your crypto exchange.",
             required=True,
+        ),
+        key: Option(
+            str,
+            description="Provide your API key.",
+            required=True,
+        ),
+        secret: Option(
+            str,
+            description="Provide your API secret.",
+            required=True,
+        ),
+        passphrase: Option(
+            str,
+            description="Provide your API passphrase (only used for Kucoin).",
+            required=False,
         ),
     ) -> None:
         """
@@ -57,33 +74,17 @@ class Portfolio(commands.Cog):
             The information specified after `!portfolio`.
         """
 
-        # Split the input using the spaces
-        input = input.split(" ")
-
-        if len(input) < 3 or len(input) > 4:
-            raise commands.UserInputError()
-
-        exchange = input[0]
-        key = input[1]
-        secret = input[2]
-        passphrase = None
-
         # Check if the exchange is supported
         if exchange.lower() not in ["binance", "kucoin"]:
             raise commands.BadArgument()
 
-        # Set the passphrase if necessary
         if exchange.lower() == "kucoin":
-            if len(input) == 4:
-                passphrase = input[3]
-            else:
-                raise commands.BadArgument()
+            if not passphrase:
+                raise commands.UserInputError()
+            ccxt_exchange = ccxt.kucoin({"apiKey": key, "secret": secret})
 
-        if exchange.lower() == "binance":
-            if len(input) != 3:
-                raise commands.BadArgument()
-
-            exchange = ccxt.binance({"apiKey": key, "secret": secret})
+        elif exchange.lower() == "binance":
+            ccxt_exchange = ccxt.binance({"apiKey": key, "secret": secret})
 
         new_data = pd.DataFrame(
             {
@@ -97,10 +98,15 @@ class Portfolio(commands.Cog):
             index=[0],
         )
 
-        # Before adding the portfolio, check if it already exists
+        # TODO: Before adding the portfolio, check if it already exists
 
         # Check if the API keys are valid
-        print(exchange.fetch_status())
+        status = ccxt_exchange.fetch_status()
+        if status["status"] != "ok":
+            await ctx.respond(
+                f"Your API keys are not valid! Please check your API keys and try again."
+            )
+            return
 
         # Update the databse
         util.vars.portfolio_db = pd.concat(
@@ -109,7 +115,7 @@ class Portfolio(commands.Cog):
         update_db(util.vars.portfolio_db, "portfolio")
 
         await ctx.respond(
-            "Succesfully added your portfolio to the database!\nPlease ensure that you set the API for read-only access."
+            "Succesfully added your portfolio to the database!\n⚠️ Please ensure that you set the API for read-only access ⚠️"
         )
 
         # Init Exchanges to start websockets
@@ -179,7 +185,7 @@ class Portfolio(commands.Cog):
             )
         elif isinstance(error, commands.UserInputError):
             await ctx.respond(
-                f"If using `/portfolio add`, you must specify an exchange, key, secret, and optionally a passphrase!"
+                f"If using `/portfolio add` with Kucoin, you must specify a passphrase!"
             )
         elif isinstance(error, commands.PrivateMessageOnly):
             await ctx.respond(

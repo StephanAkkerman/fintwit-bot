@@ -281,12 +281,14 @@ class TV_data:
                         print("TradingView websocket Error")
                         await session.close()
                         return (0, None, 0, None, website)
+
         except aiohttp.ClientConnectionError:
             print("Temporary TradingView websocket error")
-            return (0, None, 0, None, website)
 
         except Exception:
             print(traceback.format_exc())
+
+        return (0, None, 0, None, website)
 
     def format_analysis(self, analysis: dict) -> str:
         """

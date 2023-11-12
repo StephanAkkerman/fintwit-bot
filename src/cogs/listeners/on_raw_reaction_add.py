@@ -163,6 +163,10 @@ class On_raw_reaction_add(commands.Cog):
         None
         """
 
+        # Check if the message has an embed
+        if message.embeds == []:
+            return
+
         # Get the old embed
         e = message.embeds[0]
 
