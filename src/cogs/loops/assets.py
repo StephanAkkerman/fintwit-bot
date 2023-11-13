@@ -84,11 +84,11 @@ class Assets(commands.Cog):
 
         if portfolio_db.equals(util.vars.portfolio_db):
             # Drop all crypto assets
-            old_db = util.vars.assets_db
-            if not old_db.empty:
-                crypto_rows = old_db.index[old_db["exchange"] != "stock"].tolist()
-
-                assets_db = old_db.drop(index=crypto_rows)
+            if not util.vars.assets_db.empty:
+                crypto_rows = util.vars.assets_db.index[
+                    util.vars.assets_db["exchange"] != "stock"
+                ].tolist()
+                assets_db = util.vars.assets_db.drop(index=crypto_rows)
             else:
                 assets_db = pd.DataFrame(
                     columns=["asset", "buying_price", "owned", "exchange", "id", "user"]
@@ -101,7 +101,6 @@ class Assets(commands.Cog):
             for _, row in portfolio_db.iterrows():
                 # Add this data to the assets.db database
                 exch_data = await get_data(row)
-
                 assets_db = pd.concat([assets_db, exch_data], ignore_index=True)
 
         # Ensure that the db knows the right types
@@ -230,14 +229,14 @@ class Assets(commands.Cog):
         """
 
         # Use the user name as channel
-        for name in util.vars.assets_db["user"].unique():
+        for id in util.vars.assets_db["id"].unique():
             # Get the assets of this user
-            user_assets = util.vars.assets_db.loc[util.vars.assets_db["user"] == name]
+            user_assets = util.vars.assets_db.loc[util.vars.assets_db["id"] == id]
 
             # Only post if there are assets
             if not user_assets.empty:
                 # Get the Discord objects
-                channel = await self.get_user_channel(name)
+                channel = await self.get_user_channel(user_assets["user"].values[0])
                 disc_user = await self.get_user(user_assets)
 
                 e = discord.Embed(

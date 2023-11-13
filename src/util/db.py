@@ -45,12 +45,13 @@ class DB(commands.Cog):
 
     def set_portfolio_db(self):
         util.vars.portfolio_db = get_db("portfolio")
+        if not util.vars.portfolio_db.empty:
+            util.vars.portfolio_db["id"] = util.vars.portfolio_db["id"].astype(np.int64)
 
     def set_assets_db(self):
-        assets_db = get_db("assets")
-        if not assets_db.empty:
-            assets_db["id"] = assets_db["id"].astype(np.int64)
-        util.vars.assets_db = assets_db
+        util.vars.assets_db = get_db("assets")
+        if not util.vars.assets_db.empty:
+            util.vars.assets_db["id"] = util.vars.assets_db["id"].astype(np.int64)
 
     def set_tweets_db(self):
         util.vars.tweets_db = get_db("tweets")

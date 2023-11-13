@@ -1,6 +1,7 @@
 # > 3rd Party Dependencies
 import pandas as pd
 import ccxt
+import traceback
 
 # > Discord dependencies
 from discord.ext import commands
@@ -81,7 +82,9 @@ class Portfolio(commands.Cog):
         if exchange.lower() == "kucoin":
             if not passphrase:
                 raise commands.UserInputError()
-            ccxt_exchange = ccxt.kucoin({"apiKey": key, "secret": secret})
+            ccxt_exchange = ccxt.kucoin(
+                {"apiKey": key, "secret": secret, "password": passphrase}
+            )
 
         elif exchange.lower() == "binance":
             ccxt_exchange = ccxt.binance({"apiKey": key, "secret": secret})
@@ -111,16 +114,16 @@ class Portfolio(commands.Cog):
             # Check for duplicates based on a subset of columns that should be unique together
             # Adjust the subset columns as per your data's unique constraints
             duplicate_entries = util.vars.portfolio_db[
-                (util.vars.portfolio_db["user"] == new_data["user"].iloc[0])
-                & (util.vars.portfolio_db["exchange"] == new_data["exchange"].iloc[0])
-                & (util.vars.portfolio_db["key"] == new_data["key"].iloc[0])
-                & (util.vars.portfolio_db["secret"] == new_data["secret"].iloc[0])
+                (util.vars.portfolio_db["user"] == ctx.author.name)
+                & (util.vars.portfolio_db["exchange"] == exchange.lower())
+                & (util.vars.portfolio_db["key"] == key)
+                & (util.vars.portfolio_db["secret"] == secret)
             ]
 
-        if not duplicate_entries.empty:
-            # Handle the case where a duplicate is found
-            await ctx.respond("This portfolio already exists in the database.")
-            return
+            if not duplicate_entries.empty:
+                # Handle the case where a duplicate is found
+                await ctx.respond("This portfolio already exists in the database.")
+                return
 
         # Update the databse
         util.vars.portfolio_db = pd.concat(
@@ -153,16 +156,18 @@ class Portfolio(commands.Cog):
         `/portfolio remove (<exchange>)` if exchange is not specified, all your portfolio(s) will be removed.
         """
 
-        old_db = util.vars.portfolio_db
         if exchange:
-            rows = old_db.index[
-                (old_db["id"] == ctx.author.id) & (old_db["exchange"] == exchange)
+            rows = util.vars.portfolio_db.index[
+                (util.vars.portfolio_db["id"] == ctx.author.id)
+                & (util.vars.portfolio_db["exchange"] == exchange)
             ].tolist()
         else:
-            rows = old_db.index[old_db["id"] == ctx.author.id].tolist()
+            rows = util.vars.portfolio_db.index[
+                util.vars.portfolio_db["id"] == ctx.author.id
+            ].tolist()
 
         # Update database
-        self.update_portfolio_db(old_db.drop(rows))
+        self.update_portfolio_db(util.vars.portfolio_db.drop(rows))
 
         await ctx.respond("Succesfully removed your portfolio from the database!")
 
@@ -179,14 +184,14 @@ class Portfolio(commands.Cog):
         """
         `/portfolio show` to show your portfolio(s) in our database.
         """
-
-        db = util.vars.portfolio_db
-        rows = db.loc[db["id"] == ctx.author.id]
+        rows = util.vars.portfolio_db[util.vars.portfolio_db["id"] == ctx.author.id]
         if not rows.empty:
             for _, row in rows.iterrows():
-                await ctx.respond(
-                    f"Exchange: {row['exchange']} \nKey: {row['key']} \nSecret: {row['secret']}"
-                )
+                response = f"Exchange: {row['exchange']} \nKey: {row['key']} \nSecret: {row['secret']}"
+
+                if row["passphrase"]:
+                    response += f"\nPassphrase: {row['passphrase']}"
+                await ctx.respond(response)
         else:
             await ctx.respond("Your portfolio could not be found")
 
@@ -216,7 +221,7 @@ class Portfolio(commands.Cog):
 
     @show.error
     async def show_error(self, ctx: commands.Context, error: Exception) -> None:
-        # print(traceback.format_exc())
+        print(traceback.format_exc())
         if isinstance(error, commands.PrivateMessageOnly):
             await ctx.respond(
                 "Please only use the `/portfolio` command in private messages for security reasons."
