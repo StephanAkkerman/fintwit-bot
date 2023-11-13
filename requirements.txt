@@ -14,6 +14,6 @@ nltk==3.8.1
 transformers==4.35.0
 matplotlib==3.7.2
 scipy==1.11.1
-brotli==1.0.9
+brotli==1.1.0
 py-cord==2.4.1
 cloudscraper==1.2.71
