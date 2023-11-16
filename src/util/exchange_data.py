@@ -32,7 +32,6 @@ async def get_data(row) -> pd.DataFrame:
                 continue
 
             buying_price = await get_buying_price(exchange, symbol)
-
             if buying_price != 0:
                 owned.append(
                     {
@@ -128,6 +127,6 @@ async def get_buying_price(exchange, symbol, full_sym: bool = False) -> float:
                 if len(trades) == 0:
                     return 0
 
-            return float(trades[-1]["price"])
+        return float(trades[-1]["price"])
 
     return 0

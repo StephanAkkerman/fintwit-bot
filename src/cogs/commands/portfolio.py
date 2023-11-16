@@ -4,8 +4,11 @@ import ccxt
 import traceback
 
 # > Discord dependencies
+import discord
 from discord.ext import commands
 from discord.commands import SlashCommandGroup, Option
+from discord import Interaction, SelectOption
+from discord.ui import Select, View
 
 # Local dependencies
 import util.vars
@@ -141,37 +144,35 @@ class Portfolio(commands.Cog):
         Assets(self.bot, new_data)
 
     @portfolios.command(
-        name="remove", description="Remove a portfolio to the database."
+        name="remove", description="Remove a portfolio from the database."
     )
     async def remove(
         self,
         ctx: commands.Context,
-        exchange: Option(
-            str,
-            description="The name of the exchange that you want to remove, if left empty all will be removed.",
-            required=True,
-        ),
     ) -> None:
         """
-        `/portfolio remove (<exchange>)` if exchange is not specified, all your portfolio(s) will be removed.
+        `/portfolio remove` to remove a specific portfolio from your list.
         """
 
-        if exchange:
-            rows = util.vars.portfolio_db.index[
-                (util.vars.portfolio_db["id"] == ctx.author.id)
-                & (util.vars.portfolio_db["exchange"] == exchange)
-            ].tolist()
+        rows = util.vars.portfolio_db[util.vars.portfolio_db["id"] == ctx.author.id]
+        if not rows.empty:
+            options = []
+            for i, (_, row) in enumerate(rows.iterrows()):
+                description = f"Exchange: {row['exchange']} Key: {row['key']} Secret: {row['secret']}"
+                options.append(
+                    SelectOption(
+                        label=f"Portfolio {i+1} - {row['exchange']}",
+                        description=description,
+                        value=str(i),
+                    )
+                )
+
+            view = PortfolioSelectView(ctx, util.vars.portfolio_db)
+            view.select_portfolio.options = options
+            await ctx.respond("Select the portfolio you want to remove:", view=view)
+            await view.wait()
         else:
-            rows = util.vars.portfolio_db.index[
-                util.vars.portfolio_db["id"] == ctx.author.id
-            ].tolist()
-
-        # Update database
-        self.update_portfolio_db(util.vars.portfolio_db.drop(rows))
-
-        await ctx.respond("Succesfully removed your portfolio from the database!")
-
-        # Maybe unsubscribe from websockets
+            await ctx.respond("Your portfolio could not be found")
 
     @commands.dm_only()
     @portfolios.command(
@@ -228,6 +229,27 @@ class Portfolio(commands.Cog):
             )
         else:
             await ctx.respond(f"An error has occurred. Please try again later.")
+
+
+class PortfolioSelectView(View):
+    def __init__(self, ctx, portfolio_db):
+        super().__init__()
+        self.ctx = ctx
+        self.portfolio_db = portfolio_db
+
+    @discord.ui.select(placeholder="Select the portfolio to remove")
+    async def select_portfolio(self, select: Select, interaction: Interaction):
+        if interaction.user != self.ctx.author:
+            return await interaction.response.send_message(
+                "You are not authorized to confirm this action.", ephemeral=True
+            )
+
+        index = int(select.values[0])
+        self.portfolio_db.drop(self.portfolio_db.index[index], inplace=True)
+        await interaction.response.send_message(
+            "Successfully removed the selected portfolio from the database!",
+            ephemeral=True,
+        )
 
 
 def setup(bot: commands.Bot) -> None:
