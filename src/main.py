@@ -99,6 +99,10 @@ if __name__ == "__main__":
     # Start by loading the database
     bot.load_extension("util.db")
 
+    # Ensure the logs directory exists
+    if not os.path.exists("logs"):
+        os.makedirs("logs")
+
     # Load commands
     load_folder("commands")
 

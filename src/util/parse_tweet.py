@@ -1,4 +1,6 @@
 import re
+import json
+import datetime
 from typing import List
 
 # > Local imports
@@ -66,13 +68,27 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
         tweet = tweet["result"]
     except KeyError:
         print("Tweet contains no result key")
+        # Get current time as a string for the filename
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+        # Write tweet content to a JSON file in the logs directory
+        with open(
+            f"logs/error_tweet_{current_time}.json", "w", encoding="utf-8"
+        ) as file:
+            json.dump(tweet, file, ensure_ascii=False, indent=4)
         return
 
     # Ignore Tweets that are older than the latest tweet
     if "legacy" not in tweet:
         if "tweet" not in tweet:
             print("Error parsing tweet")
-            print(tweet)
+            current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+            # Write tweet content to a JSON file in the logs directory
+            with open(
+                f"logs/error_tweet_{current_time}.json", "w", encoding="utf-8"
+            ) as file:
+                json.dump(tweet, file, ensure_ascii=False, indent=4)
             return
 
         tweet_id = int(tweet["tweet"]["rest_id"])

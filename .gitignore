@@ -11,6 +11,7 @@ src/cogs/loops/option_alert.py
 data/
 scraper.py
 scraped/*
+logs/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
