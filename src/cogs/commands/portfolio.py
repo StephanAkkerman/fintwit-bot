@@ -158,7 +158,7 @@ class Portfolio(commands.Cog):
         if not rows.empty:
             options = []
             for i, (_, row) in enumerate(rows.iterrows()):
-                description = f"Exchange: {row['exchange']} Key: {row['key']} Secret: {row['secret']}"
+                description = f"Exchange: {row['exchange']}"
                 options.append(
                     SelectOption(
                         label=f"Portfolio {i+1} - {row['exchange']}",
