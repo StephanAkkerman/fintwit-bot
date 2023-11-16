@@ -113,16 +113,18 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
     # Media
     media = []
     media_types = []
-    if "extended_entities" in tweet["legacy"].keys():
-        if "media" in tweet["legacy"]["extended_entities"].keys():
-            media = [
-                image["media_url_https"]
-                for image in tweet["legacy"]["extended_entities"]["media"]
-            ]
-            # photo, video
-            media_types = [
-                image["type"] for image in tweet["legacy"]["extended_entities"]["media"]
-            ]
+    if "legacy" in tweet.keys():
+        if "extended_entities" in tweet["legacy"].keys():
+            if "media" in tweet["legacy"]["extended_entities"].keys():
+                media = [
+                    image["media_url_https"]
+                    for image in tweet["legacy"]["extended_entities"]["media"]
+                ]
+                # photo, video
+                media_types = [
+                    image["type"]
+                    for image in tweet["legacy"]["extended_entities"]["media"]
+                ]
 
     # Remove t.co url from text
     text = remove_twitter_url_at_end(tweet["legacy"]["full_text"])
