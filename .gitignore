@@ -1,6 +1,7 @@
 __pycache__/
 authentication.json
 *.bat
+*.ps1
 config.yaml
 models/*
 *.lnk

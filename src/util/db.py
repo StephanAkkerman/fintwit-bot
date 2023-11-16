@@ -21,7 +21,7 @@ from util.tv_data import get_tv_ticker_data
 
 # Convert emoji to text
 convert_emoji = defaultdict(
-    lambda: "neutral", {"🐻": "bear", "'🐂": "bull", "'🦆": "neutral"}
+    lambda: "neutral", {"🐻": "bear", "🐂": "bull", "🦆": "neutral"}
 )
 
 
