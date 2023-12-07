@@ -45,8 +45,23 @@ def get_entities(tweet: dict, key: str) -> List[str]:
     List[str]
         The retrieved entities, or an empty list if the key does not exist.
     """
-    entities = tweet["legacy"]["entities"].get(key)
-    return [entity["text"] for entity in entities] if entities else []
+    if "legacy" in tweet:
+        if "entities" in tweet["legacy"]:
+            entities = tweet["legacy"]["entities"].get(key)
+            return [entity["text"] for entity in entities] if entities else []
+
+    print("Tweet contains no entities")
+    return []
+
+
+def save_errored_tweet(tweet, error_msg: str):
+    print(error_msg)
+    # Get current time as a string for the filename
+    current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    # Write tweet content to a JSON file in the logs directory
+    with open(f"logs/error_tweet_{current_time}.json", "w", encoding="utf-8") as file:
+        json.dump(tweet, file, ensure_ascii=False, indent=4)
 
 
 def parse_tweet(tweet: dict, update_tweet_id: bool = False):
@@ -60,35 +75,19 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
         if "tweet_results" in tweet["itemContent"]:
             tweet = tweet["itemContent"]["tweet_results"]
         else:
-            print("Tweet contains no tweet_results key")
-            print(tweet)
+            save_errored_tweet(tweet, "Tweet contains no tweet_results key")
             return
 
     try:
         tweet = tweet["result"]
     except KeyError:
-        print("Tweet contains no result key")
-        # Get current time as a string for the filename
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
-        # Write tweet content to a JSON file in the logs directory
-        with open(
-            f"logs/error_tweet_{current_time}.json", "w", encoding="utf-8"
-        ) as file:
-            json.dump(tweet, file, ensure_ascii=False, indent=4)
+        save_errored_tweet(tweet, "Error parsing tweet")
         return
 
     # Ignore Tweets that are older than the latest tweet
     if "legacy" not in tweet:
         if "tweet" not in tweet:
-            print("Error parsing tweet")
-            current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
-            # Write tweet content to a JSON file in the logs directory
-            with open(
-                f"logs/error_tweet_{current_time}.json", "w", encoding="utf-8"
-            ) as file:
-                json.dump(tweet, file, ensure_ascii=False, indent=4)
+            save_errored_tweet(tweet, "Error parsing tweet")
             return
 
         tweet_id = int(tweet["tweet"]["rest_id"])
@@ -96,7 +95,11 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
         tweet_id = int(tweet["legacy"]["id_str"])
 
     if "core" not in tweet:
-        tweet = tweet["tweet"]
+        if "tweet" in tweet:
+            tweet = tweet["tweet"]
+        else:
+            save_errored_tweet(tweet, "Tweet contains no core and tweet key")
+            return
 
     # So we can use this function recursively
     if update_tweet_id:

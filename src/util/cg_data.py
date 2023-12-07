@@ -233,43 +233,80 @@ async def get_trending_coins() -> pd.DataFrame:
 
     soup = BeautifulSoup(html, "html.parser")
 
-    table = soup.find(
-        "table", class_="sort table mb-0 text-sm text-lg-normal table-scrollable"
-    )
+    try:
+        table = soup.find(
+            "table", class_="sort table mb-0 text-sm text-lg-normal table-scrollable"
+        )
+
+        data = []
+        for tr in table.find_all("tr"):
+            coin_data = {}
+
+            for td_count, td in enumerate(tr.find_all("td")):
+                if td_count == 2:
+                    ticker = td.find("a").text.split("\n")[-3]
+                    website = f"https://www.coingecko.com{td.find('a').get('href')}"
+                    coin_data["Symbol"] = f"[{ticker.upper()}]({website})"
+
+                if td_count == 3:
+                    price = td.find("span").text.replace("$", "").replace(",", "")
+                    try:
+                        coin_data["Price"] = float(price)
+                    except Exception:
+                        coin_data["Price"] = 0
+
+                if td_count == 5:
+                    change = td.find("span").text.replace("%", "")
+                    try:
+                        coin_data["% Change"] = float(change)
+                    except Exception:
+                        coin_data["% Change"] = 0
+
+                if td_count == 7:
+                    volume = td.find("span").text.replace("$", "").replace(",", "")
+                    try:
+                        coin_data["Volume"] = float(volume)
+                    except Exception:
+                        coin_data["Volume"] = 0
+
+            if coin_data != {}:
+                data.append(coin_data)
+
+        return pd.DataFrame(data)
+
+    except Exception:
+        print("Error getting trending coingecko coins")
+        return pd.DataFrame()
+
+
+async def get_top_categories():
+    html = scraper.get("https://www.coingecko.com/en/categories").text
+
+    soup = BeautifulSoup(html, "html.parser")
+
+    table = soup.find("table", {"class": "sort table tw-mb-0 text-sm table-scrollable"})
 
     data = []
-    for tr in table.find_all("tr"):
+    for tr in table.find_all("tr")[1:]:
         coin_data = {}
-        td_count = 0
 
-        for td in tr.find_all("td"):
-            if td_count == 2:
-                ticker = td.find("a").text.split("\n")[-3]
-                website = f"https://www.coingecko.com{td.find('a').get('href')}"
-                coin_data["Symbol"] = f"[{ticker.upper()}]({website})"
+        for i, td in enumerate(tr.find_all("td")):
+            # i == 0 -> rank
 
-            if td_count == 3:
-                price = td.find("span").text.replace("$", "").replace(",", "")
-                try:
-                    coin_data["Price"] = float(price)
-                except Exception:
-                    coin_data["Price"] = 0
+            if i == 1:
+                coin_data["name"] = td.find("a").text
+                coin_data["link"] = "https://www.coingecko.com/" + td.find("a")["href"]
 
-            if td_count == 5:
-                change = td.find("span").text.replace("%", "")
-                try:
-                    coin_data["% Change"] = float(change)
-                except Exception:
-                    coin_data["% Change"] = 0
+            # 24h
+            if i == 4:
+                coin_data["24h"] = float(td["data-sort"])
 
-            if td_count == 7:
-                volume = td.find("span").text.replace("$", "").replace(",", "")
-                try:
-                    coin_data["Volume"] = float(volume)
-                except Exception:
-                    coin_data["Volume"] = 0
+            # Market cap
+            if i == 6:
+                coin_data["market_cap"] = float(td["data-sort"])
 
-            td_count += 1
+            if i == 7:
+                coin_data["volume"] = float(td["data-sort"])
 
         if coin_data != {}:
             data.append(coin_data)
