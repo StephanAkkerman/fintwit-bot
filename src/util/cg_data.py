@@ -234,9 +234,7 @@ async def get_trending_coins() -> pd.DataFrame:
     soup = BeautifulSoup(html, "html.parser")
 
     try:
-        table = soup.find(
-            "table", class_="sort table mb-0 text-sm text-lg-normal table-scrollable"
-        )
+        table = soup.find("table")
 
         data = []
         for tr in table.find_all("tr"):
@@ -262,7 +260,7 @@ async def get_trending_coins() -> pd.DataFrame:
                     except Exception:
                         coin_data["% Change"] = 0
 
-                if td_count == 7:
+                if td_count == 8:
                     volume = td.find("span").text.replace("$", "").replace(",", "")
                     try:
                         coin_data["Volume"] = float(volume)

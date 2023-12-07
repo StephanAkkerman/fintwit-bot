@@ -283,7 +283,9 @@ def update_db(db: pd.DataFrame, database_name: str) -> None:
     db_loc = f"data/{database_name}.db"
 
     # Convert everything to string to prevent errors
-    db = db.applymap(str)
+    # Using map on each column
+    for column in db.columns:
+        db[column] = db[column].map(str)
 
     try:
         db.to_sql(

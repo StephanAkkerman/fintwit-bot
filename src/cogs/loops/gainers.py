@@ -1,3 +1,5 @@
+import traceback
+
 # > 3rd party dependencies
 import yahoo_fin.stock_info as si
 import pandas as pd
@@ -142,6 +144,7 @@ class Gainers(commands.Cog):
             await self.stocks_channel.send(embed=e)
         except Exception as e:
             print("Error posting stocks gainers: ", e)
+            #print(traceback.format_exc())
 
 
 def setup(bot: commands.Bot) -> None:

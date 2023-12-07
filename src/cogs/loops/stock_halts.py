@@ -1,4 +1,5 @@
 import datetime
+from io import StringIO
 
 import pandas as pd
 from dateutil import tz
@@ -74,7 +75,7 @@ class StockHalts(commands.Cog):
         await self.channel.send(content=tags, embed=e)
 
     def format_df(self, html):
-        df = pd.read_html(html["result"])[0]
+        df = pd.read_html(StringIO(html["result"]))[0]
 
         # Drop NaN columns
         df = df.dropna(axis=1, how="all")

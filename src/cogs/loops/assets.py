@@ -175,8 +175,11 @@ class Assets(commands.Cog):
             "$" + new_df["price"].astype(str) + " (" + new_df["change"] + ")"
         )
 
+        # Ensure that 'owned' column is of a numeric type
+        new_df["owned"] = pd.to_numeric(new_df["owned"], errors="coerce")
+
         # Calculate the most recent worth
-        new_df["worth"] = prices * new_df["owned"]
+        new_df["worth"] = pd.Series(prices) * new_df["owned"]
 
         # Round it to 2 decimals
         new_df = new_df.round({"worth": 2})
@@ -184,13 +187,21 @@ class Assets(commands.Cog):
         # Drop it if it's worth less than 1$
         new_df = new_df.drop(new_df[new_df.worth < 1].index)
 
+        # Set buying price to float
+        new_df["buying_price"] = new_df["buying_price"].astype(float)
+
         # Calculate the increase in worth since the original buy
-        new_df["worth_change"] = new_df["price"] - new_df["buying_price"]
-        new_df["worth_change"] = new_df["worth_change"] / new_df["buying_price"] * 100
-        new_df["worth_change"] = new_df["worth_change"].round(2)
-        new_df["worth_change"] = new_df["worth_change"].apply(
-            lambda x: format_change(x)
-        )
+        if new_df["buying_price"].values[0] != 0:
+            new_df["worth_change"] = new_df["price"] - new_df["buying_price"]
+            new_df["worth_change"] = (
+                new_df["worth_change"] / new_df["buying_price"] * 100
+            )
+            new_df["worth_change"] = new_df["worth_change"].round(2)
+            new_df["worth_change"] = new_df["worth_change"].apply(
+                lambda x: format_change(x)
+            )
+        else:
+            new_df["worth_change"] = "?"
 
         # Sort by usd value
         new_df = new_df.sort_values(by=["worth"], ascending=False)

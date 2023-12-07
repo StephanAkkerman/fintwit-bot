@@ -1,6 +1,9 @@
+import traceback
+
 import ccxt.async_support as ccxt
 import pandas as pd
 import numpy as np
+
 from util.vars import stables
 
 
@@ -32,17 +35,18 @@ async def get_data(row) -> pd.DataFrame:
                 continue
 
             buying_price = await get_buying_price(exchange, symbol)
-            if buying_price != 0:
-                owned.append(
-                    {
-                        "asset": symbol,
-                        "buying_price": buying_price,
-                        "owned": amount,
-                        "exchange": exchange.id,
-                        "id": row["id"],
-                        "user": row["user"],
-                    }
-                )
+
+            # If buying price is 0 then it is not known what the price was
+            owned.append(
+                {
+                    "asset": symbol,
+                    "buying_price": buying_price,
+                    "owned": amount,
+                    "exchange": exchange.id,
+                    "id": row["id"],
+                    "user": row["user"],
+                }
+            )
 
         df = pd.DataFrame(owned)
 
@@ -63,6 +67,7 @@ async def get_data(row) -> pd.DataFrame:
     except Exception as e:
         await exchange.close()
         print("Error in get_data(). Error:", e)
+        print(traceback.format_exc())
 
 
 async def get_balance(exchange) -> dict:
@@ -120,13 +125,13 @@ async def get_buying_price(exchange, symbol, full_sym: bool = False) -> float:
     except ccxt.RequestTimeout:
         return 0
     if type(trades) == list:
-        if len(trades) > 1:
+        if len(trades) > 0:
             if exchange.id == "binance":
                 # Filter list for side:buy
                 trades = [trade for trade in trades if trade["info"]["side"] == "BUY"]
                 if len(trades) == 0:
                     return 0
 
-        return float(trades[-1]["price"])
+            return float(trades[-1]["price"])
 
     return 0
