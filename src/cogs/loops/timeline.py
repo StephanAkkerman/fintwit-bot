@@ -119,8 +119,18 @@ class Timeline(commands.Cog):
             tweet = tweet["content"]
 
             # Skip if the tweet is not a timeline item
-            if tweet["entryType"] != "TimelineTimelineItem":
-                continue
+            if "entryType" in tweet:
+                if tweet["entryType"] != "TimelineTimelineItem":
+                    continue
+                # Ignore popups about X Premium
+                else:
+                    if "itemContent" in tweet:
+                        if "itemType" in tweet["itemContent"]:
+                            if (
+                                tweet["itemContent"]["itemType"]
+                                == "TimelineMessagePrompt"
+                            ):
+                                continue
 
             await self.on_data(tweet, update_tweet_id=True)
 

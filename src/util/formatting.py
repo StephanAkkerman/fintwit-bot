@@ -23,6 +23,15 @@ def format_change(change: float) -> str:
     str
         The formatted change.
     """
+    if type(change) == str:
+        # Try to convert to float
+        try:
+            change = float(change)
+        except ValueError:
+            return 0
+
+    # Round to 2 decimals
+    change = round(change, 2)
 
     return f"+{change}% 📈" if change > 0 else f"{change}% 📉"
 
@@ -46,6 +55,13 @@ def human_format(number: float, absolute: bool = False, decimals: int = 0) -> st
     str
         The formatted number as a string.
     """
+
+    # Try to convert to float
+    if type(number) == str:
+        try:
+            number = float(number)
+        except ValueError:
+            number = 0
 
     if number == 0:
         return "0"

@@ -1,17 +1,25 @@
+import datetime
+
 # > 3rd party dependencies
 import yahoo_fin.stock_info as si
 import pandas as pd
 
 # > Discord dependencies
+import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
 
 # Local dependencies
-from util.vars import config, get_json_data
+from util.vars import config, get_json_data, data_sources
 from util.disc_util import get_channel
 from util.afterhours import afterHours
-from util.formatting import format_embed
-from util.cg_data import get_trending_coins
+from util.formatting import (
+    format_embed,
+    format_change,
+    human_format,
+    format_embed_length,
+)
+from util.cg_data import get_trending_coins, get_top_categories
 
 
 class Trending(commands.Cog):
@@ -31,6 +39,14 @@ class Trending(commands.Cog):
             )
 
             self.crypto.start()
+
+        if config["LOOPS"]["CRYPTO_CATEGORIES"]["ENABLED"]:
+            self.crypto_categories_channel = get_channel(
+                self.bot,
+                config["LOOPS"]["CRYPTO_CATEGORIES"]["CHANNEL"],
+            )
+
+            self.crypto_categories.start()
 
         if config["LOOPS"]["TRENDING"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = get_channel(
@@ -86,6 +102,66 @@ class Trending(commands.Cog):
         await self.crypto_channel.purge(limit=2)
         await self.crypto_channel.send(embed=cg_e)
         await self.crypto_channel.send(embed=cmc_e)
+
+    @loop(hours=1)
+    async def crypto_categories(self) -> None:
+        df = await get_top_categories()
+
+        # Only use top 10
+        df = df.head(10)
+
+        # Format the dataframe
+        # Merge name and link
+        df["Name"] = "[" + df["Name"] + "](" + df["Link"] + ")"
+
+        # Format 24h change
+        df["24h Change"] = df["24h Change"].apply(lambda x: format_change(x))
+
+        # Format the volume
+        df["Volume"] = df["Volume"].apply(lambda x: "$" + human_format(x))
+
+        # Format the market cap
+        df["Market Cap"] = df["Market Cap"].apply(lambda x: "$" + human_format(x))
+
+        # Get lists of each column
+        categories = "\n".join(df["Name"].tolist())
+        change = "\n".join(df["24h Change"].tolist())
+        volume = "\n".join(df["Volume"].tolist())
+
+        # Prevent possible overflow
+        categories, change, volume = format_embed_length([categories, change, volume])
+
+        e = discord.Embed(
+            title=f"Top {len(df)} Crypto Categories",
+            url="https://www.coingecko.com/en/categories",
+            description="",
+            color=data_sources["coingecko"]["color"],
+            timestamp=datetime.datetime.now(datetime.timezone.utc),
+        )
+
+        e.add_field(
+            name="Category",
+            value=categories,
+            inline=True,
+        )
+
+        e.add_field(
+            name="24h Change",
+            value=change,
+            inline=True,
+        )
+
+        e.add_field(
+            name="Volume",
+            value=volume,
+            inline=True,
+        )
+
+        # Set empty text as footer, so we can see the icon
+        e.set_footer(text="\u200b", icon_url=data_sources["coingecko"]["icon"])
+
+        await self.crypto_categories_channel.purge(limit=1)
+        await self.crypto_categories_channel.send(embed=e)
 
     @loop(hours=1)
     async def stocks(self) -> None:

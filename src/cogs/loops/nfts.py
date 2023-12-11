@@ -30,27 +30,29 @@ class NFTS(commands.Cog):
         self.bot = bot
 
         if config["LOOPS"]["NFTS"]["ENABLED"]:
-            self.top_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["NFTS"]["TOP"],
-                config["CATEGORIES"]["NFTS"],
-            )
+            if config["LOOPS"]["NFTS"]["TOP"]:
+                self.top_channel = get_channel(
+                    self.bot,
+                    config["LOOPS"]["NFTS"]["TOP"]["CHANNEL"],
+                    config["CATEGORIES"]["NFTS"],
+                )
+                self.top_nfts.start()
 
-            self.upcoming_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["NFTS"]["UPCOMING"],
-                config["CATEGORIES"]["NFTS"],
-            )
+            if config["LOOPS"]["NFTS"]["UPCOMING"]:
+                self.upcoming_channel = get_channel(
+                    self.bot,
+                    config["LOOPS"]["NFTS"]["UPCOMING"]["CHANNEL"],
+                    config["CATEGORIES"]["NFTS"],
+                )
+                self.upcoming_nfts.start()
 
-            self.p2e_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["NFTS"]["P2E"],
-                config["CATEGORIES"]["NFTS"],
-            )
-
-            self.top_nfts.start()
-            self.upcoming_nfts.start()
-            self.top_p2e.start()
+            if config["LOOPS"]["NFTS"]["P2E"]:
+                self.p2e_channel = get_channel(
+                    self.bot,
+                    config["LOOPS"]["NFTS"]["P2E"]["CHANNEL"],
+                    config["CATEGORIES"]["NFTS"],
+                )
+                self.top_p2e.start()
 
         if config["LOOPS"]["TRENDING"]["NFTS"]:
             self.trending_channel = get_channel(
@@ -264,7 +266,7 @@ class NFTS(commands.Cog):
             color=data_sources["playtoearn"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
-        
+
         e.add_field(
             name="Game",
             value="\n".join(p2e["name"].tolist()),
@@ -282,7 +284,7 @@ class NFTS(commands.Cog):
             value="\n".join(p2e["status"].tolist()),
             inline=True,
         )
-        
+
         e.set_footer(
             text="\u200b",
             icon_url=data_sources["playtoearn"]["icon"],

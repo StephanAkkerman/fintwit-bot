@@ -40,7 +40,7 @@ data_sources = {
     "yahoo": {"color": 0x720E9E, "icon": icon_url + "yahoo.png"},
     "binance": {"color": 0xF0B90B, "icon": icon_url + "binance.png"},
     "investing": {"color": 0xDC8F02, "icon": icon_url + "investing.png"},
-    "coingecko": {"color": 0x0D3EFD, "icon": icon_url + "coingecko.png"},
+    "coingecko": {"color": 0x8AC14B, "icon": icon_url + "coingecko.png"},
     "opensea": {"color": 0x3685DF, "icon": icon_url + "opensea.png"},
     "coinmarketcap": {"color": 0x0D3EFD, "icon": icon_url + "cmc.ico"},
     "playtoearn": {"color": 0x4792C9, "icon": icon_url + "playtoearn.png"},

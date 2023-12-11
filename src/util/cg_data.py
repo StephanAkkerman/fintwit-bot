@@ -282,7 +282,7 @@ async def get_top_categories():
 
     soup = BeautifulSoup(html, "html.parser")
 
-    table = soup.find("table", {"class": "sort table tw-mb-0 text-sm table-scrollable"})
+    table = soup.find("table")
 
     data = []
     for tr in table.find_all("tr")[1:]:
@@ -292,19 +292,19 @@ async def get_top_categories():
             # i == 0 -> rank
 
             if i == 1:
-                coin_data["name"] = td.find("a").text
-                coin_data["link"] = "https://www.coingecko.com/" + td.find("a")["href"]
+                coin_data["Name"] = td.find("a").text
+                coin_data["Link"] = "https://www.coingecko.com/" + td.find("a")["href"]
 
             # 24h
             if i == 4:
-                coin_data["24h"] = float(td["data-sort"])
+                coin_data["24h Change"] = td["data-sort"]
 
             # Market cap
             if i == 6:
-                coin_data["market_cap"] = float(td["data-sort"])
+                coin_data["Market Cap"] = td["data-sort"]
 
             if i == 7:
-                coin_data["volume"] = float(td["data-sort"])
+                coin_data["Volume"] = td["data-sort"]
 
         if coin_data != {}:
             data.append(coin_data)
