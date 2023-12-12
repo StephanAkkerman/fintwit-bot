@@ -52,6 +52,7 @@ async def get_tweet():
         text=False,
     )
 
+    # TODO: Ignore x-premium alerts
     if "data" in result:
         if "home" in result["data"]:
             if "home_timeline_urt" in result["data"]["home"]:

@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 # Python 3.8.11
 
+# Do this first
+from dotenv import load_dotenv
+
+# Load the .env file
+load_dotenv()
+
 ##> Imports
 # > Standard library
 import os
@@ -11,9 +17,6 @@ import datetime
 # Discord libraries
 import discord
 from discord.ext import commands
-
-# 3rd party libraries
-from dotenv import load_dotenv
 
 # Import local dependencies
 from util.vars import config
@@ -99,9 +102,6 @@ def load_folder(foldername: str) -> None:
 
 
 if __name__ == "__main__":
-    # Load the .env file
-    load_dotenv()
-
     # Start by loading the database
     bot.load_extension("util.db")
 

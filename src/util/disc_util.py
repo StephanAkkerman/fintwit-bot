@@ -82,9 +82,10 @@ async def set_emoji(guild) -> dict:
     # Could use this event to update the emojis if they change
 
     emojis = await guild.fetch_emojis()
-    
+
     for emoji in emojis:
-        util.vars.custom_emojis[emoji.name] = emoji	
+        util.vars.custom_emojis[emoji.name] = emoji
+
 
 async def get_user(bot: commands.Bot, user_id: int) -> discord.User:
     """
@@ -123,7 +124,11 @@ def get_tagged_users(tickers: list) -> Optional[str]:
 
     # Get the stored db
     if not util.vars.assets_db.empty:
-        matching_users = util.vars.assets_db[util.vars.assets_db["asset"].isin(tickers)]["id"].dropna().tolist()
+        matching_users = (
+            util.vars.assets_db[util.vars.assets_db["asset"].isin(tickers)]["id"]
+            .dropna()
+            .tolist()
+        )
         unique_users = list(set(matching_users))
 
         if unique_users:
