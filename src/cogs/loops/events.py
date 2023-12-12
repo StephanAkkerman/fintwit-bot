@@ -177,7 +177,7 @@ class Events(commands.Cog):
 
                 # Make an embed with these tickers and their earnings date + estimation
                 e = discord.Embed(
-                    title=f"Events for upcoming week",
+                    title=f"Events Upcoming Week",
                     url=f"https://www.investing.com/economic-calendar/",
                     description="",
                     color=data_sources["investing"]["color"],
