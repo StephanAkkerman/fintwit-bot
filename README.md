@@ -1,9 +1,14 @@
-# FinTwit_Bot
-[![Python 3.10.6](https://img.shields.io/badge/python-3.10.6-blue.svg)](https://www.python.org/downloads/release/python-3106/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![MIT License](https://img.shields.io/github/license/StephanAkkerman/Fintwit_Bot.svg?color=brightgreen)](https://opensource.org/licenses/MIT)
+# FinTwit-bot
+
+![FinTwit-bot Banner](img/logo/fintwit-banner.png)
 
 ---
+
+<p align="center">
+  <img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Supported versions">
+  <img src="https://img.shields.io/github/license/StephanAkkerman/Fintwit_Bot.svg?color=brightgreen" alt="License">
+  <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black"></a>
+</p>
 
 This is a Discord bot written in Python, with the purpose of providing an overview of the financial markets discussed on Twitter.
 The bot is able to distuingish multiple markets based on the tickers mentioned in the tweets and provides detailed information of the financial data discussed in a Tweet. Below you can view what this bot does with a financial tweet.

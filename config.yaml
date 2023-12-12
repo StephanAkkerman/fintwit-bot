@@ -1,25 +1,3 @@
-DISCORD:
-  TOKEN: 
-  GUILD_NAME: FinTwit
-
-TWITTER: 
-  # Consumer Keys
-  CONSUMER_KEY: 
-  CONSUMER_SECRET: 
-
-  # Authentication tokens
-  BEARER_TOKEN: 
-  ACCESS_TOKEN_KEY: 
-  ACCESS_TOKEN_SECRET: 
-
-REDDIT:
-  USERNAME: 
-  PASSWORD: 
-
-  APP_NAME: 
-  PERSONAL_USE: 
-  SECRET: 
-
 CATEGORIES:
   INFORMATION: ▬▬ 🔑 Information ▬▬
   TWITTER: ▬▬▬ 🐦Twitter ▬▬▬
@@ -35,7 +13,6 @@ CATEGORIES:
 ###  LOOPS  ###
 ###############
 LOOPS:
-
   # The main function of this program
   TIMELINE:
     ENABLED: True
@@ -59,9 +36,9 @@ LOOPS:
       CHANNEL: 📷┃images
 
     # Tweets that contain text without financial info
-    OTHER: 
+    OTHER:
       ENABLED: True
-      CHANNEL: ❓┃other  
+      CHANNEL: ❓┃other
 
     NEWS:
       ENABLED: True
@@ -80,6 +57,10 @@ LOOPS:
   ASSETS:
     ENABLED: True
     CHANNEL_PREFIX: 🌟┃
+
+  CRYPTO_CATEGORIES:
+    ENABLED: True
+    CHANNEL: 📚┃categories
 
   EARNINGS_OVERVIEW:
     ENABLED: True
@@ -102,7 +83,7 @@ LOOPS:
 
     STOCKS:
       ENABLED: True
-      
+
   IDEAS:
     ENABLED: True
     CHANNEL: 💡┃ideas
@@ -115,14 +96,14 @@ LOOPS:
 
     FOREX:
       ENABLED: True
-    
+
   INDEX:
     ENABLED: True
     CHANNEL: 📊┃index
 
     STOCKS:
       ENABLED: True
-      
+
     CRYPTO:
       ENABLED: True
 
@@ -149,9 +130,18 @@ LOOPS:
 
   NFTS:
     ENABLED: True
-    TOP: 🏆┃top
-    UPCOMING: 🌠┃upcoming
-    P2E: 🎮┃p2e
+
+    TOP: 
+      ENABLED: True
+      CHANNEL: 🏆┃top
+
+    UPCOMING: 
+      ENABLED: False
+      CHANNEL: 🌠┃upcoming
+
+    P2E: 
+      ENABLED: True
+      CHANNEL: 🎮┃p2e
 
   OVERVIEW:
     ENABLED: True
@@ -159,7 +149,7 @@ LOOPS:
 
     STOCKS:
       ENABLED: True
-      
+
     CRYPTO:
       ENABLED: True
 
@@ -169,6 +159,10 @@ LOOPS:
     WALLSTREETBETS:
       ENABLED: True
       CHANNEL: 🤑┃wallstreetbets
+
+  STOCK_HALTS:
+    ENABLED: True
+    CHANNEL: 🛑┃halted
 
   STOCKTWITS:
     ENABLED: True
@@ -183,24 +177,25 @@ LOOPS:
 
     STOCKS:
       ENABLED: True
-      
+
     NFTS:
       ENABLED: True
 
   TRADES:
-    ENABLED: True
+    ENABLED: False
     CHANNEL: 💲┃trades
-      
+
   OPTIONS:
     ENABLED: True
-
-    ALERTS_CHANNEL: 🚨┃alerts
-    ALERTS_TOKEN: 
-    
-    OVERVIEW_CHANNEL: 🏆┃overview
     VOLUME_CHANNEL: 💣┃volume
     SPACS_CHANNEL: 💰┃spacs
     SHORTS_CHANNEL: 📉┃shorts
+
+  OPTION_ALERT:
+    ENABLED: False
+
+    CHANNEL: 🚨┃alerts
+    OVERVIEW_CHANNEL: 🏆┃overview
 
   YIELD:
     ENABLED: True
@@ -225,11 +220,10 @@ COMMANDS:
 
 # Reports command usage in console
 LISTENERS:
-
   # This allows people to highlight tweets
   ON_RAW_REACTION_ADD:
     ENABLED: True
     CHANNEL: 💸┃highlights
 
-  ON_MEMBER_JOIN: 
+  ON_MEMBER_JOIN:
     ENABLED: True

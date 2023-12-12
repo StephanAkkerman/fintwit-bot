@@ -1,6 +1,7 @@
 import json
+import os
 
-from util.vars import config, get_json_data
+from util.vars import get_json_data
 
 # Maybe improve this using params with variables and features
 # see https://github.com/HitomaruKonpaku/twspace-crawler/blob/7c98653f4915a8690491052e2a1415cc7beb74ab/src/api/api/twitter-graphql.api.ts#L213
@@ -16,12 +17,12 @@ headers = {
     "Accept": "*/*",
     "Accept-Encoding": "gzip, deflate, br",
     "Accept-Language": "en-US,en;q=0.9",
-    "Authorization": f"Bearer {config['TWITTER']['HEADERS']['BEARER']}",
+    "Authorization": f"Bearer {os.getenv('HEADER_BEARER')}",
     "Sec-Fetch-Dest": "empty",
     "Sec-Fetch-Mode": "cors",
     "Sec-Fetch-Site": "same-origin",
-    "X-Client-Uuid": config["TWITTER"]["HEADERS"]["X-CLIENT-UUID"],
-    "X-Csrf-Token": config["TWITTER"]["HEADERS"]["X-CRSF-TOKEN"],
+    "X-Client-Uuid": os.getenv("HEADER_X-CLIENT-UUID"),
+    "X-Csrf-Token": os.getenv("HEADER_X-CRSF-TOKEN"),
     "X-Twitter-Active-User": "yes",
     "X-Twitter-Auth-Type": "OAuth2Session",
     "X-Twitter-Client-Language": "en",
@@ -29,17 +30,17 @@ headers = {
 }
 
 cookies = {
-    "_ga": config["TWITTER"]["COOKIES"]["_GA"],
+    "_ga": os.getenv("COOKIES__GA"),
     "g_state": '{"i_l":0}',
     "lang": "en",
-    "guest_id": config["TWITTER"]["COOKIES"]["GUEST_ID"],
-    "kdt": config["TWITTER"]["COOKIES"]["KDT"],
-    "auth_token": config["TWITTER"]["COOKIES"]["AUTH_TOKEN"],
-    "ct0": config["TWITTER"]["HEADERS"]["X-CRSF-TOKEN"],
-    "twid": config["TWITTER"]["COOKIES"]["TWID"],
-    "guest_id_marketing": config["TWITTER"]["COOKIES"]["GUEST_ID"],
-    "guest_id_ads": config["TWITTER"]["COOKIES"]["GUEST_ID"],
-    "personalization_id": f'"{config["TWITTER"]["COOKIES"]["PERSONALIZATION_ID"]}"',
+    "guest_id": os.getenv("COOKIES_GUEST_ID"),
+    "kdt": os.getenv("COOKIES_KDT"),
+    "auth_token": os.getenv("COOKIES_AUTH_TOKEN"),
+    "ct0": headers["X-Csrf-Token"],
+    "twid": os.getenv("COOKIES_TWID"),
+    "guest_id_marketing": os.getenv("COOKIES_GUEST_ID"),
+    "guest_id_ads": os.getenv("COOKIES_GUEST_ID"),
+    "personalization_id": f'"{os.getenv("COOKIES_PERSONALIZATION_ID")}"',
 }
 
 

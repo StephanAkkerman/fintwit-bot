@@ -27,16 +27,19 @@ class Liquidations(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.channel = get_channel(self.bot, config["LOOPS"]["LIQUIDATIONS"]["CHANNEL"])
 
-        self.post_liquidations.start()
+        if config["LOOPS"]["LIQUIDATIONS"]["ENABLED"]:
+            self.channel = get_channel(
+                self.bot, config["LOOPS"]["LIQUIDATIONS"]["CHANNEL"]
+            )
+            self.post_liquidations.start()
 
     async def get_df(self):
         data = await get_json_data(
             "https://open-api.coinglass.com/public/v2/liquidation_history?time_type=all&symbol=all",
             headers={
                 "accept": "application/json",
-                "coinglassSecret": config["LOOPS"]["LIQUIDATIONS"]["COINGLASS_SECRET"],
+                "coinglassSecret": os.getenv("COINGLASS_API_KEY"),
             },
         )
 

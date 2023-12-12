@@ -13,9 +13,9 @@ with open(config_path, "r", encoding="utf-8") as f:
     config = yaml.full_load(f)
 
 guild_name = (
-    config["DEBUG"]["GUILD_NAME"]
+    os.getenv("DEBUG_GUILD")
     if len(sys.argv) > 1 and sys.argv[1] == "-test"
-    else config["DISCORD"]["GUILD_NAME"]
+    else os.getenv("DISCORD_GUILD")
 )
 
 # Replace key by value

@@ -1,6 +1,7 @@
 # Standard libraries
 import datetime
 import html
+import os
 
 # > 3rd party dependencies
 import asyncpraw
@@ -28,11 +29,11 @@ class Reddit(commands.Cog):
         self.bot = bot
 
         reddit = asyncpraw.Reddit(
-            client_id=config["REDDIT"]["PERSONAL_USE"],
-            client_secret=config["REDDIT"]["SECRET"],
-            user_agent=config["REDDIT"]["APP_NAME"],
-            username=config["REDDIT"]["USERNAME"],
-            password=config["REDDIT"]["PASSWORD"],
+            client_id=os.getenv("REDDIT_PERSONAL_USE"),
+            client_secret=os.getenv("REDDIT_SECRET"),
+            user_agent=os.getenv("REDDIT_APP_NAME"),
+            username=os.getenv("REDDIT_USERNAME"),
+            password=os.getenv("REDDIT_PASSWORD"),
         )
 
         if config["LOOPS"]["REDDIT"]["WALLSTREETBETS"]["ENABLED"]:

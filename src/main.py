@@ -12,6 +12,9 @@ import datetime
 import discord
 from discord.ext import commands
 
+# 3rd party libraries
+from dotenv import load_dotenv
+
 # Import local dependencies
 from util.vars import config
 from util.disc_util import get_guild, set_emoji
@@ -96,6 +99,9 @@ def load_folder(foldername: str) -> None:
 
 
 if __name__ == "__main__":
+    # Load the .env file
+    load_dotenv()
+
     # Start by loading the database
     bot.load_extension("util.db")
 
@@ -108,9 +114,9 @@ if __name__ == "__main__":
 
     # Read the token from the config
     TOKEN = (
-        config["DEBUG"]["TOKEN"]
+        os.getenv("DEBUG_TOKEN")
         if len(sys.argv) > 1 and sys.argv[1] == "-test"
-        else config["DISCORD"]["TOKEN"]
+        else os.getenv("DISCORD_TOKEN")
     )
 
     # Main event loop
