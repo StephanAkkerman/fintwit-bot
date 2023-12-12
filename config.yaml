@@ -70,6 +70,12 @@ LOOPS:
     ENABLED: True
     CHANNEL: 📣┃events
 
+    FOREX:
+      ENABLED: True
+
+    CRYPTO:
+      ENABLED: True
+
   FUNDING:
     ENABLED: True
     CHANNEL: 🏦┃funding

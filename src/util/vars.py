@@ -30,6 +30,7 @@ filter_dict = {
     "CL_F": "CL=F",
     "APPL": "AAPL",
     "DEFI": "DEFIPERP",
+    "NVIDIA": "NVDA",
 }
 
 icon_url = (
@@ -52,6 +53,7 @@ data_sources = {
     "reddit": {"color": 0xFF3F18, "icon": icon_url + "reddit.png"},
     "nasdaqtrader": {"color": 0x0996C7, "icon": icon_url + "nasdaqtrader.png"},
     "stocktwits": {"color": 0xFFFFFF, "icon": icon_url + "stocktwits.png"},
+    "cryptocraft": {"color": 0x634c7b, "icon": icon_url + "cryptocraft.png"},
 }
 
 # Stable coins
