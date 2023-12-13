@@ -3,6 +3,7 @@
 from __future__ import annotations
 from typing import Optional, List
 import numbers
+from io import StringIO
 
 # > Third party libraries
 from pycoingecko import CoinGeckoAPI
@@ -236,44 +237,43 @@ async def get_trending_coins() -> pd.DataFrame:
     try:
         table = soup.find("table")
 
-        data = []
-        for tr in table.find_all("tr"):
-            coin_data = {}
+        # Try converting the table to pandas
+        df = pd.read_html(StringIO(str(table)))[0]
 
-            for td_count, td in enumerate(tr.find_all("td")):
-                if td_count == 2:
-                    ticker = td.find("a").text.split("\n")[-3]
-                    website = f"https://www.coingecko.com{td.find('a').get('href')}"
-                    coin_data["Symbol"] = f"[{ticker.upper()}]({website})"
+        # Split the "Coin" column into "Symbol" and "Name"
+        # The last word is the symbol, the rest is the name
+        df["Symbol"] = df["Coin"].apply(lambda x: x.split(" ")[-1])
+        df["Name"] = df["Coin"].apply(lambda x: " ".join(x.split(" ")[:-1]))
 
-                if td_count == 3:
-                    price = td.find("span").text.replace("$", "").replace(",", "")
-                    try:
-                        coin_data["Price"] = float(price)
-                    except Exception:
-                        coin_data["Price"] = 0
+        # Add website column to the dataframe
+        df["Website"] = df["Name"].apply(
+            lambda x: f"https://www.coingecko.com/en/coins/{x.lower().replace(' ', '-')}"
+        )
 
-                if td_count == 5:
-                    change = td.find("span").text.replace("%", "")
-                    try:
-                        coin_data["% Change"] = float(change)
-                    except Exception:
-                        coin_data["% Change"] = 0
+        # Add website to Symbol using format: [Symbol](Website)
+        df["Symbol"] = "[" + df["Symbol"] + "](" + df["Website"] + ")"
 
-                if td_count == 8:
-                    volume = td.find("span").text.replace("$", "").replace(",", "")
-                    try:
-                        coin_data["Volume"] = float(volume)
-                    except Exception:
-                        coin_data["Volume"] = 0
+        # Fix volume if it contains a %
+        df.loc[df["24h Volume"].str.contains("%"), "24h Volume"] = df["Mkt Cap"]
 
-            if coin_data != {}:
-                data.append(coin_data)
+        # Rename 24h to % Change and 24h Volume to Volume
+        df.rename(columns={"24h": "% Change", "24h Volume": "Volume"}, inplace=True)
 
-        return pd.DataFrame(data)
+        # Remove $, %, and commas from the columns
+        # TODO: maybe find something that removes all non-numerical characters
+        df["Price"] = df["Price"].apply(
+            lambda x: x.replace("$", "").replace(",", "").replace("Buy ", "")
+        )
+        df["% Change"] = df["% Change"].apply(lambda x: x.replace("%", ""))
+        df["Volume"] = df["Volume"].apply(lambda x: x.replace("$", "").replace(",", ""))
 
-    except Exception:
-        print("Error getting trending coingecko coins")
+        return df
+
+    except Exception as e:
+        print("Error getting trending coingecko coins. Error:", e)
+        import traceback
+
+        print(traceback.format_exc())
         return pd.DataFrame()
 
 
