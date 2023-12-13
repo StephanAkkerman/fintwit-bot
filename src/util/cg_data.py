@@ -310,3 +310,24 @@ async def get_top_categories():
             data.append(coin_data)
 
     return pd.DataFrame(data)
+
+
+def get_top_vol_coins(length: int = 50) -> list:
+    df = pd.DataFrame(cg.get_coins_markets("usd"))["symbol"].str.upper() + "USDT"
+
+    # Also add symbols that give issues
+    stableCoins = [
+        "OKBUSDT",
+        "DAIUSDT",
+        "USDTUSDT",
+        "USDCUSDT",
+        "BUSDUSDT",
+        "TUSDUSDT",
+        "PAXUSDT",
+        "EURUSDT",
+        "GBPUSDT",
+        "CETHUSDT",
+        "WBTCUSDT",
+    ]
+    sorted_volume = df[~df.isin(stableCoins)]
+    return sorted_volume[:length].tolist()

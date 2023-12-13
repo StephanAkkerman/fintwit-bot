@@ -166,6 +166,10 @@ LOOPS:
       ENABLED: True
       CHANNEL: 🤑┃wallstreetbets
 
+  RSI_HEATMAP:
+    ENABLED: True
+    CHANNEL: 🚥┃rsi-heatmap
+
   STOCK_HALTS:
     ENABLED: True
     CHANNEL: 🛑┃halted
