@@ -17,16 +17,22 @@ class Exchange_Listings:
     It can be enabled / disabled in the config under ["LOOPS"]["NEW_LISTINGS"].
     """
 
-    def __init__(self, bot: commands.Bot, exchange: str) -> None:
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.exchange = exchange
-        self.old_symbols = []
-        self.channel = get_channel(self.bot, config["LOOPS"]["NEW_LISTINGS"]["CHANNEL"])
+        self.exchanges = config["LOOPS"]["LISTINGS"]["EXCHANGES"]
+        self.old_symbols = {}
+
+        self.listings_channel = get_channel(
+            self.bot, config["LOOPS"]["LISTINGS"]["CHANNEL"]
+        )
+        self.delistings_channel = get_channel(
+            self.bot, config["LOOPS"]["LISTINGS"]["DELISTINGS"]["CHANNEL"]
+        )
 
         asyncio.create_task(self.set_old_symbols())
         self.new_listings.start()
 
-    async def get_symbols(self) -> list:
+    async def get_symbols(self, exchange: str) -> list:
         """
         Gets the symbols currently listed on the exchange.
 
@@ -36,15 +42,15 @@ class Exchange_Listings:
             The symbols currently listed on the exchange
         """
 
-        if self.exchange == "binance":
+        if exchange == "binance":
             url = "https://api.binance.com/api/v3/exchangeInfo"
             key1 = "symbols"
             key2 = "symbol"
-        elif self.exchange == "kucoin":
+        elif exchange == "kucoin":
             url = "https://api.kucoin.com/api/v1/symbols"
             key1 = "data"
             key2 = "symbol"
-        elif self.exchange == "coinbase":
+        elif exchange == "coinbase":
             url = "https://api.exchange.coinbase.com/currencies"
             key2 = "id"
 
@@ -52,12 +58,14 @@ class Exchange_Listings:
         response = await get_json_data(url)
 
         # Get the symbols
-        if self.exchange == "coinbase":
+        if exchange == "coinbase":
             return [x[key2] for x in response]
 
         return [x[key2] for x in response[key1]]
 
-    def create_embed(self, ticker: str) -> discord.Embed:
+    def create_embed(
+        self, ticker: str, exchange: str, is_listing: bool
+    ) -> discord.Embed:
         """
         Creates a styled embed for the newly listed ticker.
 
@@ -72,21 +80,23 @@ class Exchange_Listings:
             The styled embed for the newly listed ticker.
         """
 
-        if self.exchange == "binance":
+        if exchange == "binance":
             color = data_sources["binance"]["color"]
             icon_url = data_sources["binance"]["icon"]
-            url = f"https://www.{self.exchange}.com/en/trade/{ticker}"
-        elif self.exchange == "kucoin":
+            url = f"https://www.{exchange}.com/en/trade/{ticker}"
+        elif exchange == "kucoin":
             color = data_sources["kucoin"]["color"]
             icon_url = data_sources["kucoin"]["icon"]
-            url = f"https://www.{self.exchange}.com/trade/{ticker}"
-        else:  # Coinbase
+            url = f"https://www.{exchange}.com/trade/{ticker}"
+        elif exchange == "coinbase":
             color = data_sources["coinbase"]["color"]
             icon_url = data_sources["coinbase"]["icon"]
-            url = f"https://www.pro.{self.exchange}.com/trade/{ticker}"
+            url = f"https://www.pro.{exchange}.com/trade/{ticker}"
+
+        title = f"{ticker} {'Listed' if is_listing else 'Delisted'} on {exchange.capitalize()}"
 
         e = discord.Embed(
-            title=f"{self.exchange.capitalize()} Lists {ticker}",
+            title=title,
             url=url,
             description="",
             color=color,
@@ -109,7 +119,8 @@ class Exchange_Listings:
         """
 
         # Set the old symbols
-        self.old_symbols = await self.get_symbols()
+        for exchange in self.exchanges:
+            self.old_symbols[exchange] = await self.get_symbols(exchange)
 
     @loop(hours=6)
     async def new_listings(self) -> None:
@@ -123,62 +134,38 @@ class Exchange_Listings:
         None
         """
 
-        # Get the symbols
-        new_symbols = await self.get_symbols()
+        # Do this for all exchanges
+        for exchange in self.exchanges:
+            # Get the new symbols
+            new_symbols = await self.get_symbols(exchange)
 
-        new_listings = []
+            new_listings = []
 
-        if self.old_symbols == []:
-            await self.set_old_symbols()
+            if self.old_symbols[exchange] == []:
+                await self.set_old_symbols()
 
-        # If there is a new symbol, send a message
-        if len(new_symbols) > len(self.old_symbols):
-            new_listings = list(set(new_symbols) - set(self.old_symbols))
+            # If there is a new symbol, send a message
+            if len(new_symbols) > len(self.old_symbols):
+                new_listings = list(set(new_symbols) - set(self.old_symbols))
 
-        # If symbols got removed do nothing
-        if len(new_symbols) < len(self.old_symbols):
+            # If symbols got removed do nothing
+            if len(new_symbols) < len(self.old_symbols):
+                delistings = list(set(self.old_symbols) - set(new_symbols))
+
             # Update old_symbols
-            self.old_symbols = new_symbols
-            return
+            self.old_symbols[exchange] = new_symbols
 
-        # Update old_symbols
-        self.old_symbols = new_symbols
+            # Create the embed and post it
+            for ticker in new_listings:
+                await self.listings_channel.send(
+                    embed=self.create_embed(ticker, exchange, True)
+                )
 
-        for ticker in new_listings:
-            await self.channel.send(embed=self.create_embed(ticker))
-
-
-class Binance(commands.Cog):
-    """
-    This class contains the cog for posting the new Binance listings
-    It can be enabled / disabled in the config under ["LOOPS"]["NEW_LISTINGS"].
-    """
-
-    def __init__(self, bot: commands.Bot) -> None:
-        Exchange_Listings(bot, "binance")
-
-
-class KuCoin(commands.Cog):
-    """
-    This class contains the cog for posting the new KuCoin listings
-    It can be enabled / disabled in the config under ["LOOPS"]["NEW_LISTINGS"].
-    """
-
-    def __init__(self, bot: commands.Bot) -> None:
-        Exchange_Listings(bot, "kucoin")
-
-
-class CoinBase(commands.Cog):
-    """
-    This class contains the cog for posting the new CoinBase listings
-    It can be enabled / disabled in the config under ["LOOPS"]["NEW_LISTINGS"].
-    """
-
-    def __init__(self, bot: commands.Bot) -> None:
-        Exchange_Listings(bot, "coinbase")
+            for ticker in delistings:
+                await self.delistings_channel.send(
+                    embed=self.create_embed(ticker, exchange, False)
+                )
 
 
 def setup(bot: commands.Bot) -> None:
-    bot.add_cog(Binance(bot))
-    bot.add_cog(KuCoin(bot))
-    bot.add_cog(CoinBase(bot))
+    bot.add_cog(Exchange_Listings(bot))

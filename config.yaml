@@ -116,6 +116,16 @@ LOOPS:
     FOREX:
       ENABLED: True
 
+  LISTINGS:
+    ENABLED: True
+    CHANNEL: 🆕┃listings
+
+    DELISTINGS:
+      ENABLED: True
+      CHANNEL: ⛔┃delistings
+
+    EXCHANGES: ['kucoin', 'binance', 'coinbase']
+
   LIQUIDATIONS:
     ENABLED: True
     CHANNEL: 💸┃liquidations
@@ -129,10 +139,6 @@ LOOPS:
 
     STOCKS:
       ENABLED: True
-
-  NEW_LISTINGS:
-    ENABLED: True
-    CHANNEL: 🆕┃listings
 
   NFTS:
     ENABLED: True
