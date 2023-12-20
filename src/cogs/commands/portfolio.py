@@ -36,7 +36,6 @@ class Portfolio(commands.Cog):
         # Write to SQL database
         update_db(new_db, "portfolio")
 
-    @commands.dm_only()
     @portfolios.command(
         name="add", description="Add a cryptocurrency portfolio to the database."
     )
@@ -206,10 +205,6 @@ class Portfolio(commands.Cog):
         elif isinstance(error, commands.UserInputError):
             await ctx.respond(
                 f"If using `/portfolio add` with Kucoin, you must specify a passphrase!"
-            )
-        elif isinstance(error, commands.PrivateMessageOnly):
-            await ctx.respond(
-                "Please only use the `/portfolio` command in private messages for security reasons."
             )
         else:
             print(error)
