@@ -11,7 +11,7 @@ from util.vars import config, get_json_data, data_sources
 from util.disc_util import get_channel
 
 
-class Exchange_Listings:
+class Exchange_Listings(commands.Cog):
     """
     This class contains the cog for posting the new Binance listings
     It can be enabled / disabled in the config under ["LOOPS"]["NEW_LISTINGS"].
@@ -30,7 +30,6 @@ class Exchange_Listings:
         )
 
         asyncio.create_task(self.set_old_symbols())
-        self.new_listings.start()
 
     async def get_symbols(self, exchange: str) -> list:
         """
@@ -121,6 +120,9 @@ class Exchange_Listings:
         # Set the old symbols
         for exchange in self.exchanges:
             self.old_symbols[exchange] = await self.get_symbols(exchange)
+
+        # Start after setting all the symbols
+        self.new_listings.start()
 
     @loop(hours=6)
     async def new_listings(self) -> None:

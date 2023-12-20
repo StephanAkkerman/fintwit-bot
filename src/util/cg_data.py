@@ -253,6 +253,9 @@ async def get_trending_coins() -> pd.DataFrame:
         # Add website to Symbol using format: [Symbol](Website)
         df["Symbol"] = "[" + df["Symbol"] + "](" + df["Website"] + ")"
 
+        # Replace NaN values in '24h Volume' with values from 'Mkt Cap'
+        df["24h Volume"] = df["24h Volume"].fillna(df["Mkt Cap"])
+
         # Fix volume if it contains a %
         df.loc[df["24h Volume"].str.contains("%"), "24h Volume"] = df["Mkt Cap"]
 

@@ -134,9 +134,12 @@ class Events(commands.Cog):
         """
 
         # Send this message every friday at 23:00 UTC
-        if datetime.datetime.today().weekday() != 4:
-            if datetime.datetime.utcnow().hour != 23:
+        if datetime.datetime.today().weekday() == 4:
+            if datetime.datetime.utcnow().hour == 23:
                 df = await self.get_events()
+
+                # If time == "All Day" convert it to 00:00
+                df["time"] = df["time"].str.replace("All Day", "00:00")
 
                 # Create datetime
                 df["datetime"] = pd.to_datetime(
