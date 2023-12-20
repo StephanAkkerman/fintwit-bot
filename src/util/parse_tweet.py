@@ -67,6 +67,7 @@ def save_errored_tweet(tweet, error_msg: str):
 def parse_tweet(tweet: dict, update_tweet_id: bool = False):
     reply = None
 
+    # To be able to get the tweet and the reply
     if "items" in tweet.keys():
         reply = tweet["items"][1]["item"]["itemContent"]["tweet_results"]
         tweet = tweet["items"][0]["item"]["itemContent"]["tweet_results"]
@@ -75,19 +76,24 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
         if "tweet_results" in tweet["itemContent"]:
             tweet = tweet["itemContent"]["tweet_results"]
         else:
-            save_errored_tweet(tweet, "Tweet contains no tweet_results key")
+            save_errored_tweet(
+                tweet, "Error getting [itemContent][tweet_results] key in parse_tweet()"
+            )
             return
+    # For long tweets
+    elif "note_results" in tweet.keys():
+        tweet = tweet["note_results"]["note_tweet_results"]
 
     try:
         tweet = tweet["result"]
     except KeyError:
-        save_errored_tweet(tweet, "Error parsing tweet")
+        save_errored_tweet(tweet, "Error getting result key in parse_tweet()")
         return
 
     # Ignore Tweets that are older than the latest tweet
     if "legacy" not in tweet:
         if "tweet" not in tweet:
-            save_errored_tweet(tweet, "Error parsing tweet")
+            save_errored_tweet(tweet, "Error getting tweet key in parse_tweet()")
             return
 
         tweet_id = int(tweet["tweet"]["rest_id"])
@@ -98,7 +104,9 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
         if "tweet" in tweet:
             tweet = tweet["tweet"]
         else:
-            save_errored_tweet(tweet, "Tweet contains no core and tweet key")
+            save_errored_tweet(
+                tweet, "Error getting [core][tweet] key in parse_tweet()"
+            )
             return
 
     # So we can use this function recursively
@@ -174,6 +182,8 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
 
         if retweeted_status_result:
             e_title = f"{util.vars.custom_emojis['retweet']} {user_name} retweeted {r_user_name}"
+            # Remove the "RT @username: " from the text
+            text = re.sub(r"^RT @\w+: ", "", text)
 
         media += r_media
         media_types += r_media_types

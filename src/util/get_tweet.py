@@ -52,6 +52,9 @@ async def get_tweet():
         text=False,
     )
 
+    if result == {}:
+        return []
+
     # TODO: Ignore x-premium alerts
     if "data" in result:
         if "home" in result["data"]:
@@ -70,8 +73,8 @@ async def get_tweet():
     try:
         result["data"]["home"]["home_timeline_urt"]["instructions"][0]["entries"]
     except Exception as e:
-        print("Error: wrong json format\n", e)
-        with open("tweet_error.json", "w") as f:
+        print("Error in get_tweet():", e)
+        with open("get_tweet_error.json", "w") as f:
             json.dump(result, f, indent=4)
 
-        return []
+    return []
