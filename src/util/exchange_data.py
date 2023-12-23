@@ -28,8 +28,10 @@ async def get_data(row) -> pd.DataFrame:
         owned = []
 
         for symbol, amount in balances.items():
-            usd_val = await get_usd_price(exchange, symbol)
+            usd_val, percentage = await get_usd_price(exchange, symbol)
             worth = amount * usd_val
+
+            # Add price change
 
             if worth < 5:
                 continue
@@ -45,11 +47,15 @@ async def get_data(row) -> pd.DataFrame:
                     "exchange": exchange.id,
                     "id": row["id"],
                     "user": row["user"],
+                    "worth": round(worth, 2),
+                    "price": usd_val,
+                    "change": percentage,
                 }
             )
 
         df = pd.DataFrame(owned)
 
+        # Se tthe types
         if not df.empty:
             df = df.astype(
                 {
@@ -59,6 +65,9 @@ async def get_data(row) -> pd.DataFrame:
                     "exchange": str,
                     "id": np.int64,
                     "user": str,
+                    "worth": float,
+                    "price": float,
+                    "change": float,
                 }
             )
 
@@ -81,17 +90,23 @@ async def get_balance(exchange) -> dict:
         return {}
 
 
-async def get_usd_price(exchange, symbol) -> float:
+async def get_usd_price(exchange, symbol: str) -> tuple[float, float]:
     """
     Returns the price of the symbol in USD
     Symbol must be in the format 'BTC/USDT'
     """
+    exchange_price = 0
+    exchange_change = 0
+
     if symbol not in stables:
         for usd in stables:
             try:
                 price = await exchange.fetchTicker(f"{symbol}/{usd}")
                 if price != 0:
-                    return float(price["last"])
+                    if "last" in price:
+                        exchange_price = float(price["last"])
+                    if "percentage" in price:
+                        exchange_change = float(price["percentage"])
             except ccxt.BadSymbol:
                 continue
             except ccxt.ExchangeError as e:
@@ -101,11 +116,14 @@ async def get_usd_price(exchange, symbol) -> float:
     else:
         try:
             price = await exchange.fetchTicker(symbol + "/DAI")
-            return float(price["last"])
+            if "last" in price:
+                exchange_price = float(price["last"])
+            if "percentage" in price:
+                exchange_change = float(price["percentage"])
         except ccxt.BadSymbol:
-            return 1
+            return 1, 0
 
-    return 0
+    return exchange_price, exchange_change
 
 
 async def get_buying_price(exchange, symbol, full_sym: bool = False) -> float:

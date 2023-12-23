@@ -142,6 +142,7 @@ class Exchange_Listings(commands.Cog):
             new_symbols = await self.get_symbols(exchange)
 
             new_listings = []
+            delistings = []
 
             if self.old_symbols[exchange] == []:
                 await self.set_old_symbols()

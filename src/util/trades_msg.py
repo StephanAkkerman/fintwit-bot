@@ -15,11 +15,13 @@ from util.exchange_data import get_data, get_usd_price, get_buying_price
 from util.formatting import format_change
 
 
-async def on_msg(msg: list, 
-                 exchange : ccxt.pro.Exchange, 
-                 trades_channel : discord.TextChannel, 
-                 row : pd.Series, 
-                 user : discord.User) -> None:
+async def on_msg(
+    msg: list,
+    exchange: ccxt.pro.Exchange,
+    trades_channel: discord.TextChannel,
+    row: pd.Series,
+    user: discord.User,
+) -> None:
     """
     This function is used to handle the incoming messages from the binance websocket.
 
@@ -32,28 +34,27 @@ async def on_msg(msg: list,
     -------
     None
     """
-    
-    
+
     msg = msg[0]
-    sym = msg['symbol'] #BNB/USDT
-    orderType = msg['type'] # market, limit, stop, stop limit
-    side = msg['side'] # buy, sell
-    price = float(round(msg['price'],4))
-    amount = float(round(msg['amount'],4))
-    cost = float(round(msg['cost'],4)) # If /USDT, then this is the USD value
-    
+    sym = msg["symbol"]  # BNB/USDT
+    orderType = msg["type"]  # market, limit, stop, stop limit
+    side = msg["side"]  # buy, sell
+    price = float(round(msg["price"], 4))
+    amount = float(round(msg["amount"], 4))
+    cost = float(round(msg["cost"], 4))  # If /USDT, then this is the USD value
+
     # Get the value in USD
     usd = price
-    base = sym.split('/')[0]
-    quote = sym.split('/')[1]                
+    base = sym.split("/")[0]
+    quote = sym.split("/")[1]
     if quote not in stables:
-        usd = await get_usd_price(exchange, base)
-        
+        usd, change = await get_usd_price(exchange, base)
+
     # Get profit / loss if it is a sell
     buying_price = None
-    if side == 'sell':
+    if side == "sell":
         buying_price = await get_buying_price(exchange, sym, True)
-        
+
     # Send it in the discord channel
     await util.trades_msg.trades_msg(
         exchange.id,
@@ -74,17 +75,18 @@ async def on_msg(msg: list,
     # Drop all rows for this user and exchange
     updated_assets_db = assets_db.drop(
         assets_db[
-            (assets_db["id"] == row['id']) & (assets_db["exchange"] == exchange.id)
+            (assets_db["id"] == row["id"]) & (assets_db["exchange"] == exchange.id)
         ].index
     )
 
-    assets_db = pd.concat(
-        [updated_assets_db, await get_data(row)]
-    ).reset_index(drop=True)
+    assets_db = pd.concat([updated_assets_db, await get_data(row)]).reset_index(
+        drop=True
+    )
 
     update_db(assets_db, "assets")
     util.vars.assets_db = assets_db
     # Maybe post the updated assets of this user as well
+
 
 async def trades_msg(
     exchange: str,
@@ -96,7 +98,7 @@ async def trades_msg(
     price: float,
     quantity: float,
     usd: float,
-    buying_price : float = None,
+    buying_price: float = None,
 ) -> None:
     """
     Formats the Discord embed that will be send to the dedicated trades channel.
@@ -126,11 +128,13 @@ async def trades_msg(
     -------
     None
     """
-    
+
     # Same as in formatting.py
     if exchange == "binance":
         color = 0xF0B90B
-        icon_url = "https://upload.wikimedia.org/wikipedia/commons/5/57/Binance_Logo.png"
+        icon_url = (
+            "https://upload.wikimedia.org/wikipedia/commons/5/57/Binance_Logo.png"
+        )
         url = f"https://www.binance.com/en/trade/{symbol}"
     elif exchange == "kucoin":
         color = 0x24AE8F
@@ -138,7 +142,9 @@ async def trades_msg(
         url = f"https://www.kucoin.com/trade/{symbol}"
     else:
         color = 0x720E9E
-        icon_url = "https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png"
+        icon_url = (
+            "https://s.yimg.com/cv/apiv2/myc/finance/Finance_icon_0919_250x252.png"
+        )
         url = f"https://finance.yahoo.com/quote/{symbol}"
 
     e = discord.Embed(
@@ -158,15 +164,15 @@ async def trades_msg(
         value=f"${price}" if symbol.endswith(tuple(stables)) else price,
         inline=True,
     )
-    
+
     if buying_price and buying_price != 0:
         price_change = price - buying_price
-        
+
         if price_change != 0:
             percent_change = round((price_change / buying_price) * 100, 2)
         else:
             percent_change = 0
-            
+
         percent_change = format_change(percent_change)
         profit_loss = f"${round(price_change * quantity, 2)} ({percent_change})"
 
@@ -186,10 +192,7 @@ async def trades_msg(
             inline=True,
         )
 
-    e.set_footer(
-        text="\u200b",
-        icon_url=icon_url
-    )
+    e.set_footer(text="\u200b", icon_url=icon_url)
 
     await channel.send(embed=e)
 

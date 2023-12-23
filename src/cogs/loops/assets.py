@@ -29,13 +29,9 @@ class Assets(commands.Cog):
     You can enabled / disable it in config under ["LOOPS"]["ASSETS"].
     """
 
-    def __init__(
-        self, bot: commands.Bot, db: pd.DataFrame = util.vars.portfolio_db
-    ) -> None:
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-
-        # Refresh assets
-        asyncio.create_task(self.assets(db))
+        self.assets.start()
 
     async def usd_value(self, asset: str, exchange: str) -> tuple[float, str]:
         """
@@ -67,7 +63,8 @@ class Assets(commands.Cog):
 
         return usd_val, change
 
-    async def assets(self, portfolio_db: pd.DataFrame) -> None:
+    @loop(hours=1)
+    async def assets(self) -> None:
         """
         Only do this function at startup and if a new portfolio has been added.
         Checks the account balances of accounts saved in portfolio db, then updates the assets db.
@@ -81,45 +78,74 @@ class Assets(commands.Cog):
         -------
         None
         """
+        assets_db_columns = {
+            "asset": str,
+            "buying_price": float,
+            "owned": float,
+            "exchange": str,
+            "id": np.int64,
+            "user": str,
+            "worth": float,
+            "price": float,
+            "change": float,
+        }
 
-        if portfolio_db.equals(util.vars.portfolio_db):
-            # Drop all crypto assets
-            if not util.vars.assets_db.empty:
-                crypto_rows = util.vars.assets_db.index[
-                    util.vars.assets_db["exchange"] != "stock"
-                ].tolist()
-                assets_db = util.vars.assets_db.drop(index=crypto_rows)
-            else:
-                assets_db = pd.DataFrame(
-                    columns=["asset", "buying_price", "owned", "exchange", "id", "user"]
-                )
+        if util.vars.portfolio_db.empty:
+            print("No portfolios in the database.")
+            return
+
+        # Drop all crypto assets, so we can update them
+        if not util.vars.assets_db.empty:
+            crypto_rows = util.vars.assets_db.index[
+                util.vars.assets_db["exchange"] != "stock"
+            ].tolist()
+            assets_db = util.vars.assets_db.drop(index=crypto_rows)
         else:
-            # Add it to the old assets db, since this call is for a specific person
-            assets_db = util.vars.assets_db
+            # Create a new database
+            assets_db = pd.DataFrame(columns=list(assets_db_columns.keys()))
 
-        if not portfolio_db.empty:
-            for _, row in portfolio_db.iterrows():
-                # Add this data to the assets.db database
-                exch_data = await get_data(row)
-                assets_db = pd.concat([assets_db, exch_data], ignore_index=True)
+        # Get the assets of each user
+        for _, row in util.vars.portfolio_db.iterrows():
+            # Add this data to the assets db
+            exch_data = await get_data(row)
+            assets_db = pd.concat([assets_db, exch_data], ignore_index=True)
 
         # Ensure that the db knows the right types
-        assets_db = assets_db.astype(
-            {
-                "asset": str,
-                "buying_price": float,
-                "owned": float,
-                "exchange": str,
-                "id": np.int64,
-                "user": str,
-            }
-        )
+        assets_db = assets_db.astype(assets_db_columns)
 
         # Update the assets db
         update_db(assets_db, "assets")
         util.vars.assets_db = assets_db
 
-        self.post_assets.start()
+        # Post the assets
+        await self.post_assets()
+
+    async def update_prices_and_changes(self, new_df):
+        # Filter DataFrame to only include rows where exchange is "Stock"
+        print(new_df)
+        stock_df = new_df[new_df["exchange"] == "Stock"]
+
+        # Asynchronously get price and change for each asset
+        async def get_price_change(row):
+            price, change = await self.usd_value(row["asset"], row["exchange"])
+            return {
+                "price": 0 if price is None else round(price, 2),
+                "change": 0 if change is None else change,
+            }
+
+        # Using asyncio.gather to run all async operations concurrently
+        results = await asyncio.gather(
+            *(get_price_change(row) for _, row in stock_df.iterrows())
+        )
+        print(stock_df)
+        print(results)
+
+        # Update the DataFrame with the results
+        for i, (index, row) in enumerate(stock_df.iterrows()):
+            new_df.at[index, "price"] = results[i]["price"]
+            new_df.at[index, "change"] = results[i]["change"]
+
+        return new_df
 
     async def format_exchange(
         self,
@@ -152,40 +178,38 @@ class Assets(commands.Cog):
         # Necessary to prevent panda warnings
         new_df = exchange_df.copy()
 
-        # Get the price of the assets
-        prices = []
-        changes = []
-        for _, row in new_df.iterrows():
-            price, change = await self.usd_value(row["asset"], exchange)
+        # Usage
+        new_df = await self.update_prices_and_changes(new_df)
 
-            if price is None:
-                price = 0
-            if change is None:
-                change = 0
+        # Set the types (again)
+        new_df = new_df.astype(
+            {
+                "asset": str,
+                "buying_price": float,
+                "owned": float,
+                "exchange": str,
+                "id": np.int64,
+                "user": str,
+                "worth": float,
+                "price": float,
+                "change": float,
+            }
+        )
 
-            prices.append(round(price, 2))
-            # Add without emoji
-            changes.append(change)
-
-        new_df["price"] = prices
-        new_df["change"] = changes
+        # Format the price change
+        new_df["change"] = new_df["change"].apply(lambda x: format_change(x))
 
         # Format price and change
         new_df["price_change"] = (
-            "$" + new_df["price"].astype(str) + " (" + new_df["change"] + ")"
+            "$"
+            + new_df["price"].astype(str)
+            + " ("
+            + new_df["change"].astype(str)
+            + ")"
         )
 
-        # Ensure that 'owned' column is of a numeric type
-        new_df["owned"] = pd.to_numeric(new_df["owned"], errors="coerce")
-
-        # Calculate the most recent worth
-        new_df["worth"] = pd.Series(prices) * new_df["owned"]
-
-        # Round it to 2 decimals
-        new_df = new_df.round({"worth": 2})
-
-        # Drop it if it's worth less than 1$
-        new_df = new_df.drop(new_df[new_df.worth < 1].index)
+        # Fill NaN values of worth
+        new_df["worth"] = new_df["worth"].fillna(0)
 
         # Set buying price to float
         new_df["buying_price"] = new_df["buying_price"].astype(float)
@@ -207,7 +231,11 @@ class Assets(commands.Cog):
         new_df = new_df.sort_values(by=["worth"], ascending=False)
 
         new_df["worth"] = (
-            "$" + new_df["worth"].astype(str) + " (" + new_df["worth_change"] + ")"
+            "$"
+            + new_df["worth"].astype(str)
+            + " ("
+            + new_df["worth_change"].astype(str)
+            + ")"
         )
 
         # Create the list of string values
@@ -229,7 +257,6 @@ class Assets(commands.Cog):
 
         return e
 
-    @loop(hours=1)
     async def post_assets(self) -> None:
         """
         Posts the assets of the users that added their portfolio.

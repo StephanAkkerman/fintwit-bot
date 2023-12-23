@@ -36,7 +36,8 @@ def get_crypto_info(ids):
                         best_vol = volume
                         id = symbol
                         coin_dict = coin_info
-            except Exception:
+            except Exception as e:
+                print("Error getting coin info for", symbol, "Error:", e)
                 pass
 
     else:
@@ -44,7 +45,8 @@ def get_crypto_info(ids):
         # Try in case the CoinGecko API does not work
         try:
             coin_dict = cg.get_coin_by_id(id)
-        except Exception:
+        except Exception as e:
+            print("Error getting coin info for", id, "Error:", e)
             return None, None
 
     return coin_dict, id
@@ -151,6 +153,7 @@ async def get_coin_info(
     coin_dict = None
     if ticker in util.vars.cg_db["symbol"].values:
         # Check coin by symbol, i.e. "BTC"
+        print(ticker)
         coin_dict, id = get_crypto_info(
             util.vars.cg_db[util.vars.cg_db["symbol"] == ticker]["id"]
         )
