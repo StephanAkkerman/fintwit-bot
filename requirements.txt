@@ -11,7 +11,7 @@ aiohttp>=3.8.0
 asyncpraw==7.7.1
 ccxt==4.1.76
 nltk==3.8.1
-transformers==4.35.0
+transformers==4.36.2
 matplotlib==3.8.2
 scipy==1.11.4
 brotli==1.1.0
