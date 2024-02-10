@@ -143,7 +143,7 @@ class RSI_heatmap(commands.Cog):
         # Display the plot
         plt.tight_layout()
 
-        filename = "rsi_heatmap.png"
+        filename = "temp/rsi_heatmap.png"
         plt.savefig(filename, bbox_inches="tight", dpi=300)
         plt.cla()
         plt.close()

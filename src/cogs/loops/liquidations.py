@@ -151,7 +151,7 @@ class Liquidations(commands.Cog):
         fig.set_size_inches(15, 6)
 
         # Convert to plot to a temporary image
-        filename = "liquidations.png"
+        filename = "temp/liquidations.png"
         plt.savefig(filename, bbox_inches="tight", dpi=300)
         plt.cla()
         plt.close()

@@ -74,7 +74,8 @@ class Yield(commands.Cog):
         plt.xlabel("Residual Maturity")
 
         # Convert to plot to a temporary image
-        plt.savefig("yield.png", bbox_inches="tight", dpi=300)
+        file_name = "temp/yield.png"
+        plt.savefig(file_name, bbox_inches="tight", dpi=300)
         plt.cla()
         plt.close()
 
@@ -84,14 +85,14 @@ class Yield(commands.Cog):
             color=0x000000,
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
-        file = discord.File("yield.png")
-        e.set_image(url="attachment://yield.png")
+        file = discord.File(file_name)
+        e.set_image(url=f"attachment://{file_name}")
 
         await self.channel.purge(limit=1)
         await self.channel.send(file=file, embed=e)
 
         # Delete yield.png
-        os.remove("yield.png")
+        os.remove(file_name)
 
     async def plot_US_yield(self) -> None:
         """
