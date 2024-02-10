@@ -61,6 +61,16 @@ def get_channel(
                         if channel.category.name == category_name:
                             return channel
 
+    # If the channel is not found, create it
+    # if category_name:
+    #     category = discord.utils.get(guild.categories, name=category_name)
+    #     return await guild.create_text_channel(
+    #         channel_name, category=category
+    #     )
+
+    # # Maybe read the category from the config file
+    # return await guild.create_text_channel(channel_name)
+
 
 async def set_emoji(guild) -> dict:
     """
