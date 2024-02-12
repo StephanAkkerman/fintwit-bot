@@ -10,7 +10,6 @@ tradingview-ta==3.3.0
 aiohttp>=3.8.0
 asyncpraw==7.7.1
 ccxt==4.1.76
-nltk==3.8.1
 transformers==4.35.0
 matplotlib==3.8.2
 scipy==1.11.4

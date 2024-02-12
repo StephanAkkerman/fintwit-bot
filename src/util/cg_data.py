@@ -206,9 +206,11 @@ async def get_coin_info(
     # Return the information
     return (
         total_vol,
-        f"https://coingecko.com/en/coins/{id}"
-        if id
-        else "https://coingecko.com/en/coins/id_not_found",
+        (
+            f"https://coingecko.com/en/coins/{id}"
+            if id
+            else "https://coingecko.com/en/coins/id_not_found"
+        ),
         exchanges,
         price,
         format_change(change) if change else "N/A",
@@ -239,6 +241,10 @@ async def get_trending_coins() -> pd.DataFrame:
 
     try:
         table = soup.find("table")
+
+        if table is None:
+            print("Error getting trending coingecko coins")
+            return pd.DataFrame()
 
         # Try converting the table to pandas
         df = pd.read_html(StringIO(str(table)))[0]
@@ -283,12 +289,16 @@ async def get_trending_coins() -> pd.DataFrame:
         return pd.DataFrame()
 
 
-async def get_top_categories():
+async def get_top_categories() -> pd.DataFrame | None:
     html = scraper.get("https://www.coingecko.com/en/categories").text
 
     soup = BeautifulSoup(html, "html.parser")
 
     table = soup.find("table")
+
+    if table is None:
+        print("Error getting top categories from CoinGecko")
+        return
 
     data = []
     for tr in table.find_all("tr")[1:]:

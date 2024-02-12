@@ -107,6 +107,9 @@ class Trending(commands.Cog):
     async def crypto_categories(self) -> None:
         df = await get_top_categories()
 
+        if df is None or df.empty:
+            return
+
         # Only use top 10
         df = df.head(10)
 

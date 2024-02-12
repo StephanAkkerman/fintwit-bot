@@ -374,37 +374,43 @@ async def top_cmc():
     nfts = []
 
     session = AsyncHTMLSession()
-    r = await session.get("https://coinmarketcap.com/nft/collections/")
-    rows = r.html.find("tbody tr")
 
-    for row in rows:
-        d = {}
-        columns = row.find("td")
+    try:
+        r = await session.get("https://coinmarketcap.com/nft/collections/")
+        rows = r.html.find("tbody tr")
 
-        if len(columns) < 6:
-            continue
+        for row in rows:
+            d = {}
+            columns = row.find("td")
 
-        if columns[1].find("div", first=True) is not None:
-            url = columns[1].find("a", first=True)
-            if url:
-                url = url.attrs["href"]
+            if len(columns) < 6:
+                continue
 
-            name_and_net = columns[1].find("span")
-            name = name_and_net[0].text.strip()
-            volume_and_change = columns[2].text.split("\n\n")
-            avg_price_and_change = columns[5].text.split("\n\n")
-            change = avg_price_and_change[1].replace("%", "")
+            if columns[1].find("div", first=True) is not None:
+                url = columns[1].find("a", first=True)
+                if url:
+                    url = url.attrs["href"]
 
-            if change != "-":
-                price = f"{avg_price_and_change[0]} ({format_change(float(change))})"
-            else:
-                price = avg_price_and_change[0]
+                name_and_net = columns[1].find("span")
+                name = name_and_net[0].text.strip()
+                volume_and_change = columns[2].text.split("\n\n")
+                avg_price_and_change = columns[5].text.split("\n\n")
+                change = avg_price_and_change[1].replace("%", "")
 
-            d["symbol"] = f"[{name}]({url})"
-            d["volume"] = volume_and_change[0]
-            d["price"] = price
+                if change != "-":
+                    price = (
+                        f"{avg_price_and_change[0]} ({format_change(float(change))})"
+                    )
+                else:
+                    price = avg_price_and_change[0]
 
-            nfts.append(d)
+                d["symbol"] = f"[{name}]({url})"
+                d["volume"] = volume_and_change[0]
+                d["price"] = price
+
+                nfts.append(d)
+    except Exception as e:
+        print("Error in top_cmc:", e)
 
     await session.close()
     return pd.DataFrame(nfts)

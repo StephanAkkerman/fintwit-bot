@@ -34,7 +34,7 @@ class Liquidations(commands.Cog):
             )
             self.post_liquidations.start()
 
-    async def get_df(self):
+    async def get_df(self) -> pd.DataFrame:
         data = await get_json_data(
             "https://open-api.coinglass.com/public/v2/liquidation_history?time_type=all&symbol=all",
             headers={
@@ -42,6 +42,10 @@ class Liquidations(commands.Cog):
                 "coinglassSecret": os.getenv("COINGLASS_API_KEY"),
             },
         )
+
+        if "data" not in data:
+            print("Could not get liquidation data from coinglass")
+            return pd.DataFrame()
 
         df = pd.DataFrame(data["data"])
 
@@ -69,6 +73,10 @@ class Liquidations(commands.Cog):
 
         # Process dataframe
         df = await self.get_df()
+
+        if df is None or df.empty:
+            return
+
         df_price = df[["price"]].copy()
         df_without_price = df.drop("price", axis=1)
         df_without_price["Shorts"] = df_without_price["Shorts"] * -1

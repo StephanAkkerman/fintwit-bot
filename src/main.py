@@ -105,9 +105,10 @@ if __name__ == "__main__":
     # Start by loading the database
     bot.load_extension("util.db")
 
-    # Ensure the logs directory exists
+    # Ensure the all directories exist
     os.makedirs("logs", exist_ok=True)
     os.makedirs("temp", exist_ok=True)
+    os.makedirs("data", exist_ok=True)
 
     # Load commands
     load_folder("commands")
@@ -118,6 +119,10 @@ if __name__ == "__main__":
         if len(sys.argv) > 1 and sys.argv[1] == "-test"
         else os.getenv("DISCORD_TOKEN")
     )
+
+    if not TOKEN:
+        print("No Discord token found. Exiting...")
+        sys.exit(1)
 
     # Main event loop
     try:

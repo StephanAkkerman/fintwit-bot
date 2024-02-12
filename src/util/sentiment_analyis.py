@@ -4,23 +4,31 @@ from __future__ import annotations
 
 # > Third party libraries
 import discord
-from transformers import BertTokenizer, BertForSequenceClassification, pipeline
-import nltk
-import numpy as np
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
-
+from transformers import AutoTokenizer, BertForSequenceClassification, pipeline
 
 # Load model
-try:
-    finbert = BertForSequenceClassification.from_pretrained('./models')
-    tokenizer = BertTokenizer.from_pretrained("yiyanghkust/finbert-tone")
-    nlp = pipeline("text-classification", model=finbert, tokenizer=tokenizer)
-    use_finbert = True
-except Exception as e:
-    use_finbert = False
-    print("Did not load premium model...")
+model = BertForSequenceClassification.from_pretrained(
+    "StephanAkkerman/FinTwitBERT-sentiment",
+    num_labels=3,
+    id2label={0: "NEUTRAL", 1: "BULLISH", 2: "BEARISH"},
+    label2id={"NEUTRAL": 0, "BULLISH": 1, "BEARISH": 2},
+    cache_dir="models/",
+)
+model.config.problem_type = "single_label_classification"
+tokenizer = AutoTokenizer.from_pretrained(
+    "StephanAkkerman/FinTwitBERT-sentiment", cache_dir="models/"
+)
+model.eval()
+pipe = pipeline("text-classification", model=model, tokenizer=tokenizer)
 
-def classify_sentiment(text: str) -> tuple[str,str]:
+label_to_emoji = {
+    "NEUTRAL": "🦆",
+    "BULLISH": "🐂",
+    "BEARISH": "🐻",
+}
+
+
+def classify_sentiment(text: str) -> tuple[str, str]:
     """
     Uses the text of a tweet to classify the sentiment of the tweet.
 
@@ -34,25 +42,16 @@ def classify_sentiment(text: str) -> tuple[str,str]:
     np.ndarray
         The probability of the tweet being bullish, neutral, or bearish.
     """
-    
-    pred = nlp(text)[0]
-    label = pred['label']
-    
-    if label == "Positive":
-        label = "🐂 - Bullish"
-        emoji = "🐂"
-    elif label == "Neutral":
-        label = "🦆 - Neutral"
-        emoji = "🦆"
-    elif label == "Negative":
-        label = "🐻 - Bearish"
-        emoji = "🐻"
-        
-    #score = round(score*100, 2)
-        
+
+    label = pipe(text)[0].get("label")
+    emoji = label_to_emoji[label]
+
+    label = f"{emoji} - {label.capitalize()}"
+
     return label, emoji
 
-def add_sentiment(e : discord.Embed, text: str) -> tuple[discord.Embed, str]:
+
+def add_sentiment(e: discord.Embed, text: str) -> tuple[discord.Embed, str]:
     """
     Adds sentiment to a discord embed, based on the given text.
 
@@ -71,34 +70,14 @@ def add_sentiment(e : discord.Embed, text: str) -> tuple[discord.Embed, str]:
         str
             The sentiment of the tweet.
     """
-    
-    # Remove quote tweet formatting
-    if use_finbert:
-        prediction, emoji = classify_sentiment(text.split('\n\n> [@')[0])
-    else:
-        try:
-            analyzer = SentimentIntensityAnalyzer()
-            sentiment = analyzer.polarity_scores(text)
-        except LookupError:
-            # Download the NLTK packages
-            nltk.download("vader_lexicon")
 
-            # Try again
-            analyzer = SentimentIntensityAnalyzer()
-            sentiment = analyzer.polarity_scores(text)
-            
-        neg = sentiment['neg']
-        neu = sentiment['neu']
-        pos = sentiment['pos']
-            
-        # Pick the highest value
-        prediction = ['🐻 - Bearish', '🦆 - Neutral', '🐂 - Bullish'][np.argmax([neg, neu, pos])]
-        emoji = prediction[0]
-    
+    # Remove quote tweet formatting
+    prediction, emoji = classify_sentiment(text.split("\n\n> [@")[0])
+
     e.add_field(
         name="Sentiment",
         value=f"{prediction}",
         inline=False,
     )
-    
+
     return e, emoji

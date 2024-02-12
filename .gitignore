@@ -7,7 +7,7 @@ models/*
 yield.png
 src/cogs/loops/option_alert.py
 .vscode/
-data/
+data/*
 scraper.py
 scraped/*
 logs/*
