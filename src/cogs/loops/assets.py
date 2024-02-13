@@ -122,6 +122,7 @@ class Assets(commands.Cog):
 
     async def update_prices_and_changes(self, new_df):
         # Filter DataFrame to only include rows where exchange is "Stock"
+        print("New_df in assets:")
         print(new_df)
         stock_df = new_df[new_df["exchange"] == "Stock"]
 
@@ -137,7 +138,9 @@ class Assets(commands.Cog):
         results = await asyncio.gather(
             *(get_price_change(row) for _, row in stock_df.iterrows())
         )
+        print("Stock_df in assets:")
         print(stock_df)
+        print("Results in assets:")
         print(results)
 
         # Update the DataFrame with the results
@@ -333,7 +336,7 @@ class Assets(commands.Cog):
         id = assets["id"].values[0]
         disc_user = self.bot.get_user(id)
 
-        if disc_user == None:
+        if disc_user is None:
             try:
                 disc_user = await get_user(self.bot, id)
             except Exception as e:

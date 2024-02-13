@@ -1,6 +1,7 @@
 ##> Imports
 # > Standard libaries
 from __future__ import annotations
+import re
 
 # > Third party libraries
 import discord
@@ -16,7 +17,9 @@ model = BertForSequenceClassification.from_pretrained(
 )
 model.config.problem_type = "single_label_classification"
 tokenizer = AutoTokenizer.from_pretrained(
-    "StephanAkkerman/FinTwitBERT-sentiment", cache_dir="models/"
+    "StephanAkkerman/FinTwitBERT-sentiment",
+    cache_dir="models/",
+    add_special_tokens=True,
 )
 model.eval()
 pipe = pipeline("text-classification", model=model, tokenizer=tokenizer)
@@ -26,6 +29,16 @@ label_to_emoji = {
     "BULLISH": "🐂",
     "BEARISH": "🐻",
 }
+
+
+def preprocess_text(tweet: str) -> str:
+    # Replace URLs with URL token
+    tweet = re.sub(r"http\S+", "[URL]", tweet)
+
+    # Replace @mentions with @USER token
+    tweet = re.sub(r"@\S+", "@USER", tweet)
+
+    return tweet
 
 
 def classify_sentiment(text: str) -> tuple[str, str]:
@@ -43,7 +56,7 @@ def classify_sentiment(text: str) -> tuple[str, str]:
         The probability of the tweet being bullish, neutral, or bearish.
     """
 
-    label = pipe(text)[0].get("label")
+    label = pipe(preprocess_text(text))[0].get("label")
     emoji = label_to_emoji[label]
 
     label = f"{emoji} - {label.capitalize()}"

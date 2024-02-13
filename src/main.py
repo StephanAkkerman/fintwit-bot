@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 # Python 3.8.11
 
-# Do this first
-from dotenv import load_dotenv
-
-# Load the .env file
-load_dotenv()
-
 ##> Imports
 # > Standard library
 import os
@@ -17,6 +11,10 @@ import datetime
 # Discord libraries
 import discord
 from discord.ext import commands
+from dotenv import load_dotenv
+
+# Load the .env file
+load_dotenv()
 
 # Import local dependencies
 from util.vars import config
@@ -64,7 +62,7 @@ def load_folder(foldername: str) -> None:
         # Check the contents of the file in the folder
         if config[foldername.upper()][file]:
             # If the file type is not a boolean, check if it is enabled
-            if not type(config[foldername.upper()][file]) == bool:
+            if not isinstance(config[foldername.upper()][file], bool):
                 # Check if the ENABLED key exists
                 if "ENABLED" in config[foldername.upper()][file]:
                     # Append if enabled == True
@@ -125,16 +123,5 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Main event loop
-    try:
-        bot.loop.run_until_complete(bot.run(TOKEN))
-    except KeyboardInterrupt:
-        print("Caught interrupt signal.")
-        print("exiting...")
-        bot.loop.run_until_complete(
-            asyncio.wait(
-                [bot.change_presence(status=discord.Status.invisible), bot.logout()]
-            )
-        )
-    finally:
-        bot.loop.close()
-        sys.exit(0)
+    bot.run(TOKEN)
+    # If the bot randomly stops maybe put back old code

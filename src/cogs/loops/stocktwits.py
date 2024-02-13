@@ -62,8 +62,11 @@ class StockTwits(commands.Cog):
         full_df = pd.merge(stocks, table, on="stock_id")
         full_df.sort_values(by="val", ascending=False, inplace=True)
 
-        # Fill all NaN / None values with 0, in case the price is not known
-        full_df = full_df.fillna(0)
+        # Set types
+        full_df["price"] = full_df["price"].astype(float).fillna(0)
+        full_df["change"] = full_df["change"].astype(float).fillna(0)
+        full_df["symbol"] = full_df["symbol"].astype(str)
+        full_df["name"] = full_df["name"].astype(str)
 
         # Format % change
         full_df["change"] = full_df["change"].apply(

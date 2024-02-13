@@ -75,7 +75,7 @@ def get_coin_exchanges(coin_dict: dict) -> tuple[str, list]:
         for info in coin_dict["tickers"]:
             if "base" in info.keys():
                 # Somtimes the base is a contract instead of ticker
-                if base == None:
+                if base is None:
                     # > 7, because $KOMPETE
                     if not (info["base"].startswith("0X") or len(info["base"]) > 7):
                         base = info["base"]
@@ -153,6 +153,7 @@ async def get_coin_info(
     coin_dict = None
     if ticker in util.vars.cg_db["symbol"].values:
         # Check coin by symbol, i.e. "BTC"
+        print("Cg_data ticker:")
         print(ticker)
         coin_dict, id = get_crypto_info(
             util.vars.cg_db[util.vars.cg_db["symbol"] == ticker]["id"]
@@ -199,7 +200,7 @@ async def get_coin_info(
         exchanges = list(set(exchanges))
 
     # Look into this!
-    if total_vol != 0 and base == None:
+    if total_vol != 0 and base is None:
         print("No base symbol found for:", ticker)
         base = ticker
 
