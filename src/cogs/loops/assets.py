@@ -33,7 +33,7 @@ class Assets(commands.Cog):
         self.bot = bot
         self.assets.start()
 
-    async def usd_value(self, asset: str, exchange: str) -> tuple[float, str]:
+    async def usd_value(self, asset: str, exchange: str) -> tuple[float, float]:
         """
         Get the USD value of an asset, based on the exchange.
 
@@ -52,13 +52,15 @@ class Assets(commands.Cog):
 
         usd_val = change = None
 
-        if exchange != "Stock":
+        if exchange.lower() != "stock":
             _, _, _, usd_val, change, _ = await get_coin_info(asset)
         else:
-            _, _, _, usd_val, change, _ = await get_stock_info(asset)
-            if type(usd_val) == list:
+            _, _, _, usd_val, change, _ = await get_stock_info(
+                asset, do_format_change=False
+            )
+            if isinstance(usd_val, list):
                 usd_val = usd_val[0]
-            if type(change) == list:
+            if isinstance(change, list):
                 change = change[0]
 
         return usd_val, change
@@ -120,18 +122,25 @@ class Assets(commands.Cog):
         # Post the assets
         await self.post_assets()
 
-    async def update_prices_and_changes(self, new_df):
-        # Filter DataFrame to only include rows where exchange is "Stock"
+    async def update_prices_and_changes(self, new_df: pd.DataFrame) -> pd.DataFrame:
+        # Filter DataFrame to only include rows where exchange is "stock"
         print("New_df in assets:")
         print(new_df)
-        stock_df = new_df[new_df["exchange"] == "Stock"]
+        stock_df = new_df[new_df["exchange"] == "stock"]
 
         # Asynchronously get price and change for each asset
         async def get_price_change(row):
+            print(row["asset"], row["exchange"])
             price, change = await self.usd_value(row["asset"], row["exchange"])
+            print("get_price_change:", price, change)
             return {
                 "price": 0 if price is None else round(price, 2),
                 "change": 0 if change is None else change,
+                "worth": (
+                    0
+                    if price in [None, np.nan]
+                    else round(price * float(row["owned"]), 2)
+                ),
             }
 
         # Using asyncio.gather to run all async operations concurrently
@@ -147,6 +156,10 @@ class Assets(commands.Cog):
         for i, (index, row) in enumerate(stock_df.iterrows()):
             new_df.at[index, "price"] = results[i]["price"]
             new_df.at[index, "change"] = results[i]["change"]
+            new_df.at[index, "worth"] = results[i]["worth"]
+
+        print("New_df after update in assets:")
+        print(new_df)
 
         return new_df
 
@@ -181,8 +194,10 @@ class Assets(commands.Cog):
         # Necessary to prevent panda warnings
         new_df = exchange_df.copy()
 
-        # Usage
-        new_df = await self.update_prices_and_changes(new_df)
+        # Add stock data to the DataFrame
+        stock_df = util.vars.assets_db[util.vars.assets_db["exchange"] == "stock"]
+        if not stock_df.empty:
+            new_df = await self.update_prices_and_changes(new_df)
 
         # Set the types (again)
         new_df = new_df.astype(

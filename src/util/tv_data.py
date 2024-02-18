@@ -265,8 +265,8 @@ class TV_data:
                             await session.close()
                             # Convert to USD volume if asset is crypto
                             return (
-                                resp[0],
-                                resp[1],
+                                float(resp[0]),
+                                float(resp[1]),
                                 resp[0] * resp[2] if asset == "crypto" else resp[2],
                                 exchange.lower(),
                                 website,

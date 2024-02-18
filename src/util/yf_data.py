@@ -15,11 +15,14 @@ from util.tv_data import tv
 def get_AH_info(stock_info):
     price = change = None
 
-    if stock_info.info["preMarketPrice"] != None and stock_info.info["bid"] != None:
+    if (
+        stock_info.info["preMarketPrice"] is not None
+        and stock_info.info["bid"] is not None
+    ):
         # Use bid if premarket price is not available
         price = (
             round(stock_info.info["preMarketPrice"], 2)
-            if stock_info.info["preMarketPrice"] != None
+            if stock_info.info["preMarketPrice"] is not None
             else stock_info.info["bid"]
         )
 
@@ -38,7 +41,7 @@ def get_AH_info(stock_info):
 def get_standard_info(stock_info):
     price = change = None
 
-    if stock_info.info["regularMarketPrice"] != None:
+    if stock_info.info["regularMarketPrice"] is not None:
         price = round(stock_info.info["regularMarketPrice"], 2)
 
         if price and stock_info.info["regularMarketPreviousClose"]:
@@ -54,7 +57,7 @@ def get_standard_info(stock_info):
 
 
 async def get_stock_info(
-    ticker: str, asset_type: str = "stock"
+    ticker: str, asset_type: str = "stock", do_format_change: bool = True
 ) -> Optional[tuple[float, str, List[str], float, str, str]]:
     """
     Gets the volume, website, exchanges, price, and change of the stock.
@@ -65,6 +68,8 @@ async def get_stock_info(
         The ticker of the stock.
     asset_type : str
         The type of asset, this can be stock or forex.
+    do_format_change : bool
+        Whether to format the change or not.
 
     Returns
     -------
@@ -87,7 +92,8 @@ async def get_stock_info(
         stock_info = yf.Ticker(ticker)
 
         try:
-            if stock_info.info["regularMarketPrice"] != None:
+            if stock_info.info["regularMarketPrice"] is not None:
+                print("Getting Yahoo Finance data")
                 prices = []
                 changes = []
 
@@ -129,12 +135,16 @@ async def get_stock_info(
     # Check TradingView data
     tv_data = await tv.get_tv_data(ticker, asset_type)
     if tv_data:
+        print("Using TV data")
         price, perc_change, volume, exchange, website = tv_data
+
+    if do_format_change:
+        perc_change = format_change(perc_change) if perc_change else "N/A"
     return (
         volume,
         website,
         exchange,
         price,
-        format_change(perc_change) if perc_change else "N/A",
+        perc_change,
         ticker,
     )

@@ -74,7 +74,7 @@ async def get_tweet():
         result["data"]["home"]["home_timeline_urt"]["instructions"][0]["entries"]
     except Exception as e:
         print("Error in get_tweet():", e)
-        with open("get_tweet_error.json", "w") as f:
+        with open("logs/get_tweet_error.json", "w") as f:
             json.dump(result, f, indent=4)
 
     return []

@@ -113,6 +113,8 @@ async def get_usd_price(exchange, symbol: str) -> tuple[float, float]:
                 print(f"Exchange error for {symbol} on {exchange.id}")
                 print(e)
                 continue
+            except ccxt.RequestTimeout:
+                continue
     else:
         try:
             price = await exchange.fetchTicker(symbol + "/DAI")
