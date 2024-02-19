@@ -15,4 +15,4 @@ scipy==1.11.4
 brotli==1.1.0
 py-cord==2.4.1
 cloudscraper==1.2.71
-python-dotenv==1.0.0
+python-dotenv==1.0.1
