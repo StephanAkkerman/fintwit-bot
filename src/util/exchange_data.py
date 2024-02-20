@@ -92,40 +92,34 @@ async def get_balance(exchange) -> dict:
 
 async def get_usd_price(exchange, symbol: str) -> tuple[float, float]:
     """
-    Returns the price of the symbol in USD
-    Symbol must be in the format 'BTC/USDT'
+    Returns the price of the symbol in USD.
+    Symbol must be in the format 'BTC/USDT'.
     """
-    exchange_price = 0
-    exchange_change = 0
+    # Directly return for USDT or when symbol is a known stable coin
+    if symbol == "USDT" or symbol in stables:
+        return 1.0, 0.0
 
-    if symbol not in stables:
-        for usd in stables:
-            try:
-                price = await exchange.fetchTicker(f"{symbol}/{usd}")
-                if price != 0:
-                    if "last" in price:
-                        exchange_price = float(price["last"])
-                    if "percentage" in price:
-                        exchange_change = float(price["percentage"])
-            except ccxt.BadSymbol:
-                continue
-            except ccxt.ExchangeError as e:
-                print(f"Exchange error for {symbol} on {exchange.id}")
-                print(e)
-                continue
-            except ccxt.RequestTimeout:
-                continue
-    else:
+    # Helper function to fetch price and change
+    async def fetch_price(symbol_pair: str):
         try:
-            price = await exchange.fetchTicker(symbol + "/DAI")
-            if "last" in price:
-                exchange_price = float(price["last"])
-            if "percentage" in price:
-                exchange_change = float(price["percentage"])
-        except ccxt.BadSymbol:
-            return 1, 0
+            price = await exchange.fetchTicker(symbol_pair)
+            exchange_price = float(price.get("last", 0))
+            exchange_change = float(price.get("percentage", 0))
+            return exchange_price, exchange_change
+        except (ccxt.BadSymbol, ccxt.RequestTimeout):
+            return None  # Use None to indicate a failed fetch
+        except ccxt.ExchangeError as e:
+            print(f"Exchange error for {symbol_pair} on {exchange.id}: {e}")
+            return None
 
-    return exchange_price, exchange_change
+    # Attempt to fetch price for each stable coin pairing
+    for usd in stables:
+        result = await fetch_price(f"{symbol}/{usd}")
+        if result:
+            return result
+
+    # Fallback if no price found for any stable pairing
+    return 0.0, 0.0
 
 
 async def get_buying_price(exchange, symbol, full_sym: bool = False) -> float:

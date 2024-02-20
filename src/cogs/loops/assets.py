@@ -123,16 +123,15 @@ class Assets(commands.Cog):
         await self.post_assets()
 
     async def update_prices_and_changes(self, new_df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Updates the prices and changes of the stock assets in the DataFrame.
+        """
         # Filter DataFrame to only include rows where exchange is "stock"
-        print("New_df in assets:")
-        print(new_df)
         stock_df = new_df[new_df["exchange"] == "stock"]
 
         # Asynchronously get price and change for each asset
         async def get_price_change(row):
-            print(row["asset"], row["exchange"])
             price, change = await self.usd_value(row["asset"], row["exchange"])
-            print("get_price_change:", price, change)
             return {
                 "price": 0 if price is None else round(price, 2),
                 "change": 0 if change is None else change,
@@ -147,19 +146,12 @@ class Assets(commands.Cog):
         results = await asyncio.gather(
             *(get_price_change(row) for _, row in stock_df.iterrows())
         )
-        print("Stock_df in assets:")
-        print(stock_df)
-        print("Results in assets:")
-        print(results)
 
         # Update the DataFrame with the results
         for i, (index, row) in enumerate(stock_df.iterrows()):
             new_df.at[index, "price"] = results[i]["price"]
             new_df.at[index, "change"] = results[i]["change"]
             new_df.at[index, "worth"] = results[i]["worth"]
-
-        print("New_df after update in assets:")
-        print(new_df)
 
         return new_df
 
@@ -193,6 +185,8 @@ class Assets(commands.Cog):
 
         # Necessary to prevent panda warnings
         new_df = exchange_df.copy()
+
+        print("Exchange df:", exchange_df)
 
         # Add stock data to the DataFrame
         stock_df = util.vars.assets_db[util.vars.assets_db["exchange"] == "stock"]
@@ -232,18 +226,20 @@ class Assets(commands.Cog):
         # Set buying price to float
         new_df["buying_price"] = new_df["buying_price"].astype(float)
 
-        # Calculate the increase in worth since the original buy
-        if new_df["buying_price"].values[0] != 0:
-            new_df["worth_change"] = new_df["price"] - new_df["buying_price"]
-            new_df["worth_change"] = (
-                new_df["worth_change"] / new_df["buying_price"] * 100
-            )
-            new_df["worth_change"] = new_df["worth_change"].round(2)
-            new_df["worth_change"] = new_df["worth_change"].apply(
-                lambda x: format_change(x)
-            )
-        else:
-            new_df["worth_change"] = "?"
+        # Add worth_change column
+        new_df["worth_change"] = "?"
+
+        # Calculate the worth_change percentage only where buying_price is not 0
+        mask = new_df["buying_price"] != 0
+        new_df.loc[mask, "worth_change"] = round(
+            ((new_df["price"] - new_df["buying_price"]) / new_df["buying_price"] * 100),
+            2,
+        )
+
+        # Apply format_change to worth_change
+        new_df.loc[mask, "worth_change"] = new_df.loc[mask, "worth_change"].apply(
+            lambda x: format_change(x)
+        )
 
         # Sort by usd value
         new_df = new_df.sort_values(by=["worth"], ascending=False)
