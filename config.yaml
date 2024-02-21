@@ -117,7 +117,7 @@ LOOPS:
       ENABLED: True
 
   LIQUIDATIONS:
-    ENABLED: True
+    ENABLED: False
     CHANNEL: 💸┃liquidations
 
   LOSERS:
