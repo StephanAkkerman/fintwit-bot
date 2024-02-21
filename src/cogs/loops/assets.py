@@ -191,6 +191,9 @@ class Assets(commands.Cog):
         if not stock_df.empty:
             new_df = await self.update_prices_and_changes(new_df)
 
+        # Remove everything after % in change
+        new_df["change"] = new_df["change"].str.split("%").str[0]
+
         # Set the types (again)
         new_df = new_df.astype(
             {
@@ -202,7 +205,7 @@ class Assets(commands.Cog):
                 "user": str,
                 "worth": float,
                 "price": float,
-                "change": float,
+                "change": float,  # Make sure this is not the formatted change
             }
         )
 

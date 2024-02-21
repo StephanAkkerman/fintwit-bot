@@ -258,7 +258,7 @@ async def add_financials(
         # Add to base symbol list to prevent duplicates
         base_symbols.append(base_symbol)
 
-        if type(change) == list:
+        if isinstance(change, list) and len(change) == 1:
             changes.append(change[-1])
         else:
             changes.append(change)

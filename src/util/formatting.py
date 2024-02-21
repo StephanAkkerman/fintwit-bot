@@ -23,7 +23,10 @@ def format_change(change: float) -> str:
     str
         The formatted change.
     """
-    if type(change) == str:
+    if change is None:
+        return "N/A"
+
+    if isinstance(change, str):
         # Try to convert to float
         try:
             change = float(change)

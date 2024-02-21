@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Optional, List
 
 # > 3rd Party Dependencies
-import yfinance as yf
+from yahooquery import Ticker
 
 # Local dependencies
 from util.formatting import format_change
@@ -12,48 +12,46 @@ from util.afterhours import afterHours
 from util.tv_data import tv
 
 
-def get_AH_info(stock_info):
-    price = change = None
+async def yf_info(ticker: str, do_format_change: bool = True):
+    try:
+        stock_info = await Ticker(ticker, asynchronous=True).price
 
-    if (
-        stock_info.info["preMarketPrice"] is not None
-        and stock_info.info["bid"] is not None
-    ):
-        # Use bid if premarket price is not available
-        price = (
-            round(stock_info.info["preMarketPrice"], 2)
-            if stock_info.info["preMarketPrice"] is not None
-            else stock_info.info["bid"]
-        )
+        # Test if the ticker is valid
+        if not isinstance(stock_info.get(ticker), dict):
+            return None
 
-        if price and stock_info.info["regularMarketPrice"]:
-            change = round(
-                (price - stock_info.info["regularMarketPrice"])
-                / stock_info.info["regularMarketPrice"]
-                * 100,
-                2,
-            )
-            change = format_change(change)
+        stock_info = stock_info[ticker]
+        prices = []
+        changes = []
 
-    return price, change
+        # Helper function to format and append price data
+        def append_price_data(price_key, change_key):
+            price = stock_info.get(price_key)
+            change = stock_info.get(change_key, 0)
+            if do_format_change:
+                change = format_change(change)
+            if price and price != 0:
+                prices.append(price)
+                changes.append(change or "N/A")  # Handle None or missing change
 
+        # Determine which price to report based on market hours
+        if afterHours():
+            append_price_data("preMarketPrice", "preMarketChangePercent")
+        append_price_data("regularMarketPrice", "regularMarketChangePercent")
 
-def get_standard_info(stock_info):
-    price = change = None
+        # Calculate volume
+        volume = stock_info.get("regularMarketVolume", 0) * prices[-1] if prices else 0
 
-    if stock_info.info["regularMarketPrice"] is not None:
-        price = round(stock_info.info["regularMarketPrice"], 2)
+        # Prepare return values
+        url = f"https://finance.yahoo.com/quote/{ticker}"
+        exchange = stock_info.get("exchange", "N/A")
 
-        if price and stock_info.info["regularMarketPreviousClose"]:
-            change = round(
-                (price - stock_info.info["regularMarketPreviousClose"])
-                / stock_info.info["regularMarketPreviousClose"]
-                * 100,
-                2,
-            )
-            change = format_change(change)
+        return volume, url, exchange, prices, changes if changes else ["N/A"], ticker
 
-    return price, change
+    except Exception as e:
+        print(f"Error in getting Yahoo Finance data for {ticker}: {e}")
+
+    return None
 
 
 async def get_stock_info(
@@ -89,53 +87,14 @@ async def get_stock_info(
     """
 
     if asset_type == "stock":
-        stock_info = yf.Ticker(ticker)
-
-        try:
-            if stock_info.info["regularMarketPrice"] is not None:
-                print("Getting Yahoo Finance data")
-                prices = []
-                changes = []
-
-                # Return prices corresponding to market hours
-                if afterHours():
-                    price, change = get_AH_info(stock_info)
-
-                    if price and change:
-                        # Dont add if prices are 0
-                        if price != 0:
-                            prices.append(price)
-                            changes.append(change)
-
-                # Could try 'currentPrice' as well
-                price, change = get_standard_info(stock_info)
-
-                prices.append(price)
-                changes.append(change)
-
-                # Return the important information
-                # Could also try 'volume' or 'volume24Hr' (is None if market is closed)
-                volume = stock_info.info["regularMarketVolume"] * price
-
-                if changes == []:
-                    changes = "N/A"
-
-                return (
-                    volume,
-                    f"https://finance.yahoo.com/quote/{ticker}",
-                    stock_info.info["exchange"],
-                    prices,
-                    changes,
-                    ticker,
-                )
-
-        except Exception:
-            pass
+        stock_info = await yf_info(ticker, do_format_change)
+        if stock_info:
+            return stock_info
 
     # Check TradingView data
     tv_data = await tv.get_tv_data(ticker, asset_type)
     if tv_data:
-        print("Using TV data")
+        # print(f"Could not find {ticker} on Yahoo Finance, using TradingView data.")
         price, perc_change, volume, exchange, website = tv_data
 
     if do_format_change:
