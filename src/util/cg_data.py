@@ -7,7 +7,7 @@ from io import StringIO
 
 # > Third party libraries
 from pycoingecko import CoinGeckoAPI
-import cloudscraper
+import tls_client
 from bs4 import BeautifulSoup
 import pandas as pd
 
@@ -18,7 +18,9 @@ from util.tv_data import tv
 from util.formatting import format_change
 
 cg = CoinGeckoAPI()
-scraper = cloudscraper.create_scraper()
+session = tls_client.Session(
+    client_identifier="chrome112", random_tls_extension_order=True
+)
 
 
 def get_crypto_info(ids):
@@ -236,9 +238,11 @@ async def get_trending_coins() -> pd.DataFrame:
             The volumes of the trending coins.
     """
 
-    html = scraper.get("https://www.coingecko.com/en/watchlists/trending-crypto").text
+    html = session.get(
+        "https://www.coingecko.com/en/highlights/trending-crypto",
+    )
 
-    soup = BeautifulSoup(html, "html.parser")
+    soup = BeautifulSoup(html.text, "html.parser")
 
     try:
         table = soup.find("table")
@@ -249,6 +253,9 @@ async def get_trending_coins() -> pd.DataFrame:
 
         # Try converting the table to pandas
         df = pd.read_html(StringIO(str(table)))[0]
+
+        # Drop first row
+        df = df.drop(0)
 
         # Split the "Coin" column into "Symbol" and "Name"
         # The last word is the symbol, the rest is the name
@@ -264,10 +271,10 @@ async def get_trending_coins() -> pd.DataFrame:
         df["Symbol"] = "[" + df["Symbol"] + "](" + df["Website"] + ")"
 
         # Replace NaN values in '24h Volume' with values from 'Mkt Cap'
-        df["24h Volume"] = df["24h Volume"].fillna(df["Mkt Cap"])
+        df["24h Volume"] = df["24h Volume"].fillna(df["Market Cap"])
 
         # Fix volume if it contains a %
-        df.loc[df["24h Volume"].str.contains("%"), "24h Volume"] = df["Mkt Cap"]
+        df.loc[df["24h Volume"].str.contains("%"), "24h Volume"] = df["Market Cap"]
 
         # Rename 24h to % Change and 24h Volume to Volume
         df.rename(columns={"24h": "% Change", "24h Volume": "Volume"}, inplace=True)
@@ -291,7 +298,7 @@ async def get_trending_coins() -> pd.DataFrame:
 
 
 async def get_top_categories() -> pd.DataFrame | None:
-    html = scraper.get("https://www.coingecko.com/en/categories").text
+    html = session.get("https://www.coingecko.com/en/categories").text
 
     soup = BeautifulSoup(html, "html.parser")
 

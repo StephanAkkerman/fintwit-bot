@@ -32,7 +32,8 @@ class Liquidations(commands.Cog):
             self.channel = get_channel(
                 self.bot, config["LOOPS"]["LIQUIDATIONS"]["CHANNEL"]
             )
-            self.post_liquidations.start()
+            # Disabled for now
+            # self.post_liquidations.start()
 
     async def get_df(self) -> pd.DataFrame:
         data = await get_json_data(

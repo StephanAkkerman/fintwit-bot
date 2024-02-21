@@ -76,11 +76,7 @@ def load_folder(foldername: str) -> None:
         if filename.endswith(".py") and filename in enabled_cogs:
             try:
                 # Do not start timeline if the -no_timeline argument is given
-                if (
-                    filename == "timeline.py"
-                    and len(sys.argv) > 2
-                    and sys.argv[2] == "-no_timeline"
-                ):
+                if filename == "timeline.py" and "-no_timeline" in sys.argv:
                     continue
 
                 # Overview.py has no setup function, but should be considered as a loop / cog
@@ -110,9 +106,7 @@ if __name__ == "__main__":
 
     # Read the token from the config
     TOKEN = (
-        os.getenv("DEBUG_TOKEN")
-        if len(sys.argv) > 1 and sys.argv[1] == "-test"
-        else os.getenv("DISCORD_TOKEN")
+        os.getenv("DEBUG_TOKEN") if "-test" in sys.argv else os.getenv("DISCORD_TOKEN")
     )
 
     if not TOKEN:

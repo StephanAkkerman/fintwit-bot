@@ -186,8 +186,6 @@ class Assets(commands.Cog):
         # Necessary to prevent panda warnings
         new_df = exchange_df.copy()
 
-        print("Exchange df:", exchange_df)
-
         # Add stock data to the DataFrame
         stock_df = util.vars.assets_db[util.vars.assets_db["exchange"] == "stock"]
         if not stock_df.empty:
