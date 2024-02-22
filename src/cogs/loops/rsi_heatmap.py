@@ -75,11 +75,11 @@ class RSI_heatmap(commands.Cog):
 
         # Define the color for each RSI range
         color_map = [
-            (100, 70, "darkred", "Overbought"),
-            (70, 60, "red", "Strong"),
+            (100, 70, "red", "Overbought"),
+            (70, 60, "darkred", "Strong"),
             (60, 40, "black", "Neutral"),
-            (40, 30, "green", "Weak"),
-            (30, 0, "darkgreen", "Oversold"),
+            (40, 30, "darkgreen", "Weak"),
+            (30, 0, "green", "Oversold"),
         ]
 
         # Fill the areas with the specified colors and create custom legend
@@ -128,7 +128,7 @@ class RSI_heatmap(commands.Cog):
         ax.set_xticks([])
 
         # Create the legend at the top
-        l = ax.legend(
+        ax.legend(
             handles=legend_elements,
             loc="upper center",
             bbox_to_anchor=(0.5, 1.05),
@@ -139,6 +139,10 @@ class RSI_heatmap(commands.Cog):
             fontsize="large",
             labelcolor="white",
         )
+
+        # Add y-axis label
+        ax.set_ylabel("RSI", color="white", fontsize=12)
+        ax.set_xlabel("Top 50 coins (volume)", color="white", fontsize=12)
 
         # Display the plot
         plt.tight_layout()
