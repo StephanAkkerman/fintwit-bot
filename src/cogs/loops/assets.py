@@ -192,7 +192,7 @@ class Assets(commands.Cog):
             new_df = await self.update_prices_and_changes(new_df)
 
         # Remove everything after % in change
-        new_df["change"] = new_df["change"].str.split("%").str[0]
+        #new_df["change"] = new_df["change"].str.split("%").str[0]
 
         # Set the types (again)
         new_df = new_df.astype(

@@ -160,8 +160,9 @@ class Liquidations(commands.Cog):
         fig.set_size_inches(15, 6)
 
         # Convert to plot to a temporary image
-        filename = "temp/liquidations.png"
-        plt.savefig(filename, bbox_inches="tight", dpi=300)
+        file_name = "liquidations.png"
+        file_path = os.path.join("temp", file_name)
+        plt.savefig(file_path, bbox_inches="tight", dpi=300)
         plt.cla()
         plt.close()
 
@@ -172,8 +173,8 @@ class Liquidations(commands.Cog):
             timestamp=datetime.datetime.now(datetime.timezone.utc),
             url="https://www.coinglass.com/LiquidationData",
         )
-        file = discord.File(filename)
-        e.set_image(url=f"attachment://{filename}")
+        file = discord.File(file_path, filename=file_name)
+        e.set_image(url=f"attachment://{file_name}")
         e.set_footer(
             text="\u200b",
             icon_url=data_sources["coinglass"]["icon"],
@@ -183,7 +184,7 @@ class Liquidations(commands.Cog):
         await self.channel.send(file=file, embed=e)
 
         # Delete yield.png
-        os.remove(filename)
+        os.remove(file_path)
 
 
 def setup(bot: commands.Bot) -> None:

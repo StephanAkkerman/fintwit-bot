@@ -13,43 +13,44 @@ from util.tv_data import tv
 
 
 async def yf_info(ticker: str, do_format_change: bool = True):
-    try:
-        stock_info = await Ticker(ticker, asynchronous=True).price
+    # try:
+    stock_info = await Ticker(ticker, asynchronous=True).price
 
-        # Test if the ticker is valid
-        if not isinstance(stock_info.get(ticker), dict):
-            return None
+    # Test if the ticker is valid
+    if not isinstance(stock_info.get(ticker), dict):
+        return None
 
-        stock_info = stock_info[ticker]
-        prices = []
-        changes = []
+    stock_info = stock_info[ticker]
+    prices = []
+    changes = []
 
-        # Helper function to format and append price data
-        def append_price_data(price_key, change_key):
-            price = stock_info.get(price_key)
-            change = stock_info.get(change_key, 0)
-            if do_format_change:
-                change = format_change(change)
-            if price and price != 0:
-                prices.append(price)
-                changes.append(change or "N/A")  # Handle None or missing change
+    # Helper function to format and append price data
+    def append_price_data(price_key, change_key):
+        price = stock_info.get(price_key)
+        change = stock_info.get(change_key, 0)
+        if do_format_change:
+            change = format_change(change)
+        if price and price != 0:
+            prices.append(price)
+            changes.append(change or "N/A")  # Handle None or missing change
 
-        # Determine which price to report based on market hours
-        if afterHours():
-            append_price_data("preMarketPrice", "preMarketChangePercent")
-        append_price_data("regularMarketPrice", "regularMarketChangePercent")
+    # Determine which price to report based on market hours
+    if afterHours():
+        append_price_data("preMarketPrice", "preMarketChangePercent")
+    append_price_data("regularMarketPrice", "regularMarketChangePercent")
 
-        # Calculate volume
-        volume = stock_info.get("regularMarketVolume", 0) * prices[-1] if prices else 0
+    # Calculate volume
+    volume = stock_info.get("regularMarketVolume", 0) * prices[-1] if prices else 0
 
-        # Prepare return values
-        url = f"https://finance.yahoo.com/quote/{ticker}"
-        exchange = stock_info.get("exchange", "N/A")
+    # Prepare return values
+    url = f"https://finance.yahoo.com/quote/{ticker}"
+    exchange = stock_info.get("exchange", "N/A")
 
-        return volume, url, exchange, prices, changes if changes else ["N/A"], ticker
+    return volume, url, exchange, prices, changes if changes else ["N/A"], ticker
 
-    except Exception as e:
-        print(f"Error in getting Yahoo Finance data for {ticker}: {e}")
+    # TODO: ratelimit exception
+    # except Exception as e:
+    #    print(f"Error in getting Yahoo Finance data for {ticker}: {e}")
 
     return None
 

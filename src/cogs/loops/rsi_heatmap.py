@@ -143,8 +143,9 @@ class RSI_heatmap(commands.Cog):
         # Display the plot
         plt.tight_layout()
 
-        filename = "temp/rsi_heatmap.png"
-        plt.savefig(filename, bbox_inches="tight", dpi=300)
+        file_name = "rsi_heatmap.png"
+        file_path = os.path.join("temp", file_name)
+        plt.savefig(file_path, bbox_inches="tight", dpi=300)
         plt.cla()
         plt.close()
 
@@ -155,8 +156,8 @@ class RSI_heatmap(commands.Cog):
             timestamp=datetime.datetime.now(datetime.timezone.utc),
             url="https://www.coinglass.com/pro/i/RsiHeatMap",
         )
-        file = discord.File(filename)
-        e.set_image(url=f"attachment://{filename}")
+        file = discord.File(file_path, filename=file_name)
+        e.set_image(url=f"attachment://{file_name}")
         e.set_footer(
             text="\u200b",
             icon_url=data_sources["coinglass"]["icon"],
@@ -166,7 +167,7 @@ class RSI_heatmap(commands.Cog):
         await self.channel.send(file=file, embed=e)
 
         # Delete yield.png
-        os.remove(filename)
+        os.remove(file_path)
 
 
 def setup(bot: commands.Bot) -> None:
