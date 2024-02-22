@@ -1,0 +1,8 @@
+Replace all contents of this file with the following:
+1. Go to Twitter.com
+2. Login
+3. On the home timeline press F12, this will open devtools in Chrome
+4. Go to the Network section
+5. Locate HomeTimeline
+6. Right click on HomeTimeline, copy, copy as cURL (bash)
+7. Paste the contents in this .txt and rename to curl.txt
