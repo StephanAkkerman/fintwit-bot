@@ -112,6 +112,7 @@ class Timeline(commands.Cog):
     @loop(minutes=5)
     async def get_latest_tweet(self) -> None:
         """Fetches the latest tweets."""
+        print("Getting tweets...")
         tweets = await get_tweet()
 
         # Loop from oldest to newest tweet

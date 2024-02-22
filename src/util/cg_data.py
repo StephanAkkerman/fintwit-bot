@@ -248,7 +248,7 @@ async def get_trending_coins() -> pd.DataFrame:
         table = soup.find("table")
 
         if table is None:
-            print("Error getting trending coingecko coins")
+            print("Error getting trending coingecko coins, no table found.")
             return pd.DataFrame()
 
         # Try converting the table to pandas
@@ -305,7 +305,7 @@ async def get_top_categories() -> pd.DataFrame | None:
     table = soup.find("table")
 
     if table is None:
-        print("Error getting top categories from CoinGecko")
+        print("Error getting top categories from CoinGecko, no table found.")
         return
 
     data = []

@@ -94,7 +94,6 @@ class Trending(commands.Cog):
         cg_df = await get_trending_coins()
 
         if cg_df.empty:
-            print("No trending coins found on CoinGecko")
             return
 
         cg_e = await format_embed(cg_df, "Trending On CoinGecko", "coingecko")

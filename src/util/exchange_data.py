@@ -103,13 +103,22 @@ async def get_usd_price(exchange, symbol: str) -> tuple[float, float]:
     async def fetch_price(symbol_pair: str):
         try:
             price = await exchange.fetchTicker(symbol_pair)
-            exchange_price = float(price.get("last", 0))
-            exchange_change = float(price.get("percentage", 0))
+            exchange_price = price.get("last", 0)
+            if exchange_price is None:
+                exchange_price = 0
+            exchange_price = float(exchange_price)
+            exchange_change = price.get("percentage", 0)
+            if exchange_change is None:
+                exchange_change = 0
+            exchange_change = float(exchange_change)
             return exchange_price, exchange_change
         except (ccxt.BadSymbol, ccxt.RequestTimeout):
             return None  # Use None to indicate a failed fetch
         except ccxt.ExchangeError as e:
             print(f"Exchange error for {symbol_pair} on {exchange.id}: {e}")
+            return None
+        except Exception as e:
+            print(f"Error fetching {symbol_pair} on {exchange.id}: {e}")
             return None
 
     # Attempt to fetch price for each stable coin pairing

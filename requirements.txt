@@ -17,3 +17,4 @@ py-cord==2.4.1
 python-dotenv==1.0.1
 tls-client==1.0.1
 uncurl==0.0.11
+yahooquery==2.3.7

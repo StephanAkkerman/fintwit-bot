@@ -75,6 +75,7 @@ async def make_tweet_embed(
 
     # Max 25 fields
     if symbols:
+        print("Adding financials to tweet embed...")
         e, category, base_symbols = await add_financials(
             e, symbols, tickers, text, user_name, bot
         )
@@ -330,7 +331,7 @@ async def add_financials(
 
 def get_clean_symbols(tickers, hashtags):
     # Remove #NFT from the list
-    hashtags = [hashtag for hashtag in hashtags if hashtag != "NFT"]
+    hashtags = [hashtag for hashtag in hashtags if hashtag not in ["NFT", "CRYPTO"]]
 
     # First remove the duplicates
     symbols = list(set(tickers + hashtags))
