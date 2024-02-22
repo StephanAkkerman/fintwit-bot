@@ -2,10 +2,10 @@
 # > Standard library
 import re
 import datetime
-from requests_html import AsyncHTMLSession
 
 # > Third party
 import pandas as pd
+import numpy as np
 from bs4 import BeautifulSoup
 
 # > Discord dependencies
@@ -368,82 +368,63 @@ async def get_opensea(url=""):
 
 
 async def top_cmc():
-    """
-    Forked from: https://github.com/SaeidKalantari/coinmarketcap-nft-web-scraper/blob/3cca9844a835a08bab46988d3a787a8b9af093c6/NFTscrapper.py
-    """
-    nfts = []
+    data = await get_json_data(
+        "https://api.coinmarketcap.com/nft/v3/nft/collectionsv2?start=0&limit=100&category=&collection=&blockchain=&sort=volume&desc=true&period=1"
+    )
 
-    session = AsyncHTMLSession()
+    # Convert to dataframe
+    df = pd.DataFrame(data["data"]["collections"])
 
-    try:
-        r = await session.get("https://coinmarketcap.com/nft/collections/")
-        rows = r.html.find("tbody tr")
+    df = df.head(10)
 
-        for row in rows:
-            d = {}
-            columns = row.find("td")
+    # Unpack all oneDay data
+    df = pd.concat([df.drop(["oneDay"], axis=1), df["oneDay"].apply(pd.Series)], axis=1)
 
-            if len(columns) < 6:
-                continue
+    # name, url, price, volume, volume change
+    # Conditionally concatenate "name" and "website" only when "website" is not NaN
+    df["symbol"] = np.where(
+        df["website"].notna() & (df["website"] != ""),
+        "[" + df["name"] + "]" + "(" + df["website"] + ")",
+        df["name"],
+    )
+    df["price"] = df["floorPriceUsd"].apply(lambda x: f"${x:,.2f}")
+    df["change"] = df["averagePriceChangePercentage"].apply(lambda x: format_change(x))
+    df["price"] = df["price"] + " (" + df["change"] + ")"
+    df["volume"] = df["volume"].apply(lambda x: f"{x:,.0f} ETH")
+    df["volume_change"] = df["volumeChangePercentage"].apply(lambda x: format_change(x))
+    df["volume"] = df["volume"] + " (" + df["volume_change"] + ")"
 
-            if columns[1].find("div", first=True) is not None:
-                url = columns[1].find("a", first=True)
-                if url:
-                    url = url.attrs["href"]
-
-                name_and_net = columns[1].find("span")
-                name = name_and_net[0].text.strip()
-                volume_and_change = columns[2].text.split("\n\n")
-                avg_price_and_change = columns[5].text.split("\n\n")
-                change = avg_price_and_change[1].replace("%", "")
-
-                if change != "-":
-                    price = (
-                        f"{avg_price_and_change[0]} ({format_change(float(change))})"
-                    )
-                else:
-                    price = avg_price_and_change[0]
-
-                d["symbol"] = f"[{name}]({url})"
-                d["volume"] = volume_and_change[0]
-                d["price"] = price
-
-                nfts.append(d)
-    except Exception as e:
-        print("Error in top_cmc:", e)
-
-    await session.close()
-    return pd.DataFrame(nfts)
+    return df
 
 
 async def upcoming_cmc():
-    nfts = []
+    # Could remove category and expire from URL
+    data = await get_json_data(
+        "https://api.coinmarketcap.com/nft/v3/nft/upcoming-drops?start=0&limit=20&category=Popular&expire=30"
+    )
 
-    session = AsyncHTMLSession()
-    r = await session.get("https://coinmarketcap.com/nft/upcoming/")
-    rows = r.html.find("tbody tr")
+    # Convert the data to a pandas DataFrame
+    df = pd.DataFrame(data["data"]["data"])
 
-    for row in rows:
-        d = {}
-        columns = row.find("td")
+    df = df.head(10)
 
-        if len(columns) < 4:
-            continue
+    # name, websiteUrl, price, dropDate
+    df = df[["name", "websiteUrl", "price", "dropDate"]]
 
-        if columns[0].find("div", first=True) is not None:
-            name = columns[0].find("span", first=True).text
-            url = columns[1].find("a")[2].attrs["href"]
-            start_time = columns[2].find("span", first=True).text
-            sale_info = columns[3].find("span", first=True).text.split("Sale: ")
+    # Use same method as #events channel time
+    # Rename to start_time
+    df["start_time"] = df["dropDate"].apply(
+        lambda x: f"<t:{int(x/1000)}:d>" if pd.notnull(x) else ""
+    )
 
-            d["symbol"] = f"[{name}]({url})"
-            d["start_time"] = start_time
-            d["price"] = sale_info[-1]
+    # Conditionally concatenate "name" and "website" only when "website" is not NaN
+    df["symbol"] = np.where(
+        df["websiteUrl"].notna() & (df["websiteUrl"] != ""),
+        "[" + df["name"] + "]" + "(" + df["websiteUrl"] + ")",
+        df["name"],
+    )
 
-            nfts.append(d)
-
-    await session.close()
-    return pd.DataFrame(nfts)
+    return df
 
 
 async def p2e_games():
