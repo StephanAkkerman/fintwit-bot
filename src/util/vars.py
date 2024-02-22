@@ -100,7 +100,11 @@ custom_emojis = {}
 
 
 async def get_json_data(
-    url: str, headers: dict = None, cookies: dict = None, text: bool = False
+    url: str,
+    headers: dict = None,
+    cookies: dict = None,
+    json_data: dict = None,
+    text: bool = False,
 ) -> dict:
     """
     Asynchronous function to get JSON data from a website.
@@ -120,7 +124,7 @@ async def get_json_data(
 
     try:
         async with aiohttp.ClientSession(headers=headers, cookies=cookies) as session:
-            async with session.get(url) as r:
+            async with session.get(url, json=json_data) as r:
                 if text:
                     return await r.text()
                 else:
