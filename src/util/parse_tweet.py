@@ -67,6 +67,8 @@ def save_errored_tweet(tweet, error_msg: str):
 def parse_tweet(tweet: dict, update_tweet_id: bool = False):
     reply = None
 
+    ## TODO: split the below logic up into functions
+
     # To be able to get the tweet and the reply
     if "items" in tweet.keys():
         reply = tweet["items"][1]["item"]["itemContent"]["tweet_results"]

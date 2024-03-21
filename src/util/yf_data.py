@@ -12,9 +12,9 @@ from util.afterhours import afterHours
 from util.tv_data import tv
 
 
-async def yf_info(ticker: str, do_format_change: bool = True):
+def yf_info(ticker: str, do_format_change: bool = True):
     # try:
-    stock_info = await Ticker(ticker, asynchronous=True).price
+    stock_info = Ticker(ticker, asynchronous=True).price
 
     # Test if the ticker is valid
     if not isinstance(stock_info.get(ticker), dict):
@@ -88,7 +88,7 @@ async def get_stock_info(
     """
 
     if asset_type == "stock":
-        stock_info = await yf_info(ticker, do_format_change)
+        stock_info = yf_info(ticker, do_format_change)
         if stock_info:
             return stock_info
 

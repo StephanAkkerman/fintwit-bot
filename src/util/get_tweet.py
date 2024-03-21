@@ -4,11 +4,18 @@ import uncurl
 from util.vars import get_json_data
 
 # Read curl.txt
-with open("curl.txt", "r", encoding="utf-8") as file:
-    cURL = uncurl.parse_context("".join([line.strip() for line in file]))
+try:
+    with open("curl.txt", "r", encoding="utf-8") as file:
+        cURL = uncurl.parse_context("".join([line.strip() for line in file]))
+except Exception as e:
+    cURL = None
+    print("Error: Could not read curl.txt:", e)
 
 
 async def get_tweet():
+    if cURL is None:
+        print("Error: no curl.txt file found. Timelines will not be updated.")
+        return []
     result = await get_json_data(
         cURL.url,
         headers=dict(cURL.headers),
