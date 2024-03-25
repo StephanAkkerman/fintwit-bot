@@ -8,7 +8,7 @@ PyYAML==6.0.1
 tradingview-ta==3.3.0
 aiohttp>=3.8.0
 asyncpraw==7.7.1
-ccxt==4.2.36
+ccxt==4.2.83
 transformers==4.37.2
 matplotlib==3.8.2
 scipy==1.11.4
