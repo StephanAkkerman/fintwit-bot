@@ -241,8 +241,8 @@ class NFTS(commands.Cog):
         )
 
         e.add_field(
-            name="Start Time",
-            value="\n".join(upcoming["start_time"].astype(str).tolist()),
+            name="Drop Type",
+            value="\n".join(upcoming["dropType"].tolist()),
             inline=True,
         )
         e.set_footer(text="\u200b", icon_url=data_sources["coinmarketcap"]["icon"])
@@ -411,7 +411,7 @@ async def upcoming_cmc():
     # name, websiteUrl, price, dropDate
     # Filter out the columns that actually exist in the DataFrame
     existing_columns = [
-        col for col in ["name", "websiteUrl", "price", "dropDate"] if col in df.columns
+        col for col in ["name", "websiteUrl", "price", "dropType"] if col in df.columns
     ]
 
     # Use only the existing columns to filter the DataFrame
@@ -419,9 +419,9 @@ async def upcoming_cmc():
 
     # Use same method as #events channel time
     # Rename to start_time
-    df["start_time"] = df["dropDate"].apply(
-        lambda x: f"<t:{int(x/1000)}:d>" if pd.notnull(x) else ""
-    )
+    # df["start_time"] = df["dropDate"].apply(
+    #    lambda x: f"<t:{int(x/1000)}:d>" if pd.notnull(x) else ""
+    # )
 
     # Conditionally concatenate "name" and "website" only when "website" is not NaN
     df["symbol"] = np.where(
