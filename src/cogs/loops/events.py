@@ -154,7 +154,7 @@ class Events(commands.Cog):
                 df["timestamp"] = df["timestamp"].apply(lambda x: f"<t:{int(x)}:d>")
 
                 # Replace zone names
-
+                # TODO: fix future warning
                 df["zone"].replace(
                     {"euro zone": "🇪🇺", "united states": "🇺🇸"},
                     inplace=True,

@@ -409,7 +409,13 @@ async def upcoming_cmc():
     df = df.head(10)
 
     # name, websiteUrl, price, dropDate
-    df = df[["name", "websiteUrl", "price", "dropDate"]]
+    # Filter out the columns that actually exist in the DataFrame
+    existing_columns = [
+        col for col in ["name", "websiteUrl", "price", "dropDate"] if col in df.columns
+    ]
+
+    # Use only the existing columns to filter the DataFrame
+    df = df[existing_columns]
 
     # Use same method as #events channel time
     # Rename to start_time

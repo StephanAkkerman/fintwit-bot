@@ -44,7 +44,7 @@ def yf_info(ticker: str, do_format_change: bool = True):
 
     # Prepare return values
     url = f"https://finance.yahoo.com/quote/{ticker}"
-    exchange = stock_info.get("exchange", "N/A")
+    exchange = stock_info.get("exchange", [])
 
     return volume, url, exchange, prices, changes if changes else ["N/A"], ticker
 

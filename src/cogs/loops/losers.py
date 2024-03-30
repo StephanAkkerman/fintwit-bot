@@ -1,5 +1,5 @@
 # Standard libraries
-import datetime
+import traceback
 
 # > 3rd party dependencies
 import yahoo_fin.stock_info as si
@@ -51,6 +51,7 @@ class Losers(commands.Cog):
             await self.channel.send(embed=e)
         except Exception as e:
             print("Error getting or posting stock losers, error:", e)
+            print(traceback.format_exc())
 
 
 def setup(bot: commands.Bot) -> None:
