@@ -211,17 +211,16 @@ async def add_financials(
                 if base_symbol in base_symbols:
                     continue
 
-                # Db cannot save lists
-                if exchanges == []:
-                    exchanges = None
-
                 # Convert info to a dataframe
                 df = pd.DataFrame(
                     [
                         {
                             "ticker": ticker,
                             "website": website,
-                            "exchanges": ";".join(exchanges),
+                            # Db cannot handle lists, so we convert them to strings
+                            "exchanges": (
+                                ";".join(exchanges) if len(exchanges) > 0 else ""
+                            ),
                             "base_symbol": base_symbol,
                             "timestamp": datetime.datetime.now(),
                         }
@@ -248,6 +247,7 @@ async def add_financials(
             ]
             website = ticker_info["website"].values[0]
             exchanges = ticker_info["exchanges"].values[0]
+            # Convert string to list
             exchanges = exchanges.split(";")
             base_symbol = ticker_info["base_symbol"].values[0]
 
