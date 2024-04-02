@@ -224,6 +224,7 @@ class Events(commands.Cog):
             "yel": "🟨",
             "ora": "🟧",
             "red": "🟥",
+            "gra": "⬜",
         }
 
         impacts = []
