@@ -30,6 +30,12 @@ label_to_emoji = {
     "BEARISH": "🐻",
 }
 
+color_table = {
+    "🦆": discord.Colour.lighter_grey(),
+    "🐂": discord.Colour.green(),
+    "🐻": discord.Colour.red(),
+}
+
 
 def preprocess_text(tweet: str) -> str:
     # Replace URLs with URL token
@@ -41,7 +47,7 @@ def preprocess_text(tweet: str) -> str:
     return tweet
 
 
-def classify_sentiment(text: str) -> tuple[str, str]:
+def classify_sentiment(text: str) -> str:
     """
     Uses the text of a tweet to classify the sentiment of the tweet.
 
@@ -59,9 +65,7 @@ def classify_sentiment(text: str) -> tuple[str, str]:
     label = pipe(preprocess_text(text))[0].get("label")
     emoji = label_to_emoji[label]
 
-    label = f"{emoji} - {label.capitalize()}"
-
-    return label, emoji
+    return emoji
 
 
 def add_sentiment(e: discord.Embed, text: str) -> tuple[discord.Embed, str]:
@@ -85,12 +89,9 @@ def add_sentiment(e: discord.Embed, text: str) -> tuple[discord.Embed, str]:
     """
 
     # Remove quote tweet formatting
-    prediction, emoji = classify_sentiment(text.split("\n\n> [@")[0])
+    emoji = classify_sentiment(text.split("\n\n> [@")[0])
 
-    e.add_field(
-        name="Sentiment",
-        value=f"{prediction}",
-        inline=False,
-    )
+    # Change color based on sentiment
+    e.colour = color_table[emoji]
 
     return e, emoji
