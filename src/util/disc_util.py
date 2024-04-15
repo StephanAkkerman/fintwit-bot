@@ -1,4 +1,5 @@
 # Standard libraries
+import asyncio
 from typing import Optional
 
 # Discord dependencies
@@ -61,15 +62,17 @@ def get_channel(
                         if channel.category.name == category_name:
                             return channel
 
-    # If the channel is not found, create it
-    # if category_name:
-    #     category = discord.utils.get(guild.categories, name=category_name)
-    #     return await guild.create_text_channel(
-    #         channel_name, category=category
-    #     )
+    print(
+        f"Channel named: {channel_name}, with category {category_name} not found in guild: {guild_name}.\nCreating it..."
+    )
 
-    # # Maybe read the category from the config file
-    # return await guild.create_text_channel(channel_name)
+    # If the channel is not found, create it
+    if category_name:
+        category = discord.utils.get(guild.categories, name=category_name)
+        return asyncio.run(guild.create_text_channel(channel_name, category=category))
+
+    # Maybe read the category from the config file
+    return asyncio.run(guild.create_text_channel(channel_name))
 
 
 async def set_emoji(guild) -> dict:
