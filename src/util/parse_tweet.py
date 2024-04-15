@@ -66,6 +66,7 @@ def save_errored_tweet(tweet, error_msg: str):
 
 def parse_tweet(tweet: dict, update_tweet_id: bool = False):
     reply = None
+    is_long_tweet = False
 
     ## TODO: split the below logic up into functions
 
@@ -83,8 +84,14 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
             )
             return
     # For long tweets
-    elif "note_results" in tweet.keys():
-        tweet = tweet["note_results"]["note_tweet_results"]
+    elif "note_tweet" in tweet.keys():
+        is_long_tweet = True
+        tweet_text = tweet["note_tweet"]["note_tweet_results"]["result"]["text"]
+        tweet_entities = tweet["note_tweet"]["note_tweet_results"]["result"][
+            "entity_set"
+        ]
+        media = tweet["note_tweet"]["note_tweet_results"]["result"]["media"]
+        tweet_id = tweet["rest_id"]
 
     try:
         tweet = tweet["result"]
@@ -93,23 +100,24 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
         return
 
     # Ignore Tweets that are older than the latest tweet
-    if "legacy" not in tweet:
-        if "tweet" not in tweet:
-            save_errored_tweet(tweet, "Error getting tweet key in parse_tweet()")
-            return
+    if not is_long_tweet:
+        if "legacy" not in tweet:
+            if "tweet" not in tweet:
+                save_errored_tweet(tweet, "Error getting tweet key in parse_tweet()")
+                return
 
-        tweet_id = int(tweet["tweet"]["rest_id"])
-    else:
-        tweet_id = int(tweet["legacy"]["id_str"])
-
-    if "core" not in tweet:
-        if "tweet" in tweet:
-            tweet = tweet["tweet"]
+            tweet_id = int(tweet["tweet"]["rest_id"])
         else:
-            save_errored_tweet(
-                tweet, "Error getting [core][tweet] key in parse_tweet()"
-            )
-            return
+            tweet_id = int(tweet["legacy"]["id_str"])
+
+        if "core" not in tweet:
+            if "tweet" in tweet:
+                tweet = tweet["tweet"]
+            else:
+                save_errored_tweet(
+                    tweet, "Error getting [core][tweet] key in parse_tweet()"
+                )
+                return
 
     # So we can use this function recursively
     if update_tweet_id:
@@ -126,33 +134,47 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
     # Media
     media = []
     media_types = []
-    if "legacy" in tweet.keys():
-        if "extended_entities" in tweet["legacy"].keys():
-            if "media" in tweet["legacy"]["extended_entities"].keys():
-                media = [
-                    image["media_url_https"]
-                    for image in tweet["legacy"]["extended_entities"]["media"]
-                ]
-                # photo, video
-                media_types = [
-                    image["type"]
-                    for image in tweet["legacy"]["extended_entities"]["media"]
-                ]
 
-    # Remove t.co url from text
-    text = remove_twitter_url_at_end(tweet["legacy"]["full_text"])
+    if not is_long_tweet:
+        if "legacy" in tweet.keys():
+            if "extended_entities" in tweet["legacy"].keys():
+                if "media" in tweet["legacy"]["extended_entities"].keys():
+                    media = [
+                        image["media_url_https"]
+                        for image in tweet["legacy"]["extended_entities"]["media"]
+                    ]
+                    # photo, video
+                    media_types = [
+                        image["type"]
+                        for image in tweet["legacy"]["extended_entities"]["media"]
+                    ]
+
+        # Remove t.co url from text
+        text = remove_twitter_url_at_end(tweet["legacy"]["full_text"])
+
+        # Tickers
+        tickers = get_entities(tweet, "symbols")
+
+        # Hashtags
+        hashtags = get_entities(tweet, "hashtags")
+
+    else:
+        text = tweet_text
+
+        # Is this correct?
+        if "inline_media" in media.keys():
+            media = [image["media_url_https"] for image in media["inline_media"]]
+            media_types = [image["type"] for image in media["inline_media"]]
+        tickers = tweet_entities["symbols"]
+        hashtags = tweet_entities["hashtags"]
 
     # Tweet url
     tweet_url = f"https://twitter.com/user/status/{tweet_id}"
 
-    # Tickers
-    tickers = get_entities(tweet, "symbols")
-
-    # Hashtags
-    hashtags = get_entities(tweet, "hashtags")
-
-    quoted_status_result = tweet.get("quoted_status_result")
-    retweeted_status_result = tweet["legacy"].get("retweeted_status_result")
+    quoted_status_result = tweet.get("quoted_status_result", False)
+    retweeted_status_result = tweet.get("legacy", {}).get(
+        "retweeted_status_result", False
+    )
 
     e_title = f"{user_name} tweeted"
 
