@@ -7,7 +7,6 @@ CATEGORIES:
   USERS: ▬▬▬ 👨 Users ▬▬▬
   REDDIT: ▬▬▬ 👽 Reddit ▬▬▬
   NFTS: ▬▬▬ 🐒 NFTs ▬▬▬
-  OPTIONS: ▬▬▬ 🎯 Options ▬▬▬
 
 ###############
 ###  LOOPS  ###
@@ -137,15 +136,15 @@ LOOPS:
   NFTS:
     ENABLED: True
 
-    TOP: 
+    TOP:
       ENABLED: True
       CHANNEL: 🏆┃top
 
-    UPCOMING: 
+    UPCOMING:
       ENABLED: False
       CHANNEL: 🌠┃upcoming
 
-    P2E: 
+    P2E:
       ENABLED: True
       CHANNEL: 🎮┃p2e
 
@@ -194,18 +193,6 @@ LOOPS:
   TRADES:
     ENABLED: False
     CHANNEL: 💲┃trades
-
-  OPTIONS:
-    ENABLED: True
-    VOLUME_CHANNEL: 💣┃volume
-    SPACS_CHANNEL: 💰┃spacs
-    SHORTS_CHANNEL: 📉┃shorts
-
-  OPTION_ALERT:
-    ENABLED: False
-
-    CHANNEL: 🚨┃alerts
-    OVERVIEW_CHANNEL: 🏆┃overview
 
   YIELD:
     ENABLED: True
