@@ -14,7 +14,7 @@ from util.formatting import human_format
 
 
 async def get_UW_data(url, overwrite_headers=None, last_15min=False):
-    if not overwrite_headers:
+    if overwrite_headers is None:
         headers = {
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36",
         }
@@ -25,6 +25,7 @@ async def get_UW_data(url, overwrite_headers=None, last_15min=False):
     df = pd.DataFrame(data)
 
     if df.empty:
+        print("No UW data found for url:", url)
         return df
 
     # Get the timestamp convert to datetime and local time

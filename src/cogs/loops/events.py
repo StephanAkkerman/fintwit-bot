@@ -1,4 +1,5 @@
 import pytz
+import re
 import datetime
 from lxml.html import fromstring
 from io import StringIO
@@ -80,7 +81,7 @@ class Events(commands.Cog):
 
         for row in table:
             id_ = row.get("id")
-            if id_ == None:
+            if id_ is None:
                 curr_timescope = int(row.xpath("td")[0].get("id").replace("theDay", ""))
                 curr_date = datetime.datetime.fromtimestamp(
                     curr_timescope, tz=pytz.timezone("GMT")
@@ -180,8 +181,8 @@ class Events(commands.Cog):
 
                 # Make an embed with these tickers and their earnings date + estimation
                 e = discord.Embed(
-                    title=f"Events Upcoming Week",
-                    url=f"https://www.investing.com/economic-calendar/",
+                    title="Events Upcoming Week",
+                    url="https://www.investing.com/economic-calendar/",
                     description="",
                     color=data_sources["investing"]["color"],
                     timestamp=datetime.datetime.now(datetime.timezone.utc),
@@ -274,13 +275,31 @@ class Events(commands.Cog):
 
         # Use ffill() for forward fill
         df["time"] = df["time"].ffill()
+        
+        # Mask for entries where 'time' does not match common time patterns (only checks for absence of typical hour-minute time format)
+        mask_no_time_pattern = df["time"].str.contains(
+            r"^\D*$|day", flags=re.IGNORECASE, na=False
+        )
+        # Mask for entries with specific time (i.e., typical time patterns are present)
+        mask_time_specific = ~mask_no_time_pattern
 
-        # Add the current year to the date string and convert to datetime
-        df["datetime"] = pd.to_datetime(
-            df["date"] + " " + str(datetime.datetime.now().year) + " " + df["time"],
-            format="%a %b %d %Y %I:%M%p",
+        # Convert 'All Day' entries by appending the current year and no specific time
+        df.loc[mask_no_time_pattern, "datetime"] = pd.to_datetime(
+            df.loc[mask_no_time_pattern, "date"] + " " + str(datetime.datetime.now().year),
+            format="%a %b %d %Y",
             errors="coerce",
         )
+
+        # Convert specific time entries by appending the current year and the specific time
+        df.loc[mask_time_specific, "datetime"] = pd.to_datetime(
+            df.loc[mask_time_specific, "date"]
+            + " "
+            + str(datetime.datetime.now().year)
+            + " "
+            + df.loc[mask_time_specific, "time"],
+            format="%a %b %d %Y %I:%M%p",
+            errors="coerce",
+    )
 
         return df
 
@@ -290,8 +309,8 @@ class Events(commands.Cog):
 
         # Make an embed with these tickers and their earnings date + estimation
         e = discord.Embed(
-            title=f"Upcoming Crypto Events",
-            url=f"https://www.cryptocraft.com/calendar",
+            title="Upcoming Crypto Events",
+            url="https://www.cryptocraft.com/calendar",
             description="",
             color=data_sources["cryptocraft"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),

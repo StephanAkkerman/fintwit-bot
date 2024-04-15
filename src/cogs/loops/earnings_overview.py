@@ -1,5 +1,4 @@
 import datetime
-from lib2to3.pgen2.pgen import DFAState
 
 # > 3rd party dependencies
 import pandas as pd
@@ -79,6 +78,9 @@ class Earnings_Overview(commands.Cog):
                     datetime.datetime.now() + datetime.timedelta(days=7),
                 )
                 earnings_df = pd.DataFrame(earnings)
+                if earnings_df.empty:
+                    print("No earnings found")
+                    return
 
                 # Filter on unique tickers in the nasdaq list
                 earnings_df = earnings_df[

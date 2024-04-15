@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import List, Optional
 import traceback
+import datetime
 
 import aiohttp
 import discord
@@ -112,7 +113,7 @@ class Timeline(commands.Cog):
     @loop(minutes=5)
     async def get_latest_tweet(self) -> None:
         """Fetches the latest tweets."""
-        print("Getting tweets...")
+        print(f"Getting tweets at {datetime.datetime.now()}...")
         tweets = await get_tweet()
 
         # Loop from oldest to newest tweet
@@ -313,7 +314,7 @@ class Timeline(commands.Cog):
                     # Send to user DM
                     await msg.add_reaction("❤️")
 
-                    if category != None:
+                    if category is not None:
                         await msg.add_reaction("🐂")
                         await msg.add_reaction("🦆")
                         await msg.add_reaction("🐻")
