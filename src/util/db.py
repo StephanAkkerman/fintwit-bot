@@ -29,6 +29,9 @@ class DB(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
+        # Check if the data folder exists
+        os.makedirs("data", exist_ok=True)
+
         # Start loops
         self.set_tv_db.start()
         self.set_cg_db.start()
@@ -255,9 +258,9 @@ def get_db(database_name: str) -> pd.DataFrame:
 
     script_dir = os.path.dirname(__file__)
     db_loc = os.path.join(script_dir, "..", "..", "data", f"{database_name}.db")
-    cnx = sqlite3.connect(db_loc)
-
+    
     try:
+        cnx = sqlite3.connect(db_loc)
         return pd.read_sql_query(f"SELECT * FROM {database_name}", cnx)
     except Exception:
         print(f"No {database_name}.db found, returning empty db")
