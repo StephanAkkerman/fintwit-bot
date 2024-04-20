@@ -14,8 +14,8 @@ This is a Discord bot written in Python, this bot aims to provide an overview of
 Not only data from Twitter is gathered, but other sources are used too, such as Reddit, Binance, Yahoo-Finance, TradingView, and many other related websites.
 This bot was written with flexibility in mind, meaning that you can toggle on and off certain features without issues by using the `config.yaml` file. 
 
-## Features
-This section covers the key features of FinTwit-bot. For all the features, commands, and listeners you should refer to the [documentation](https://akkerman.ai/fintwit-bot/).
+## Features ⚙️
+This section covers the key features of FinTwit-bot. For all features, commands, and listeners you should refer to the [documentation](https://akkerman.ai/fintwit-bot/).
 - Automatic sentiment analysis of tweets
 - Analytics for mentioned tickers in tweets
 - Image recognition of charts in tweets
@@ -30,7 +30,7 @@ This section covers the key features of FinTwit-bot. For all the features, comma
 - Hourly updates of crypto, stock, and forex indices
 - Many more
 
-## Installation
+## Installation 🛠
 ```bash
 # Clone this repository
 git clone https://github.com/StephanAkkerman/fintwit-bot
@@ -38,7 +38,7 @@ git clone https://github.com/StephanAkkerman/fintwit-bot
 pip install -r requirements.txt
 ```
 
-### Twitter Credentials
+### Twitter Credentials 🐦
 To access data from Twitter you need to follow these steps:
 - To be able to get data from Twitter you need to have an account first (and follow some other users with it).
 - After signing in go to your [Twitter Home page](https://twitter.com/home), here you can select either **For You** or **Following**. I suggest selecting **Following** as it makes it easier to manage the Tweets the bot will pull.
@@ -46,7 +46,7 @@ To access data from Twitter you need to follow these steps:
 - Locate **HomeLatestTimeline**, right click on it and press **Copy as cURL (bash)**.
 - Create a new file in the root folder of this project named `curl.txt` and paste the contents there.
 
-### Setup .env
+### Setup .env 📝
 If you open `example.env` you will find the lines that need to be filled in. Start by renaming `example.env` to `.env` so the bot will use this file for you credentials.
 
 #### Creating a Discord bot
@@ -179,5 +179,9 @@ These channels are also optional, but these are some of my favorite traders on T
 
 </details>
 
-## Contributors
+## Contributing
+Contributions are welcome! If you have a feature request, bug report, or proposal for code refactoring, please feel free to open an issue on GitHub. We appreciate your help in improving this project.
 ![https://github.com/StephanAkkerman/FinTwit_Bot/graphs/contributors](https://contributors-img.firebaseapp.com/image?repo=StephanAkkerman/FinTwit_Bot)
+
+## License
+This project is licensed under the MIT License. See the [LICENSE] file for details.
