@@ -10,18 +10,54 @@
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black"></a>
 </p>
 
-This is a Discord bot written in Python, with the purpose of providing an overview of the financial markets discussed on Twitter.
-The bot is able to distuingish multiple markets based on the tickers mentioned in the tweets and provides detailed information of the financial data discussed in a Tweet. Below you can view what this bot does with a financial tweet.
-<details><summary>Tweet Embed</summary><img src="https://github.com/StephanAkkerman/FinTwit_Bot/blob/main/img/examples/tweet_example.png" width="500" /></details>
+This is a Discord bot written in Python, this bot aims to provide an overview of the financial markets discussed on X / Twitter.
+Not only data from Twitter is gathered, but other sources are used too, such as Reddit, Binance, Yahoo-Finance, TradingView, and many other related websites.
+This bot was written with flexibility in mind, meaning that you can toggle on and off certain features without issues by using the config.yaml file. 
 
-## Important
-To run this bot you need to host it yourself, meaning that you should have something that functions as a server. I use my Raspberry PI for this, but there are many other options available for hosting a Discord bot, such as virtual private servers provided by Google, Amazon, Microsoft, and more.
+## Installation
+```bash
+# Clone this repository
+git clone https://github.com/StephanAkkerman/fintwit-bot
+# Install required packages
+pip install -r requirements.txt
+```
 
-However, if you do not want to host the bot yourself feel free to join our server. It comes with multiple **premium features** which are not part of this GitHub repository. These features include:
-- Sentiment analysis on all Tweets, using a state-of-the-art analysis model.
-- Option alerts of unusual option activity.
+### Twitter Credentials
+To access data from Twitter you need to following these steps:
+- To be able to get data from Twitter you need to have an account first.
+- After signing in go to your [Twitter Home page](https://twitter.com/home), here you can select either **For You** or **Following**. I suggest selecting **Following** as it makes it easier to manage the Tweets the bot will pull.
+- Open DevTools (F12) and go to the Network tab.
+- Locate **HomeLatestTimeline**, right click on it and press **Copy as cURL (bash)**.
+- Create a new file in the root folder of this project named `curl.txt` and paste the contents there.
 
-If you would like to join our server, you can do by [donating](https://github.com/sponsors/StephanAkkerman) to this project or help by contributing something useful.
+### Setup .env
+If you open `example.env` you will find the lines that need to be filled in. Start by renaming `example.env` to `.env` so the bot will use this file for you credentials.
+
+#### Creating a Discord bot
+For the first part, you can watch this [video (watch until 2:20)](https://www.youtube.com/watch?v=Pbq7vPsHDtc).
+
+Or follow these written instructions:
+- Setup your own Discord bot, following this [written tutorial](https://realpython.com/how-to-make-a-discord-bot-python/) or this 
+- Give the bot admin rights and all permissions possible, since this is the easiest way to set it up.
+- Invite the bot to your server.
+
+At last fill in the lines in the `example.env` file:
+- Write your bot token behind `DISCORD_TOKEN:` (line 2)
+- Write your server name behind `DISCORD_GUILD:` (line 3)
+
+##### Adding custom emojis (Optional)
+The bot uses custom emojis to recognize on which cryptocurrency exchange things can be bought. If you wish to use it, follow these steps:
+- Locate the custom emoji pictures [here](https://github.com/StephanAkkerman/fintwit-bot/tree/main/img/emojis).
+- Add them to your server ([instructions](https://support.discord.com/hc/en-us/articles/360036479811-Custom-Emojis)).
+- You can add any exchange emoji, for instance, FTX, as long as the image is supported by Discord and the name is the same as the exchange.
+
+#### Reddit API Credentials (Optional)
+If you do not want to track data from Reddit, feel free to skip this step.
+I suggest creating a new account for this too, if you feel uncomfortable leaving your username and password.
+- Go to https://old.reddit.com/prefs/apps/ and select **script**.
+- The name of the app is needed for `REDDIT_APP_NAME`, click on **make app**.
+- This will give you the `REDDIT_PERSONAL_USE` and `REDDIT_SECRET` tokens.
+- Finally, fill in your Reddit username and password for `REDDIT_USERNAME` and `REDDIT_PASSWORD`.
 
 ## Features
 This bot was made with configurability in mind, meaning that every feature listed below can be turned on or off, and be changed easily. If you do not want a feature, just turn it off, all automation and listeners works for your custom roles and channels, so be sure to check out the settings in config_example.yaml and change them to your liking!
