@@ -87,7 +87,7 @@ class Index(commands.Cog):
         None
         """
         e = discord.Embed(
-            title=f"Crypto Indices",
+            title="Crypto Indices",
             description="",
             color=data_sources["tradingview"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
@@ -122,7 +122,7 @@ class Index(commands.Cog):
             value, change = succes
 
             ticker.append(
-                f"[Fear&Greed](https://alternative.me/crypto/fear-and-greed-index/)"
+                "[Fear&Greed](https://alternative.me/crypto/fear-and-greed-index/)"
             )
             prices.append(str(value))
             changes.append(change)
@@ -172,7 +172,7 @@ class Index(commands.Cog):
             return
 
         e = discord.Embed(
-            title=f"Stock Indices",
+            title="Stock Indices",
             description="",
             color=data_sources["tradingview"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
@@ -246,7 +246,7 @@ class Index(commands.Cog):
             return
 
         e = discord.Embed(
-            title=f"Forex Indices",
+            title="Forex Indices",
             description="",
             color=data_sources["tradingview"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
