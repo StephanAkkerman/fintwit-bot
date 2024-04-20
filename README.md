@@ -30,6 +30,12 @@ This section covers the key features of FinTwit-bot. For all features, commands,
 - Hourly updates of crypto, stock, and forex indices
 - Many more
 
+### Machine Learning Models 🤖
+Currently, we use two machine learning models to help get better insights from the data collected by the bot. The following models are trained and developed by us with the purpose of being integrated with this Discord bot:
+- [FinTwitBERT-sentiment](https://huggingface.co/StephanAkkerman/FinTwitBERT-sentiment): classify the sentiment of financial tweets
+- [chart-recognizer](https://huggingface.co/StephanAkkerman/chart-recognizer): recognize if an image is a financial chart
+Both models are very lightweight and are automatically downloaded and setup if you run `main.py`.
+
 ## Installation 🛠
 ```bash
 # Clone this repository
@@ -67,7 +73,7 @@ The bot uses custom emojis to recognize on which cryptocurrency exchange things 
 - Add them to your server ([instructions](https://support.discord.com/hc/en-us/articles/360036479811-Custom-Emojis)).
 - You can add any exchange emoji, for instance, FTX, as long as the image is supported by Discord and the name is the same as the exchange.
 
-#### Reddit API Credentials (Optional)
+#### Reddit API Credentials (Optional) 👽
 If you do not want to track data from Reddit, feel free to skip this step.
 I suggest creating a new account for this too, if you feel uncomfortable leaving your username and password.
 - Go to https://old.reddit.com/prefs/apps/ and select **script**.
