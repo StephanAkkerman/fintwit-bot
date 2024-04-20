@@ -1,12 +1,12 @@
-# FinTwit-bot
+# FinTwit-Bot: Comprehensive Financial Markets Overview via Discord
 
-![FinTwit-bot Banner](img/logo/fintwit-banner.png)
+![FinTwit-Bot Banner](img/logo/fintwit-banner.png)
 
 ---
 
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Supported versions">
-  <img src="https://img.shields.io/github/license/StephanAkkerman/Fintwit_Bot.svg?color=brightgreen" alt="License">
+  <img src="https://img.shields.io/github/license/StephanAkkerman/fintwit-bot.svg?color=brightgreen" alt="License">
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black"></a>
 </p>
 
@@ -14,21 +14,20 @@ This is a Discord bot written in Python, this bot aims to provide an overview of
 Not only data from Twitter is gathered, but other sources are used too, such as Reddit, Binance, Yahoo-Finance, TradingView, and many other related websites.
 This bot was written with flexibility in mind, meaning that you can toggle on and off certain features without issues by using the `config.yaml` file. 
 
-## Features ⚙️
-This section covers the key features of FinTwit-bot. For all features, commands, and listeners you should refer to the [documentation](https://akkerman.ai/fintwit-bot/).
-- Automatic sentiment analysis of tweets
-- Analytics for mentioned tickers in tweets
-- Image recognition of charts in tweets
-- Overview of most mentioned tickers in tweets
-- Trending, gainers, and losers for crypto and stocks
-- The top 10 [TradingView ideas](https://www.tradingview.com/ideas/) for crypto, stocks, and forex
-- Listings and delistings of popular crypto exchanges
-- Upcoming [events](https://www.cryptocraft.com/calendar) that can influence the cryptocurrency market
-- List of the latest [halted stocks](https://www.nasdaqtrader.com/trader.aspx?id=tradehalts) on Nasdaq
-- Option to track your crypto and stock portfolio
-- Live trades of traders that have added their crypto portfolio
-- Hourly updates of crypto, stock, and forex indices
-- Many more
+## Key Features ⚙️
+- **Automatic Sentiment Analysis**: Analyze the sentiment of tweets to gauge market mood.
+- **Market Analytics**: Generate analytics for tickers mentioned in tweets and provide an overview of market trends.
+- **Image Recognition**: Identify and analyze charts in tweets for visual insights.
+- **Ticker Trends**: Track the most mentioned tickers to spot market interests.
+- **Market Movers**: Get updates on trending topics, gainers, and losers in crypto and stocks.
+- **TradingView Insights**: Display the top 10 TradingView ideas for various markets.
+- **Market Events**: Monitor listings, delistings, and other significant events in the crypto world.
+- **Stock Halts**: Keep track of the latest halted stocks on Nasdaq.
+- **Portfolio Tracking**: Enable users to follow their crypto and stock investments.
+- **Live Trading Updates**: View live trades from users who share their portfolios.
+- **Hourly Market Updates**: Receive regular updates on indices across crypto, stocks, and forex.
+
+For a detailed guide on all commands and functionalities, refer to the documentation included in the repo.
 
 ### Machine Learning Models 🤖
 Currently, we use two machine learning models to help get better insights from the data collected by the bot. The following models are trained and developed by us with the purpose of being integrated with this Discord bot:
