@@ -36,7 +36,7 @@ Currently, we use two machine learning models to help get better insights from t
 Both models are very lightweight and are automatically downloaded and setup if you run `main.py`.
 
 ### Tweet Example
-![example](img/examples/tweet_example.png)
+<img src="img/examples/tweet_example.png" height="600">
 
 In the image above you can see what the bot does with the data it receives from Twitter.
 The green color of the embed shows that the sentiment of this tweet is positive.
