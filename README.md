@@ -36,8 +36,9 @@ Currently, we use two machine learning models to help get better insights from t
 Both models are very lightweight and are automatically downloaded and setup if you run `main.py`.
 
 ### Tweet Example
-In the image below you can see what the bot does with the data it receives from Twitter.
 ![example](img/examples/tweet_example.png)
+
+In the image above you can see what the bot does with the data it receives from Twitter.
 The green color of the embed shows that the sentiment of this tweet is positive.
 The tickers mentioned in the tweet and the quoted tweet are shown below, both with the exchanges they are available on and the 4-hour and 1-day technical analysis (TA) from TradingView.
 
