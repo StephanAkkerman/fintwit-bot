@@ -13,7 +13,7 @@ transformers==4.38.0
 matplotlib==3.8.4
 scipy==1.13.0
 brotli==1.1.0
-py-cord==2.4.1
+py-cord==2.5.0
 python-dotenv==1.0.1
 tls-client==1.0.1
 uncurl==0.0.11
