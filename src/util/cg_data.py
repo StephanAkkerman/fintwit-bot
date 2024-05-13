@@ -315,6 +315,7 @@ async def get_top_categories() -> pd.DataFrame | None:
         for i, td in enumerate(tr.find_all("td")):
             # i == 0 -> rank
 
+            # Category column (including name and link)
             if i == 1:
                 coin_data["Name"] = td.find("a").text
                 coin_data["Link"] = "https://www.coingecko.com/" + td.find("a")["href"]

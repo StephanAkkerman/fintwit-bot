@@ -31,7 +31,7 @@ def format_change(change: float) -> str:
         try:
             change = float(change)
         except ValueError:
-            return 0
+            change = 0
 
     # Round to 2 decimals
     change = round(change, 2)
