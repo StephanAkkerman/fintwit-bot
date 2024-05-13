@@ -180,31 +180,35 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
 
     if quoted_status_result or retweeted_status_result or reply:
         result = quoted_status_result or retweeted_status_result or reply
-        (
-            r_text,
-            r_user_name,
-            r_user_screen_name,
-            _,
-            _,
-            r_media,
-            r_tickers,
-            r_hashtags,
-            _,
-            r_media_types,
-        ) = parse_tweet(result)
+        replied_tweet = parse_tweet(result)
 
-        if reply:
+        # If parse_tweet errors it returns None
+        if replied_tweet:
+            (
+                r_text,
+                r_user_name,
+                r_user_screen_name,
+                _,
+                _,
+                r_media,
+                r_tickers,
+                r_hashtags,
+                _,
+                r_media_types,
+            ) = replied_tweet
+
+        if reply and replied_tweet:
             e_title = f"{util.vars.custom_emojis['reply']} {user_name} replied to {r_user_name}"
             text = "\n".join(map(lambda line: "> " + line, text.split("\n")))
             text = f"> [@{r_user_screen_name}](https://twitter.com/{r_user_screen_name}):\n{text}\n\n{r_text}"
 
         # Add text on top
-        if quoted_status_result:
+        if quoted_status_result and replied_tweet:
             e_title = f"{util.vars.custom_emojis['quote_tweet']} {user_name} quote tweeted {r_user_name}"
             q_text = "\n".join(map(lambda line: "> " + line, r_text.split("\n")))
             text = f"{text}\n\n> [@{r_user_screen_name}](https://twitter.com/{r_user_screen_name}):\n{q_text}"
 
-        if retweeted_status_result:
+        if retweeted_status_result and replied_tweet:
             e_title = f"{util.vars.custom_emojis['retweet']} {user_name} retweeted {r_user_name}"
             # Remove the "RT @username: " from the text
             text = re.sub(r"^RT @\w+: ", "", text)
