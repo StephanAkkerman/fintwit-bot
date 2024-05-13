@@ -373,6 +373,13 @@ async def top_cmc():
     )
 
     # Convert to dataframe
+    if "data" not in data:
+        print("No data found in CoinMarketCap response")
+        return pd.DataFrame()
+    if "collections" not in data["data"]:
+        print("No collections found in CoinMarketCap response")
+        return pd.DataFrame()
+
     df = pd.DataFrame(data["data"]["collections"])
 
     df = df.head(10)
