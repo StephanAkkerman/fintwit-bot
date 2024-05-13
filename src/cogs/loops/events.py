@@ -154,13 +154,10 @@ class Events(commands.Cog):
                 # Convert timestamp to Discord timestamp using mode F
                 df["timestamp"] = df["timestamp"].apply(lambda x: f"<t:{int(x)}:d>")
 
-                # Replace zone names
-                # TODO: fix future warning
-                df["zone"].replace(
-                    {"euro zone": "🇪🇺", "united states": "🇺🇸"},
-                    inplace=True,
+                # Replace zone names with emojis
+                df["zone"] = df["zone"].replace(
+                    {"euro zone": "🇪🇺", "united states": "🇺🇸"}
                 )
-
                 time = "\n".join(df["timestamp"])
 
                 # Do this if both forecast and previous are not NaN
@@ -275,7 +272,7 @@ class Events(commands.Cog):
 
         # Use ffill() for forward fill
         df["time"] = df["time"].ffill()
-        
+
         # Mask for entries where 'time' does not match common time patterns (only checks for absence of typical hour-minute time format)
         mask_no_time_pattern = df["time"].str.contains(
             r"^\D*$|day", flags=re.IGNORECASE, na=False
@@ -285,7 +282,9 @@ class Events(commands.Cog):
 
         # Convert 'All Day' entries by appending the current year and no specific time
         df.loc[mask_no_time_pattern, "datetime"] = pd.to_datetime(
-            df.loc[mask_no_time_pattern, "date"] + " " + str(datetime.datetime.now().year),
+            df.loc[mask_no_time_pattern, "date"]
+            + " "
+            + str(datetime.datetime.now().year),
             format="%a %b %d %Y",
             errors="coerce",
         )
@@ -299,7 +298,7 @@ class Events(commands.Cog):
             + df.loc[mask_time_specific, "time"],
             format="%a %b %d %Y %I:%M%p",
             errors="coerce",
-    )
+        )
 
         return df
 

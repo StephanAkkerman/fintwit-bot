@@ -9,6 +9,7 @@ from discord.ext import commands
 from discord.commands import SlashCommandGroup, Option
 from discord import Interaction, SelectOption
 from discord.ui import Select, View
+from discord.commands.context import ApplicationContext
 
 # Local dependencies
 import util.vars
@@ -41,7 +42,7 @@ class Portfolio(commands.Cog):
     )
     async def add(
         self,
-        ctx: commands.Context,
+        ctx: ApplicationContext,
         exchange: Option(
             str,
             description="Provide the name of your crypto exchange.",
@@ -147,7 +148,7 @@ class Portfolio(commands.Cog):
     )
     async def remove(
         self,
-        ctx: commands.Context,
+        ctx: ApplicationContext,
     ) -> None:
         """
         `/portfolio remove` to remove a specific portfolio from your list.
@@ -179,7 +180,7 @@ class Portfolio(commands.Cog):
     )
     async def show(
         self,
-        ctx: commands.Context,
+        ctx: ApplicationContext,
     ) -> None:
         """
         `/portfolio show` to show your portfolio(s) in our database.
@@ -196,7 +197,7 @@ class Portfolio(commands.Cog):
             await ctx.respond("Your portfolio could not be found")
 
     @add.error
-    async def add_error(self, ctx: commands.Context, error: Exception) -> None:
+    async def add_error(self, ctx: ApplicationContext, error: Exception) -> None:
         # print(traceback.format_exc())
         if isinstance(error, commands.BadArgument):
             await ctx.respond(
@@ -211,12 +212,12 @@ class Portfolio(commands.Cog):
             await ctx.respond(f"An error has occurred. Please try again later.")
 
     @remove.error
-    async def remove_error(self, ctx: commands.Context, error: Exception) -> None:
+    async def remove_error(self, ctx: ApplicationContext, error: Exception) -> None:
         # print(traceback.format_exc())
         await ctx.respond(f"An error has occurred. Please try again later.")
 
     @show.error
-    async def show_error(self, ctx: commands.Context, error: Exception) -> None:
+    async def show_error(self, ctx: ApplicationContext, error: Exception) -> None:
         print(traceback.format_exc())
         if isinstance(error, commands.PrivateMessageOnly):
             await ctx.respond(

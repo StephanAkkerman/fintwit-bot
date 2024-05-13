@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 import discord
 from discord.ext import commands
 from discord.commands import Option
+from discord.commands.context import ApplicationContext
 
 # > Local dependencies
 from util.vars import get_json_data
@@ -28,7 +29,7 @@ class Analyze(commands.Cog):
     )
     async def analyze(
         self,
-        ctx: commands.Context,
+        ctx: ApplicationContext,
         stock: Option(str, description="Stock ticker, e.g. AAPL.", required=True),
     ) -> None:
         """

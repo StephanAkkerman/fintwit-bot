@@ -1,14 +1,11 @@
-##> Imports
-import datetime
-
 # > 3rd Party Dependencies
 import pandas as pd
 import yfinance as yf
 
 # Discord imports
-import discord
 from discord.ext import commands
 from discord.commands import SlashCommandGroup, Option
+from discord.commands.context import ApplicationContext
 
 # Local dependencies
 import util.vars
@@ -54,7 +51,7 @@ class Stock(commands.Cog):
     @stocks.command(name="add", description="Add a stock to your portfolio.")
     async def add(
         self,
-        ctx: commands.Context,
+        ctx: ApplicationContext,
         ticker: Option(
             str, description="The ticker of the stock e.g., AAPL", required=True
         ),
@@ -191,7 +188,7 @@ class Stock(commands.Cog):
     )
     async def remove(
         self,
-        ctx: commands.Context,
+        ctx: ApplicationContext,
         ticker: Option(
             str, description="The ticker of the stock e.g., AAPL", required=True
         ),
@@ -284,7 +281,7 @@ class Stock(commands.Cog):
         )
 
     @stocks.command(name="show", description="Show the stocks in your portfolio.")
-    async def show(self, ctx: commands.Context) -> None:
+    async def show(self, ctx: ApplicationContext) -> None:
         """
         Usage:
         `!stock show` to show the stocks in your portfolio

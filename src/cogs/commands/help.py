@@ -3,6 +3,7 @@
 import discord
 from discord.ext import commands
 from discord.commands import Option
+from discord.commands.context import ApplicationContext
 
 from util.disc_util import get_guild
 
@@ -20,7 +21,7 @@ class Help(commands.Cog):
     @commands.slash_command(description="Receive information about a command.")
     async def help(
         self,
-        ctx: commands.Context,
+        ctx: ApplicationContext,
         command: Option(str, description="Command to get help for.", required=False),
     ):
         """

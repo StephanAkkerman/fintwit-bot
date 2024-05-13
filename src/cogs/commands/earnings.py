@@ -2,6 +2,7 @@
 # > 3rd Party Dependencies
 from discord.ext import commands
 from discord.commands import Option
+from discord.commands.context import ApplicationContext
 
 # Local dependencies
 from util.earnings_scraper import YahooEarningsCalendar
@@ -22,7 +23,7 @@ class Earnings(commands.Cog):
     )
     async def earnings(
         self,
-        ctx: commands.Context,
+        ctx: ApplicationContext,
         stock: Option(str, description="The requested stock.", required=True),
     ):
         """
@@ -56,7 +57,7 @@ class Earnings(commands.Cog):
             raise commands.UserInputError()
 
     @earnings.error
-    async def earnings_error(self, ctx: commands.context.Context, error: Exception):
+    async def earnings_error(self, ctx: ApplicationContext, error: Exception):
         """
         Catches the errors when using the `!earnings` command.
 

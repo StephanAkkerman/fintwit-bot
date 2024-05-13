@@ -11,6 +11,7 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import discord
 from discord.ext import commands
 from discord.commands import Option
+from discord.commands.context import ApplicationContext
 
 # > Local dependencies
 from util.vars import get_json_data
@@ -31,7 +32,7 @@ class Sentiment(commands.Cog):
     )
     async def sentiment(
         self,
-        ctx: commands.Context,
+        ctx: ApplicationContext,
         stock: Option(str, description="Stock ticker, i.e. AAPL.", required=True),
     ) -> None:
         """
@@ -109,7 +110,7 @@ class Sentiment(commands.Cog):
         await ctx.respond(embed=e)
 
     @sentiment.error
-    async def sentiment_error(self, ctx: commands.Context, error: Exception) -> None:
+    async def sentiment_error(self, ctx: ApplicationContext, error: Exception) -> None:
         """
         Catches the errors when using the `!sentiment` command.
 
