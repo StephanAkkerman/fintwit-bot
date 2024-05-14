@@ -1,18 +1,19 @@
 from __future__ import annotations
-from typing import List, Optional
-import traceback
+
 import datetime
+import traceback
+from typing import List, Optional
 
 import aiohttp
 import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
-
-from util.vars import config
+from util.chart_recognizer import classify_img
 from util.disc_util import get_channel, get_tagged_users, get_webhook
-from util.tweet_embed import make_tweet_embed
-from util.parse_tweet import parse_tweet
 from util.get_tweet import get_tweet
+from util.parse_tweet import parse_tweet
+from util.tweet_embed import make_tweet_embed
+from util.vars import config
 
 
 class Timeline(commands.Cog):
@@ -43,6 +44,11 @@ class Timeline(commands.Cog):
         self.set_channels("IMAGES")
         self.set_channels("OTHER")
         self.set_channels("NEWS")
+
+        # For images that are recognized as a chart but without any specific category
+        self.unknown_charts = get_channel(
+            self.bot, config["LOOPS"]["TIMELINE"]["UNKNOWN_CHARTS"]
+        )
 
         # Get all text channels
         self.all_txt_channels.start()
@@ -243,9 +249,23 @@ class Timeline(commands.Cog):
             The Discord channel.
         """
         if category is None:
-            channel = self.images_channel if media else self.other_channel
+            channel = self.other_channel
+
+            # Default to images channel if there are images
+            if media:
+                channel = self.images_channel
+
+                # Check if the tweet is a chart
+                for m in media:
+                    if classify_img(m) == "chart":
+                        channel = self.unknown_charts
+                        break
         else:
-            channel_type = "charts" if media else "text"
+            channel_type = "text"
+            for m in media:
+                if classify_img(m) == "chart":
+                    channel_type = "charts"
+                    break
             channel = self.__dict__[f"{category}_{channel_type}_channel"]
 
         return channel

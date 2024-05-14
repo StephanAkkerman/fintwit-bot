@@ -17,6 +17,7 @@ LOOPS:
     ENABLED: True
     CHARTS_CHANNEL: 📈┃charts
     TEXT_CHANNEL: 💬┃text
+    UNKNOWN_CHARTS: 📈┃unknown-charts
 
     # The channels related to crypto
     CRYPTO:
