@@ -1,18 +1,18 @@
 import datetime
 
-# > 3rd party dependencies
-import pandas as pd
-from yahoo_fin.stock_info import get_earnings_in_date_range
-
 # > Discord dependencies
 import discord
-from discord.ext import commands
-from discord.ext.tasks import loop
+
+# > 3rd party dependencies
+import pandas as pd
 
 # Local dependencies
 import util.vars
-from util.vars import config, data_sources
+from discord.ext import commands
+from discord.ext.tasks import loop
 from util.disc_util import get_channel, get_tagged_users
+from util.vars import config, data_sources
+from yahoo_fin.stock_info import get_earnings_in_date_range
 
 
 class Earnings_Overview(commands.Cog):
@@ -59,10 +59,45 @@ class Earnings_Overview(commands.Cog):
 
         return tags, e
 
+    def get_earnings_in_date_range(self, start_date, end_date) -> list[pd.DataFrame]:
+        dfs = []
+        for i in range((end_date - start_date).days + 1):
+            date = start_date + datetime.timedelta(days=i)
+            df = self.get_earnings_for_date(date)
+            dfs.append(df)
+
+        return dfs
+
+    def get_earnings_for_date(self, date: datetime.datetime) -> pd.DataFrame:
+        # Convert datetime to string YYYY-MM-DD
+        import requests
+
+        date = date.strftime("%Y-%m-%d")
+        url = f"https://api.nasdaq.com/api/calendar/earnings?date={date}"
+        # Add headers to avoid 403 error
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "Accept-Language": "en,nl-NL;q=0.9,nl;q=0.8,en-CA;q=0.7,ja;q=0.6",
+            "Accept-Encoding": "gzip, deflate, br, zstd",
+            "Sec-Ch-Ua": '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
+        }
+        json = requests.get(url, headers=headers).json()
+        # Automatically ordered from highest to lowest market cap
+        df = pd.DataFrame(json["data"]["rows"])
+        # Replace time with emojis
+        emoji_dict = {
+            "time-after-hours": "🌙",
+            "time-pre-market": "🌞",
+            "time-not-supplied": "❓",
+        }
+        df["time"] = df["time"].replace(emoji_dict)
+        return df
+
     @loop(hours=1)
     async def earnings(self) -> None:
         """
-        Checks every hour if today is a friday and if the market is closed.
+        Checks every hour if today is a sunday and if the market is closed.
         If that is the case a overview will be posted with the upcoming earnings.
 
         Returns
@@ -70,12 +105,13 @@ class Earnings_Overview(commands.Cog):
         None
         """
 
-        # Send this message every friday at 23:00 UTC
+        # Send this message every sunday at 12:00 UTC
         if datetime.datetime.today().weekday() == 4:
-            if datetime.datetime.utcnow().hour == 23:
+            if datetime.datetime.utcnow().hour == 12:
+                # Monday to Friday
                 earnings = get_earnings_in_date_range(
-                    datetime.datetime.now(),
-                    datetime.datetime.now() + datetime.timedelta(days=7),
+                    datetime.datetime.now() + datetime.timedelta(days=1),
+                    datetime.datetime.now() + datetime.timedelta(days=6),
                 )
                 earnings_df = pd.DataFrame(earnings)
                 if earnings_df.empty:
