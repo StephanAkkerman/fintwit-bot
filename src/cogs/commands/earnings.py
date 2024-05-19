@@ -1,11 +1,16 @@
 ##> Imports
+from datetime import datetime
+
+import pandas as pd
+import pytz
+
 # > 3rd Party Dependencies
-from discord.ext import commands
+import yfinance
 from discord.commands import Option
 from discord.commands.context import ApplicationContext
+from discord.ext import commands
 
 # Local dependencies
-from util.earnings_scraper import YahooEarningsCalendar
 from util.confirm_stock import confirm_stock
 
 
@@ -48,10 +53,19 @@ class Earnings(commands.Cog):
             if not await confirm_stock(self.bot, ctx, stock):
                 return
 
-            next_earnings = YahooEarningsCalendar().get_next_earnings_date(stock)
-            msg = (
-                f"The next earnings date for {stock.upper()} is <t:{next_earnings}:R>."
-            )
+            ticker = yfinance.Ticker(stock)
+            df = ticker.get_earnings_dates()
+            # Convert 'today' to a timezone-aware timestamp
+            tz = pytz.timezone("America/New_York")
+            today = pd.Timestamp(datetime.now(tz))
+
+            # Filter the DataFrame to include only future dates
+            future_dates = df[df.index > today]
+
+            # Find the closest date
+            closest_date = future_dates.index.min()
+
+            msg = f"The next earnings date for {stock.upper()} is <t:{closest_date.date()}:R>."
             await ctx.respond(msg)
         else:
             raise commands.UserInputError()
