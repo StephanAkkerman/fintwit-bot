@@ -1,23 +1,23 @@
 ## > Imports
 # > Standard library
-import re
 import datetime
-
-# > Third party
-import pandas as pd
-import numpy as np
-from bs4 import BeautifulSoup
+import re
 
 # > Discord dependencies
 import discord
+import numpy as np
+
+# > Third party
+import pandas as pd
+from bs4 import BeautifulSoup
 from discord.ext import commands
 from discord.ext.tasks import loop
-
-# > Local
-from util.vars import get_json_data, config, data_sources
+from util.cg_data import cg
 from util.disc_util import get_channel
 from util.formatting import format_change
-from util.cg_data import cg
+
+# > Local
+from util.vars import config, data_sources, get_json_data
 
 
 class NFTS(commands.Cog):
@@ -252,7 +252,11 @@ class NFTS(commands.Cog):
 
     @loop(hours=1)
     async def top_p2e(self):
-        p2e = await p2e_games()
+        try:
+            p2e = await p2e_games()
+        except Exception as e:
+            print("Error fetching PlayToEarn data: ", e)
+            return
 
         if p2e.empty:
             return

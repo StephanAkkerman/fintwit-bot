@@ -30,9 +30,7 @@ class Earnings_Overview(commands.Cog):
     def earnings_embed(self, df: pd.DataFrame, date: str) -> tuple[str, discord.Embed]:
         # Create lists of the important info
         tickers = "\n".join(df["symbol"].to_list())
-
         time_type = "\n".join(df["time"].to_list())
-
         epsestimate = "\n".join(df["epsForecast"].replace("nan", "N/A").to_list())
 
         # Make an embed with these tickers and their earnings date + estimation
@@ -53,7 +51,7 @@ class Earnings_Overview(commands.Cog):
             icon_url=data_sources["yahoo"]["icon"],
         )
 
-        tags = get_tagged_users(df["ticker"].to_list())
+        tags = get_tagged_users(df["symbol"].to_list())
 
         return tags, e
 
@@ -83,6 +81,8 @@ class Earnings_Overview(commands.Cog):
         json = await get_json_data(url, headers=headers)
         # Automatically ordered from highest to lowest market cap
         df = pd.DataFrame(json["data"]["rows"])
+        if df.empty:
+            return df
         # Replace time with emojis
         emoji_dict = {
             "time-after-hours": "🌙",
@@ -91,6 +91,23 @@ class Earnings_Overview(commands.Cog):
         }
         df["time"] = df["time"].replace(emoji_dict)
         return df
+
+    def date_check(self) -> bool:
+        """
+        Check if today is a sunday and if it's 12 o'clock.
+
+        Returns
+        ----------
+        bool:
+            True if today is a sunday and the market is closed.
+        """
+
+        if (
+            datetime.datetime.today().weekday() == 6
+            and datetime.datetime.utcnow().hour == 12
+        ):
+            return True
+        return False
 
     @loop(hours=1)
     async def earnings(self) -> None:
@@ -104,31 +121,29 @@ class Earnings_Overview(commands.Cog):
         """
 
         # Send this message every sunday at 12:00 UTC
-        if datetime.datetime.today().weekday() == 4:
-            if datetime.datetime.utcnow().hour == 12:
-                # Monday to Friday
-                end_date = datetime.datetime.now() + datetime.timedelta(days=6)
-                start_date = datetime.datetime.now() + datetime.timedelta(days=1)
-                earnings_dfs = await self.get_earnings_in_date_range(
-                    start_date,
-                    end_date,
-                )
+        if self.date_check():
+            end_date = datetime.datetime.now() + datetime.timedelta(days=6)
+            start_date = datetime.datetime.now() + datetime.timedelta(days=1)
+            earnings_dfs = await self.get_earnings_in_date_range(
+                start_date,
+                end_date,
+            )
 
-                for earnings_df, i in zip(
-                    earnings_dfs, range((end_date - start_date).days + 1)
-                ):
-                    date = start_date + datetime.timedelta(days=i)
-                    date_string = date.strftime("%Y-%m-%d")
+            for earnings_df, i in zip(
+                earnings_dfs, range((end_date - start_date).days + 1)
+            ):
+                date = start_date + datetime.timedelta(days=i)
+                date_string = date.strftime("%Y-%m-%d")
 
-                    if earnings_df.empty:
-                        print(f"No earnings found for {date_string}")
-                        continue
+                if earnings_df.empty:
+                    print(f"No earnings found for {date_string}")
+                    continue
 
-                    # Only use the top 10 per dataframe
-                    # Could change this in min. 1 billion USD market cap
+                # Only use the top 10 per dataframe
+                # Could change this in min. 1 billion USD market cap
 
-                    tags, e = self.earnings_embed(earnings_df.head(10), date)
-                    await self.channel.send(content=tags, embed=e)
+                tags, e = self.earnings_embed(earnings_df.head(10), date_string)
+                await self.channel.send(content=tags, embed=e)
 
 
 def setup(bot: commands.Bot) -> None:
