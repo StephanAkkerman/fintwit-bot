@@ -7,12 +7,10 @@ import discord
 import pandas as pd
 
 # Local dependencies
-import util.vars
 from discord.ext import commands
 from discord.ext.tasks import loop
 from util.disc_util import get_channel, get_tagged_users
-from util.vars import config, data_sources
-from yahoo_fin.stock_info import get_earnings_in_date_range
+from util.vars import config, data_sources, get_json_data
 
 
 class Earnings_Overview(commands.Cog):
@@ -31,11 +29,11 @@ class Earnings_Overview(commands.Cog):
 
     def earnings_embed(self, df: pd.DataFrame, date: str) -> tuple[str, discord.Embed]:
         # Create lists of the important info
-        tickers = "\n".join(df["ticker"].to_list())
+        tickers = "\n".join(df["symbol"].to_list())
 
-        time_type = "\n".join(df["startdatetimetype"].to_list())
+        time_type = "\n".join(df["time"].to_list())
 
-        epsestimate = "\n".join(df["epsestimate"].replace("nan", "N/A").to_list())
+        epsestimate = "\n".join(df["epsForecast"].replace("nan", "N/A").to_list())
 
         # Make an embed with these tickers and their earnings date + estimation
         e = discord.Embed(
@@ -59,19 +57,19 @@ class Earnings_Overview(commands.Cog):
 
         return tags, e
 
-    def get_earnings_in_date_range(self, start_date, end_date) -> list[pd.DataFrame]:
+    async def get_earnings_in_date_range(
+        self, start_date, end_date
+    ) -> list[pd.DataFrame]:
         dfs = []
         for i in range((end_date - start_date).days + 1):
             date = start_date + datetime.timedelta(days=i)
-            df = self.get_earnings_for_date(date)
+            df = await self.get_earnings_for_date(date)
             dfs.append(df)
 
         return dfs
 
-    def get_earnings_for_date(self, date: datetime.datetime) -> pd.DataFrame:
+    async def get_earnings_for_date(self, date: datetime.datetime) -> pd.DataFrame:
         # Convert datetime to string YYYY-MM-DD
-        import requests
-
         date = date.strftime("%Y-%m-%d")
         url = f"https://api.nasdaq.com/api/calendar/earnings?date={date}"
         # Add headers to avoid 403 error
@@ -82,7 +80,7 @@ class Earnings_Overview(commands.Cog):
             "Accept-Encoding": "gzip, deflate, br, zstd",
             "Sec-Ch-Ua": '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
         }
-        json = requests.get(url, headers=headers).json()
+        json = await get_json_data(url, headers=headers)
         # Automatically ordered from highest to lowest market cap
         df = pd.DataFrame(json["data"]["rows"])
         # Replace time with emojis
@@ -109,60 +107,28 @@ class Earnings_Overview(commands.Cog):
         if datetime.datetime.today().weekday() == 4:
             if datetime.datetime.utcnow().hour == 12:
                 # Monday to Friday
-                earnings = get_earnings_in_date_range(
-                    datetime.datetime.now() + datetime.timedelta(days=1),
-                    datetime.datetime.now() + datetime.timedelta(days=6),
+                end_date = datetime.datetime.now() + datetime.timedelta(days=6)
+                start_date = datetime.datetime.now() + datetime.timedelta(days=1)
+                earnings_dfs = await self.get_earnings_in_date_range(
+                    start_date,
+                    end_date,
                 )
-                earnings_df = pd.DataFrame(earnings)
-                if earnings_df.empty:
-                    print("No earnings found")
-                    return
 
-                # Filter on unique tickers in the nasdaq list
-                earnings_df = earnings_df[
-                    earnings_df["ticker"].isin(util.vars.nasdaq_tickers)
-                ]
+                for earnings_df, i in zip(
+                    earnings_dfs, range((end_date - start_date).days + 1)
+                ):
+                    date = start_date + datetime.timedelta(days=i)
+                    date_string = date.strftime("%Y-%m-%d")
 
-                earnings_df = earnings_df.drop_duplicates(subset="ticker")
+                    if earnings_df.empty:
+                        print(f"No earnings found for {date_string}")
+                        continue
 
-                # Split dataframe based on date
-                earnings_df["date"] = pd.to_datetime(
-                    earnings_df["startdatetime"]
-                ).dt.date
+                    # Only use the top 10 per dataframe
+                    # Could change this in min. 1 billion USD market cap
 
-                dates = earnings_df["date"].unique()
-
-                for date in dates:
-                    date_df = earnings_df.loc[earnings_df["date"] == date]
-
-                    # Necessary for using inplace operations below
-                    date_df_copy = date_df.copy()
-
-                    # Format the dataframe
-                    date_df_copy.sort_values(by="ticker", inplace=True)
-
-                    # AMC after market close (After-hours)
-                    # BMO before market open (Pre-market)
-                    # TNS Time not supplied (Unknown)
-                    date_df_copy["startdatetimetype"].replace(
-                        {
-                            "AMC": "After-hours",
-                            "BMO": "Pre-market",
-                            "TNS": "Unknown",
-                            "TAS": "Unknown",
-                        },
-                        inplace=True,
-                    )
-
-                    date_df_copy = date_df_copy.astype({"epsestimate": str})
-
-                    split = 50
-                    while not date_df_copy.iloc[split - 50 : split].empty:
-                        tags, e = self.earnings_embed(
-                            date_df_copy.iloc[split - 50 : split], date
-                        )
-                        await self.channel.send(content=tags, embed=e)
-                        split += split
+                    tags, e = self.earnings_embed(earnings_df.head(10), date)
+                    await self.channel.send(content=tags, embed=e)
 
 
 def setup(bot: commands.Bot) -> None:
