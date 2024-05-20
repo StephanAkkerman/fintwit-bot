@@ -3,6 +3,7 @@ import datetime
 # > Discord dependencies
 import discord
 import pandas as pd
+import pytz
 
 # > 3rd party dependencies
 import yahoo_fin.stock_info as si
@@ -136,8 +137,35 @@ class Trending(commands.Cog):
 
         return df
 
-    @loop(hours=2)
+    def is_pre_market(self):
+        # Define pre-market trading hours in Eastern Time (ET)
+        pre_market_start = datetime.time(4, 0)  # 4:00 AM
+        pre_market_end = datetime.time(9, 30)  # 9:30 AM
+
+        # Get the current time in Eastern Time (ET)
+        et = pytz.timezone("US/Eastern")
+        current_time = datetime.datetime.now(et).time()
+
+        # Check if current time is within pre-market hours
+        return pre_market_start <= current_time <= pre_market_end
+
+    def is_after_hours(self):
+        # Define post-market trading hours in Eastern Time (ET)
+        post_market_start = datetime.time(16, 0)  # 4:00 PM
+        post_market_end = datetime.time(20, 0)  # 8:00 PM
+
+        # Get the current time in Eastern Time (ET)
+        et = pytz.timezone("US/Eastern")
+        current_time = datetime.datetime.now(et).time()
+
+        # Check if current time is within post-market hours
+        return post_market_start <= current_time <= post_market_end
+
+    @loop(hours=1)
     async def premarket(self) -> None:
+        if not self.is_pre_market():
+            return
+
         premarket_url = "https://www.tradingview.com/markets/stocks-usa/market-movers-active-pre-market-stocks/"
 
         df = self.tv_market_data(premarket_url)
@@ -152,8 +180,12 @@ class Trending(commands.Cog):
         await self.pre_market_channel.purge(limit=1)
         await self.pre_market_channel.send(embed=pre_e)
 
-    @loop(hours=2)
+    @loop(hours=1)
     async def afterhours(self) -> None:
+        # Check if the after hours are now
+        if not self.is_after_hours():
+            return
+
         ah_url = "https://www.tradingview.com/markets/stocks-usa/market-movers-active-after-hours-stocks/"
 
         df = self.tv_market_data(ah_url)
