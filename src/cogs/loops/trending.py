@@ -1,25 +1,25 @@
 import datetime
 
-# > 3rd party dependencies
-import yahoo_fin.stock_info as si
-import pandas as pd
-
 # > Discord dependencies
 import discord
+import pandas as pd
+
+# > 3rd party dependencies
+import yahoo_fin.stock_info as si
 from discord.ext import commands
 from discord.ext.tasks import loop
+from util.afterhours import afterHours
+from util.cg_data import get_top_categories, get_trending_coins
+from util.disc_util import get_channel
+from util.formatting import (
+    format_change,
+    format_embed,
+    format_embed_length,
+    human_format,
+)
 
 # Local dependencies
-from util.vars import config, get_json_data, data_sources
-from util.disc_util import get_channel
-from util.afterhours import afterHours
-from util.formatting import (
-    format_embed,
-    format_change,
-    human_format,
-    format_embed_length,
-)
-from util.cg_data import get_trending_coins, get_top_categories
+from util.vars import config, data_sources, get_json_data
 
 
 class Trending(commands.Cog):
@@ -56,6 +56,118 @@ class Trending(commands.Cog):
             )
 
             self.stocks.start()
+
+        if config["LOOPS"]["TRENDING"]["PREMARKET"]["ENABLED"]:
+            self.pre_market_channel = get_channel(
+                self.bot,
+                config["LOOPS"]["TRENDING"]["PREMARKET"]["CHANNEL"],
+                config["CATEGORIES"]["STOCKS"],
+            )
+
+            self.premarket.start()
+
+        if config["LOOPS"]["TRENDING"]["AFTERHOURS"]["ENABLED"]:
+            self.after_hours_channel = get_channel(
+                self.bot,
+                config["LOOPS"]["TRENDING"]["AFTERHOURS"]["CHANNEL"],
+                config["CATEGORIES"]["STOCKS"],
+            )
+
+            self.afterhours.start()
+
+    def tv_market_data(self, url) -> pd.DataFrame:
+        df = pd.read_html(url)[0]
+
+        if len(df) <= 1:
+            return
+
+        # Use a more accurate regex to separate the symbol and company name
+        # Assume symbols are 1-4 uppercase letters and company names start with a capital letter
+        df[["Symbol", "Company Name"]] = df["Symbol"].str.extract(
+            r"([A-Z]{1,4})([A-Z][a-zA-Z ,.\'-]*)", expand=True
+        )
+
+        # Strip any leading/trailing whitespaces from the 'Company Name'
+        df["Company Name"] = df["Company Name"].str.strip()
+
+        if "pre-market" in url:
+            columns = [
+                "Symbol",
+                "Pre-market Vol",
+                "Pre-market Close",
+                "Pre-market Chg %",
+            ]
+        elif "post-market" in url:
+            columns = [
+                "Symbol",
+                "Post-market Vol",
+                "Post-market Close",
+                "Post-market Chg %",
+            ]
+        else:
+            print("Invalid URL")
+            return
+
+        # Format the dataframe
+        df = df[columns]
+
+        # Create renaming dictionary dynamically
+        rename_dict = {
+            col: new_col
+            for col, new_col in zip(columns[1:], ["Volume", "Price", "% Change"])
+        }
+
+        # Rename columns
+        df = df.rename(columns=rename_dict)
+
+        # Remove the ' USD' from the 'Price' column
+        df["Price"] = df["Price"].str.replace(" USD", "")
+
+        # Remove the '%' from the '% Change' column
+        df["% Change"] = df["% Change"].str.replace("%", "")
+
+        # Remove the + and - from the '% Change' column
+        df["% Change"] = df["% Change"].str.replace("+", "")
+        df["% Change"] = df["% Change"].str.replace("−", "")
+
+        df["Website"] = "https://www.tradingview.com/symbols/NASDAQ-" + df["Symbol"]
+        # Make the symbol a clickable link
+        df["Symbol"] = "[" + df["Symbol"] + "](" + df["Website"] + ")"
+
+        return df
+
+    @loop(hours=2)
+    async def premarket(self) -> None:
+        premarket_url = "https://www.tradingview.com/markets/stocks-usa/market-movers-active-pre-market-stocks/"
+
+        df = self.tv_market_data(premarket_url)
+        if df is None:
+            return
+
+        pre_e = await format_embed(
+            df.head(20), "Most Active Pre-market Stocks", "tradingview-premarket"
+        )
+
+        # Remove the previous message
+        await self.pre_market_channel.purge(limit=1)
+        await self.pre_market_channel.send(embed=pre_e)
+
+    @loop(hours=2)
+    async def afterhours(self) -> None:
+        ah_url = "https://www.tradingview.com/markets/stocks-usa/market-movers-active-after-hours-stocks/"
+
+        df = self.tv_market_data(ah_url)
+
+        if df is None:
+            return
+
+        ah_e = await format_embed(
+            df.head(20), "Most Active After Hours Stocks", "tradingview-afterhours"
+        )
+
+        # Remove the previous message
+        await self.after_hours_channel.purge(limit=1)
+        await self.after_hours_channel.send(embed=ah_e)
 
     @loop(hours=12)
     async def crypto(self) -> None:

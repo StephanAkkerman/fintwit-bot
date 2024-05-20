@@ -191,6 +191,14 @@ LOOPS:
     NFTS:
       ENABLED: True
 
+    AFTERHOURS:
+      ENABLED: True
+      CHANNEL: 🌃┃after-hours
+
+    PREMARKET:
+      ENABLED: True
+      CHANNEL: 🌇┃pre-market
+
   TRADES:
     ENABLED: False
     CHANNEL: 💲┃trades

@@ -1,10 +1,11 @@
 # Standard libaries
-from math import log, floor
 import datetime
+from math import floor, log
+
+import discord
 
 # Third party libraries
 import pandas as pd
-import discord
 
 from util.vars import data_sources
 
@@ -60,7 +61,7 @@ def human_format(number: float, absolute: bool = False, decimals: int = 0) -> st
     """
 
     # Try to convert to float
-    if type(number) == str:
+    if isinstance(number, str):
         try:
             number = float(number)
         except ValueError:
@@ -159,6 +160,14 @@ async def format_embed(og_df: pd.DataFrame, type: str, source: str) -> discord.E
         color = data_sources["coinmarketcap"]["color"]
         icon_url = data_sources["coinmarketcap"]["icon"]
         name = "Coin"
+    elif source.startswith("tradingview"):
+        color = data_sources["tradingview"]["color"]
+        icon_url = data_sources["tradingview"]["icon"]
+        name = "Stock"
+        if source == "tradingview-premarket":
+            url = "https://www.tradingview.com/markets/stocks-usa/market-movers-active-pre-market-stocks/"
+        elif source == "tradingview-afterhours":
+            url = "https://www.tradingview.com/markets/stocks-usa/market-movers-active-after-hours-stocks/"
 
     e = discord.Embed(
         title=f"Top {len(df)} {type}",
@@ -184,20 +193,26 @@ async def format_embed(og_df: pd.DataFrame, type: str, source: str) -> discord.E
     # Only these columns are necessary
     df = df[["Symbol", "Price", "% Change", "Volume"]]
 
-    df = df.astype({"Symbol": str, "Price": float, "% Change": float, "Volume": float})
+    if not source.startswith("tradingview"):
+        df = df.astype(
+            {"Symbol": str, "Price": float, "% Change": float, "Volume": float}
+        )
+        df = df.round({"Price": 3, "% Change": 2, "Volume": 0})
+    else:
+        df = df.astype(
+            {"Symbol": str, "Price": float, "% Change": float, "Volume": str}
+        )
+        df = df.round({"Price": 3, "% Change": 2})
 
-    df = df.round({"Price": 3, "% Change": 2, "Volume": 0})
-
-    # Format the percentage change
-    df["% Change"] = df["% Change"].apply(
-        lambda x: f" (+{x}% 📈)" if x > 0 else f" ({x}% 📉)"
-    )
+    # Apply format_change
+    df["% Change"] = df["% Change"].apply(format_change)
 
     # Post symbol, current price (weightedAvgPrice) + change, volume
-    df["Price"] = df["Price"].astype(str) + df["% Change"]
+    df["Price"] = "$" + df["Price"].astype(str) + " (" + df["% Change"] + ")"
 
-    # Format volume
-    df["Volume"] = df["Volume"].apply(lambda x: "$" + human_format(x))
+    # Format volume if it is not done already
+    if not source.startswith("tradingview"):
+        df["Volume"] = df["Volume"].apply(lambda x: "$" + human_format(x))
 
     ticker = "\n".join(df["Symbol"].tolist())
     prices = "\n".join(df["Price"].tolist())
