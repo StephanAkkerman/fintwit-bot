@@ -132,14 +132,18 @@ class Reddit(commands.Cog):
                         or url.endswith(".gif")
                     ):
                         img_url.append(url)
+                        title = "🖼️ " + title
                     # If the post includes multiple images
                     elif "gallery" in url:
                         image_dict = submission.media_metadata
                         for image_item in image_dict.values():
                             largest_image = image_item["s"]
                             img_url.append(largest_image["u"])
+
+                        title = "📸🖼️ " + title
                     elif "v.redd.it" in url:
                         video = True
+                        title = "🎥 " + title
                         if "images" in submission.preview:
                             img_url.append(
                                 submission.preview["images"][0]["source"]["url"]
@@ -158,10 +162,6 @@ class Reddit(commands.Cog):
                 )
                 if img_url:
                     e.set_image(url=img_url[0])
-
-                # Add video emoji to the title
-                if video:
-                    e.title = "🎥 " + e.title
 
                 e.set_footer(
                     text=f"🔼 {submission.score} | 💬 {submission.num_comments}",
