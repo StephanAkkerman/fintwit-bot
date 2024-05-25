@@ -5,19 +5,19 @@ import datetime
 
 # > 3rd party dependencies
 import json
-import pandas as pd
-from bs4 import BeautifulSoup
 
 # > Discord dependencies
 import discord
-from discord.ext import commands
-from discord.ext.tasks import loop
+import pandas as pd
 
 # > Local dependencies
 import util.vars
-from util.vars import get_json_data, config, data_sources
-from util.disc_util import get_channel, get_tagged_users
+from bs4 import BeautifulSoup
+from discord.ext import commands
+from discord.ext.tasks import loop
 from util.db import update_db
+from util.disc_util import get_channel, get_tagged_users
+from util.vars import config, data_sources, get_json_data
 
 
 async def scraper(type: str) -> pd.DataFrame:
@@ -66,6 +66,10 @@ async def scraper(type: str) -> pd.DataFrame:
         "div",
         class_="tv-card-container__ideas tv-card-container__ideas--with-padding js-balance-content",
     )
+    
+    if content is None:
+        print(f"No content found for {type} ideas")
+        return pd.DataFrame()
 
     # Save the Timestamps
     for time_upd in content.find_all("span", class_="tv-card-stats__time js-time-upd"):

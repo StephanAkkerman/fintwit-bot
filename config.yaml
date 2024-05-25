@@ -159,6 +159,10 @@ LOOPS:
     CRYPTO:
       ENABLED: True
 
+  RAINBOW_CHART:
+    ENABLED: True
+    CHANNEL: 🌈┃rainbow-chart
+
   REDDIT:
     ENABLED: True
 

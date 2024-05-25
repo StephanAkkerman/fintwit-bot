@@ -1,21 +1,17 @@
-import os
 import datetime
+import os
 
-# > Discord dependencies
 import discord
-from discord.ext import commands
-from discord.ext.tasks import loop
-
-# Third party dependencies
-from tradingview_ta import get_multiple_analysis
 import matplotlib.pyplot as plt
 import numpy as np
+from discord.ext import commands
+from discord.ext.tasks import loop
+from tradingview_ta import get_multiple_analysis
 
 # Local dependencies
 from util.cg_data import get_top_vol_coins
-from util.vars import config
 from util.disc_util import get_channel
-from util.vars import data_sources
+from util.vars import config, data_sources
 
 
 class RSI_heatmap(commands.Cog):
