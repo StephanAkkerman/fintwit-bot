@@ -1,15 +1,18 @@
 ##> Imports
 # > Standard libaries
 from __future__ import annotations
-from typing import Optional, List
+
+from typing import List, Optional
+
+from util.cg_data import get_coin_info
 
 # Local dependencies
 from util.tv_data import tv
 from util.tv_symbols import currencies
-from util.cg_data import get_coin_info
 from util.yf_data import get_stock_info
 
-async def get_financials(ticker: str, website : str):
+
+async def get_financials(ticker: str, website: str):
     if "coingecko" in website:
         _, _, _, price, change, _ = await get_coin_info(ticker)
         four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "crypto")
@@ -19,9 +22,9 @@ async def get_financials(ticker: str, website : str):
     elif "forex" in website:
         _, _, _, price, change, _ = await get_stock_info(ticker, "forex")
         four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "forex")
-                
+
     return price, change, four_h_ta, one_d_ta
-    
+
 
 async def get_best_guess(ticker: str, asset_type: str):
     """
@@ -39,10 +42,10 @@ async def get_best_guess(ticker: str, asset_type: str):
     tuple
         The data of the best guess
     """
-    
+
     get_TA = False
     four_h_ta = one_d_ta = None
-    
+
     if asset_type == "crypto" and ticker.endswith("BTC") and ticker != "BTC":
         get_TA = True
         ticker = ticker[:-3]
@@ -69,7 +72,17 @@ async def get_best_guess(ticker: str, asset_type: str):
 
     elif asset_type == "forex":
         if ticker in currencies:
-            return (100000, "https://www.tradingview.com/ideas/eur/?forex", "forex", None, None, None, None, ticker, True)
+            return (
+                100000,
+                "https://www.tradingview.com/ideas/eur/?forex",
+                "forex",
+                None,
+                None,
+                None,
+                None,
+                ticker,
+                True,
+            )
         (
             volume,
             website,
@@ -100,7 +113,7 @@ async def get_best_guess(ticker: str, asset_type: str):
 
     # Set the TA data, only if volume is high enough
     if get_TA:
-        if base_sym == None:
+        if base_sym is None:
             print("No base symbol found for", ticker)
             base_sym = ticker
         four_h_ta, one_d_ta = tv.get_tv_TA(base_sym, asset_type)
@@ -151,17 +164,17 @@ async def classify_ticker(
         str
             The base ticker.
     """
-    
+
     # Try forex first
     forex_data = await get_best_guess(ticker, "forex")
-    if forex_data[-1] == True:
+    if forex_data[-1]:
         return forex_data[:-1]
 
     # If the majority is crypto or unkown check if the ticker is a crypto
     if majority == "crypto":
         crypto_data = await get_best_guess(ticker, "crypto")
-        
-        if crypto_data[-1] == True:
+
+        if crypto_data[-1]:
             return crypto_data[:-1]
 
         stock_data = await get_best_guess(ticker, "stock")
@@ -169,14 +182,14 @@ async def classify_ticker(
     elif majority == "stocks":
         stock_data = await get_best_guess(ticker, "stock")
 
-        if stock_data[-1] == True:
+        if stock_data[-1]:
             return stock_data[:-1]
 
         crypto_data = await get_best_guess(ticker, "crypto")
     else:
         crypto_data = await get_best_guess(ticker, "crypto")
         stock_data = await get_best_guess(ticker, "stock")
-        
+
     # If it was not the majority, compare the data
     c_volume = crypto_data[0]
     s_volume = stock_data[0]

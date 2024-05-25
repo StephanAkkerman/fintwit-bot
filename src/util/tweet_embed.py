@@ -1,24 +1,25 @@
 ## > Imports
 # > Standard libaries
 from __future__ import annotations
-from typing import List
+
 import datetime
+from typing import List
 
 # Discord imports
 import discord
-from discord.ext import commands
+import numpy as np
 
 # 3rd party imports
 import pandas as pd
-import numpy as np
+from cogs.loops.overview import Overview
+from discord.ext import commands
 
 # Local dependencies
 import util.vars
-from util.ticker_classifier import classify_ticker, get_financials
-from util.sentiment_analyis import add_sentiment
-from util.vars import filter_dict, data_sources
 from util.db import merge_and_update, remove_old_rows, update_tweet_db
-from cogs.loops.overview import Overview
+from util.sentiment_analyis import add_sentiment
+from util.ticker_classifier import classify_ticker, get_financials
+from util.vars import data_sources, filter_dict
 
 tweet_overview = None
 
@@ -210,6 +211,10 @@ async def add_financials(
                 # Skip if this ticker has been done before, for instance in tweets containing Solana and SOL
                 if base_symbol in base_symbols:
                     continue
+
+                if exchanges is None:
+                    exchanges = []
+                    print("No exchanges found for", ticker)
 
                 # Convert info to a dataframe
                 df = pd.DataFrame(
