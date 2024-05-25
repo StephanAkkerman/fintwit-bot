@@ -98,7 +98,7 @@ class Trending(commands.Cog):
                 "Pre-market Close",
                 "Pre-market Chg %",
             ]
-        elif "post-market" in url:
+        elif "after-hours" in url:
             columns = [
                 "Symbol",
                 "Post-market Vol",
