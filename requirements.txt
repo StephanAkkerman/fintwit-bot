@@ -10,7 +10,7 @@ aiohttp==3.9.5
 asyncpraw==7.7.1
 ccxt==4.3.22
 transformers==4.40.2
-matplotlib==3.8.4
+matplotlib==3.9.0
 scipy==1.13.0
 brotli==1.1.0
 py-cord==2.5.0
