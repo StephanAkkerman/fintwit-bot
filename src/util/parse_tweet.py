@@ -69,6 +69,8 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
     is_long_tweet = False
 
     ## TODO: split the below logic up into functions
+    print(tweet)
+    print()
 
     # To be able to get the tweet and the reply
     if "items" in tweet.keys():
@@ -210,8 +212,8 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
 
         if retweeted_status_result and replied_tweet:
             e_title = f"{util.vars.custom_emojis['retweet']} {user_name} retweeted {r_user_name}"
-            # Remove the "RT @username: " from the text
-            text = re.sub(r"^RT @\w+: ", "", text)
+            # Use the full retweeted text (otherwise the tweet text is cut off)
+            text = r_text
 
         media += r_media
         media_types += r_media_types
