@@ -1,6 +1,7 @@
 ##> Imports
 # > Standard libaries
 from __future__ import annotations
+
 import re
 
 # > Third party libraries

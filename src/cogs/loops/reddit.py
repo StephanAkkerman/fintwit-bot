@@ -5,18 +5,18 @@ import os
 
 # > 3rd party dependencies
 import asyncpraw
-import pandas as pd
 
 # > Discord dependencies
 import discord
-from discord.ext import commands
-from discord.ext.tasks import loop
+import pandas as pd
 
 # Local dependencies
 import util.vars
-from util.vars import config, data_sources
-from util.disc_util import get_channel, get_webhook
+from discord.ext import commands
+from discord.ext.tasks import loop
 from util.db import update_db
+from util.disc_util import get_channel, get_webhook
+from util.vars import config, data_sources
 
 
 class Reddit(commands.Cog):
@@ -132,6 +132,7 @@ class Reddit(commands.Cog):
                         or url.endswith(".gif")
                     ):
                         img_url.append(url)
+                    # If the post includes multiple images
                     elif "gallery" in url:
                         image_dict = submission.media_metadata
                         for image_item in image_dict.values():
@@ -139,10 +140,12 @@ class Reddit(commands.Cog):
                             img_url.append(largest_image["u"])
                     elif "v.redd.it" in url:
                         video = True
-                        descr = ""
-
-                if descr == "" and not video and not img_url:
-                    continue
+                        if "images" in submission.preview:
+                            img_url.append(
+                                submission.preview["images"][0]["source"]["url"]
+                            )
+                        else:
+                            print("No image found for video post")
 
                 e = discord.Embed(
                     title=title,
@@ -156,9 +159,9 @@ class Reddit(commands.Cog):
                 if img_url:
                     e.set_image(url=img_url[0])
 
-                # e.set_thumbnail(
-                #    url="https://styles.redditmedia.com/t5_2th52/styles/communityIcon_wzrl8s0hx8a81.png?width=256&s=dcbf830170c1e8237335a3f046b36f723c5d55e7"
-                # )
+                # Add video emoji to the title
+                if video:
+                    e.title = "🎥 " + e.title
 
                 e.set_footer(
                     text=f"🔼 {submission.score} | 💬 {submission.num_comments}",
@@ -181,12 +184,7 @@ class Reddit(commands.Cog):
                         avatar_url=self.bot.user.avatar.url,
                     )
                 else:
-                    if video:
-                        await self.channel.send(
-                            content=f"https://www.reddit.com{submission.permalink}"
-                        )
-                    else:
-                        await self.channel.send(embed=e)
+                    await self.channel.send(embed=e)
 
                 counter += 1
 
