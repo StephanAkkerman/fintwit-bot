@@ -123,7 +123,6 @@ class Reddit(commands.Cog):
 
                 # Add images to the embed
                 img_url = []
-                video = False
                 if not submission.is_self:
                     url = submission.url
                     if (
@@ -142,7 +141,6 @@ class Reddit(commands.Cog):
 
                         title = "📸🖼️ " + title
                     elif "v.redd.it" in url:
-                        video = True
                         title = "🎥 " + title
                         if "images" in submission.preview:
                             img_url.append(

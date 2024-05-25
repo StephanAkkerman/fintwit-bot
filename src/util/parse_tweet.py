@@ -1,6 +1,6 @@
-import re
-import json
 import datetime
+import json
+import re
 from typing import List
 
 # > Local imports
@@ -84,7 +84,7 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
             )
             return
     # For long tweets
-    elif "note_tweet" in tweet.keys():
+    if "note_tweet" in tweet:
         is_long_tweet = True
         tweet_text = tweet["note_tweet"]["note_tweet_results"]["result"]["text"]
         tweet_entities = tweet["note_tweet"]["note_tweet_results"]["result"][
