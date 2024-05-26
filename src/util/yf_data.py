@@ -42,11 +42,13 @@ def yf_info(ticker: str, do_format_change: bool = True):
     append_price_data("regularMarketPrice", "regularMarketChangePercent")
 
     # Calculate volume
-    volume = stock_info.get("regularMarketVolume", 0) * prices[-1] if prices else 0
+    volume: float = (
+        stock_info.get("regularMarketVolume", 0) * prices[-1] if prices else 0
+    )
 
     # Prepare return values
-    url = f"https://finance.yahoo.com/quote/{ticker}"
-    exchange = stock_info.get("exchange", [])
+    url: str = f"https://finance.yahoo.com/quote/{ticker}"
+    exchange: str = stock_info.get("exchange", [])
 
     return volume, url, exchange, prices, changes if changes else ["N/A"], ticker
 
@@ -91,7 +93,7 @@ async def get_stock_info(
 
     if asset_type == "stock":
         stock_info = yf_info(ticker, do_format_change)
-        if stock_info:
+        if stock_info and stock_info[0] > 0:  # or price == []
             return stock_info
 
     # Check TradingView data
