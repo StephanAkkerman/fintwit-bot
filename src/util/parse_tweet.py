@@ -69,8 +69,6 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
     is_long_tweet = False
 
     ## TODO: split the below logic up into functions
-    print(tweet)
-    print()
 
     # To be able to get the tweet and the reply
     if "items" in tweet.keys():

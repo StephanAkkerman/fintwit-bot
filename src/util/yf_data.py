@@ -1,20 +1,22 @@
 ##> Imports
 # > Standard libaries
 from __future__ import annotations
-from typing import Optional, List
+
+from typing import List, Optional
 
 # > 3rd Party Dependencies
 from yahooquery import Ticker
 
+from util.afterhours import afterHours
+
 # Local dependencies
 from util.formatting import format_change
-from util.afterhours import afterHours
 from util.tv_data import tv
 
 
 def yf_info(ticker: str, do_format_change: bool = True):
     # try:
-    stock_info = Ticker(ticker, asynchronous=True).price
+    stock_info = Ticker(ticker, asynchronous=False).price
 
     # Test if the ticker is valid
     if not isinstance(stock_info.get(ticker), dict):
