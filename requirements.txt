@@ -11,7 +11,7 @@ asyncpraw==7.7.1
 ccxt==4.3.28
 transformers==4.41.1
 matplotlib==3.9.0
-scipy==1.13.0
+scipy==1.13.1
 brotli==1.1.0
 py-cord==2.5.0
 python-dotenv==1.0.1
