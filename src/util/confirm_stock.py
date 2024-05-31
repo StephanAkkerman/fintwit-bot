@@ -1,7 +1,7 @@
 ## > Imports
 # > 3rd Party Dependencies
-import yfinance as yf
 import discord
+import yfinance as yf
 from discord.ext import commands
 from discord.ui import Button, View
 
@@ -45,6 +45,6 @@ async def confirm_stock(bot: commands.Bot, ctx: commands.Context, ticker: str) -
         if res.data["custom_id"] == "confirm":
             return True
         else:
-           return False
-    
+            return False
+
     return True

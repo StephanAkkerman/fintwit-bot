@@ -1,23 +1,24 @@
 # > Standard libraries
-import os
 import datetime
+import os
+
+# > Discord dependencies
+import discord
 
 # > 3rd Party Dependencies
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from scipy.interpolate import make_interp_spline
 import numpy as np
-
-# > Discord dependencies
-import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
+from scipy.interpolate import make_interp_spline
 
-# Local dependencies
-from util.vars import config
 from util.disc_util import get_channel
 from util.tv_data import tv
 from util.tv_symbols import EU_bonds, US_bonds
+
+# Local dependencies
+from util.vars import config
 
 
 class Yield(commands.Cog):

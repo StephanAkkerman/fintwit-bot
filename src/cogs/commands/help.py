@@ -1,9 +1,9 @@
 ##> Imports
 # > Discord dependencies
 import discord
-from discord.ext import commands
 from discord.commands import Option
 from discord.commands.context import ApplicationContext
+from discord.ext import commands
 
 from util.disc_util import get_guild
 

@@ -1,21 +1,22 @@
-import pytz
-import re
 import datetime
-from lxml.html import fromstring
+import re
 from io import StringIO
-
-# 3rd party imports
-import pandas as pd
-from bs4 import BeautifulSoup
 
 # > Discord dependencies
 import discord
+
+# 3rd party imports
+import pandas as pd
+import pytz
+from bs4 import BeautifulSoup
 from discord.ext import commands
 from discord.ext.tasks import loop
+from lxml.html import fromstring
+
+from util.disc_util import get_channel
 
 # Local dependencies
-from util.vars import config, post_json_data, data_sources, get_json_data
-from util.disc_util import get_channel
+from util.vars import config, data_sources, get_json_data, post_json_data
 
 
 class Events(commands.Cog):

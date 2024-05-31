@@ -1,11 +1,12 @@
-import sys
-import os
 import json
+import os
+import sys
+
+import aiohttp
+import pandas as pd
 
 # > 3rd Party Dependencies
 import yaml
-import aiohttp
-import pandas as pd
 
 # Read config.yaml content
 config_path = os.path.join(os.path.dirname(__file__), "..", "..", "config.yaml")

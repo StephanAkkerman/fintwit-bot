@@ -1,20 +1,21 @@
 ##> Imports
 import asyncio
 
-# > Discord dependencies
-from discord.ext import commands
+import ccxt
+import ccxt.pro as ccxt
 
 # > 3rd Party Dependencies
 import pandas as pd
-import ccxt.pro as ccxt
-import ccxt
+
+# > Discord dependencies
+from discord.ext import commands
 
 # Local dependencies
 import util.vars
 from util.db import get_db, update_db
 from util.disc_util import get_channel, get_user
-from util.vars import config
 from util.trades_msg import on_msg
+from util.vars import config
 
 
 class Trades(commands.Cog):

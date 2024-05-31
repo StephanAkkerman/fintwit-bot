@@ -1,22 +1,23 @@
 ## > Imports
 # > Standard libaries
 from __future__ import annotations
-import re
+
 import json
 import random
+import re
 import string
 import traceback
-from typing import Optional, List
+from typing import List, Optional
 
 # > 3rd party dependencies
 import aiohttp
 import pandas as pd
-from tradingview_ta import TA_Handler, Interval
+from tradingview_ta import Interval, TA_Handler
 
 # > Local dependencies
 import util.vars
+from util.tv_symbols import all_forex_indices, crypto_indices, stock_indices
 from util.vars import get_json_data
-from util.tv_symbols import stock_indices, crypto_indices, all_forex_indices
 
 
 async def get_tv_ticker_data(url, append_to=None):

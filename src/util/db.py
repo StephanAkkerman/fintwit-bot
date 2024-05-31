@@ -1,23 +1,24 @@
 # > Standard library
-import os
 import datetime
+import os
+import sqlite3
 from collections import defaultdict
+
+import numpy as np
 
 # > 3rd party dependencies
 import pandas as pd
-import sqlite3
-from pycoingecko import CoinGeckoAPI
-from yahoo_fin.stock_info import tickers_nasdaq
-import numpy as np
 
 # > Discord dependencies
 from discord.ext import commands
 from discord.ext.tasks import loop
+from pycoingecko import CoinGeckoAPI
+from yahoo_fin.stock_info import tickers_nasdaq
 
 # > Local dependencies
 import util.vars
-from util.tv_symbols import crypto_indices, stock_indices, all_forex_indices
 from util.tv_data import get_tv_ticker_data
+from util.tv_symbols import all_forex_indices, crypto_indices, stock_indices
 
 # Convert emoji to text
 convert_emoji = defaultdict(
@@ -258,7 +259,7 @@ def get_db(database_name: str) -> pd.DataFrame:
 
     script_dir = os.path.dirname(__file__)
     db_loc = os.path.join(script_dir, "..", "..", "data", f"{database_name}.db")
-    
+
     try:
         cnx = sqlite3.connect(db_loc)
         return pd.read_sql_query(f"SELECT * FROM {database_name}", cnx)

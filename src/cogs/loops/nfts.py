@@ -12,6 +12,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from discord.ext import commands
 from discord.ext.tasks import loop
+
 from util.cg_data import cg
 from util.disc_util import get_channel
 from util.formatting import format_change

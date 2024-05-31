@@ -9,11 +9,11 @@ import asyncpraw
 # > Discord dependencies
 import discord
 import pandas as pd
+from discord.ext import commands
+from discord.ext.tasks import loop
 
 # Local dependencies
 import util.vars
-from discord.ext import commands
-from discord.ext.tasks import loop
 from util.db import update_db
 from util.disc_util import get_channel, get_webhook
 from util.vars import config, data_sources

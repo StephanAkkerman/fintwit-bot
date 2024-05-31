@@ -1,8 +1,7 @@
 ## > Imports
 # > Standard libraries
-from collections import Counter
-from collections import defaultdict
 import datetime
+from collections import Counter, defaultdict
 
 # > Discord dependencies
 import discord
@@ -10,9 +9,9 @@ from discord.ext.tasks import loop
 
 # Local dependencies
 import util.vars
-from util.vars import config, get_json_data
 from util.disc_util import get_channel, get_guild
 from util.formatting import format_change
+from util.vars import config, get_json_data
 
 text_to_emoji = defaultdict(lambda: "🦆", {"bear": "🐻", "bull": "🐂", "neutral": "🦆"})
 

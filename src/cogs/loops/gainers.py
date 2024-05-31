@@ -1,18 +1,20 @@
 import traceback
 
+import pandas as pd
+
 # > 3rd party dependencies
 import yahoo_fin.stock_info as si
-import pandas as pd
 
 # > Discord dependencies
 from discord.ext import commands
 from discord.ext.tasks import loop
 
+from util.afterhours import afterHours
+from util.disc_util import get_channel
+from util.formatting import format_embed
+
 # Local dependencies
 from util.vars import config, get_json_data
-from util.disc_util import get_channel
-from util.afterhours import afterHours
-from util.formatting import format_embed
 
 
 class Gainers(commands.Cog):
@@ -144,7 +146,7 @@ class Gainers(commands.Cog):
             await self.stocks_channel.send(embed=e)
         except Exception as e:
             print("Error posting stocks gainers: ", e)
-            #print(traceback.format_exc())
+            # print(traceback.format_exc())
 
 
 def setup(bot: commands.Bot) -> None:

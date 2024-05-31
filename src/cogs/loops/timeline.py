@@ -8,6 +8,7 @@ import aiohttp
 import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
+
 from util.chart_recognizer import classify_img
 from util.disc_util import get_channel, get_tagged_users, get_webhook
 from util.get_tweet import get_tweet

@@ -11,11 +11,11 @@ import numpy as np
 
 # 3rd party imports
 import pandas as pd
-from cogs.loops.overview import Overview
 from discord.ext import commands
 
 # Local dependencies
 import util.vars
+from cogs.loops.overview import Overview
 from util.db import merge_and_update, remove_old_rows, update_tweet_db
 from util.sentiment_analyis import add_sentiment
 from util.ticker_classifier import classify_ticker, get_financials

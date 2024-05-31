@@ -1,18 +1,20 @@
 ##> Imports
 import datetime
+
 import ccxt.pro
-import pandas as pd
 
 # > Discord dependencies
 import discord
+import pandas as pd
+
+import util.trades_msg
 
 # Local dependencies
 import util.vars
-import util.trades_msg
 from util.db import get_db, update_db
-from util.vars import stables
-from util.exchange_data import get_data, get_usd_price, get_buying_price
+from util.exchange_data import get_buying_price, get_data, get_usd_price
 from util.formatting import format_change
+from util.vars import stables
 
 
 async def on_msg(

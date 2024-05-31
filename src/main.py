@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # Python 3.8.11
 
+import datetime
+
 ##> Imports
 # > Standard library
 import os
 import sys
-import datetime
 
 # Discord libraries
 import discord
@@ -15,9 +16,10 @@ from dotenv import load_dotenv
 # Load the .env file
 load_dotenv()
 
+from util.disc_util import get_guild, set_emoji
+
 # Import local dependencies
 from util.vars import config
-from util.disc_util import get_guild, set_emoji
 
 bot = commands.Bot(intents=discord.Intents.all())
 

@@ -1,21 +1,23 @@
 ##> Imports
 # > Standard libaries
 from __future__ import annotations
-from typing import Optional, List
+
 import numbers
 from io import StringIO
+from typing import List, Optional
+
+import pandas as pd
+import tls_client
+from bs4 import BeautifulSoup
 
 # > Third party libraries
 from pycoingecko import CoinGeckoAPI
-import tls_client
-from bs4 import BeautifulSoup
-import pandas as pd
 
 # Local dependencies
 import util.vars
-from util.vars import stables
-from util.tv_data import tv
 from util.formatting import format_change
+from util.tv_data import tv
+from util.vars import stables
 
 cg = CoinGeckoAPI()
 session = tls_client.Session(

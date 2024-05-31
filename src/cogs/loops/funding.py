@@ -1,16 +1,17 @@
 import datetime
 
-# > 3rd party dependencies
-import pandas as pd
-
 # > Discord dependencies
 import discord
+
+# > 3rd party dependencies
+import pandas as pd
 from discord.ext import commands
 from discord.ext.tasks import loop
 
-# Local dependencies
-from util.vars import config, get_json_data, data_sources
 from util.disc_util import get_channel
+
+# Local dependencies
+from util.vars import config, data_sources, get_json_data
 
 
 class Funding(commands.Cog):

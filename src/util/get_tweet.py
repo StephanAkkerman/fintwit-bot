@@ -1,4 +1,5 @@
 import json
+
 import uncurl
 
 from util.vars import get_json_data

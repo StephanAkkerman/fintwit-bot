@@ -1,8 +1,8 @@
 import traceback
 
 import ccxt.async_support as ccxt
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from util.vars import stables
 

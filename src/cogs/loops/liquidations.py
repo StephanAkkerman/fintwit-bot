@@ -1,22 +1,22 @@
 import datetime
 import os
 
-# > 3rd party dependencies
-import pandas as pd
-from matplotlib import pyplot as plt
-from matplotlib import ticker
-import matplotlib.dates as mdates
-
 # > Discord dependencies
 import discord
+import matplotlib.dates as mdates
+
+# > 3rd party dependencies
+import pandas as pd
 from discord.ext import commands
 from discord.ext.tasks import loop
+from matplotlib import pyplot as plt
+from matplotlib import ticker
+
+from util.disc_util import get_channel
+from util.formatting import human_format
 
 # Local dependencies
-from util.vars import get_json_data, data_sources
-from util.formatting import human_format
-from util.vars import config
-from util.disc_util import get_channel
+from util.vars import config, data_sources, get_json_data
 
 
 class Liquidations(commands.Cog):

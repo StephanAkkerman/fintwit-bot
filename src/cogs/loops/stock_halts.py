@@ -1,18 +1,18 @@
 import datetime
 from io import StringIO
 
-import pandas as pd
-from dateutil import tz
-
 # > Discord dependencies
 import discord
+import pandas as pd
+from dateutil import tz
 from discord.ext import commands
 from discord.ext.tasks import loop
 
-# Local dependencies
-from util.vars import config, post_json_data, data_sources
-from util.disc_util import get_channel, get_tagged_users
 from util.afterhours import afterHours
+from util.disc_util import get_channel, get_tagged_users
+
+# Local dependencies
+from util.vars import config, data_sources, post_json_data
 
 
 class StockHalts(commands.Cog):

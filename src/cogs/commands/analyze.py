@@ -2,14 +2,14 @@
 # > Standard Library
 import datetime
 
-# > 3rd Party Dependencies
-from bs4 import BeautifulSoup
-
 # > Discord imports
 import discord
-from discord.ext import commands
+
+# > 3rd Party Dependencies
+from bs4 import BeautifulSoup
 from discord.commands import Option
 from discord.commands.context import ApplicationContext
+from discord.ext import commands
 
 # > Local dependencies
 from util.vars import get_json_data

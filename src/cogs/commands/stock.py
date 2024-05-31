@@ -1,19 +1,19 @@
 # > 3rd Party Dependencies
 import pandas as pd
 import yfinance as yf
+from discord.commands import Option, SlashCommandGroup
+from discord.commands.context import ApplicationContext
 
 # Discord imports
 from discord.ext import commands
-from discord.commands import SlashCommandGroup, Option
-from discord.commands.context import ApplicationContext
 
 # Local dependencies
 import util.vars
-from util.vars import config
-from util.db import update_db, merge_and_update
-from util.disc_util import get_channel
 from util.confirm_stock import confirm_stock
+from util.db import merge_and_update, update_db
+from util.disc_util import get_channel
 from util.trades_msg import trades_msg
+from util.vars import config
 
 
 class Stock(commands.Cog):

@@ -1,26 +1,26 @@
 ## > Imports
 # > Standard libraries
 from __future__ import annotations
+
 import asyncio
 import datetime
 
 # > 3rd Party Dependencies
 import discord
+import numpy as np
+import pandas as pd
 from discord.ext import commands
 from discord.ext.tasks import loop
-import pandas as pd
-import numpy as np
 
 # > Local dependencies
 import util.vars
-from util.yf_data import get_stock_info
 from util.cg_data import get_coin_info
 from util.db import update_db
-from util.disc_util import get_channel, get_user
-from util.vars import config
-from util.disc_util import get_guild
-from util.formatting import format_embed_length, format_change
+from util.disc_util import get_channel, get_guild, get_user
 from util.exchange_data import get_data
+from util.formatting import format_change, format_embed_length
+from util.vars import config
+from util.yf_data import get_stock_info
 
 
 class Assets(commands.Cog):
@@ -192,7 +192,7 @@ class Assets(commands.Cog):
             new_df = await self.update_prices_and_changes(new_df)
 
         # Remove everything after % in change
-        #new_df["change"] = new_df["change"].str.split("%").str[0]
+        # new_df["change"] = new_df["change"].str.split("%").str[0]
 
         # Set the types (again)
         new_df = new_df.astype(

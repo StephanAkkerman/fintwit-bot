@@ -9,12 +9,12 @@ import json
 # > Discord dependencies
 import discord
 import pandas as pd
-
-# > Local dependencies
-import util.vars
 from bs4 import BeautifulSoup
 from discord.ext import commands
 from discord.ext.tasks import loop
+
+# > Local dependencies
+import util.vars
 from util.db import update_db
 from util.disc_util import get_channel, get_tagged_users
 from util.vars import config, data_sources, get_json_data
@@ -66,7 +66,7 @@ async def scraper(type: str) -> pd.DataFrame:
         "div",
         class_="tv-card-container__ideas tv-card-container__ideas--with-padding js-balance-content",
     )
-    
+
     if content is None:
         print(f"No content found for {type} ideas")
         return pd.DataFrame()

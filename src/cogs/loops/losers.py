@@ -8,11 +8,12 @@ import yahoo_fin.stock_info as si
 from discord.ext import commands
 from discord.ext.tasks import loop
 
+from util.afterhours import afterHours
+from util.disc_util import get_channel
+from util.formatting import format_embed
+
 # Local dependencies
 from util.vars import config
-from util.disc_util import get_channel
-from util.afterhours import afterHours
-from util.formatting import format_embed
 
 
 class Losers(commands.Cog):

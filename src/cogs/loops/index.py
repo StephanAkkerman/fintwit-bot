@@ -1,5 +1,6 @@
 # Standard libraries
 from __future__ import annotations
+
 import datetime
 
 # > Discord dependencies
@@ -7,13 +8,14 @@ import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
 
-# Local dependencies
-from util.vars import config, get_json_data, data_sources
-from util.tv_data import tv
-from util.disc_util import get_channel
 from util.afterhours import afterHours
+from util.disc_util import get_channel
 from util.formatting import human_format
-from util.tv_symbols import crypto_indices, stock_indices, forex_indices
+from util.tv_data import tv
+from util.tv_symbols import crypto_indices, forex_indices, stock_indices
+
+# Local dependencies
+from util.vars import config, data_sources, get_json_data
 
 
 class Index(commands.Cog):

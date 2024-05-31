@@ -2,20 +2,21 @@
 # > Standard Library
 import datetime
 
-# > 3rd Party Dependencies
-import pandas as pd
-import nltk
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
-
 # > Discord imports
 import discord
-from discord.ext import commands
+import nltk
+
+# > 3rd Party Dependencies
+import pandas as pd
 from discord.commands import Option
 from discord.commands.context import ApplicationContext
+from discord.ext import commands
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+
+from util.confirm_stock import confirm_stock
 
 # > Local dependencies
 from util.vars import get_json_data
-from util.confirm_stock import confirm_stock
 
 
 class Sentiment(commands.Cog):

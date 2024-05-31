@@ -6,9 +6,10 @@ import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
 
-# Local dependencies
-from util.vars import config, get_json_data, data_sources
 from util.disc_util import get_channel
+
+# Local dependencies
+from util.vars import config, data_sources, get_json_data
 
 
 class Exchange_Listings(commands.Cog):

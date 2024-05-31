@@ -14,6 +14,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 from matplotlib.ticker import FuncFormatter
 from scipy.optimize import curve_fit
+
 from util.disc_util import get_channel
 from util.vars import config, data_sources
 

@@ -1,21 +1,22 @@
 # > 3rd Party Dependencies
-import pandas as pd
-import ccxt
 import traceback
+
+import ccxt
 
 # > Discord dependencies
 import discord
-from discord.ext import commands
-from discord.commands import SlashCommandGroup, Option
+import pandas as pd
 from discord import Interaction, SelectOption
-from discord.ui import Select, View
+from discord.commands import Option, SlashCommandGroup
 from discord.commands.context import ApplicationContext
+from discord.ext import commands
+from discord.ui import Select, View
 
 # Local dependencies
 import util.vars
-from util.db import update_db
-from cogs.loops.trades import Trades
 from cogs.loops.assets import Assets
+from cogs.loops.trades import Trades
+from util.db import update_db
 
 
 class Portfolio(commands.Cog):

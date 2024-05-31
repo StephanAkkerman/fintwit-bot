@@ -9,6 +9,7 @@ import pytz
 import yahoo_fin.stock_info as si
 from discord.ext import commands
 from discord.ext.tasks import loop
+
 from util.afterhours import afterHours
 from util.cg_data import get_top_categories, get_trending_coins
 from util.disc_util import get_channel

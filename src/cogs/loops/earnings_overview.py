@@ -9,6 +9,7 @@ import pandas as pd
 # Local dependencies
 from discord.ext import commands
 from discord.ext.tasks import loop
+
 from util.disc_util import get_channel, get_tagged_users
 from util.vars import config, data_sources, get_json_data
 
