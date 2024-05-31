@@ -21,7 +21,10 @@ async def confirm_stock(bot: commands.Bot, ctx: commands.Context, ticker: str) -
             custom_id="confirm",
         )
         cancel_button = Button(
-            label="Cancel", style=discord.ButtonStyle.red, emoji="❌", custom_id="cancel"
+            label="Cancel",
+            style=discord.ButtonStyle.red,
+            emoji="❌",
+            custom_id="cancel",
         )
 
         view = View()
