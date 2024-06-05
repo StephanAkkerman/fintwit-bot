@@ -170,6 +170,10 @@ LOOPS:
       ENABLED: True
       CHANNEL: 🤑┃wallstreetbets
 
+    CRYPTOMOONSHOTS:
+      ENABLED: True
+      CHANNEL: 🚀┃cryptomoonshots
+
   RSI_HEATMAP:
     ENABLED: True
     CHANNEL: 🚥┃rsi-heatmap
