@@ -1,23 +1,94 @@
-## > Imports
-
-# > Standard library
 import datetime
-
-# > 3rd party dependencies
 import json
+import re
 
-# > Discord dependencies
 import discord
 import pandas as pd
+import util.vars
 from bs4 import BeautifulSoup
 from discord.ext import commands
 from discord.ext.tasks import loop
-
-# > Local dependencies
-import util.vars
 from util.db import update_db
 from util.disc_util import get_channel, get_tagged_users
 from util.vars import config, data_sources, get_json_data
+
+
+def crypto_parser(soup: BeautifulSoup) -> pd.DataFrame:
+    content = soup.find("div", class_=re.compile(r"^listContainer-"))
+
+    # The information will be saved in these lists
+    titleList = []
+    descriptionList = []
+    labelList = []
+    timeFrameList = []  # missing
+    symbolList = []
+    timestampList = []
+    commentsList = []
+    imageUrlList = []
+    likesList = []
+    urlList = []
+
+    for article in content.find_all("article"):
+        # Get the title and description of the article
+        text_block = article.find("div", class_=re.compile(r"^text-block-"))
+        title = text_block.find("a", class_=re.compile(r"^title-"))
+        url = title.get("href")
+        title = title.text
+        description = text_block.find("a", class_=re.compile(r"^paragraph-")).text
+
+        # Get the image
+        preview = article.find("div", class_=re.compile(r"^preview-grid-"))
+        img = preview.find("img", class_=re.compile(r"^image-"))["src"]
+        symbol = preview.find("a", class_=re.compile(r"^logo-icon-"))["href"].replace(
+            "/symbols/", ""
+        )[:-1]
+        label = preview.find("span", class_=re.compile(r"^idea-strategy-"))
+        if label:
+            label = label.text
+        else:
+            label = "Neutral"
+
+        # Get the other info
+        section = article.find("div", class_=re.compile(r"^section-"))
+        author = section.find("a")["data-username"]
+        publish_date = section.find("time")["datetime"]
+        publish_date = datetime.datetime.fromisoformat(
+            publish_date.replace("Z", "+00:00")
+        )
+
+        likes = section.find("button", class_=re.compile(r"^boostButton-")).text
+        comments = section.find("span", class_=re.compile(r"^content-"))
+        if comments:
+            comments = comments.get("data-overflow-tooltip-text", 0)
+        else:
+            comments = 0
+
+        # Append the information to the lists
+        titleList.append(title)
+        descriptionList.append(description)
+        labelList.append(label)
+        symbolList.append(symbol)
+        timestampList.append(publish_date)
+        commentsList.append(comments)
+        imageUrlList.append(img)
+        likesList.append(likes)
+        urlList.append(url)
+        timeFrameList.append("")
+
+    data = {
+        "Timestamp": timestampList,
+        "Title": titleList,
+        "Description": descriptionList,
+        "Symbol": symbolList,
+        "Timeframe": timeFrameList,
+        "Label": labelList,
+        "Url": urlList,
+        "ImageURL": imageUrlList,
+        "Likes": likesList,
+        "Comments": commentsList,
+    }
+
+    return pd.DataFrame(data)
 
 
 async def scraper(type: str) -> pd.DataFrame:
@@ -60,6 +131,9 @@ async def scraper(type: str) -> pd.DataFrame:
 
     # The response is a HTML page
     soup = BeautifulSoup(response, "html.parser")
+
+    if type == "crypto":
+        return crypto_parser(soup)
 
     # Find all divs with the following class
     content = soup.find(
