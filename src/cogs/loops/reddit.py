@@ -5,10 +5,11 @@ from datetime import datetime, timedelta
 
 import asyncpraw
 import pandas as pd
-import util.vars
 from discord import Embed
 from discord.ext import commands
 from discord.ext.tasks import loop
+
+import util.vars
 from util.db import update_db
 from util.disc_util import get_channel, get_webhook
 from util.vars import config, data_sources

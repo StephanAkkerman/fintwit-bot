@@ -4,10 +4,11 @@ import re
 
 import discord
 import pandas as pd
-import util.vars
 from bs4 import BeautifulSoup
 from discord.ext import commands
 from discord.ext.tasks import loop
+
+import util.vars
 from util.db import update_db
 from util.disc_util import get_channel, get_tagged_users
 from util.vars import config, data_sources, get_json_data

@@ -7,7 +7,7 @@ profile = "black"
 
 [tool.ruff]
 line-length = 88
-select = ["I001"]
+#select = ["I001"]
 
 [tool.ruff.lint.pydocstyle]
 # Use Google-style docstrings.
