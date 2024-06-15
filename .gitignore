@@ -12,6 +12,7 @@ scraper.py
 scraped/*
 logs/*
 curl.txt
+data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
