@@ -1,5 +1,5 @@
 yahoo-fin==0.8.9.1
-numpy==1.26.4
+numpy==2.0.0
 yfinance==0.2.40
 pycoingecko==3.1.0
 pandas==2.2.2
