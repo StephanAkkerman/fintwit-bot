@@ -37,6 +37,9 @@ def crypto_parser(soup: BeautifulSoup) -> pd.DataFrame:
         title = title.text
         description = text_block.find("a", class_=re.compile(r"^paragraph-")).text
 
+        # Limit description to 4096 characters
+        description = description[:4096]
+
         # Get the image
         preview = article.find("div", class_=re.compile(r"^preview-grid-"))
         img = preview.find("img", class_=re.compile(r"^image-"))["src"]

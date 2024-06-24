@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import numbers
+import os
+import pickle
+import time
 from io import StringIO
 from typing import List, Optional
 
@@ -340,10 +343,10 @@ async def get_top_categories() -> pd.DataFrame | None:
 
 
 def get_top_vol_coins(length: int = 50) -> list:
-    df = pd.DataFrame(cg.get_coins_markets("usd"))["symbol"].str.upper() + "USDT"
-
-    # Also add symbols that give issues
-    stableCoins = [
+    CACHE_FILE = "data/top_vol_coins_cache.pkl"
+    CACHE_EXPIRATION = 24 * 60 * 60  # 24 hours in seconds
+    # List of symbols to exclude
+    STABLE_COINS = [
         "OKBUSDT",
         "DAIUSDT",
         "USDTUSDT",
@@ -356,5 +359,26 @@ def get_top_vol_coins(length: int = 50) -> list:
         "CETHUSDT",
         "WBTCUSDT",
     ]
-    sorted_volume = df[~df.isin(stableCoins)]
-    return sorted_volume[:length].tolist()
+
+    # Check if the cache file exists and is not expired
+    os.makedirs(CACHE_FILE.split("/")[0], exist_ok=True)
+    if os.path.exists(CACHE_FILE):
+        with open(CACHE_FILE, "rb") as f:
+            cache_data = pickle.load(f)
+            cache_time = cache_data["timestamp"]
+            if time.time() - cache_time < CACHE_EXPIRATION:
+                # Return the cached data if it's not expired
+                print("Using cached top volume coins")
+                return cache_data["data"][:length]
+
+    # Fetch fresh data if the cache is missing or expired
+    df = pd.DataFrame(cg.get_coins_markets("usd"))["symbol"].str.upper() + "USDT"
+
+    sorted_volume = df[~df.isin(STABLE_COINS)]
+    top_vol_coins = sorted_volume.tolist()
+
+    # Save the result to the cache
+    with open(CACHE_FILE, "wb") as f:
+        pickle.dump({"timestamp": time.time(), "data": top_vol_coins}, f)
+
+    return top_vol_coins[:length]
