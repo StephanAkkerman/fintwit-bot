@@ -28,17 +28,9 @@ jobs:
         run: |
           release_notes="# Release Notes\n\n"
           release_notes+="$(jq -r '.[] | select(has("pull_request") | not) | "- #\(.number) \(.title) (closed on \(.closed_at[:10]))"' closed_issues.json)"
-          echo "$release_notes" > RELEASE_NOTES.md
-          echo "release_notes=$release_notes" >> $GITHUB_ENV
-
-     # - name: Commit release notes
-     #   run: |
-     #     git config --global user.name 'github-actions[bot]'
-     #     git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
-     #     git add RELEASE_NOTES.md
-     #     git commit -m 'Update release notes [skip ci]'
-     #     git push
+          release_notes_b64=$(echo "$release_notes" | base64)
+          echo "release_notes_b64=$release_notes_b64" >> $GITHUB_ENV
 
       - name: Output release notes
         run: |
-          echo "${{ env.release_notes }}"
+          echo "${{ env.release_notes_b64 }}" | base64 --decode
