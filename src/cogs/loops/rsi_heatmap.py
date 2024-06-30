@@ -7,15 +7,12 @@ import numpy as np
 import pandas as pd
 from discord.ext import commands
 from discord.ext.tasks import loop
-from pycoingecko import CoinGeckoAPI
 from tradingview_ta import get_multiple_analysis
 
 # Local dependencies
 from util.cg_data import get_top_vol_coins
 from util.disc_util import get_channel
 from util.vars import config, data_sources
-
-cg = CoinGeckoAPI()
 
 
 def get_RSI(coins: list, exchange: str = "BINANCE", time_frame: str = "1d") -> dict:

@@ -80,6 +80,10 @@ LOOPS:
     ENABLED: True
     CHANNEL: 🏦┃funding
 
+  FUNDING_HEATMAP:
+    ENABLED: True
+    CHANNEL: 🧮┃funding-heatmap
+
   GAINERS:
     ENABLED: True
     CHANNEL: 🚀┃gainers
