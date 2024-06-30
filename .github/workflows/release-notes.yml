@@ -9,28 +9,20 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Get latest release
-        id: get_latest_release
         run: |
           latest_release=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/latest")
           echo "latest_release_date=$(echo $latest_release | jq -r .published_at)" >> $GITHUB_ENV
 
       - name: Fetch closed issues since latest release
-        id: fetch_closed_issues
         run: |
           issues=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/issues?state=closed&since=${{ env.latest_release_date }}&per_page=100")
           echo "$issues" > closed_issues.json
 
       - name: Generate release notes
-        id: generate_release_notes
         run: |
           release_notes="# Release Notes\n\n"
           release_notes+="$(jq -r '.[] | select(has("pull_request") | not) | "- #\(.number) \(.title) (closed on \(.closed_at[:10]))"' closed_issues.json)"
-          release_notes_b64=$(echo "$release_notes" | base64)
-          echo "release_notes_b64=$release_notes_b64" >> $GITHUB_ENV
-
-      - name: Output release notes
-        run: |
-          echo "${{ env.release_notes_b64 }}" | base64 --decode
+          echo "$release_notes"
