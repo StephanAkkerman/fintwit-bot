@@ -117,6 +117,7 @@ class BinanceClient(object):
         self.cookies = main_page_response.cookies
 
     def fund_rating(self, symbol: str, rows: int = 100):
+        # https://www.binance.com/en/futures/funding-history/perpetual/funding-fee-history
         data = {"symbol": symbol, "page": 1, "rows": rows}  # can do 10_000 max
         response = requests.post(
             "https://www.binance.com/bapi/futures/v1/public/future/common/get-funding-rate-history",
@@ -167,13 +168,15 @@ def load_funding_rate_data(directory):
         latest_date = df["calcTime"].max()
 
         # If the data is older than 8 hours, fetch new data
-        if pd.Timestamp.now() - latest_date > pd.Timedelta(hours=8):
+        if pd.Timestamp.now() - latest_date > pd.Timedelta(hours=12):
             symbol = file.split("/")[-1].split(".")[0]
+            # Also remove any backslashes from the symbol
+            symbol = symbol.split("\\")[-1]
             b = BinanceClient()
             new_df = b.fund_rating(symbol, rows=10_000)
             if not new_df.empty:
                 new_df.to_csv(file, index=False)
-                df = new_df
+                df = pd.read_csv(file, parse_dates=["calcTime"])
 
         df_list.append(df)
 
@@ -214,6 +217,7 @@ def plot_heatmap(data: pd.DataFrame):
     ax.set_facecolor(BACKGROUND_COLOR)  # Dark background color for the axes
 
     # Plot the heatmap
+    print(data)
     heatmap = sns.heatmap(
         data,
         cmap="viridis",
