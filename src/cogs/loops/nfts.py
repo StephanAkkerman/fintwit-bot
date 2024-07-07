@@ -131,23 +131,26 @@ class NFTS(commands.Cog):
             color=data_sources["opensea"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
-        e.add_field(
-            name="NFT",
-            value="\n".join(trending["symbol"].tolist()),
-            inline=True,
-        )
+        if "symbol" in trending.columns:
+            e.add_field(
+                name="NFT",
+                value="\n".join(trending["symbol"].tolist()),
+                inline=True,
+            )
 
-        e.add_field(
-            name="Price",
-            value="\n".join(trending["price"].tolist()),
-            inline=True,
-        )
+        if "price" in trending.columns:
+            e.add_field(
+                name="Price",
+                value="\n".join(trending["price"].tolist()),
+                inline=True,
+            )
 
-        e.add_field(
-            name="Volume",
-            value="\n".join(trending["volume"].astype(str).tolist()),
-            inline=True,
-        )
+        if "volume" in trending.columns:
+            e.add_field(
+                name="Volume",
+                value="\n".join(trending["volume"].astype(str).tolist()),
+                inline=True,
+            )
 
         e.set_footer(
             text="\u200b",
@@ -257,10 +260,10 @@ class NFTS(commands.Cog):
     async def top_p2e(self):
         if self.p2e_channel is None:
             self.p2e_channel = await get_channel(
-                    self.bot,
-                    config["LOOPS"]["NFTS"]["P2E"]["CHANNEL"],
-                    config["CATEGORIES"]["NFTS"],
-                )
+                self.bot,
+                config["LOOPS"]["NFTS"]["P2E"]["CHANNEL"],
+                config["CATEGORIES"]["NFTS"],
+            )
         try:
             p2e = await p2e_games()
         except Exception as e:

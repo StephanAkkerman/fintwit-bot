@@ -50,7 +50,11 @@ class Funding(commands.Cog):
             return
 
         # Cast to dataframe
-        df = pd.DataFrame(binance_data)
+        try:
+            df = pd.DataFrame(binance_data)
+        except Exception as e:
+            print(f"Could not cast to dataframe, error: {e}")
+            return
 
         # Keep only the USDT pairs
         df = df[df["symbol"].str.contains("USDT")]

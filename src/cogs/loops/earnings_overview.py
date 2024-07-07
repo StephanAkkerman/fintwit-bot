@@ -79,6 +79,8 @@ class Earnings_Overview(commands.Cog):
         }
         json = await get_json_data(url, headers=headers)
         # Automatically ordered from highest to lowest market cap
+        if "data" not in json:
+            return pd.DataFrame()
         df = pd.DataFrame(json["data"]["rows"])
         if df.empty:
             return df
