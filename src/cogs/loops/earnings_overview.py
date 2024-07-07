@@ -22,9 +22,7 @@ class Earnings_Overview(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.channel = get_channel(
-            self.bot, config["LOOPS"]["EARNINGS_OVERVIEW"]["CHANNEL"]
-        )
+        self.channel = None
 
         self.earnings.start()
 
@@ -120,6 +118,10 @@ class Earnings_Overview(commands.Cog):
         ----------
         None
         """
+        if self.channel is None:
+            self.channel = await get_channel(
+                self.bot, config["LOOPS"]["EARNINGS_OVERVIEW"]["CHANNEL"]
+            )
 
         # Send this message every sunday at 12:00 UTC
         if self.date_check():

@@ -24,8 +24,7 @@ class StockTwits(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.channel = get_channel(self.bot, config["LOOPS"]["STOCKTWITS"]["CHANNEL"])
-
+        self.channel = None
         self.stocktwits.start()
 
     async def get_data(self, e: discord.Embed, keyword: str) -> discord.Embed:
@@ -112,9 +111,15 @@ class StockTwits(commands.Cog):
         -------
         None
         """
+        if self.channel is None:
+            self.channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["STOCKTWITS"]["CHANNEL"],
+                config["CATEGORIES"]["STOCKS"],
+            )
 
         e = discord.Embed(
-            title=f"StockTwits Rankings",
+            title="StockTwits Rankings",
             url="https://stocktwits.com/rankings/trending",
             description="",
             color=data_sources["stocktwits"]["color"],

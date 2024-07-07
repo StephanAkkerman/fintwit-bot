@@ -32,39 +32,29 @@ class NFTS(commands.Cog):
 
         if config["LOOPS"]["NFTS"]["ENABLED"]:
             if config["LOOPS"]["NFTS"]["TOP"]:
-                self.top_channel = get_channel(
-                    self.bot,
-                    config["LOOPS"]["NFTS"]["TOP"]["CHANNEL"],
-                    config["CATEGORIES"]["NFTS"],
-                )
+                self.top_channel = None
                 self.top_nfts.start()
 
             if config["LOOPS"]["NFTS"]["UPCOMING"]:
-                self.upcoming_channel = get_channel(
-                    self.bot,
-                    config["LOOPS"]["NFTS"]["UPCOMING"]["CHANNEL"],
-                    config["CATEGORIES"]["NFTS"],
-                )
+                self.upcoming_channel = None
                 self.upcoming_nfts.start()
 
             if config["LOOPS"]["NFTS"]["P2E"]:
-                self.p2e_channel = get_channel(
-                    self.bot,
-                    config["LOOPS"]["NFTS"]["P2E"]["CHANNEL"],
-                    config["CATEGORIES"]["NFTS"],
-                )
+                self.p2e_channel = None
                 self.top_p2e.start()
 
         if config["LOOPS"]["TRENDING"]["NFTS"]:
-            self.trending_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["TRENDING"]["CHANNEL"],
-                config["CATEGORIES"]["NFTS"],
-            )
+            self.trending_channel = None
             self.trending_nfts.start()
 
     @loop(hours=1)
     async def top_nfts(self):
+        if self.top_channel is None:
+            self.top_channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["NFTS"]["TOP"]["CHANNEL"],
+                config["CATEGORIES"]["NFTS"],
+            )
         opensea_top = await get_opensea()
         cmc_top = await top_cmc()
 
@@ -120,6 +110,12 @@ class NFTS(commands.Cog):
 
     @loop(hours=1)
     async def trending_nfts(self):
+        if self.trending_channel is None:
+            self.trending_channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["TRENDING"]["CHANNEL"],
+                config["CATEGORIES"]["NFTS"],
+            )
         await self.trending_channel.purge(limit=2)
 
         await self.opensea_trending()
@@ -210,6 +206,12 @@ class NFTS(commands.Cog):
 
     @loop(hours=1)
     async def upcoming_nfts(self):
+        if self.upcoming_channel is None:
+            self.upcoming_channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["NFTS"]["UPCOMING"]["CHANNEL"],
+                config["CATEGORIES"]["NFTS"],
+            )
         upcoming = await upcoming_cmc()
 
         if upcoming.empty:
@@ -253,6 +255,12 @@ class NFTS(commands.Cog):
 
     @loop(hours=1)
     async def top_p2e(self):
+        if self.p2e_channel is None:
+            self.p2e_channel = await get_channel(
+                    self.bot,
+                    config["LOOPS"]["NFTS"]["P2E"]["CHANNEL"],
+                    config["CATEGORIES"]["NFTS"],
+                )
         try:
             p2e = await p2e_games()
         except Exception as e:

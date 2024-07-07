@@ -34,47 +34,23 @@ class Trending(commands.Cog):
         self.bot = bot
 
         if config["LOOPS"]["TRENDING"]["CRYPTO"]["ENABLED"]:
-            self.crypto_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["TRENDING"]["CHANNEL"],
-                config["CATEGORIES"]["CRYPTO"],
-            )
-
+            self.crypto_channel = None
             self.crypto.start()
 
         if config["LOOPS"]["CRYPTO_CATEGORIES"]["ENABLED"]:
-            self.crypto_categories_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["CRYPTO_CATEGORIES"]["CHANNEL"],
-            )
-
+            self.crypto_categories_channel = None
             self.crypto_categories.start()
 
         if config["LOOPS"]["TRENDING"]["STOCKS"]["ENABLED"]:
-            self.stocks_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["TRENDING"]["CHANNEL"],
-                config["CATEGORIES"]["STOCKS"],
-            )
-
+            self.stocks_channel = None
             self.stocks.start()
 
         if config["LOOPS"]["TRENDING"]["PREMARKET"]["ENABLED"]:
-            self.pre_market_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["TRENDING"]["PREMARKET"]["CHANNEL"],
-                config["CATEGORIES"]["STOCKS"],
-            )
-
+            self.pre_market_channel = None
             self.premarket.start()
 
         if config["LOOPS"]["TRENDING"]["AFTERHOURS"]["ENABLED"]:
-            self.after_hours_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["TRENDING"]["AFTERHOURS"]["CHANNEL"],
-                config["CATEGORIES"]["STOCKS"],
-            )
-
+            self.after_hours_channel = None
             self.afterhours.start()
 
     def tv_market_data(self, url) -> pd.DataFrame:
@@ -164,6 +140,12 @@ class Trending(commands.Cog):
 
     @loop(hours=1)
     async def premarket(self) -> None:
+        if self.pre_market_channel is None:
+            self.pre_market_channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["TRENDING"]["PREMARKET"]["CHANNEL"],
+                config["CATEGORIES"]["STOCKS"],
+            )
         if not self.is_pre_market():
             return
 
@@ -183,6 +165,13 @@ class Trending(commands.Cog):
 
     @loop(hours=1)
     async def afterhours(self) -> None:
+        if self.after_hours_channel is None:
+            self.after_hours_channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["TRENDING"]["AFTERHOURS"]["CHANNEL"],
+                config["CATEGORIES"]["STOCKS"],
+            )
+
         # Check if the after hours are now
         if not self.is_after_hours():
             return
@@ -211,6 +200,12 @@ class Trending(commands.Cog):
         -------
         None
         """
+        if self.crypto_channel is None:
+            self.crypto_channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["TRENDING"]["CHANNEL"],
+                config["CATEGORIES"]["CRYPTO"],
+            )
         cmc_data = await get_json_data(
             "https://api.coinmarketcap.com/data-api/v3/topsearch/rank"
         )
@@ -249,6 +244,11 @@ class Trending(commands.Cog):
 
     @loop(hours=1)
     async def crypto_categories(self) -> None:
+        if self.crypto_categories_channel is None:
+            self.crypto_categories_channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["CRYPTO_CATEGORIES"]["CHANNEL"],
+            )
         df = await get_top_categories()
 
         if df is None or df.empty:
@@ -319,6 +319,12 @@ class Trending(commands.Cog):
         -------
         None
         """
+        if self.stocks_channel is None:
+            self.stocks_channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["TRENDING"]["CHANNEL"],
+                config["CATEGORIES"]["STOCKS"],
+            )
         # Dont send if the market is closed
         if afterHours():
             return

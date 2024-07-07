@@ -29,8 +29,7 @@ class Yield(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.channel = get_channel(self.bot, config["LOOPS"]["YIELD"]["CHANNEL"])
-
+        self.channel = None
         self.post_curve.start()
 
     @loop(hours=24)
@@ -43,6 +42,10 @@ class Yield(commands.Cog):
         -------
         None
         """
+        if self.channel is None:
+            self.channel = await get_channel(
+                self.bot, config["LOOPS"]["YIELD"]["CHANNEL"]
+            )
 
         plt.style.use("dark_background")  # Set the style first
 

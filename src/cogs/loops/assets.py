@@ -334,7 +334,7 @@ class Assets(commands.Cog):
         channel_name = config["LOOPS"]["ASSETS"]["CHANNEL_PREFIX"] + name.lower()
 
         # If this channel does not exist make it
-        channel = get_channel(self.bot, channel_name)
+        channel = await get_channel(self.bot, channel_name)
         if channel is None:
             guild = get_guild(self.bot)
             channel = await guild.create_text_channel(

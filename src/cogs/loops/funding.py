@@ -22,8 +22,7 @@ class Funding(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.channel = get_channel(self.bot, config["LOOPS"]["FUNDING"]["CHANNEL"])
-
+        self.channel = None
         self.funding.start()
 
     @loop(hours=4)
@@ -35,6 +34,10 @@ class Funding(commands.Cog):
         -------
         None
         """
+        if self.channel is None:
+            self.channel = await get_channel(
+                self.bot, config["LOOPS"]["FUNDING"]["CHANNEL"]
+            )
 
         # Get the JSON data from the Binance API
         binance_data = await get_json_data(
@@ -77,7 +80,7 @@ class Funding(commands.Cog):
         lowest = sorted.head(15)
 
         e = discord.Embed(
-            title=f"Binance Top 15 Lowest Funding Rates",
+            title="Binance Top 15 Lowest Funding Rates",
             url="",
             description="",
             color=data_sources["binance"]["color"],

@@ -55,13 +55,15 @@ class Rainbow_chart(commands.Cog):
         self.bot = bot
 
         if config["LOOPS"]["RAINBOW_CHART"]["ENABLED"]:
-            self.channel = get_channel(
-                self.bot, config["LOOPS"]["RAINBOW_CHART"]["CHANNEL"]
-            )
+            self.channel = None
             self.post_rainbow_chart.start()
 
     @loop(hours=24)
     async def post_rainbow_chart(self):
+        if self.channel is None:
+            self.channel = await get_channel(
+                self.bot, config["LOOPS"]["RAINBOW_CHART"]["CHANNEL"]
+            )
         # Load data
         raw_data, popt = get_data("data/bitcoin_data.csv")
 

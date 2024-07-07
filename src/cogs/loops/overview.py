@@ -31,21 +31,13 @@ class Overview:
         self.global_overview.start()
 
         if config["LOOPS"]["OVERVIEW"]["STOCKS"]["ENABLED"]:
-            self.stocks_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["OVERVIEW"]["CHANNEL"],
-                config["CATEGORIES"]["STOCKS"],
-            )
+            self.stocks_channel = None
             self.do_stocks = True
         else:
             self.do_stocks = False
 
         if config["LOOPS"]["OVERVIEW"]["CRYPTO"]["ENABLED"]:
-            self.crypto_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["OVERVIEW"]["CHANNEL"],
-                config["CATEGORIES"]["CRYPTO"],
-            )
+            self.crypto_channel = None
             self.do_crypto = True
         else:
             self.do_crypto = False
@@ -90,6 +82,19 @@ class Overview:
                         self.global_crypto[ticker] = await count_tweets(ticker)
 
     async def make_overview(self, category: str, tickers: list, last_sentiment: str):
+        if self.stocks_channel is None:
+            self.stocks_channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["OVERVIEW"]["CHANNEL"],
+                config["CATEGORIES"]["STOCKS"],
+            )
+        if self.crypto_channel is None:
+            self.crypto_channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["OVERVIEW"]["CHANNEL"],
+                config["CATEGORIES"]["CRYPTO"],
+            )
+
         # Post the overview for stocks and crypto
         db = util.vars.tweets_db.loc[util.vars.tweets_db["category"] == category]
 

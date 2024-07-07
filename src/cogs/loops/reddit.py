@@ -14,6 +14,9 @@ from util.db import update_db
 from util.disc_util import get_channel, get_webhook
 from util.vars import config, data_sources
 
+URL_REGEX = r"(?P<url>https?://[^\s]+)"
+MARKDOWN_LINK_REGEX = r"\[(?P<text>[^\]]+)\]\((?P<url>https?://[^\s]+)\)"
+
 
 class Reddit(commands.Cog):
     """
@@ -23,6 +26,7 @@ class Reddit(commands.Cog):
 
     def __init__(self, bot: commands.bot.Bot) -> None:
         self.bot = bot
+        self.first_time = True
 
         self.reddit = asyncpraw.Reddit(
             client_id=os.getenv("REDDIT_PERSONAL_USE"),
@@ -33,17 +37,11 @@ class Reddit(commands.Cog):
         )
 
         if config["LOOPS"]["REDDIT"]["WALLSTREETBETS"]["ENABLED"]:
-            self.wsb_channel = get_channel(
-                self.bot, config["LOOPS"]["REDDIT"]["WALLSTREETBETS"]["CHANNEL"]
-            )
-
+            self.wsb_channel = None
             self.wsb_scraper.start()
 
         if config["LOOPS"]["REDDIT"]["CRYPTOMOONSHOTS"]["ENABLED"]:
-            self.cmc_channel = get_channel(
-                self.bot, config["LOOPS"]["REDDIT"]["CRYPTOMOONSHOTS"]["CHANNEL"]
-            )
-
+            self.cmc_channel = None
             self.cms_scraper.start()
 
     def add_id_to_db(self, id: str) -> None:
@@ -68,21 +66,33 @@ class Reddit(commands.Cog):
 
     @loop(hours=12)
     async def wsb_scraper(self):
-        await self.reddit_scraper(
-            subreddit_name="WallStreetBets", channel=self.wsb_channel
-        )
+        if self.wsb_channel is None:
+            self.wsb_channel = await get_channel(
+                self.bot, config["LOOPS"]["REDDIT"]["WALLSTREETBETS"]["CHANNEL"]
+            )
+            await self.reddit_scraper(subreddit_name="WallStreetBets")
+            self.first_time = False
+
+        # To prevent it from going to quick
+        if not self.first_time:
+            await self.reddit_scraper(subreddit_name="WallStreetBets")
 
     @loop(hours=12)
     async def cms_scraper(self):
-        await self.reddit_scraper(
-            subreddit_name="CryptoMoonShots", channel=self.cmc_channel
-        )
+        if self.cms_scraper is None:
+            self.cmc_channel = await get_channel(
+                self.bot, config["LOOPS"]["REDDIT"]["CRYPTOMOONSHOTS"]["CHANNEL"]
+            )
+            await self.reddit_scraper(subreddit_name="CryptoMoonShots")
+            self.first_time = False
+
+        if not self.first_time:
+            await self.reddit_scraper(subreddit_name="CryptoMoonShots")
 
     async def reddit_scraper(
         self,
         limit: int = 15,
         subreddit_name: str = "WallStreetBets",
-        channel=None,
     ) -> None:
         """
         Scrapes the top reddit posts from the wallstreetbets subreddit and posts them in the wallstreetbets channel.
@@ -100,34 +110,34 @@ class Reddit(commands.Cog):
         -------
         None
         """
-        try:
-            await update_reddit_ids()
-            subreddit = await self.reddit.subreddit(subreddit_name)
+        await update_reddit_ids()
+        subreddit = await self.reddit.subreddit(subreddit_name)
 
-            counter = 1
-            async for submission in subreddit.hot(limit=limit):
-                if submission.stickied or is_submission_processed(submission.id):
-                    continue
+        counter = 1
+        async for submission in subreddit.hot(limit=limit):
+            if submission.stickied or is_submission_processed(submission.id):
+                continue
 
-                self.add_id_to_db(submission.id)
+            self.add_id_to_db(submission.id)
 
-                descr = truncate_text(html.unescape(submission.selftext), 4000)
-                descr = process_description(descr)  # Process the description for URLs
+            descr = truncate_text(html.unescape(submission.selftext), 4000)
+            descr = process_description(descr)  # Process the description for URLs
 
-                title = truncate_text(html.unescape(submission.title), 250)
-                img_urls, title = process_submission_media(submission, title)
+            title = truncate_text(html.unescape(submission.title), 250)
+            img_urls, title = process_submission_media(submission, title)
 
-                embed = create_embed(submission, title, descr, img_urls)
-                await self.send_embed(embed, img_urls, channel)
+            embed = create_embed(submission, title, descr, img_urls)
+            if subreddit_name == "WallStreetBets":
+                channel = self.wsb_channel
+            else:
+                channel = self.cmc_channel
+            await self.send_embed(embed, img_urls, channel)
 
-                counter += 1
-                if counter > 10:
-                    break
+            counter += 1
+            if counter > 10:
+                break
 
-            update_db(util.vars.reddit_ids, "reddit_ids")
-
-        except Exception as e:
-            print("Error getting reddit posts, error:", e)
+        update_db(util.vars.reddit_ids, "reddit_ids")
 
     async def send_embed(self, embed: Embed, img_urls: list, channel) -> None:
         """
@@ -286,10 +296,6 @@ def create_embed(submission, title: str, descr: str, img_urls: list) -> Embed:
         icon_url=data_sources["reddit"]["icon"],
     )
     return embed
-
-
-URL_REGEX = r"(?P<url>https?://[^\s]+)"
-MARKDOWN_LINK_REGEX = r"\[(?P<text>[^\]]+)\]\((?P<url>https?://[^\s]+)\)"
 
 
 def process_description(description):

@@ -1,5 +1,3 @@
-import traceback
-
 import pandas as pd
 
 # > 3rd party dependencies
@@ -27,26 +25,14 @@ class Gainers(commands.Cog):
         self.bot = bot
 
         if config["LOOPS"]["GAINERS"]["STOCKS"]["ENABLED"]:
-            self.stocks_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["GAINERS"]["CHANNEL"],
-                config["CATEGORIES"]["STOCKS"],
-            )
+            self.stocks_channel = None
             self.stocks.start()
 
         if config["LOOPS"]["GAINERS"]["CRYPTO"]["ENABLED"]:
-            self.crypto_gainers_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["GAINERS"]["CHANNEL"],
-                config["CATEGORIES"]["CRYPTO"],
-            )
+            self.crypto_gainers_channel = None
 
         if config["LOOPS"]["LOSERS"]["CRYPTO"]["ENABLED"]:
-            self.crypto_losers_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["LOSERS"]["CHANNEL"],
-                config["CATEGORIES"]["CRYPTO"],
-            )
+            self.crypto_losers_channel = None
 
         if (
             config["LOOPS"]["GAINERS"]["CRYPTO"]["ENABLED"]
@@ -119,10 +105,22 @@ class Gainers(commands.Cog):
 
         # Post the embed in the channel
         if config["LOOPS"]["GAINERS"]["CRYPTO"]["ENABLED"]:
+            if self.crypto_gainers_channel is None:
+                self.crypto_gainers_channel = await get_channel(
+                    self.bot,
+                    config["LOOPS"]["GAINERS"]["CHANNEL"],
+                    config["CATEGORIES"]["CRYPTO"],
+                )
             await self.crypto_gainers_channel.purge(limit=1)
             await self.crypto_gainers_channel.send(embed=e_gainers)
 
         if config["LOOPS"]["LOSERS"]["CRYPTO"]["ENABLED"]:
+            if self.crypto_losers_channel is None:
+                self.crypto_losers_channel = await get_channel(
+                    self.bot,
+                    config["LOOPS"]["LOSERS"]["CHANNEL"],
+                    config["CATEGORIES"]["CRYPTO"],
+                )
             await self.crypto_losers_channel.purge(limit=1)
             await self.crypto_losers_channel.send(embed=e_losers)
 
@@ -135,6 +133,12 @@ class Gainers(commands.Cog):
         -------
         None
         """
+        if self.stocks_channel is None:
+            self.stocks_channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["GAINERS"]["CHANNEL"],
+                config["CATEGORIES"]["STOCKS"],
+            )
 
         # Dont send if the market is closed
         if afterHours():

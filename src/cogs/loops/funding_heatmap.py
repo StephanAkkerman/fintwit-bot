@@ -34,15 +34,19 @@ class Funding_heatmap(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+        self.channel = None
 
         if config["LOOPS"]["FUNDING_HEATMAP"]["ENABLED"]:
-            self.channel = get_channel(
-                self.bot, config["LOOPS"]["FUNDING_HEATMAP"]["CHANNEL"]
-            )
             self.post_heatmap.start()
 
     @loop(hours=24)
     async def post_heatmap(self):
+        if self.channel is None:
+            self.channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["FUNDING_HEATMAP"]["CHANNEL"],
+                config["CATEGORIES"]["CRYPTO"],
+            )
 
         # Load data
         df = load_funding_rate_data(
@@ -151,7 +155,6 @@ def load_funding_rate_data(directory):
     all_files = glob.glob(os.path.join(directory, "*.csv"))
 
     if all_files == []:
-        print("No data found. Fetching new data for funding heatmap.")
         get_all_funding_rates()
         all_files = glob.glob(os.path.join(directory, "*.csv"))
 
@@ -165,7 +168,6 @@ def load_funding_rate_data(directory):
 
         # If the data is older than 8 hours, fetch new data
         if pd.Timestamp.now() - latest_date > pd.Timedelta(hours=8):
-            print(f"Fetching new data for {file}")
             symbol = file.split("/")[-1].split(".")[0]
             b = BinanceClient()
             new_df = b.fund_rating(symbol, rows=10_000)

@@ -26,11 +26,7 @@ class Losers(commands.Cog):
         self.bot = bot
 
         if config["LOOPS"]["LOSERS"]["STOCKS"]["ENABLED"]:
-            self.channel = get_channel(
-                self.bot,
-                config["LOOPS"]["LOSERS"]["CHANNEL"],
-                config["CATEGORIES"]["STOCKS"],
-            )
+            self.channel = None
             self.losers.start()
 
     @loop(hours=2)
@@ -42,6 +38,12 @@ class Losers(commands.Cog):
         -------
         None
         """
+        if self.channel is None:
+            self.channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["LOSERS"]["CHANNEL"],
+                config["CATEGORIES"]["STOCKS"],
+            )
 
         # Dont send if the market is closed
         if afterHours():

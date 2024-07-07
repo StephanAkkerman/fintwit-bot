@@ -32,30 +32,13 @@ class Timeline(commands.Cog):
             The bot object from discord.py
         """
         self.bot = bot
-
-        charts_channel = config["LOOPS"]["TIMELINE"]["CHARTS_CHANNEL"]
-        text_channel = config["LOOPS"]["TIMELINE"]["TEXT_CHANNEL"]
-
-        # Set the channels
-        self.set_channels("STOCKS", charts_channel, text_channel)
-        self.set_channels("CRYPTO", charts_channel, text_channel)
-        self.set_channels("FOREX", charts_channel, text_channel)
-
-        # These channels are not crypto or stocks
-        self.set_channels("IMAGES")
-        self.set_channels("OTHER")
-        self.set_channels("NEWS")
-
-        # For images that are recognized as a chart but without any specific category
-        self.unknown_charts = get_channel(
-            self.bot, config["LOOPS"]["TIMELINE"]["UNKNOWN_CHARTS"]
-        )
+        self.channels_set = False
 
         # Get all text channels
         self.all_txt_channels.start()
         self.get_latest_tweet.start()
 
-    def set_channels(
+    async def set_channels(
         self,
         name: str,
         charts_channel: str = None,
@@ -74,33 +57,53 @@ class Timeline(commands.Cog):
         """
         if config["LOOPS"]["TIMELINE"][name]["ENABLED"]:
             if name in ["STOCKS", "CRYPTO", "FOREX"]:
-                self.__dict__[f"{name.lower()}_charts_channel"] = get_channel(
+                self.__dict__[f"{name.lower()}_charts_channel"] = await get_channel(
                     self.bot, charts_channel, config["CATEGORIES"][name]
                 )
-                self.__dict__[f"{name.lower()}_text_channel"] = get_channel(
+                self.__dict__[f"{name.lower()}_text_channel"] = await get_channel(
                     self.bot, text_channel, config["CATEGORIES"][name]
                 )
             elif name in ["IMAGES", "OTHER"]:
-                self.__dict__[f"{name.lower()}_channel"] = get_channel(
+                self.__dict__[f"{name.lower()}_channel"] = await get_channel(
                     self.bot, config["LOOPS"]["TIMELINE"][name]["CHANNEL"]
                 )
             elif name in ["NEWS"]:
-                self.__dict__[f"{name.lower()}_channel"] = get_channel(
+                self.__dict__[f"{name.lower()}_channel"] = await get_channel(
                     self.bot,
                     config["LOOPS"]["TIMELINE"][name]["CHANNEL"],
                     config["CATEGORIES"]["TWITTER"],
                 )
 
                 if config["LOOPS"]["TIMELINE"]["NEWS"]["CRYPTO"]["ENABLED"]:
-                    self.crypto_news_channel = get_channel(
+                    self.crypto_news_channel = await get_channel(
                         self.bot,
                         config["LOOPS"]["TIMELINE"]["NEWS"]["CHANNEL"],
                         config["CATEGORIES"]["CRYPTO"],
                     )
 
+        # For images that are recognized as a chart but without any specific category
+        self.unknown_charts = await get_channel(
+            self.bot, config["LOOPS"]["TIMELINE"]["UNKNOWN_CHARTS"]
+        )
+
     @loop(hours=1)
     async def all_txt_channels(self) -> None:
         """Gets all the text channels as Discord object and the names of the channels."""
+
+        if not self.channels_set:
+            charts_channel = config["LOOPS"]["TIMELINE"]["CHARTS_CHANNEL"]
+            text_channel = config["LOOPS"]["TIMELINE"]["TEXT_CHANNEL"]
+
+            # Set the channels
+            await self.set_channels("STOCKS", charts_channel, text_channel)
+            await self.set_channels("CRYPTO", charts_channel, text_channel)
+            await self.set_channels("FOREX", charts_channel, text_channel)
+
+            # These channels are not crypto or stocks
+            await self.set_channels("IMAGES")
+            await self.set_channels("OTHER")
+            await self.set_channels("NEWS")
+
         self.following_ids = []
 
         text_channel_list = []
@@ -111,7 +114,10 @@ class Timeline(commands.Cog):
             for channel in server.channels:
                 if str(channel.type) == "text":
                     text_channel_list.append(channel)
-                    text_channel_names.append(channel.name.split("┃")[1])
+                    if "┃" in channel.name:
+                        text_channel_names.append(channel.name.split("┃")[1])
+                    else:
+                        text_channel_names.append(channel.name)
 
         # Set the class variables
         self.text_channels = text_channel_list

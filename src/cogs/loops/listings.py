@@ -23,12 +23,8 @@ class Exchange_Listings(commands.Cog):
         self.exchanges = config["LOOPS"]["LISTINGS"]["EXCHANGES"]
         self.old_symbols = {}
 
-        self.listings_channel = get_channel(
-            self.bot, config["LOOPS"]["LISTINGS"]["CHANNEL"]
-        )
-        self.delistings_channel = get_channel(
-            self.bot, config["LOOPS"]["LISTINGS"]["DELISTINGS"]["CHANNEL"]
-        )
+        self.listings_channel = None
+        self.delistings_channel = None
 
         asyncio.create_task(self.set_old_symbols())
 
@@ -136,6 +132,18 @@ class Exchange_Listings(commands.Cog):
         -------
         None
         """
+        if self.listings_channel is None:
+            self.listings_channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["LISTINGS"]["LISTINGS"]["CHANNEL"],
+                config["CATEGORIES"]["CRYPTO"],
+            )
+        if self.delistings_channel is None:
+            self.delistings_channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["LISTINGS"]["DELISTINGS"]["CHANNEL"],
+                config["CATEGORIES"]["CRYPTO"],
+            )
 
         # Do this for all exchanges
         for exchange in self.exchanges:

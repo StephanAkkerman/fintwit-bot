@@ -1,7 +1,6 @@
 ##> Imports
 import asyncio
 
-import ccxt
 import ccxt.pro as ccxt
 
 # > 3rd Party Dependencies
@@ -28,10 +27,7 @@ class Trades(commands.Cog):
         self, bot: commands.Bot, db: pd.DataFrame = get_db("portfolio")
     ) -> None:
         self.bot = bot
-        self.trades_channel = get_channel(
-            self.bot, config["LOOPS"]["TRADES"]["CHANNEL"]
-        )
-
+        self.trades_channel = None
         # Start getting trades
         asyncio.create_task(self.trades(db))
 
@@ -60,6 +56,10 @@ class Trades(commands.Cog):
         db : pd.DataFrame
             The database containing all users.
         """
+        if self.trades_channel is None:
+            self.trades_channel = await get_channel(
+                self.bot, config["LOOPS"]["TRADES"]["CHANNEL"]
+            )
 
         tasks = []
         exchanges = []
@@ -83,7 +83,7 @@ class Trades(commands.Cog):
                     except Exception:
                         # Send message to user and delete from database
                         await user.send(
-                            f"Your Binance API key is invalid, we have removed it from our database."
+                            "Your Binance API key is invalid, we have removed it from our database."
                         )
 
                         # Get the portfolio

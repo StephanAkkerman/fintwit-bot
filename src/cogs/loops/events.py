@@ -29,19 +29,11 @@ class Events(commands.Cog):
         self.bot = bot
 
         if config["LOOPS"]["EVENTS"]["FOREX"]["ENABLED"]:
-            self.forex_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["EVENTS"]["CHANNEL"],
-                config["CATEGORIES"]["FOREX"],
-            )
+            self.forex_channel = None
             self.post_events.start()
 
         if config["LOOPS"]["EVENTS"]["CRYPTO"]["ENABLED"]:
-            self.crypto_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["EVENTS"]["CHANNEL"],
-                config["CATEGORIES"]["CRYPTO"],
-            )
+            self.crypto_channel = None
             self.post_crypto_events.start()
 
     async def get_events(self):
@@ -134,6 +126,12 @@ class Events(commands.Cog):
         ----------
         None
         """
+        if self.forex_channel is None:
+            self.forex_channel = get_channel(
+                self.bot,
+                config["LOOPS"]["EVENTS"]["CHANNEL"],
+                config["CATEGORIES"]["FOREX"],
+            )
 
         # Send this message every friday at 23:00 UTC
         if datetime.datetime.today().weekday() == 4:
@@ -305,6 +303,13 @@ class Events(commands.Cog):
 
     @loop(hours=24)
     async def post_crypto_events(self):
+        if self.crypto_channel is None:
+            self.crypto_channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["EVENTS"]["CHANNEL"],
+                config["CATEGORIES"]["CRYPTO"],
+            )
+
         df = await self.get_crypto_calendar()
 
         # Make an embed with these tickers and their earnings date + estimation

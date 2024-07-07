@@ -23,8 +23,7 @@ class StockHalts(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.channel = get_channel(self.bot, config["LOOPS"]["STOCK_HALTS"]["CHANNEL"])
-
+        self.channel = None
         self.halt_embed.start()
 
     @loop(minutes=15)
@@ -32,6 +31,11 @@ class StockHalts(commands.Cog):
         # Dont send if the market is closed
         if afterHours():
             return
+
+        if self.channel is None:
+            self.channel = await get_channel(
+                self.bot, config["LOOPS"]["STOCK_HALTS"]["CHANNEL"]
+            )
 
         # Get the data
         html = await self.get_halt_data()
@@ -46,7 +50,7 @@ class StockHalts(commands.Cog):
 
         # Create embed
         e = discord.Embed(
-            title=f"Halted Stocks",
+            title="Halted Stocks",
             url="https://www.nasdaqtrader.com/trader.aspx?id=tradehalts",
             description="",
             color=data_sources["nasdaqtrader"]["color"],

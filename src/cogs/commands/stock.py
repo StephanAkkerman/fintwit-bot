@@ -27,6 +27,7 @@ class Stock(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+        self.channel = None
 
     def update_assets_db(self, new_db):
         """
@@ -83,6 +84,10 @@ class Stock(commands.Cog):
         -------
         None
         """
+        if self.channel is None:
+            self.channel = await get_channel(
+                self.bot, config["LOOPS"]["TRADES"]["CHANNEL"]
+            )
 
         await ctx.response.defer(ephemeral=True)
 
@@ -167,12 +172,10 @@ class Stock(commands.Cog):
             self.update_assets_db(old_db)
         await ctx.respond("Succesfully added your stock to the database!")
 
-        channel = get_channel(self.bot, config["LOOPS"]["TRADES"]["CHANNEL"])
-
         # Send message in trades channel
         await trades_msg(
             "stocks",
-            channel,
+            self.channel,
             ctx.author,
             ticker,
             "buy",
@@ -202,6 +205,11 @@ class Stock(commands.Cog):
         Usage:
         `!stock remove <ticker> (<amount>)` to remove a stock from your portfolio
         """
+        if self.channel is None:
+            self.channel = await get_channel(
+                self.bot, config["LOOPS"]["TRADES"]["CHANNEL"]
+            )
+
         await ctx.response.defer(ephemeral=True)
 
         old_db = util.vars.assets_db
@@ -264,12 +272,10 @@ class Stock(commands.Cog):
 
         buying_price = row["buying_price"].tolist()[0]
 
-        channel = get_channel(self.bot, config["LOOPS"]["TRADES"]["CHANNEL"])
-
         # Send message in trades channel
         await trades_msg(
             "stocks",
-            channel,
+            self.channel,
             ctx.author,
             ticker,
             "sold",

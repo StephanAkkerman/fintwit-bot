@@ -19,9 +19,7 @@ class On_raw_reaction_add(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.channel = get_channel(
-            self.bot, config["LISTENERS"]["ON_RAW_REACTION_ADD"]["CHANNEL"]
-        )
+        self.channel = None
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(
@@ -39,6 +37,10 @@ class On_raw_reaction_add(commands.Cog):
         -------
         None
         """
+        if self.channel is None:
+            self.channel = await get_channel(
+                self.bot, config["LISTENERS"]["ON_RAW_REACTION_ADD"]["CHANNEL"]
+            )
 
         # Ignore private messages
         if reaction.guild_id is None:

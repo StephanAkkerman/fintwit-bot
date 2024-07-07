@@ -28,30 +28,17 @@ class Index(commands.Cog):
         self.bot = bot
 
         if config["LOOPS"]["INDEX"]["CRYPTO"]["ENABLED"]:
-            self.crypto_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["INDEX"]["CHANNEL"],
-                config["CATEGORIES"]["CRYPTO"],
-            )
-
+            self.crypto_channel = None
             self.crypto_indices = [sym.split(":")[1] for sym in crypto_indices]
             self.crypto.start()
 
         if config["LOOPS"]["INDEX"]["STOCKS"]["ENABLED"]:
-            self.stocks_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["INDEX"]["CHANNEL"],
-                config["CATEGORIES"]["STOCKS"],
-            )
+            self.stocks_channel = None
             self.stock_indices = [sym.split(":")[1] for sym in stock_indices]
             self.stocks.start()
 
         if config["LOOPS"]["INDEX"]["FOREX"]["ENABLED"]:
-            self.forex_channel = get_channel(
-                self.bot,
-                config["LOOPS"]["INDEX"]["CHANNEL"],
-                config["CATEGORIES"]["FOREX"],
-            )
+            self.forex_channel = None
             self.forex_indices = [sym.split(":")[1] for sym in forex_indices]
             self.forex.start()
 
@@ -88,6 +75,12 @@ class Index(commands.Cog):
         -------
         None
         """
+        if self.crypto_channel is None:
+            self.crypto_channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["INDEX"]["CHANNEL"],
+                config["CATEGORIES"]["CRYPTO"],
+            )
         e = discord.Embed(
             title="Crypto Indices",
             description="",
@@ -168,7 +161,12 @@ class Index(commands.Cog):
         -------
         None
         """
-
+        if self.stocks_channel is None:
+            self.stocks_channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["INDEX"]["CHANNEL"],
+                config["CATEGORIES"]["STOCKS"],
+            )
         # Dont send if the market is closed
         if afterHours():
             return
@@ -242,7 +240,12 @@ class Index(commands.Cog):
         -------
         None
         """
-
+        if self.forex_channel is None:
+            self.forex_channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["INDEX"]["CHANNEL"],
+                config["CATEGORIES"]["FOREX"],
+            )
         # Dont send if the market is closed
         if afterHours():
             return
