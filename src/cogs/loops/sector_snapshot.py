@@ -172,7 +172,7 @@ def plot_data(df):
 
     # Add the title in the top left corner
     plt.text(
-        -0.05,
+        0.04,
         1.05,
         "Percentage Of Large Cap Stocks Above Their Moving Averages",
         transform=ax.transAxes,
