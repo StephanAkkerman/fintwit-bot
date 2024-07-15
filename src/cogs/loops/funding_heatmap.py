@@ -217,7 +217,6 @@ def plot_heatmap(data: pd.DataFrame):
     ax.set_facecolor(BACKGROUND_COLOR)  # Dark background color for the axes
 
     # Plot the heatmap
-    print(data)
     heatmap = sns.heatmap(
         data,
         cmap="viridis",

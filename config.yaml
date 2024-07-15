@@ -182,6 +182,10 @@ LOOPS:
     ENABLED: True
     CHANNEL: 🚥┃rsi-heatmap
 
+  SECTOR_SNAPSHOT:
+    ENABLED: True
+    CHANNEL: 📸┃spy-sectors
+
   STOCK_HALTS:
     ENABLED: True
     CHANNEL: 🛑┃halted
