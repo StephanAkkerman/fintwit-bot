@@ -36,7 +36,8 @@ Currently, we use two machine learning models to help get better insights from t
 
 - [FinTwitBERT-sentiment](https://huggingface.co/StephanAkkerman/FinTwitBERT-sentiment): classify the sentiment of financial tweets
 - [chart-recognizer](https://huggingface.co/StephanAkkerman/chart-recognizer): recognize if an image is a financial chart
-  Both models are very lightweight and are automatically downloaded and setup if you run `main.py`.
+
+Both models are very lightweight and are automatically downloaded and setup if you run `main.py`.
 
 ### Tweet Example
 
