@@ -109,13 +109,16 @@ class Timeline(commands.Cog):
         text_channel_list = []
         text_channel_names = []
 
+        # The symbol that separates the emoji and channel name
+        separator = config["CHANNEL_SEPARATOR"]
+
         # Loop over all the text channels
         for server in self.bot.guilds:
             for channel in server.channels:
                 if str(channel.type) == "text":
                     text_channel_list.append(channel)
-                    if "┃" in channel.name:
-                        text_channel_names.append(channel.name.split("┃")[1])
+                    if separator in channel.name:
+                        text_channel_names.append(channel.name.split(separator)[1])
                     else:
                         text_channel_names.append(channel.name)
 

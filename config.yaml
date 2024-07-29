@@ -1,3 +1,7 @@
+# This is used for the user channels
+# For instance 👨┃elonmusk
+CHANNEL_SEPARATOR: ┃
+
 CATEGORIES:
   INFORMATION: ▬▬ 🔑 Information ▬▬
   TWITTER: ▬▬▬ 🐦Twitter ▬▬▬
