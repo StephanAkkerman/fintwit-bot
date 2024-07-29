@@ -197,6 +197,11 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
                 r_media_types,
             ) = replied_tweet
 
+            media += r_media
+            media_types += r_media_types
+            tickers += r_tickers
+            hashtags += r_hashtags
+
         if reply and replied_tweet:
             e_title = f"{util.vars.custom_emojis['reply']} {user_name} replied to {r_user_name}"
             text = "\n".join(map(lambda line: "> " + line, text.split("\n")))
@@ -212,11 +217,6 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
             e_title = f"{util.vars.custom_emojis['retweet']} {user_name} retweeted {r_user_name}"
             # Use the full retweeted text (otherwise the tweet text is cut off)
             text = r_text
-
-        media += r_media
-        media_types += r_media_types
-        tickers += r_tickers
-        hashtags += r_hashtags
 
     # Replace &amp; etc.
     text = text.replace("&amp;", "&").replace("&gt;", ">").replace("&lt;", "<")
