@@ -203,18 +203,30 @@ def parse_tweet(tweet: dict, update_tweet_id: bool = False):
             hashtags += r_hashtags
 
         if reply and replied_tweet:
-            e_title = f"{util.vars.custom_emojis['reply']} {user_name} replied to {r_user_name}"
+            if "reply" in util.vars.custom_emojis:
+                e_title = f"{util.vars.custom_emojis['reply']} {user_name} replied to {r_user_name}"
+            else:
+                e_title = f"{user_name} replied to {r_user_name}"
+
             text = "\n".join(map(lambda line: "> " + line, text.split("\n")))
             text = f"> [@{r_user_screen_name}](https://twitter.com/{r_user_screen_name}):\n{text}\n\n{r_text}"
 
         # Add text on top
         if quoted_status_result and replied_tweet:
-            e_title = f"{util.vars.custom_emojis['quote_tweet']} {user_name} quote tweeted {r_user_name}"
+            if "quote_tweet" in util.vars.custom_emojis:
+                e_title = f"{util.vars.custom_emojis['quote_tweet']} {user_name} quote tweeted {r_user_name}"
+            else:
+                e_title = f"{user_name} quote tweeted {r_user_name}"
+
             q_text = "\n".join(map(lambda line: "> " + line, r_text.split("\n")))
             text = f"{text}\n\n> [@{r_user_screen_name}](https://twitter.com/{r_user_screen_name}):\n{q_text}"
 
         if retweeted_status_result and replied_tweet:
-            e_title = f"{util.vars.custom_emojis['retweet']} {user_name} retweeted {r_user_name}"
+            if "retweet" in util.vars.custom_emojis:
+                e_title = f"{util.vars.custom_emojis['retweet']} {user_name} retweeted {r_user_name}"
+            else:
+                e_title = f"{user_name} retweeted {r_user_name}"
+
             # Use the full retweeted text (otherwise the tweet text is cut off)
             text = r_text
 
