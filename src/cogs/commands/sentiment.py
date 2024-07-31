@@ -1,6 +1,8 @@
 ## > Imports
 # > Standard Library
 import datetime
+import traceback
+from io import StringIO
 
 # > Discord imports
 import discord
@@ -16,7 +18,44 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from util.confirm_stock import confirm_stock
 
 # > Local dependencies
-from util.vars import get_json_data, logger
+from util.vars import data_sources, get_json_data, logger
+
+# Initialize variables
+today_date = datetime.datetime.now().date()
+current_date = today_date
+
+
+def convert_to_datetime(date_str):
+    global current_date
+
+    if "Today" in date_str:
+        time_str = date_str.replace("Today ", "")
+        datetime_str = f"{today_date} {time_str}"
+    elif any(
+        month in date_str
+        for month in [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+        ]
+    ):
+        datetime_obj = datetime.datetime.strptime(date_str, "%b-%d-%y %I:%M%p")
+        current_date = datetime_obj.date()
+        return datetime_obj
+    else:
+        time_str = date_str
+        datetime_str = f"{current_date} {time_str}"
+
+    return datetime.datetime.strptime(datetime_str, "%Y-%m-%d %I:%M%p")
 
 
 class Sentiment(commands.Cog):
@@ -58,7 +97,7 @@ class Sentiment(commands.Cog):
         if not await confirm_stock(self.bot, ctx, stock):
             return
 
-        news_df = await self.get_news(stock)
+        news_df = await self.get_sentiment(stock)
 
         # Get the total mean
         total_mean = news_df["Sentiment"].mean()
@@ -73,12 +112,12 @@ class Sentiment(commands.Cog):
             title=f"Sentiment of Latest {stock.upper()} News",
             url=f"https://finviz.com/quote.ashx?t={stock}",
             description="",
-            color=0xFFFFFF,
+            color=data_sources["finviz"]["color"],
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
         e.set_footer(
             text="\u200b",
-            icon_url="https://pbs.twimg.com/profile_images/554978836488540160/rqhRqbgQ_400x400.png",
+            icon_url=data_sources["finviz"]["icon"],
         )
 
         # Start by showing the means
@@ -108,7 +147,7 @@ class Sentiment(commands.Cog):
                 inline=True,
             )
 
-        await ctx.respond(embed=e)
+        await ctx.followup.send(embed=e)
 
     @sentiment.error
     async def sentiment_error(self, ctx: ApplicationContext, error: Exception) -> None:
@@ -123,9 +162,10 @@ class Sentiment(commands.Cog):
             The exception that was raised when using the `!sentiment` command.
         """
         logger.error(error)
+        logger.debug(traceback.format_exc())
         await ctx.respond("An error has occurred. Please try again later.")
 
-    async def get_news(self, ticker: str) -> pd.DataFrame:
+    async def get_finviz_data(self, ticker: str) -> pd.DataFrame:
         """
         Get the latest news for a given stock ticker.
 
@@ -148,46 +188,38 @@ class Sentiment(commands.Cog):
             text=True,
         )
 
-        # Get everything part of id='news-table'
-        html = html[html.find('id="news-table"') :]
-        html = html[: html.find("</table>")]
+        df = pd.read_html(StringIO(html))[-3]
 
-        # Split headlines by <tr> until </tr>
-        headlines = html.split("<tr>")[1:]
+        # Set column names
+        df.columns = ["Date", "Headline"]
 
-        text_only = []
-        last_date = ""
-        dates = []
+        # Convert the date column
+        df["Date"] = df["Date"].apply(convert_to_datetime)
+
+        return df
+
+    async def get_sentiment(self, ticker: str) -> pd.DataFrame:
+        """
+        Calculate the sentiment for a given stock ticker.
+
+        Parameters
+        ----------
+        ticker : str
+            The stock ticker to get the news for.
+
+        Returns
+        -------
+        pd.DataFrame
+            The latest news for a given stock ticker.
+        """
+
+        df = await self.get_finviz_data(ticker)
+        text = df["Headline"].tolist()
         sentiment = []
 
-        for headline in headlines:
-            date = headline[
-                headline.find('style="white-space:nowrap">')
-                + len('style="white-space:nowrap">') : headline.find("&nbsp;")
-            ]
-
-            if date.startswith('ht">'):
-                date = last_date + " " + date[len('ht">') :]
-            else:
-                last_date = date.split()[0]
-
-            # Month-date-year hour:minute AM/pm
-            # For instance May-23-22 11:31PM
-            dates.append(datetime.datetime.strptime(date, "%b-%d-%y %I:%M%p"))
-
-            text = headline[
-                headline.find('class="tab-link-news">')
-                + len('class="tab-link-news">') : headline.find("</a>")
-            ].replace("&amp;", "&")
-
-            url = headline[
-                headline.find("href=")
-                + len("href=")
-                + 1 : headline.find('" target="_blank"')
-            ]
-
-            text_only.append(f"[{text}]({url})")
-
+        # Calculate the sentiment for each headline
+        for text in text:
+            # Check if the NLTK packages are installed
             try:
                 analyzer = SentimentIntensityAnalyzer()
                 sentiment.append(analyzer.polarity_scores(text)["compound"])
@@ -199,9 +231,10 @@ class Sentiment(commands.Cog):
                 analyzer = SentimentIntensityAnalyzer()
                 sentiment.append(analyzer.polarity_scores(text)["compound"])
 
-        return pd.DataFrame(
-            {"Date": dates, "Headline": text_only, "Sentiment": sentiment}
-        )
+        # Add the sentiment to the dataframe
+        df["Sentiment"] = sentiment
+
+        return df
 
 
 def setup(bot: commands.Bot) -> None:

@@ -71,6 +71,7 @@ data_sources = {
     "stocktwits": {"color": 0xFFFFFF, "icon": icon_url + "stocktwits.png"},
     "cryptocraft": {"color": 0x634C7B, "icon": icon_url + "cryptocraft.png"},
     "barchart": {"color": 0x84C8C, "icon": icon_url + "barchart.png"},
+    "finviz": {"color": 0xFFFFFF, "icon": icon_url + "finviz.png"},
 }
 
 # Stable coins
