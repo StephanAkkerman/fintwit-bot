@@ -44,7 +44,7 @@ class Trades(commands.Cog):
             except Exception as e:
                 # Maybe do: await exchange.close() and restart the socket
                 logger.error(
-                    f"Error in trade websocket for {row['user']} and {exchange.id}: ", e
+                    f"Error in trade websocket for {row['user']} and {exchange.id}: {e}"
                 )
 
     async def trades(self, db: pd.DataFrame) -> None:

@@ -337,7 +337,7 @@ class Trending(commands.Cog):
             await self.stocks_channel.purge(limit=1)
             await self.stocks_channel.send(embed=e)
         except Exception as e:
-            logger.error("Error getting most active stocks: ", e)
+            logger.error(f"Error getting most active stocks: {e}")
 
 
 def setup(bot: commands.Bot) -> None:

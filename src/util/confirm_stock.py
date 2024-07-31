@@ -12,7 +12,7 @@ async def confirm_stock(bot: commands.Bot, ctx: commands.Context, ticker: str) -
     stock_info = yf.Ticker(ticker)
 
     # If it does not exist let the user know
-    if stock_info.info["regularMarketPrice"] == None:
+    if stock_info.info["currentPrice"] is None:
 
         confirm_button = Button(
             label="Confirm",

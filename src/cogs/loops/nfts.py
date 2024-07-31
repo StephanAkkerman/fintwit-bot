@@ -267,7 +267,7 @@ class NFTS(commands.Cog):
         try:
             p2e = await p2e_games()
         except Exception as e:
-            logger.error("Error fetching PlayToEarn data: ", e)
+            logger.error(f"Error fetching PlayToEarn data: {e}")
             return
 
         if p2e.empty:

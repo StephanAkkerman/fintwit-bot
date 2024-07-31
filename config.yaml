@@ -235,13 +235,33 @@ LOOPS:
 ##################
 
 COMMANDS:
-  ANALYZE: True
-  EARNINGS: True
-  FOLLOW: True
-  HELP: True
-  PORTFOLIO: True
-  SENTIMENT: True
-  STOCK: True
+  ANALYZE:
+    ENABLED: True
+    ROLE: None
+
+  EARNINGS:
+    ENABLED: True
+    ROLE: None
+
+  FOLLOW:
+    ENABLED: True
+    ROLE: None
+
+  HELP:
+    ENABLED: True
+    ROLE: None
+
+  PORTFOLIO:
+    ENABLED: True
+    ROLE: None
+
+  SENTIMENT:
+    ENABLED: True
+    ROLE: None
+
+  STOCK:
+    ENABLED: True
+    ROLE: None
 
 #################
 ### Listeners ###
@@ -253,6 +273,7 @@ LISTENERS:
   ON_RAW_REACTION_ADD:
     ENABLED: True
     CHANNEL: 💸┃highlights
+    ROLE: None
 
   ON_MEMBER_JOIN:
     ENABLED: True

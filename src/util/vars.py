@@ -180,6 +180,6 @@ async def post_json_data(
             async with session.post(url, data=data, json=json) as r:
                 return await r.json(content_type=None)
     except Exception as e:
-        logger.error(f"Error with POST request for {url}.", "Error:", e)
+        logger.error(f"Error with POST request for {url}.\nError: {e}")
 
     return {}

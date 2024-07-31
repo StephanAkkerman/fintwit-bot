@@ -30,7 +30,7 @@ class Earnings(commands.Cog):
     async def earnings(
         self,
         ctx: ApplicationContext,
-        stock: Option(str, description="The requested stock.", required=True),
+        stock: Option(str, description="Stock ticker, e.g. AAPL.", required=True),
     ):
         """
         Gets next earnings date for a given stock.
@@ -49,27 +49,24 @@ class Earnings(commands.Cog):
             If the provided stock ticker is not valid.
         """
 
-        if input:
-            # Check if this stock exists
-            if not await confirm_stock(self.bot, ctx, stock):
-                return
+        # Check if this stock exists
+        if not await confirm_stock(self.bot, ctx, stock):
+            return
 
-            ticker = yfinance.Ticker(stock)
-            df = ticker.get_earnings_dates()
-            # Convert 'today' to a timezone-aware timestamp
-            tz = pytz.timezone("America/New_York")
-            today = pd.Timestamp(datetime.now(tz))
+        ticker = yfinance.Ticker(stock)
+        df = ticker.get_earnings_dates()
+        # Convert 'today' to a timezone-aware timestamp
+        tz = pytz.timezone("America/New_York")
+        today = pd.Timestamp(datetime.now(tz))
 
-            # Filter the DataFrame to include only future dates
-            future_dates = df[df.index > today]
+        # Filter the DataFrame to include only future dates
+        future_dates = df[df.index > today]
 
-            # Find the closest date
-            closest_date = future_dates.index.min()
+        # Find the closest date
+        closest_date = future_dates.index.min()
 
-            msg = f"The next earnings date for {stock.upper()} is <t:{closest_date.date()}:R>."
-            await ctx.respond(msg)
-        else:
-            raise commands.UserInputError()
+        msg = f"The next earnings date for {stock.upper()} is <t:{int(closest_date.timestamp())}:D>."
+        await ctx.respond(msg)
 
     @earnings.error
     async def earnings_error(self, ctx: ApplicationContext, error: Exception):
@@ -85,11 +82,11 @@ class Earnings(commands.Cog):
         """
         logger.error(error)
         if isinstance(error, commands.UserInputError):
-            await ctx.send(
+            await ctx.respond(
                 f"{ctx.author.mention} You must specify a stock to request the next earnings of!"
             )
         else:
-            await ctx.send(
+            await ctx.respond(
                 f"{ctx.author.mention} An error has occurred. Please try again later."
             )
 

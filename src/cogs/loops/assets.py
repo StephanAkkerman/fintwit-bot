@@ -352,7 +352,7 @@ class Assets(commands.Cog):
             try:
                 disc_user = await get_user(self.bot, id)
             except Exception as e:
-                logger.error(f"Could not get user with id: {id}.\n{assets} \nError:", e)
+                logger.error(f"Could not get user with id: {id}.\n{assets}\nError: {e}")
 
         return disc_user
 

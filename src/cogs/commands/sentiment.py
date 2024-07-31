@@ -123,7 +123,7 @@ class Sentiment(commands.Cog):
             The exception that was raised when using the `!sentiment` command.
         """
         logger.error(error)
-        await ctx.respond(f"An error has occurred. Please try again later.")
+        await ctx.respond("An error has occurred. Please try again later.")
 
     async def get_news(self, ticker: str) -> pd.DataFrame:
         """

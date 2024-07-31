@@ -360,7 +360,7 @@ class TV_data:
                 ).get_analysis()
 
             except Exception as e:
-                logger.error(f"TradingView TA error for ticker: {symbol}, error:", e)
+                logger.error(f"TradingView TA error for ticker: {symbol}, error: {e}")
                 return None, None
 
             if four_h_analysis:

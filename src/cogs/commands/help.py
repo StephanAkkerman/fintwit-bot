@@ -94,7 +94,7 @@ class Help(commands.Cog):
             # https://docs.pycord.dev/en/stable/api.html?highlight=slashcommand#discord.SlashCommand
             for command in commands:
                 # https://docs.pycord.dev/en/stable/api.html?highlight=slashcommand#slashcommandgroup
-                if type(command) == discord.SlashCommandGroup:
+                if isinstance(command, discord.SlashCommandGroup):
                     for subcommand in command.walk_commands():
                         self.cmd_dict[f"{command.name} {subcommand.name}"] = [
                             subcommand.mention,
@@ -102,27 +102,12 @@ class Help(commands.Cog):
                             subcommand.options,
                         ]
 
-                elif type(command) == discord.SlashCommand:
+                elif isinstance(command, discord.SlashCommand):
                     self.cmd_dict[command.name] = [
                         command.mention,
                         command.description,
                         command.options,
                     ]
-
-    # @help.error
-    # async def help_error(self, ctx, error):
-    #    if isinstance(error, commands.UserInputError):
-    #        await ctx.send(
-    #            f"Too many arguments given. Correct usage of this command: `!help [command]`."
-    #        )
-    #    elif isinstance(error, commands.CommandNotFound):
-    #        e = discord.Embed(
-    #            title="Help",
-    #            color=0x00FFFF,
-    #            description="This command could not be found... Try `!help` to list all available commands.",
-    #        )
-    #        await ctx.send(embed=e)
-    #    else:
 
 
 def setup(bot: commands.Bot) -> None:

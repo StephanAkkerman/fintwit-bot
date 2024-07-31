@@ -10,7 +10,7 @@ try:
         cURL = uncurl.parse_context("".join([line.strip() for line in file]))
 except Exception as e:
     cURL = None
-    logger.critical("Error: Could not read curl.txt:", e)
+    logger.critical(f"Error: Could not read curl.txt: {e}")
 
 
 async def get_tweet():
@@ -46,7 +46,7 @@ async def get_tweet():
     try:
         result["data"]["home"]["home_timeline_urt"]["instructions"][0]["entries"]
     except Exception as e:
-        logger.error("Error in get_tweet():", e)
+        logger.error(f"Error in get_tweet(): {e}")
         with open("logs/get_tweet_error.json", "w") as f:
             json.dump(result, f, indent=4)
 

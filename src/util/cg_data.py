@@ -44,7 +44,7 @@ def get_crypto_info(ids):
                         id = symbol
                         coin_dict = coin_info
             except Exception as e:
-                logger.error("Error getting coin info for", symbol, "Error:", e)
+                logger.error(f"Error getting coin info for {symbol}, Error: {e}")
                 pass
 
     else:
@@ -53,7 +53,7 @@ def get_crypto_info(ids):
         try:
             coin_dict = cg.get_coin_by_id(id)
         except Exception as e:
-            logger.error("Error getting coin info for", id, "Error:", e)
+            logger.error(f"Error getting coin info for {id}, Error: {e}")
             return None, None
 
     return coin_dict, id
@@ -294,7 +294,7 @@ async def get_trending_coins() -> pd.DataFrame:
         return df
 
     except Exception as e:
-        logger.error("Error getting trending coingecko coins. Error:", e)
+        logger.error(f"Error getting trending coingecko coins. Error: {e}")
         return pd.DataFrame()
 
 

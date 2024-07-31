@@ -80,7 +80,7 @@ class DB(commands.Cog):
             update_db(pd.DataFrame(util.vars.nasdaq_tickers), "nasdaq_tickers")
 
         except Exception as e:
-            logger.error("Failed to get new nasdaq tickers, error:", e)
+            logger.error(f"Failed to get new nasdaq tickers, error: {e}")
             nasdaq_tickers = get_db("nasdaq_tickers")
             # Convert the dataframe to list
             util.vars.nasdaq_tickers = nasdaq_tickers.iloc[:, 0].tolist()
@@ -186,7 +186,7 @@ def clean_old_db(db, days: int = 1) -> pd.DataFrame:
         db = remove_old_rows(db, days)
         return db
     except Exception as e:
-        logger.error("Error in clean_old_db:", e)
+        logger.error(f"Error in clean_old_db: {e}")
         logger.error(db.to_string())
 
 

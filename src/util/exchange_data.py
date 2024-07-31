@@ -73,7 +73,7 @@ async def get_data(row) -> pd.DataFrame:
         return df
     except Exception as e:
         await exchange.close()
-        logger.error("Error in get_data(). Error:", e)
+        logger.error(f"Error in get_data(). Error: {e}")
 
 
 async def get_balance(exchange) -> dict:

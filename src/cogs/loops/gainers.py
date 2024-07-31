@@ -153,7 +153,7 @@ class Gainers(commands.Cog):
             await self.stocks_channel.purge(limit=1)
             await self.stocks_channel.send(embed=e)
         except Exception as e:
-            logger.error("Error posting stocks gainers: ", e)
+            logger.error(f"Error posting stocks gainers: {e}")
 
 
 def setup(bot: commands.Bot) -> None:

@@ -98,7 +98,7 @@ class Portfolio(commands.Cog):
         status = ccxt_exchange.fetch_status()
         if status["status"] != "ok":
             await ctx.respond(
-                f"Your API keys are not valid! Please check your API keys and try again."
+                "Your API keys are not valid! Please check your API keys and try again."
             )
             return
 
@@ -202,19 +202,19 @@ class Portfolio(commands.Cog):
     async def add_error(self, ctx: ApplicationContext, error: Exception) -> None:
         if isinstance(error, commands.BadArgument):
             await ctx.respond(
-                f"The exchange you specified is currently not supported! \nSupported exchanges: Kucoin, Binance"
+                "The exchange you specified is currently not supported! \nSupported exchanges: Kucoin, Binance"
             )
         elif isinstance(error, commands.UserInputError):
             await ctx.respond(
-                f"If using `/portfolio add` with Kucoin, you must specify a passphrase!"
+                "If using `/portfolio add` with Kucoin, you must specify a passphrase!"
             )
         else:
             logger.error(error)
-            await ctx.respond(f"An error has occurred. Please try again later.")
+            await ctx.respond("An error has occurred. Please try again later.")
 
     @remove.error
     async def remove_error(self, ctx: ApplicationContext, error: Exception) -> None:
-        await ctx.respond(f"An error has occurred. Please try again later.")
+        await ctx.respond("An error has occurred. Please try again later.")
 
     @show.error
     async def show_error(self, ctx: ApplicationContext, error: Exception) -> None:
@@ -224,7 +224,7 @@ class Portfolio(commands.Cog):
                 "Please only use the `/portfolio` command in private messages for security reasons."
             )
         else:
-            await ctx.respond(f"An error has occurred. Please try again later.")
+            await ctx.respond("An error has occurred. Please try again later.")
 
 
 class PortfolioSelectView(View):

@@ -54,7 +54,7 @@ class On_raw_reaction_add(commands.Cog):
                     await channel.history(limit=100).flatten(), id=reaction.message_id
                 )
             except Exception as e:
-                logger.error(f"Error getting channel.history for {channel}. Error:", e)
+                logger.error(f"Error getting channel.history for {channel}. Error: {e}")
                 return
 
             if reaction.user_id != self.bot.user.id:
