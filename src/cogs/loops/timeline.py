@@ -14,7 +14,7 @@ from util.disc_util import get_channel, get_tagged_users, get_webhook
 from util.get_tweet import get_tweet
 from util.parse_tweet import parse_tweet
 from util.tweet_embed import make_tweet_embed
-from util.vars import config
+from util.vars import config, logger
 
 
 class Timeline(commands.Cog):
@@ -129,7 +129,7 @@ class Timeline(commands.Cog):
     @loop(minutes=5)
     async def get_latest_tweet(self) -> None:
         """Fetches the latest tweets."""
-        print(f"Getting tweets at {datetime.datetime.now()}...")
+        logger.debug(f"Getting tweets at {datetime.datetime.now()}...")
         tweets = await get_tweet()
 
         # Loop from oldest to newest tweet
@@ -350,14 +350,14 @@ class Timeline(commands.Cog):
                         await msg.add_reaction("🐻")
 
             except discord.DiscordServerError:
-                print("Could not add reaction to message")
+                logger.error("Could not add reaction to message")
 
         except aiohttp.ClientConnectionError:
-            print("Connection Error posting tweet on timeline")
+            logger.error("Connection Error posting tweet on timeline")
 
         except Exception as error:
-            print("Error posting tweet on timeline", error)
-            print(traceback.format_exc())
+            logger.error("Error posting tweet on timeline", error)
+            logger.error(traceback.format_exc())
 
     async def make_and_send_webhook(
         self,

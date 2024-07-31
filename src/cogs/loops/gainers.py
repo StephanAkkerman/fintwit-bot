@@ -12,7 +12,7 @@ from util.disc_util import get_channel
 from util.formatting import format_embed
 
 # Local dependencies
-from util.vars import config, get_json_data
+from util.vars import config, get_json_data, logger
 
 
 class Gainers(commands.Cog):
@@ -61,7 +61,7 @@ class Gainers(commands.Cog):
         try:
             df = pd.DataFrame(binance_data)
         except Exception as e:
-            print(f"Could not cast to dataframe, error: {e}")
+            logger.error(f"Could not cast to dataframe, error: {e}")
             return
 
         # Keep only the USDT pairs
@@ -153,8 +153,7 @@ class Gainers(commands.Cog):
             await self.stocks_channel.purge(limit=1)
             await self.stocks_channel.send(embed=e)
         except Exception as e:
-            print("Error posting stocks gainers: ", e)
-            # print(traceback.format_exc())
+            logger.error("Error posting stocks gainers: ", e)
 
 
 def setup(bot: commands.Bot) -> None:

@@ -17,7 +17,7 @@ from tradingview_ta import Interval, TA_Handler
 # > Local dependencies
 import util.vars
 from util.tv_symbols import all_forex_indices, crypto_indices, stock_indices
-from util.vars import get_json_data
+from util.vars import get_json_data, logger
 
 
 async def get_tv_ticker_data(url, append_to=None):
@@ -82,13 +82,13 @@ class TV_data:
                             change = float(jsonRes["p"][1]["v"]["ch"])
                             volume = float(jsonRes["p"][1]["v"]["volume"])
                         except KeyError:
-                            print("KeyError in TradingView ws_data")
+                            logger.error("KeyError in TradingView ws_data")
                             return None
 
                         if price != 0:
                             perc_change = round((change / price) * 100, 2)
                         else:
-                            print("TradingView returns price=0")
+                            logger.warn("TradingView returns price=0")
                             return None
 
                         return price, perc_change, volume
@@ -101,7 +101,7 @@ class TV_data:
 
                 return None
         except Exception:
-            print(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
     async def sendMessage(
         self, ws: aiohttp.ClientWebSocketResponse, func: str, args: List[str]
@@ -279,15 +279,15 @@ class TV_data:
 
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         # self.restart_sockets()
-                        print("TradingView websocket Error")
+                        logger.error("TradingView websocket Error")
                         await session.close()
                         return (0, None, 0, None, website)
 
         except aiohttp.ClientConnectionError:
-            print("Temporary TradingView websocket error")
+            logger.error("Temporary TradingView websocket error")
 
         except Exception:
-            print(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
         return (0, None, 0, None, website)
 
@@ -360,7 +360,7 @@ class TV_data:
                 ).get_analysis()
 
             except Exception as e:
-                print(f"TradingView TA error for ticker: {symbol}, error:", e)
+                logger.error(f"TradingView TA error for ticker: {symbol}, error:", e)
                 return None, None
 
             if four_h_analysis:

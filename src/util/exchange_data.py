@@ -1,10 +1,8 @@
-import traceback
-
 import ccxt.async_support as ccxt
 import numpy as np
 import pandas as pd
 
-from util.vars import stables
+from util.vars import logger, stables
 
 
 async def get_data(row) -> pd.DataFrame:
@@ -75,8 +73,7 @@ async def get_data(row) -> pd.DataFrame:
         return df
     except Exception as e:
         await exchange.close()
-        print("Error in get_data(). Error:", e)
-        print(traceback.format_exc())
+        logger.error("Error in get_data(). Error:", e)
 
 
 async def get_balance(exchange) -> dict:
@@ -115,10 +112,10 @@ async def get_usd_price(exchange, symbol: str) -> tuple[float, float]:
         except (ccxt.BadSymbol, ccxt.RequestTimeout):
             return None  # Use None to indicate a failed fetch
         except ccxt.ExchangeError as e:
-            print(f"Exchange error for {symbol_pair} on {exchange.id}: {e}")
+            logger.error(f"Exchange error for {symbol_pair} on {exchange.id}: {e}")
             return None
         except Exception as e:
-            print(f"Error fetching {symbol_pair} on {exchange.id}: {e}")
+            logger.error(f"Error fetching {symbol_pair} on {exchange.id}: {e}")
             return None
 
     # Attempt to fetch price for each stable coin pairing

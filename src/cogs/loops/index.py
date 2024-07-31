@@ -95,7 +95,6 @@ class Index(commands.Cog):
         for index in self.crypto_indices:
             price, change, _, exchange, _ = await tv.get_tv_data(index, "crypto")
             if price == 0:
-                print(index)
                 continue
             change = round(change, 2)
             change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"

@@ -99,7 +99,6 @@ async def get_stock_info(
     # Check TradingView data
     tv_data = await tv.get_tv_data(ticker, asset_type)
     if tv_data:
-        # print(f"Could not find {ticker} on Yahoo Finance, using TradingView data.")
         price, perc_change, volume, exchange, website = tv_data
 
     if do_format_change:

@@ -1,6 +1,4 @@
 # Standard libraries
-import traceback
-
 # > 3rd party dependencies
 import yahoo_fin.stock_info as si
 
@@ -13,7 +11,7 @@ from util.disc_util import get_channel
 from util.formatting import format_embed
 
 # Local dependencies
-from util.vars import config
+from util.vars import config, logger
 
 
 class Losers(commands.Cog):
@@ -53,8 +51,7 @@ class Losers(commands.Cog):
             e = await format_embed(si.get_day_losers().head(10), "Losers", "yahoo")
             await self.channel.send(embed=e)
         except Exception as e:
-            print("Error getting or posting stock losers, error:", e)
-            print(traceback.format_exc())
+            logger.error("Error getting or posting stock losers, error:", e)
 
 
 def setup(bot: commands.Bot) -> None:

@@ -20,7 +20,7 @@ from pycoingecko import CoinGeckoAPI
 import util.vars
 from util.formatting import format_change
 from util.tv_data import tv
-from util.vars import stables
+from util.vars import logger, stables
 
 cg = CoinGeckoAPI()
 session = tls_client.Session(
@@ -44,7 +44,7 @@ def get_crypto_info(ids):
                         id = symbol
                         coin_dict = coin_info
             except Exception as e:
-                print("Error getting coin info for", symbol, "Error:", e)
+                logger.error("Error getting coin info for", symbol, "Error:", e)
                 pass
 
     else:
@@ -53,7 +53,7 @@ def get_crypto_info(ids):
         try:
             coin_dict = cg.get_coin_by_id(id)
         except Exception as e:
-            print("Error getting coin info for", id, "Error:", e)
+            logger.error("Error getting coin info for", id, "Error:", e)
             return None, None
 
     return coin_dict, id
@@ -160,8 +160,7 @@ async def get_coin_info(
     coin_dict = None
     if ticker in util.vars.cg_db["symbol"].values:
         # Check coin by symbol, i.e. "BTC"
-        print("Cg_data ticker:")
-        print(ticker)
+        logger.debug(f"Cg_data ticker: {ticker}")
         coin_dict, id = get_crypto_info(
             util.vars.cg_db[util.vars.cg_db["symbol"] == ticker]["id"]
         )
@@ -208,7 +207,7 @@ async def get_coin_info(
 
     # Look into this!
     if total_vol != 0 and base is None:
-        print("No base symbol found for:", ticker)
+        logger.debug("No base symbol found for:", ticker)
         base = ticker
 
     # Return the information
@@ -253,7 +252,7 @@ async def get_trending_coins() -> pd.DataFrame:
         table = soup.find("table")
 
         if table is None:
-            print("Error getting trending coingecko coins, no table found.")
+            logger.error("Error getting trending coingecko coins, no table found.")
             return pd.DataFrame()
 
         # Try converting the table to pandas
@@ -295,10 +294,7 @@ async def get_trending_coins() -> pd.DataFrame:
         return df
 
     except Exception as e:
-        print("Error getting trending coingecko coins. Error:", e)
-        import traceback
-
-        print(traceback.format_exc())
+        logger.error("Error getting trending coingecko coins. Error:", e)
         return pd.DataFrame()
 
 
@@ -310,7 +306,7 @@ async def get_top_categories() -> pd.DataFrame | None:
     table = soup.find("table")
 
     if table is None:
-        print("Error getting top categories from CoinGecko, no table found.")
+        logger.error("Error getting top categories from CoinGecko, no table found.")
         return
 
     data = []
@@ -368,7 +364,7 @@ def get_top_vol_coins(length: int = 50) -> list:
             cache_time = cache_data["timestamp"]
             if time.time() - cache_time < CACHE_EXPIRATION:
                 # Return the cached data if it's not expired
-                print("Using cached top volume coins")
+                logger.debug("Using cached top volume coins")
                 return cache_data["data"][:length]
 
     # Fetch fresh data if the cache is missing or expired

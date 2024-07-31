@@ -11,7 +11,7 @@ from discord.ext.tasks import loop
 from util.disc_util import get_channel
 
 # Local dependencies
-from util.vars import config, data_sources, get_json_data
+from util.vars import config, data_sources, get_json_data, logger
 
 
 class Funding(commands.Cog):
@@ -46,14 +46,14 @@ class Funding(commands.Cog):
 
         # If the call did not work
         if not binance_data:
-            print("Could not get funding data...")
+            logger.warn("Could not get funding data...")
             return
 
         # Cast to dataframe
         try:
             df = pd.DataFrame(binance_data)
         except Exception as e:
-            print(f"Could not cast to dataframe, error: {e}")
+            logger.error(f"Could not cast to dataframe, error: {e}")
             return
 
         # Keep only the USDT pairs

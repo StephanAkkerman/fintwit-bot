@@ -19,21 +19,21 @@ load_dotenv()
 from util.disc_util import get_guild, set_emoji
 
 # Import local dependencies
-from util.vars import config
+from util.vars import config, logger
 
 bot = commands.Bot(intents=discord.Intents.all())
 
 
 @bot.event
 async def on_ready() -> None:
-    """This gets printed on boot up"""
+    """This gets logger.infoed on boot up"""
 
     # Load the loops and listeners
     load_folder("loops")
     load_folder("listeners")
 
     guild = get_guild(bot)
-    print(f"{bot.user} is connected to {guild.name} at {datetime.datetime.now()} \n")
+    logger.info(f"{bot.user} is connected to {guild.name}")
 
     await set_emoji(guild)
 
@@ -73,7 +73,7 @@ def load_folder(foldername: str) -> None:
                     enabled_cogs.append(file.lower() + ".py")
 
     # Load all cogs
-    print(f"Loading {foldername} ...")
+    logger.info(f"Loading {foldername} ...")
     for filename in os.listdir(f"./src/cogs/{foldername}"):
         if filename.endswith(".py") and filename in enabled_cogs:
             try:
@@ -85,13 +85,12 @@ def load_folder(foldername: str) -> None:
                 if filename == "overview.py":
                     continue
 
-                print("Loading:", filename)
+                logger.info(f"Loading: {filename}")
                 bot.load_extension(f"cogs.{foldername}.{filename[:-3]}")
             except discord.ExtensionAlreadyLoaded:
                 pass
             except discord.ExtensionNotFound:
-                print("Cog not found:", filename)
-    print()
+                logger.info(f"Cog not found: {filename}")
 
 
 if __name__ == "__main__":
@@ -112,7 +111,7 @@ if __name__ == "__main__":
     )
 
     if not TOKEN:
-        print("No Discord token found. Exiting...")
+        logger.critical("No Discord token found. Exiting...")
         sys.exit(1)
 
     # Main event loop

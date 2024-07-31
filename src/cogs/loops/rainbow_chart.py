@@ -16,7 +16,7 @@ from matplotlib.ticker import FuncFormatter
 from scipy.optimize import curve_fit
 
 from util.disc_util import get_channel
-from util.vars import config, data_sources
+from util.vars import config, data_sources, logger
 
 # Save the exchanges that are useful
 exchanges_with_ohlcv = []
@@ -121,7 +121,7 @@ def get_data(file_path):
     diff_days = (pd.Timestamp.today() - raw_data["Date"].max()).days
 
     if diff_days > 1:
-        print(f"Data is {diff_days} days old. Updating...")
+        logger.info(f"Data is {diff_days} days old. Updating...")
 
         # Get new data
         # raw_data = pd.DataFrame(nasdaqdatalink.get("BCHAIN/MKPRU")).reset_index()

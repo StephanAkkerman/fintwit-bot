@@ -9,6 +9,7 @@ from util.cg_data import get_coin_info
 # Local dependencies
 from util.tv_data import tv
 from util.tv_symbols import currencies
+from util.vars import logger
 from util.yf_data import get_stock_info
 
 
@@ -114,7 +115,7 @@ async def get_best_guess(ticker: str, asset_type: str):
     # Set the TA data, only if volume is high enough
     if get_TA:
         if base_sym is None:
-            print("No base symbol found for", ticker)
+            logger.warn("No base symbol found for", ticker)
             base_sym = ticker
         four_h_ta, one_d_ta = tv.get_tv_TA(base_sym, asset_type)
 

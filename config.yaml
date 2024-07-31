@@ -1,3 +1,6 @@
+# Set to "INFO" if you want less clutter in your terminal
+LOGGING_LEVEL: DEBUG
+
 # This is used for the user channels
 # For instance 👨┃elonmusk
 CHANNEL_SEPARATOR: ┃

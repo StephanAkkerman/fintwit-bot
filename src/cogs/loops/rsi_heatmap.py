@@ -12,7 +12,7 @@ from tradingview_ta import get_multiple_analysis
 # Local dependencies
 from util.cg_data import get_top_vol_coins
 from util.disc_util import get_channel
-from util.vars import config, data_sources
+from util.vars import config, data_sources, logger
 
 FIGURE_SIZE = (12, 10)
 BACKGROUND_COLOR = "#0d1117"
@@ -409,7 +409,6 @@ def get_RSI(coins: list, exchange: str = "BINANCE", time_frame: str = "1d") -> d
     rsi_dict = {}
     for symbol in symbols:
         if analysis[symbol] is None:
-            # print(f"No analysis for {symbol}")
             continue
         clean_symbol = symbol.replace(f"{exchange.upper()}:", "")
         clean_symbol = clean_symbol.replace("USDT", "")
@@ -426,7 +425,7 @@ def get_closest_to_24h(
 ) -> dict:
     # Read the CSV file into a DataFrame
     if not os.path.isfile(file_path):
-        print(f"No data found in {file_path}")
+        logger.error(f"No data found in {file_path}")
         return {}
 
     df = pd.read_csv(file_path)
@@ -471,7 +470,7 @@ def save_RSI(
         # Save the DataFrame to a new CSV file with header
         df.to_csv(file_path, index=False)
 
-    print(f"RSI data saved to {file_path}")
+    logger.debug(f"RSI data saved to {file_path}")
 
 
 def setup(bot: commands.Bot) -> None:

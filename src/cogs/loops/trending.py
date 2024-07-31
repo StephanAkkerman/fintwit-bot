@@ -21,7 +21,7 @@ from util.formatting import (
 )
 
 # Local dependencies
-from util.vars import config, data_sources, get_json_data
+from util.vars import config, data_sources, get_json_data, logger
 
 
 class Trending(commands.Cog):
@@ -83,7 +83,7 @@ class Trending(commands.Cog):
                 "Post-market Chg %",
             ]
         else:
-            print("Invalid URL")
+            logger.error("Invalid URL for TradingView market data")
             return
 
         # Format the dataframe
@@ -337,7 +337,7 @@ class Trending(commands.Cog):
             await self.stocks_channel.purge(limit=1)
             await self.stocks_channel.send(embed=e)
         except Exception as e:
-            print("Error getting most active stocks: ", e)
+            logger.error("Error getting most active stocks: ", e)
 
 
 def setup(bot: commands.Bot) -> None:

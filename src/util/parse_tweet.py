@@ -5,6 +5,7 @@ from typing import List
 
 # > Local imports
 import util.vars
+from util.vars import logger
 
 
 def remove_twitter_url_at_end(text: str) -> str:
@@ -50,12 +51,12 @@ def get_entities(tweet: dict, key: str) -> List[str]:
             entities = tweet["legacy"]["entities"].get(key)
             return [entity["text"] for entity in entities] if entities else []
 
-    print("Tweet contains no entities")
+    logger.warn("Tweet contains no entities")
     return []
 
 
 def save_errored_tweet(tweet, error_msg: str):
-    print(error_msg)
+    logger.error(error_msg)
     # Get current time as a string for the filename
     current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 

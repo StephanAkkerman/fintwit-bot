@@ -18,7 +18,7 @@ from tqdm import tqdm
 
 from util.disc_util import get_channel
 from util.formatting import human_format
-from util.vars import config, data_sources
+from util.vars import config, data_sources, logger
 
 BACKGROUND_COLOR = "#0d1117"
 FIGURE_SIZE = (15, 7)
@@ -51,7 +51,7 @@ class Liquidations(commands.Cog):
         market = "um"
         new_data = get_new_data(coin, market=market)
         if new_data:
-            print(f"Downloaded {len(new_data)} new files.")
+            logger.info(f"Downloaded {len(new_data)} new files.")
             # Recreate the summaryf
             summarize_liquidations(coin=coin, market=market)
         # Load the summary
@@ -278,12 +278,10 @@ def download_and_extract_zip(
         # Step 2: Extract the contents of the ZIP file
         with zipfile.ZipFile(BytesIO(response.content)) as zip_ref:
             zip_ref.extractall(extract_to)
-
-        # print(f"Extracted all contents to {extract_to} for date {date_str}")
     except requests.RequestException as e:
-        print(f"Failed to download {url}: {e}")
+        logger.error(f"Failed to download {url}: {e}")
     except zipfile.BadZipFile as e:
-        print(f"Failed to extract {url}: {e}")
+        logger.error(f"Failed to extract {url}: {e}")
 
 
 def get_new_data(
@@ -313,7 +311,7 @@ def get_new_data(
                 try:
                     future.result()
                 except Exception as e:
-                    print(f"Error occurred: {e}")
+                    logger.error(f"Error occurred: {e}")
 
     return missing_dates
 

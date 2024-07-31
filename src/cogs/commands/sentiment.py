@@ -16,7 +16,7 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from util.confirm_stock import confirm_stock
 
 # > Local dependencies
-from util.vars import get_json_data
+from util.vars import get_json_data, logger
 
 
 class Sentiment(commands.Cog):
@@ -122,7 +122,7 @@ class Sentiment(commands.Cog):
         error : Exception
             The exception that was raised when using the `!sentiment` command.
         """
-        print(error)
+        logger.error(error)
         await ctx.respond(f"An error has occurred. Please try again later.")
 
     async def get_news(self, ticker: str) -> pd.DataFrame:
@@ -147,8 +147,6 @@ class Sentiment(commands.Cog):
             },
             text=True,
         )
-
-        print(html)
 
         # Get everything part of id='news-table'
         html = html[html.find('id="news-table"') :]

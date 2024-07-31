@@ -19,7 +19,7 @@ from cogs.loops.overview import Overview
 from util.db import merge_and_update, remove_old_rows, update_tweet_db
 from util.sentiment_analyis import add_sentiment
 from util.ticker_classifier import classify_ticker, get_financials
-from util.vars import data_sources, filter_dict
+from util.vars import data_sources, filter_dict, logger
 
 tweet_overview = None
 
@@ -76,7 +76,7 @@ async def make_tweet_embed(
 
     # Max 25 fields
     if symbols:
-        print("Adding financials to tweet embed...")
+        logger.debug("Adding financials to tweet embed...")
         e, category, base_symbols = await add_financials(
             e, symbols, tickers, text, user_name, bot
         )
@@ -214,7 +214,7 @@ async def add_financials(
 
                 if exchanges is None:
                     exchanges = []
-                    print("No exchanges found for", ticker)
+                    logger.warn("No exchanges found for", ticker)
 
                 # Convert info to a dataframe
                 df = pd.DataFrame(
@@ -240,7 +240,7 @@ async def add_financials(
             else:
                 if ticker in tickers:
                     e.add_field(name=f"${ticker}", value=majority)
-                    print(
+                    logger.debug(
                         f"No crypto or stock match found for ${ticker} in {user}'s tweet at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
                     )
 

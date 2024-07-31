@@ -11,7 +11,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 from util.disc_util import get_channel, get_tagged_users
-from util.vars import config, data_sources, get_json_data
+from util.vars import config, data_sources, get_json_data, logger
 
 
 class Earnings_Overview(commands.Cog):
@@ -141,7 +141,7 @@ class Earnings_Overview(commands.Cog):
                 date_string = date.strftime("%Y-%m-%d")
 
                 if earnings_df.empty:
-                    print(f"No earnings found for {date_string}")
+                    logger.warn(f"No earnings found for {date_string}")
                     continue
 
                 # Only use the top 10 per dataframe

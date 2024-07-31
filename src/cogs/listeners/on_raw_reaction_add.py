@@ -8,7 +8,7 @@ from discord.ext import commands
 
 # > Local dependencies
 from util.disc_util import get_channel, get_webhook
-from util.vars import config
+from util.vars import config, logger
 
 
 class On_raw_reaction_add(commands.Cog):
@@ -54,7 +54,7 @@ class On_raw_reaction_add(commands.Cog):
                     await channel.history(limit=100).flatten(), id=reaction.message_id
                 )
             except Exception as e:
-                print(f"Error getting channel.history for {channel}. Error:", e)
+                logger.error(f"Error getting channel.history for {channel}. Error:", e)
                 return
 
             if reaction.user_id != self.bot.user.id:
@@ -70,7 +70,7 @@ class On_raw_reaction_add(commands.Cog):
                     await self.send_dm(message, reaction.member)
 
         except commands.CommandError as e:
-            print(e)
+            logger.error(e)
 
     async def classify_reaction(
         self, reaction: discord.RawReactionActionEvent, message: discord.Message

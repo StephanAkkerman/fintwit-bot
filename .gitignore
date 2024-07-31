@@ -13,6 +13,7 @@ scraped/*
 logs/*
 curl.txt
 data/
+temp/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

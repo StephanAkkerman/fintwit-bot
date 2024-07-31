@@ -11,7 +11,7 @@ from discord.ext.tasks import loop
 import util.vars
 from util.db import update_db
 from util.disc_util import get_channel, get_tagged_users
-from util.vars import config, data_sources, get_json_data
+from util.vars import config, data_sources, get_json_data, logger
 
 
 class TradingView_Ideas(commands.Cog):
@@ -332,7 +332,7 @@ async def scraper(type: str) -> pd.DataFrame:
     )
 
     if content is None:
-        print(f"No content found for {type} ideas")
+        logger.warn(f"No content found for {type} ideas")
         return pd.DataFrame()
 
     # Save the Timestamps

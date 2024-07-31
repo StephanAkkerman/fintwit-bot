@@ -12,6 +12,7 @@ from discord.ext import commands
 
 # Local dependencies
 from util.confirm_stock import confirm_stock
+from util.vars import logger
 
 
 class Earnings(commands.Cog):
@@ -82,7 +83,7 @@ class Earnings(commands.Cog):
         error : Exception
             The exception that was raised when using the `!earnings` command.
         """
-        print(error)
+        logger.error(error)
         if isinstance(error, commands.UserInputError):
             await ctx.send(
                 f"{ctx.author.mention} You must specify a stock to request the next earnings of!"

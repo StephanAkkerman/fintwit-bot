@@ -2,7 +2,7 @@ import json
 
 import uncurl
 
-from util.vars import get_json_data
+from util.vars import get_json_data, logger
 
 # Read curl.txt
 try:
@@ -10,12 +10,12 @@ try:
         cURL = uncurl.parse_context("".join([line.strip() for line in file]))
 except Exception as e:
     cURL = None
-    print("Error: Could not read curl.txt:", e)
+    logger.critical("Error: Could not read curl.txt:", e)
 
 
 async def get_tweet():
     if cURL is None:
-        print("Error: no curl.txt file found. Timelines will not be updated.")
+        logger.critical("Error: no curl.txt file found. Timelines will not be updated.")
         return []
     result = await get_json_data(
         cURL.url,
@@ -46,7 +46,7 @@ async def get_tweet():
     try:
         result["data"]["home"]["home_timeline_urt"]["instructions"][0]["entries"]
     except Exception as e:
-        print("Error in get_tweet():", e)
+        logger.error("Error in get_tweet():", e)
         with open("logs/get_tweet_error.json", "w") as f:
             json.dump(result, f, indent=4)
 

@@ -12,7 +12,7 @@ from discord.ext.tasks import loop
 import util.vars
 from util.db import update_db
 from util.disc_util import get_channel, get_webhook
-from util.vars import config, data_sources
+from util.vars import config, data_sources, logger
 
 URL_REGEX = r"(?P<url>https?://[^\s]+)"
 MARKDOWN_LINK_REGEX = r"\[(?P<text>[^\]]+)\]\((?P<url>https?://[^\s]+)\)"
@@ -258,7 +258,7 @@ def process_submission_media(submission, title: str) -> tuple:
             if "images" in submission.preview:
                 img_urls.append(submission.preview["images"][0]["source"]["url"])
             else:
-                print("No image found for video post")
+                logger.warn("No image found for Reddit video post")
     return img_urls, title
 
 

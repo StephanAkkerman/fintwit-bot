@@ -18,7 +18,7 @@ from util.disc_util import get_channel
 from util.formatting import format_change
 
 # > Local
-from util.vars import config, data_sources, get_json_data
+from util.vars import config, data_sources, get_json_data, logger
 
 
 class NFTS(commands.Cog):
@@ -62,7 +62,7 @@ class NFTS(commands.Cog):
 
         for df, name in [(opensea_top, "Opensea"), (cmc_top, "CoinMarketCap")]:
             if df.empty:
-                print("No top NFTs found for " + name)
+                logger.warn("No top NFTs found for " + name)
                 return
 
             if "symbol" not in df.columns:
@@ -218,7 +218,7 @@ class NFTS(commands.Cog):
         upcoming = await upcoming_cmc()
 
         if upcoming.empty:
-            print("No upcoming NFTs found")
+            logger.warn("No upcoming NFTs found")
             return
 
         if "symbol" not in upcoming.columns:
@@ -267,7 +267,7 @@ class NFTS(commands.Cog):
         try:
             p2e = await p2e_games()
         except Exception as e:
-            print("Error fetching PlayToEarn data: ", e)
+            logger.error("Error fetching PlayToEarn data: ", e)
             return
 
         if p2e.empty:
@@ -390,10 +390,10 @@ async def top_cmc():
 
     # Convert to dataframe
     if "data" not in data:
-        print("No data found in CoinMarketCap response")
+        logger.error("No data found in CoinMarketCap response")
         return pd.DataFrame()
     if "collections" not in data["data"]:
-        print("No collections found in CoinMarketCap response")
+        logger.error("No collections found in CoinMarketCap response")
         return pd.DataFrame()
 
     df = pd.DataFrame(data["data"]["collections"])

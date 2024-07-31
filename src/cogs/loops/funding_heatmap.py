@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 from util.cg_data import get_top_vol_coins
 from util.disc_util import get_channel
-from util.vars import config, data_sources
+from util.vars import config, data_sources, logger
 
 FIGURE_SIZE = (20, 10)
 NUM_COINS = 30
@@ -128,7 +128,7 @@ class BinanceClient(object):
         df = pd.DataFrame(response.json()["data"])
 
         if df.empty:
-            print(f"No data found for {symbol}")
+            logger.warn(f"No data found for {symbol}")
             return df
 
         # Convert timestamp to datetime

@@ -19,7 +19,7 @@ from util.db import update_db
 from util.disc_util import get_channel, get_guild, get_user
 from util.exchange_data import get_data
 from util.formatting import format_change, format_embed_length
-from util.vars import config
+from util.vars import config, logger
 from util.yf_data import get_stock_info
 
 
@@ -93,7 +93,7 @@ class Assets(commands.Cog):
         }
 
         if util.vars.portfolio_db.empty:
-            print("No portfolios in the database.")
+            logger.warn("No portfolios in the database.")
             return
 
         # Drop all crypto assets, so we can update them
@@ -340,7 +340,7 @@ class Assets(commands.Cog):
             channel = await guild.create_text_channel(
                 channel_name, category=config["CATEGORIES"]["USERS"]
             )
-            print(f"Created channel {channel_name}")
+            logger.info(f"Created channel {channel_name}")
 
         return channel
 
@@ -352,7 +352,7 @@ class Assets(commands.Cog):
             try:
                 disc_user = await get_user(self.bot, id)
             except Exception as e:
-                print(f"Could not get user with id: {id}.\n{assets} \nError:", e)
+                logger.error(f"Could not get user with id: {id}.\n{assets} \nError:", e)
 
         return disc_user
 

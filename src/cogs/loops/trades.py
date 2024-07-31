@@ -14,7 +14,7 @@ import util.vars
 from util.db import get_db, update_db
 from util.disc_util import get_channel, get_user
 from util.trades_msg import on_msg
-from util.vars import config
+from util.vars import config, logger
 
 
 class Trades(commands.Cog):
@@ -38,12 +38,12 @@ class Trades(commands.Cog):
                 await on_msg(msg, exchange, self.trades_channel, row, user)
             except ccxt.base.errors.AuthenticationError:
                 # Send message to user and delete from database
-                print(row)
+                logger.error(row)
                 break
 
             except Exception as e:
                 # Maybe do: await exchange.close() and restart the socket
-                print(
+                logger.error(
                     f"Error in trade websocket for {row['user']} and {exchange.id}: ", e
                 )
 
@@ -91,12 +91,12 @@ class Trades(commands.Cog):
 
                         update_db(util.vars.portfolio_db, "portfolio")
 
-                        print(f"Removed Binance API key for {row['user']}")
+                        logger.debug(f"Removed Binance API key for {row['user']}")
 
                     task = asyncio.create_task(self.start_sockets(exchange, row, user))
                     tasks.append(task)
                     exchanges.append(exchange)
-                    print(f"Started Binance socket for {row['user']}")
+                    logger.info(f"Started Binance socket for {row['user']}")
 
             if not kucoin.empty:
                 for _, row in kucoin.iterrows():
@@ -114,12 +114,12 @@ class Trades(commands.Cog):
                     )
                     tasks.append(task)
                     exchanges.append(exchange)
-                    print(f"Started KuCoin socket for {row['user']}")
+                    logger.debug(f"Started KuCoin socket for {row['user']}")
 
         # After 24 hours close the exchange and start again
         await asyncio.sleep(24 * 60 * 60)
 
-        print("Stopping all sockets")
+        logger.debug("Stopping all sockets")
         for task, exchange in zip(tasks, exchanges):
             task.cancel()
             await exchange.close()

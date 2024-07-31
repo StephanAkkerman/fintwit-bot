@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 
 import util.vars
-from util.vars import guild_name
+from util.vars import guild_name, logger
 
 
 def get_guild(bot: commands.Bot) -> discord.Guild:
@@ -59,7 +59,7 @@ async def get_channel(
                             if channel.category.name == category_name:
                                 return channel
 
-    print(
+    logger.info(
         f"Channel named: {channel_name}, with category {category_name} not found in guild: {guild_name}.\nCreating it..."
     )
 
@@ -167,7 +167,7 @@ async def get_webhook(channel: discord.TextChannel) -> discord.Webhook:
 
     if not webhook:
         webhook = await channel.create_webhook(name=channel.name)
-        print(f"Created webhook for {channel.name}")
+        logger.debug(f"Created webhook for {channel.name}")
     else:
         webhook = webhook[0]
 

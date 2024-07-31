@@ -17,6 +17,7 @@ import util.vars
 from cogs.loops.assets import Assets
 from cogs.loops.trades import Trades
 from util.db import update_db
+from util.vars import logger
 
 
 class Portfolio(commands.Cog):
@@ -199,7 +200,6 @@ class Portfolio(commands.Cog):
 
     @add.error
     async def add_error(self, ctx: ApplicationContext, error: Exception) -> None:
-        # print(traceback.format_exc())
         if isinstance(error, commands.BadArgument):
             await ctx.respond(
                 f"The exchange you specified is currently not supported! \nSupported exchanges: Kucoin, Binance"
@@ -209,17 +209,16 @@ class Portfolio(commands.Cog):
                 f"If using `/portfolio add` with Kucoin, you must specify a passphrase!"
             )
         else:
-            print(error)
+            logger.error(error)
             await ctx.respond(f"An error has occurred. Please try again later.")
 
     @remove.error
     async def remove_error(self, ctx: ApplicationContext, error: Exception) -> None:
-        # print(traceback.format_exc())
         await ctx.respond(f"An error has occurred. Please try again later.")
 
     @show.error
     async def show_error(self, ctx: ApplicationContext, error: Exception) -> None:
-        print(traceback.format_exc())
+        logger.error(traceback.format_exc())
         if isinstance(error, commands.PrivateMessageOnly):
             await ctx.respond(
                 "Please only use the `/portfolio` command in private messages for security reasons."

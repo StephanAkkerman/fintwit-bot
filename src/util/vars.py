@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import sys
 
@@ -18,6 +19,20 @@ guild_name = (
     if len(sys.argv) > 1 and sys.argv[1] == "-test"
     else os.getenv("DISCORD_GUILD")
 )
+
+# Configure the root logger
+logging.basicConfig(
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%d/%m/%Y %H:%M:%S",
+    level=logging.WARNING,  # Set a higher level for the root logger
+    handlers=[logging.FileHandler("app.log"), logging.StreamHandler()],
+)
+
+# Configure the application logger
+logger = logging.getLogger("my_app_logger")
+logging_lvl = config.get("LOGGING_LEVEL", "INFO")
+logger.setLevel(logging_lvl)
+logger.info(f"LOGGING_LEVEL is set to {logging_lvl}")
 
 # Replace key by value
 filter_dict = {
@@ -132,9 +147,9 @@ async def get_json_data(
                 else:
                     return await r.json()
     except aiohttp.ClientError as e:
-        print(f"Error with get request for {url}.\nError: {e}")
+        logger.error(f"Error with get request for {url}.\nError: {e}")
     except json.JSONDecodeError as e:
-        print(f"Error decoding JSON from {url}.\nError: {e}")
+        logger.error(f"Error decoding JSON from {url}.\nError: {e}")
     return {}
 
 
@@ -165,6 +180,6 @@ async def post_json_data(
             async with session.post(url, data=data, json=json) as r:
                 return await r.json(content_type=None)
     except Exception as e:
-        print(f"Error with POST request for {url}.", "Error:", e)
+        logger.error(f"Error with POST request for {url}.", "Error:", e)
 
     return {}

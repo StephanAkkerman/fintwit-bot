@@ -19,6 +19,7 @@ from yahoo_fin.stock_info import tickers_nasdaq
 import util.vars
 from util.tv_data import get_tv_ticker_data
 from util.tv_symbols import all_forex_indices, crypto_indices, stock_indices
+from util.vars import logger
 
 # Convert emoji to text
 convert_emoji = defaultdict(
@@ -79,7 +80,7 @@ class DB(commands.Cog):
             update_db(pd.DataFrame(util.vars.nasdaq_tickers), "nasdaq_tickers")
 
         except Exception as e:
-            print("Failed to get new nasdaq tickers, error:", e)
+            logger.error("Failed to get new nasdaq tickers, error:", e)
             nasdaq_tickers = get_db("nasdaq_tickers")
             # Convert the dataframe to list
             util.vars.nasdaq_tickers = nasdaq_tickers.iloc[:, 0].tolist()
@@ -185,8 +186,8 @@ def clean_old_db(db, days: int = 1) -> pd.DataFrame:
         db = remove_old_rows(db, days)
         return db
     except Exception as e:
-        print("Error in clean_old_db:", e)
-        print(db.to_string())
+        logger.error("Error in clean_old_db:", e)
+        logger.error(db.to_string())
 
 
 def update_tweet_db(
@@ -264,7 +265,7 @@ def get_db(database_name: str) -> pd.DataFrame:
         cnx = sqlite3.connect(db_loc)
         return pd.read_sql_query(f"SELECT * FROM {database_name}", cnx)
     except Exception:
-        print(f"No {database_name}.db found, returning empty db")
+        logger.error(f"No {database_name}.db found, returning empty db")
         return pd.DataFrame()
 
 
@@ -296,6 +297,6 @@ def update_db(db: pd.DataFrame, database_name: str) -> None:
             database_name, sqlite3.connect(db_loc), if_exists="replace", index=False
         )
     except Exception as e:
-        print(
+        logger.error(
             f"Error updating {database_name}.db: {e}.\nTried to update database:\n{db.to_string()}"
         )
