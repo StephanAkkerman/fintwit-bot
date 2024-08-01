@@ -65,7 +65,16 @@ class On_raw_reaction_add(commands.Cog):
                 ):
                     await self.classify_reaction(reaction, message)
                 elif str(reaction.emoji) == "💸":
-                    await self.highlight(message, reaction.member)
+                    # Check if user has the role or is an admin
+                    if config["LISTENERS"]["ON_RAW_REACTION_ADD"]["ROLE"] != "None":
+                        if (
+                            config["LISTENERS"]["ON_RAW_REACTION_ADD"]["ROLE"]
+                            in reaction.member.roles
+                            or reaction.member.guild_permissions.administrator
+                        ):
+                            await self.highlight(message, reaction.member)
+                    else:
+                        await self.highlight(message, reaction.member)
                 elif str(reaction.emoji) == "❤️":
                     await self.send_dm(message, reaction.member)
 

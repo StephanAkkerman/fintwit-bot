@@ -12,6 +12,14 @@ def noop_decorator(func):
 
 
 def conditional_role_decorator(role: str):
+    if "," in role:
+        roles = role.split(",")
+        # remove whitespace
+        roles = [r.strip() for r in role]
+        # capitalize
+        roles = [r.capitalize() for r in role]
+        return commands.has_any_role(*roles)
+
     role = role.capitalize()
     if role == "Admin":
         return commands.has_permissions(administrator=True)
@@ -19,7 +27,6 @@ def conditional_role_decorator(role: str):
         return noop_decorator
 
     return commands.has_role(role)
-    # multiple roles: commands.has_any_role("Big Cheese", "Medium Cheese")
 
 
 def get_guild(bot: commands.Bot) -> discord.Guild:

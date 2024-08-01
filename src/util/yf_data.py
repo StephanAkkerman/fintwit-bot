@@ -16,8 +16,9 @@ from util.vars import logger
 
 
 def yf_info(ticker: str, do_format_change: bool = True):
+    # This can be blocking
     try:
-        stock_info = Ticker(ticker, asynchronous=False).price
+        stock_info = Ticker(ticker, asynchronous=True).price
     except Exception as e:
         logger.error(f"Error in getting Yahoo Finance data for {ticker}: {e}")
         return None

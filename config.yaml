@@ -234,17 +234,18 @@ LOOPS:
 ###  COMMANDS  ###
 ##################
 
+# The options for ROLE are:
+# - None (all users can use this command)
+# - Admin (Only users with the discord admin role)
+# You can also fill in a custom role name that you use in your server to only enable it for users that have that role
+# If you want multiple roles then use a comma like `ROLE: Admin, Pro`
+
 COMMANDS:
-  # Role options are: None and Admin
   ANALYZE:
     ENABLED: True
     ROLE: None
 
   EARNINGS:
-    ENABLED: True
-    ROLE: None
-
-  FOLLOW:
     ENABLED: True
     ROLE: None
 
@@ -256,15 +257,15 @@ COMMANDS:
     ENABLED: True
     ROLE: None
 
+  RESTART:
+    ENABLED: True
+    ROLE: Admin
+
   SENTIMENT:
     ENABLED: True
     ROLE: None
 
   STOCK:
-    ENABLED: True
-    ROLE: None
-
-  RESTART:
     ENABLED: True
     ROLE: None
 
@@ -278,7 +279,8 @@ LISTENERS:
   ON_RAW_REACTION_ADD:
     ENABLED: True
     CHANNEL: 💸┃highlights
-    ROLE: None
+    ROLE: Admin
 
+  # Sends a custom message when a member joins
   ON_MEMBER_JOIN:
     ENABLED: True

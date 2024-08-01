@@ -1,14 +1,11 @@
 import os
 import sys
 
-import discord
-import pandas as pd
-from discord.commands import Option
 from discord.commands.context import ApplicationContext
 from discord.ext import commands
 
 from util.disc_util import conditional_role_decorator
-from util.vars import config, get_json_data, logger
+from util.vars import config
 
 
 class Restart(commands.Cog):
