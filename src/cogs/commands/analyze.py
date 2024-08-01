@@ -7,17 +7,8 @@ from discord.commands import Option
 from discord.commands.context import ApplicationContext
 from discord.ext import commands
 
+from util.disc_util import conditional_role_decorator
 from util.vars import config, get_json_data, logger
-
-
-def noop_decorator(func):
-    return func
-
-
-def conditional_role_decorator(role):
-    if role != "None":
-        return commands.has_role(role)
-    return noop_decorator
 
 
 class Analyze(commands.Cog):
@@ -102,7 +93,7 @@ class Analyze(commands.Cog):
         await ctx.respond(embed=e)
 
     @analyze.error
-    async def eanalyze_error(self, ctx: ApplicationContext, error: Exception):
+    async def analyze_error(self, ctx: ApplicationContext, error: Exception):
         """
         Catches the errors when using the `/analyze` command.
 

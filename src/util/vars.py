@@ -25,7 +25,7 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
     datefmt="%d/%m/%Y %H:%M:%S",
     level=logging.WARNING,  # Set a higher level for the root logger
-    handlers=[logging.FileHandler("app.log"), logging.StreamHandler()],
+    handlers=[logging.FileHandler("logs/fintwit-bot.log"), logging.StreamHandler()],
 )
 
 # Configure the application logger

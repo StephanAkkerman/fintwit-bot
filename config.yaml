@@ -235,6 +235,7 @@ LOOPS:
 ##################
 
 COMMANDS:
+  # Role options are: None and Admin
   ANALYZE:
     ENABLED: True
     ROLE: None
@@ -260,6 +261,10 @@ COMMANDS:
     ROLE: None
 
   STOCK:
+    ENABLED: True
+    ROLE: None
+
+  RESTART:
     ENABLED: True
     ROLE: None
 

@@ -7,6 +7,21 @@ import util.vars
 from util.vars import guild_name, logger
 
 
+def noop_decorator(func):
+    return func
+
+
+def conditional_role_decorator(role: str):
+    role = role.capitalize()
+    if role == "Admin":
+        return commands.has_permissions(administrator=True)
+    if role == "None":
+        return noop_decorator
+
+    return commands.has_role(role)
+    # multiple roles: commands.has_any_role("Big Cheese", "Medium Cheese")
+
+
 def get_guild(bot: commands.Bot) -> discord.Guild:
     """
     Returns the guild / server the bot is currently connected to.
