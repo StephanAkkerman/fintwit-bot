@@ -13,7 +13,7 @@ from util.confirm_stock import confirm_stock
 from util.db import merge_and_update, update_db
 from util.disc_util import get_channel
 from util.trades_msg import trades_msg
-from util.vars import config
+from util.vars import config, logger
 
 
 class Stock(commands.Cog):
@@ -84,12 +84,12 @@ class Stock(commands.Cog):
         -------
         None
         """
+        await ctx.response.defer(ephemeral=True)
+
         if self.channel is None:
             self.channel = await get_channel(
                 self.bot, config["LOOPS"]["TRADES"]["CHANNEL"]
             )
-
-        await ctx.response.defer(ephemeral=True)
 
         # Make sure that the user is aware of this stock's existence
         if not await confirm_stock(self.bot, ctx, ticker):
@@ -103,9 +103,10 @@ class Stock(commands.Cog):
             return
 
         try:
-            price = yf.Ticker(ticker).info["regularMarketPrice"]
+            price = yf.Ticker(ticker).info["currentPrice"]
         except Exception:
             price = 0
+            logger.error(f"Could not get price for {ticker} when using /stock add")
 
         # Add ticker to database
         new_data = pd.DataFrame(
@@ -115,7 +116,7 @@ class Stock(commands.Cog):
                     "buying_price": buying_price,
                     "owned": amount,
                     "exchange": "stock",
-                    "id": ctx.author.id,
+                    "id": str(ctx.author.id),
                     "user": ctx.author.name,
                 }
             ]
@@ -125,7 +126,7 @@ class Stock(commands.Cog):
 
         # Check if the user has this asset already
         owned_in_db = old_db.loc[
-            (old_db["id"] == ctx.author.id) & (old_db["asset"] == ticker.upper())
+            (old_db["id"] == str(ctx.author.id)) & (old_db["asset"] == ticker.upper())
         ]
 
         # If the user does not yet own this stock
@@ -134,22 +135,22 @@ class Stock(commands.Cog):
         else:
             # Increase the amount if everything is the same
             same_price = old_db.loc[
-                (old_db["id"] == ctx.author.id)
+                (old_db["id"] == str(ctx.author.id))
                 & (old_db["asset"] == ticker.upper())
                 & (old_db["buying_price"] == buying_price)
             ]
 
             if not same_price.empty:
                 old_db.loc[
-                    (old_db["id"] == ctx.author.id)
+                    (old_db["id"] == str(ctx.author.id))
                     & (old_db["asset"] == ticker.upper()),
                     "owned",
                 ] += amount
 
             else:
                 # Get the old buying price and average it with the new one
-                old_buying_price = owned_in_db["buying_price"].values[0]
-                old_amount_owned = owned_in_db["owned"].values[0]
+                old_buying_price = float(owned_in_db["buying_price"].values[0])
+                old_amount_owned = float(owned_in_db["owned"].values[0])
 
                 new_buying_price = (
                     old_buying_price * old_amount_owned + buying_price * amount
@@ -157,14 +158,14 @@ class Stock(commands.Cog):
 
                 # Update the buying price and amount owned
                 old_db.loc[
-                    (old_db["id"] == ctx.author.id)
+                    (old_db["id"] == str(ctx.author.id))
                     & (old_db["asset"] == ticker.upper()),
                     "buying_price",
                 ] = new_buying_price
 
                 # Update the amount owned
                 old_db.loc[
-                    (old_db["id"] == ctx.author.id)
+                    (old_db["id"] == str(ctx.author.id))
                     & (old_db["asset"] == ticker.upper()),
                     "owned",
                 ] += amount
@@ -203,20 +204,20 @@ class Stock(commands.Cog):
     ) -> None:
         """
         Usage:
-        `!stock remove <ticker> (<amount>)` to remove a stock from your portfolio
+        `/stock remove <ticker> (<amount>)` to remove a stock from your portfolio
         """
+        await ctx.response.defer(ephemeral=True)
+
         if self.channel is None:
             self.channel = await get_channel(
                 self.bot, config["LOOPS"]["TRADES"]["CHANNEL"]
             )
 
-        await ctx.response.defer(ephemeral=True)
-
         old_db = util.vars.assets_db
 
         if not amount:
             row = old_db.index[
-                (old_db["id"] == ctx.author.id) & (old_db["asset"] == ticker)
+                (old_db["id"] == str(ctx.author.id)) & (old_db["asset"] == ticker)
             ]
 
             # Update database
@@ -238,7 +239,7 @@ class Stock(commands.Cog):
                 return
 
             row = old_db.loc[
-                (old_db["id"] == ctx.author.id) & (old_db["asset"] == ticker)
+                (old_db["id"] == str(ctx.author.id)) & (old_db["asset"] == ticker)
             ]
 
             # Update database
@@ -253,7 +254,7 @@ class Stock(commands.Cog):
                     )
                 else:
                     old_db.loc[
-                        (old_db["id"] == ctx.author.id)
+                        (old_db["id"] == str(ctx.author.id))
                         & (old_db["asset"] == ticker.upper()),
                         "owned",
                     ] -= float(amount)
@@ -266,7 +267,7 @@ class Stock(commands.Cog):
                 return
 
         try:
-            price = yf.Ticker(ticker).info["regularMarketPrice"]
+            price = yf.Ticker(ticker).info["currentPrice"]
         except Exception:
             price = 0
 
@@ -290,16 +291,17 @@ class Stock(commands.Cog):
     async def show(self, ctx: ApplicationContext) -> None:
         """
         Usage:
-        `!stock show` to show the stocks in your portfolio
+        `/stock show` to show the stocks in your portfolio
         """
         await ctx.response.defer(ephemeral=True)
+
         db = util.vars.assets_db
-        rows = db.loc[(db["id"] == ctx.author.id) & (db["exchange"] == "stock")]
+        rows = db.loc[(db["id"] == str(ctx.author.id)) & (db["exchange"] == "stock")]
         if not rows.empty:
             for _, row in rows.iterrows():
-                # Maybe send this an embed
+                # TODO: send this as 1 embed
                 await ctx.respond(
-                    f"Stock: {row['asset'].upper()} \nAmount: {row['owned']}"
+                    f"Stock: {row['asset'].upper()} \nAmount: {row['owned']} \nBuying price: {row['buying_price']}"
                 )
         else:
             await ctx.respond("You do not have any stocks")

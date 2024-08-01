@@ -12,11 +12,15 @@ from util.afterhours import afterHours
 # Local dependencies
 from util.formatting import format_change
 from util.tv_data import tv
+from util.vars import logger
 
 
 def yf_info(ticker: str, do_format_change: bool = True):
-    # try:
-    stock_info = Ticker(ticker, asynchronous=False).price
+    try:
+        stock_info = Ticker(ticker, asynchronous=False).price
+    except Exception as e:
+        logger.error(f"Error in getting Yahoo Finance data for {ticker}: {e}")
+        return None
 
     # Test if the ticker is valid
     if not isinstance(stock_info.get(ticker), dict):
@@ -39,7 +43,7 @@ def yf_info(ticker: str, do_format_change: bool = True):
     # Determine which price to report based on market hours
     if afterHours():
         append_price_data("preMarketPrice", "preMarketChangePercent")
-    append_price_data("regularMarketPrice", "regularMarketChangePercent")
+    append_price_data("currentPrice", "regularMarketChangePercent")
 
     # Calculate volume
     volume: float = (

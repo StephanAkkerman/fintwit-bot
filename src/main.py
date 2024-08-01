@@ -115,5 +115,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Main event loop
-    bot.run(TOKEN)
+    try:
+        bot.run(TOKEN)
+    except Exception as e:
+        logger.critical(f"Bot crashed: {e}")
     # If the bot randomly stops maybe put back old code
