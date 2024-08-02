@@ -1,6 +1,3 @@
-# Set to "INFO" if you want less clutter in your terminal
-LOGGING_LEVEL: DEBUG
-
 # This is used for the user channels
 # For instance 👨┃elonmusk
 CHANNEL_SEPARATOR: ┃
@@ -288,3 +285,14 @@ LISTENERS:
   # Sends a custom message when a member joins
   ON_MEMBER_JOIN:
     ENABLED: True
+
+# Set to "INFO" if you want less clutter in your terminal
+LOGGING_LEVEL: DEBUG
+
+# This is only for debugging
+DEBUG_MODE: False
+
+# Add file names of the cogs that should be enabled
+DEBUG_COGS:
+  - rsi_heatmap
+  - yield
