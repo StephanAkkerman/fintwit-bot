@@ -15,10 +15,11 @@ from util.tv_data import tv
 from util.vars import logger
 
 
-def yf_info(ticker: str, do_format_change: bool = True):
+async def yf_info(ticker: str, do_format_change: bool = True):
     # This can be blocking
     try:
-        stock_info = Ticker(ticker, asynchronous=True).price
+        # No results when asynchronous=True
+        stock_info = Ticker(ticker, asynchronous=False).price
     except Exception as e:
         logger.error(f"Error in getting Yahoo Finance data for {ticker}: {e}")
         return None
@@ -97,7 +98,7 @@ async def get_stock_info(
     """
 
     if asset_type == "stock":
-        stock_info = yf_info(ticker, do_format_change)
+        stock_info = await yf_info(ticker, do_format_change)
         if stock_info and stock_info[0] > 0:  # or price == []
             return stock_info
 
