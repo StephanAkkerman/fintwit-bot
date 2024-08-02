@@ -16,8 +16,8 @@ from util.vars import config, data_sources, get_json_data
 
 class Sector_snapshot(commands.Cog):
     """
-    This class contains the cog for posting the Liquidations chart.
-    It can be enabled / disabled in the config under ["LOOPS"]["LIQUIDATIONS"].
+    This class contains the cog for posting the sector snapshot.
+    It can be enabled / disabled in the config under ["LOOPS"]["SECTOR_SNAPSHOT"].
     """
 
     def __init__(self, bot: commands.Bot) -> None:

@@ -193,6 +193,10 @@ LOOPS:
     ENABLED: True
     CHANNEL: 📸┃spy-sectors
 
+  SPY_HEATMAP:
+    ENABLED: True
+    CHANNEL: 📊┃spy-heatmap
+
   STOCK_HALTS:
     ENABLED: True
     CHANNEL: 🛑┃halted
