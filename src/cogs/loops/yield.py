@@ -1,11 +1,7 @@
-# > Standard libraries
 import datetime
 import os
 
-# > Discord dependencies
 import discord
-
-# > 3rd Party Dependencies
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,11 +9,9 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 from scipy.interpolate import make_interp_spline
 
-from util.disc_util import get_channel
+from util.disc_util import get_channel, loop_error_catcher
 from util.tv_data import tv
 from util.tv_symbols import EU_bonds, US_bonds
-
-# Local dependencies
 from util.vars import config
 
 
@@ -33,6 +27,7 @@ class Yield(commands.Cog):
         self.post_curve.start()
 
     @loop(hours=24)
+    @loop_error_catcher
     async def post_curve(self) -> None:
         """
         Posts the US and EU yield curve in the channel specified in the config.

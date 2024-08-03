@@ -1,17 +1,11 @@
 import pandas as pd
-
-# > 3rd party dependencies
 import yahoo_fin.stock_info as si
-
-# > Discord dependencies
 from discord.ext import commands
 from discord.ext.tasks import loop
 
 from util.afterhours import afterHours
-from util.disc_util import get_channel
+from util.disc_util import get_channel, loop_error_catcher
 from util.formatting import format_embed
-
-# Local dependencies
 from util.vars import config, get_json_data, logger
 
 
@@ -41,6 +35,7 @@ class Gainers(commands.Cog):
             self.crypto.start()
 
     @loop(hours=1)
+    @loop_error_catcher
     async def crypto(self) -> None:
         """
         This function will check the gainers and losers on Binance, using USDT as the base currency.
@@ -129,6 +124,7 @@ class Gainers(commands.Cog):
             await self.crypto_losers_channel.send(embed=e_losers)
 
     @loop(hours=1)
+    @loop_error_catcher
     async def stocks(self) -> None:
         """
         This function uses the yahoo_fin.stock_info module to get the gainers for todays stocks.

@@ -12,7 +12,7 @@ from discord.ext import commands
 # Local dependencies
 import util.vars
 from util.db import get_db, update_db
-from util.disc_util import get_channel, get_user
+from util.disc_util import get_channel, get_user, loop_error_catcher
 from util.trades_msg import on_msg
 from util.vars import config, logger
 
@@ -47,6 +47,7 @@ class Trades(commands.Cog):
                     f"Error in trade websocket for {row['user']} and {exchange.id}: {e}"
                 )
 
+    @loop_error_catcher
     async def trades(self, db: pd.DataFrame) -> None:
         """
         Starts the websockets for each user in the database.

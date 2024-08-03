@@ -10,7 +10,12 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 from util.chart_recognizer import classify_img
-from util.disc_util import get_channel, get_tagged_users, get_webhook
+from util.disc_util import (
+    get_channel,
+    get_tagged_users,
+    get_webhook,
+    loop_error_catcher,
+)
 from util.get_tweet import get_tweet
 from util.parse_tweet import parse_tweet
 from util.tweet_embed import make_tweet_embed
@@ -87,6 +92,7 @@ class Timeline(commands.Cog):
         )
 
     @loop(hours=1)
+    @loop_error_catcher
     async def all_txt_channels(self) -> None:
         """Gets all the text channels as Discord object and the names of the channels."""
 
@@ -127,6 +133,7 @@ class Timeline(commands.Cog):
         self.text_channel_names = text_channel_names
 
     @loop(minutes=5)
+    @loop_error_catcher
     async def get_latest_tweet(self) -> None:
         """Fetches the latest tweets."""
         logger.debug(f"Getting tweets at {datetime.datetime.now()}...")

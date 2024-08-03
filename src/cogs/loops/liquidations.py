@@ -16,7 +16,7 @@ from discord.ext.tasks import loop
 from matplotlib import ticker
 from tqdm import tqdm
 
-from util.disc_util import get_channel
+from util.disc_util import get_channel, loop_error_catcher
 from util.formatting import human_format
 from util.vars import config, data_sources, logger
 
@@ -33,12 +33,11 @@ class Liquidations(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-
-        if config["LOOPS"]["LIQUIDATIONS"]["ENABLED"]:
-            self.channel = None
-            self.post_liquidations.start()
+        self.channel = None
+        self.post_liquidations.start()
 
     @loop(hours=24)
+    @loop_error_catcher
     async def post_liquidations(self):
         """
         Copy chart like https://www.coinglass.com/LiquidationData

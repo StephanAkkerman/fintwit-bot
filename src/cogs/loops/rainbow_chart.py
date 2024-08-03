@@ -15,7 +15,7 @@ from discord.ext.tasks import loop
 from matplotlib.ticker import FuncFormatter
 from scipy.optimize import curve_fit
 
-from util.disc_util import get_channel
+from util.disc_util import get_channel, loop_error_catcher
 from util.vars import config, data_sources, logger
 
 # Save the exchanges that are useful
@@ -53,12 +53,11 @@ class Rainbow_chart(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-
-        if config["LOOPS"]["RAINBOW_CHART"]["ENABLED"]:
-            self.channel = None
-            self.post_rainbow_chart.start()
+        self.channel = None
+        self.post_rainbow_chart.start()
 
     @loop(hours=24)
+    @loop_error_catcher
     async def post_rainbow_chart(self):
         if self.channel is None:
             self.channel = await get_channel(

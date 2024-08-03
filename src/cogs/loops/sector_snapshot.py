@@ -10,7 +10,7 @@ import pandas as pd
 from discord.ext import commands
 from discord.ext.tasks import loop
 
-from util.disc_util import get_channel
+from util.disc_util import get_channel, loop_error_catcher
 from util.vars import config, data_sources, get_json_data
 
 
@@ -23,11 +23,10 @@ class Sector_snapshot(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.channel = None
-
-        if config["LOOPS"]["SECTOR_SNAPSHOT"]["ENABLED"]:
-            self.post_snapshot.start()
+        self.post_snapshot.start()
 
     @loop(hours=12)
+    @loop_error_catcher
     async def post_snapshot(self):
         if self.channel is None:
             self.channel = await get_channel(

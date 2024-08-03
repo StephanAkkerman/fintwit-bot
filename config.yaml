@@ -290,9 +290,8 @@ LISTENERS:
 LOGGING_LEVEL: DEBUG
 
 # This is only for debugging
-DEBUG_MODE: False
+DEBUG_MODE: True
 
 # Add file names of the cogs that should be enabled
 DEBUG_COGS:
   - rsi_heatmap
-  - yield

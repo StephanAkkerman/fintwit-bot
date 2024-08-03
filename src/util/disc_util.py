@@ -1,3 +1,4 @@
+from functools import wraps
 from typing import Optional
 
 import discord
@@ -5,6 +6,17 @@ from discord.ext import commands
 
 import util.vars
 from util.vars import guild_name, logger
+
+
+def loop_error_catcher(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        except Exception as e:
+            logger.error(f"Error in {func.__name__}", exc_info=e)
+
+    return wrapper
 
 
 def noop_decorator(func):

@@ -11,7 +11,7 @@ from discord.ext.tasks import loop
 
 import util.vars
 from util.db import update_db
-from util.disc_util import get_channel, get_webhook
+from util.disc_util import get_channel, get_webhook, loop_error_catcher
 from util.vars import config, data_sources, logger
 
 URL_REGEX = r"(?P<url>https?://[^\s]+)"
@@ -65,6 +65,7 @@ class Reddit(commands.Cog):
         )
 
     @loop(hours=12)
+    @loop_error_catcher
     async def wsb_scraper(self):
         if self.wsb_channel is None:
             self.wsb_channel = await get_channel(
@@ -78,6 +79,7 @@ class Reddit(commands.Cog):
             await self.reddit_scraper(subreddit_name="WallStreetBets")
 
     @loop(hours=12)
+    @loop_error_catcher
     async def cms_scraper(self):
         if self.cms_scraper is None:
             self.cmc_channel = await get_channel(

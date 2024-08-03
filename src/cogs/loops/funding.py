@@ -8,7 +8,7 @@ import pandas as pd
 from discord.ext import commands
 from discord.ext.tasks import loop
 
-from util.disc_util import get_channel
+from util.disc_util import get_channel, loop_error_catcher
 
 # Local dependencies
 from util.vars import config, data_sources, get_json_data, logger
@@ -26,6 +26,7 @@ class Funding(commands.Cog):
         self.funding.start()
 
     @loop(hours=4)
+    @loop_error_catcher
     async def funding(self) -> None:
         """
         This function gets the data from the funding API and posts it in the funding channel.

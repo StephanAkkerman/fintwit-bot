@@ -1,14 +1,11 @@
 import asyncio
 import datetime
 
-# > Discord dependencies
 import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
 
-from util.disc_util import get_channel
-
-# Local dependencies
+from util.disc_util import get_channel, loop_error_catcher
 from util.vars import config, data_sources, get_json_data
 
 
@@ -122,6 +119,7 @@ class Exchange_Listings(commands.Cog):
         self.new_listings.start()
 
     @loop(hours=6)
+    @loop_error_catcher
     async def new_listings(self) -> None:
         """
         This function will be called every 6 hours to check for new listings.

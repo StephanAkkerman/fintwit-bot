@@ -1,20 +1,16 @@
-# Standard libraries
 from __future__ import annotations
 
 import datetime
 
-# > Discord dependencies
 import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
 
 from util.afterhours import afterHours
-from util.disc_util import get_channel
+from util.disc_util import get_channel, loop_error_catcher
 from util.formatting import human_format
 from util.tv_data import tv
 from util.tv_symbols import crypto_indices, forex_indices, stock_indices
-
-# Local dependencies
 from util.vars import config, data_sources, get_json_data
 
 
@@ -66,6 +62,7 @@ class Index(commands.Cog):
             return today, change
 
     @loop(hours=1)
+    @loop_error_catcher
     async def crypto(self) -> None:
         """
         This function will get the current prices of crypto indices on TradingView and the Fear and Greed index.
@@ -152,6 +149,7 @@ class Index(commands.Cog):
         await self.crypto_channel.send(embed=e)
 
     @loop(hours=1)
+    @loop_error_catcher
     async def stocks(self) -> None:
         """
         Posts the stock indices in the configured channel, only posts if the market is open.
@@ -231,6 +229,7 @@ class Index(commands.Cog):
         await self.stocks_channel.send(embed=e)
 
     @loop(hours=1)
+    @loop_error_catcher
     async def forex(self) -> None:
         """
         Posts the forex indices in the configured channel, only posts if the market is open.

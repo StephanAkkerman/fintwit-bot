@@ -8,7 +8,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 from util.afterhours import afterHours
-from util.disc_util import get_channel
+from util.disc_util import get_channel, loop_error_catcher
 from util.vars import config, data_sources, get_json_data
 
 
@@ -21,11 +21,10 @@ class SPY_heatmap(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.channel = None
-
-        if config["LOOPS"]["SPY_HEATMAP"]["ENABLED"]:
-            self.post_heatmap.start()
+        self.post_heatmap.start()
 
     @loop(hours=2)
+    @loop_error_catcher
     async def post_heatmap(self):
         if afterHours():
             return

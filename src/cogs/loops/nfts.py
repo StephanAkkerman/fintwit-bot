@@ -1,20 +1,15 @@
-## > Imports
-# > Standard library
 import datetime
 import re
 
-# > Discord dependencies
 import discord
 import numpy as np
-
-# > Third party
 import pandas as pd
 from bs4 import BeautifulSoup
 from discord.ext import commands
 from discord.ext.tasks import loop
 
 from util.cg_data import cg
-from util.disc_util import get_channel
+from util.disc_util import get_channel, loop_error_catcher
 from util.formatting import format_change
 
 # > Local
@@ -48,6 +43,7 @@ class NFTS(commands.Cog):
             self.trending_nfts.start()
 
     @loop(hours=1)
+    @loop_error_catcher
     async def top_nfts(self):
         if self.top_channel is None:
             self.top_channel = await get_channel(
@@ -109,6 +105,7 @@ class NFTS(commands.Cog):
             await self.top_channel.send(embed=e)
 
     @loop(hours=1)
+    @loop_error_catcher
     async def trending_nfts(self):
         if self.trending_channel is None:
             self.trending_channel = await get_channel(
@@ -208,6 +205,7 @@ class NFTS(commands.Cog):
         await self.trending_channel.send(embed=e)
 
     @loop(hours=1)
+    @loop_error_catcher
     async def upcoming_nfts(self):
         if self.upcoming_channel is None:
             self.upcoming_channel = await get_channel(
@@ -257,6 +255,7 @@ class NFTS(commands.Cog):
         await self.upcoming_channel.send(embed=e)
 
     @loop(hours=1)
+    @loop_error_catcher
     async def top_p2e(self):
         if self.p2e_channel is None:
             self.p2e_channel = await get_channel(

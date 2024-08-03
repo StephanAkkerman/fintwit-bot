@@ -1,22 +1,18 @@
-## > Imports
-# > Standard libraries
 from __future__ import annotations
 
 import asyncio
 import datetime
 
-# > 3rd Party Dependencies
 import discord
 import numpy as np
 import pandas as pd
 from discord.ext import commands
 from discord.ext.tasks import loop
 
-# > Local dependencies
 import util.vars
 from util.cg_data import get_coin_info
 from util.db import update_db
-from util.disc_util import get_channel, get_guild, get_user
+from util.disc_util import get_channel, get_guild, get_user, loop_error_catcher
 from util.exchange_data import get_data
 from util.formatting import format_change, format_embed_length
 from util.vars import config, logger
@@ -66,6 +62,7 @@ class Assets(commands.Cog):
         return usd_val, change
 
     @loop(hours=1)
+    @loop_error_catcher
     async def assets(self) -> None:
         """
         Only do this function at startup and if a new portfolio has been added.

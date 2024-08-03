@@ -12,7 +12,7 @@ from discord.ext.tasks import loop
 
 from util.afterhours import afterHours
 from util.cg_data import get_top_categories, get_trending_coins
-from util.disc_util import get_channel
+from util.disc_util import get_channel, loop_error_catcher
 from util.formatting import (
     format_change,
     format_embed,
@@ -139,6 +139,7 @@ class Trending(commands.Cog):
         return post_market_start <= current_time <= post_market_end
 
     @loop(hours=1)
+    @loop_error_catcher
     async def premarket(self) -> None:
         if self.pre_market_channel is None:
             self.pre_market_channel = await get_channel(
@@ -164,6 +165,7 @@ class Trending(commands.Cog):
         await self.pre_market_channel.send(embed=pre_e)
 
     @loop(hours=1)
+    @loop_error_catcher
     async def afterhours(self) -> None:
         if self.after_hours_channel is None:
             self.after_hours_channel = await get_channel(
@@ -192,6 +194,7 @@ class Trending(commands.Cog):
         await self.after_hours_channel.send(embed=ah_e)
 
     @loop(hours=12)
+    @loop_error_catcher
     async def crypto(self) -> None:
         """
         Gets the data from the CoinMarketCap API and posts in the trending crypto channel.
@@ -243,6 +246,7 @@ class Trending(commands.Cog):
         await self.crypto_channel.send(embed=cmc_e)
 
     @loop(hours=1)
+    @loop_error_catcher
     async def crypto_categories(self) -> None:
         if self.crypto_categories_channel is None:
             self.crypto_categories_channel = await get_channel(

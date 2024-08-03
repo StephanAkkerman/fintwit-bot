@@ -1,15 +1,11 @@
-## > Imports
-# > Standard libraries
 import datetime
 from collections import Counter, defaultdict
 
-# > Discord dependencies
 import discord
 from discord.ext.tasks import loop
 
-# Local dependencies
 import util.vars
-from util.disc_util import get_channel, get_guild
+from util.disc_util import get_channel, get_guild, loop_error_catcher
 from util.formatting import format_change
 from util.vars import config, get_json_data
 
@@ -51,6 +47,7 @@ class Overview:
                 await self.make_overview(category, tickers, sentiment)
 
     @loop(minutes=5)
+    @loop_error_catcher
     async def global_overview(self):
         if util.vars.tweets_db.empty:
             return

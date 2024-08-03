@@ -15,7 +15,7 @@ from matplotlib.ticker import FuncFormatter
 from tqdm import tqdm
 
 from util.cg_data import get_top_vol_coins
-from util.disc_util import get_channel
+from util.disc_util import get_channel, loop_error_catcher
 from util.vars import config, data_sources, logger
 
 FIGURE_SIZE = (20, 10)
@@ -35,11 +35,10 @@ class Funding_heatmap(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.channel = None
-
-        if config["LOOPS"]["FUNDING_HEATMAP"]["ENABLED"]:
-            self.post_heatmap.start()
+        self.post_heatmap.start()
 
     @loop(hours=24)
+    @loop_error_catcher
     async def post_heatmap(self):
         if self.channel is None:
             self.channel = await get_channel(

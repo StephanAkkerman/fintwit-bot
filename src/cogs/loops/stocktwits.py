@@ -1,18 +1,11 @@
-## > Imports
-# > Standard libraries
 import datetime
 
-# > Discord dependencies
 import discord
-
-# > 3rd party dependencies
 import pandas as pd
 from discord.ext import commands
 from discord.ext.tasks import loop
 
-from util.disc_util import get_channel
-
-# Local dependencies
+from util.disc_util import get_channel, loop_error_catcher
 from util.vars import config, data_sources, get_json_data
 
 
@@ -103,6 +96,7 @@ class StockTwits(commands.Cog):
         return e
 
     @loop(hours=6)
+    @loop_error_catcher
     async def stocktwits(self) -> None:
         """
         The function posts the StockTwits embeds in the configured channel.

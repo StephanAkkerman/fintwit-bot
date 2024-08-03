@@ -1,16 +1,11 @@
 import datetime
 
-# > Discord dependencies
 import discord
-
-# > 3rd party dependencies
 import pandas as pd
-
-# Local dependencies
 from discord.ext import commands
 from discord.ext.tasks import loop
 
-from util.disc_util import get_channel, get_tagged_users
+from util.disc_util import get_channel, get_tagged_users, loop_error_catcher
 from util.vars import config, data_sources, get_json_data, logger
 
 
@@ -111,6 +106,7 @@ class Earnings_Overview(commands.Cog):
         return False
 
     @loop(hours=1)
+    @loop_error_catcher
     async def earnings(self) -> None:
         """
         Checks every hour if today is a sunday and if the market is closed.

@@ -10,7 +10,7 @@ from discord.ext.tasks import loop
 
 import util.vars
 from util.db import update_db
-from util.disc_util import get_channel, get_tagged_users
+from util.disc_util import get_channel, get_tagged_users, loop_error_catcher
 from util.vars import config, data_sources, get_json_data, logger
 
 
@@ -145,6 +145,7 @@ class TradingView_Ideas(commands.Cog):
         update_db(util.vars.ideas_ids, "ideas_ids")
 
     @loop(hours=24)
+    @loop_error_catcher
     async def crypto_ideas(self) -> None:
         """
         This function posts the crypto Trading View ideas.
@@ -164,6 +165,7 @@ class TradingView_Ideas(commands.Cog):
         await self.send_embed(df, "crypto")
 
     @loop(hours=24)
+    @loop_error_catcher
     async def stock_ideas(self) -> None:
         """
         This function posts the stocks Trading View ideas.
@@ -182,6 +184,7 @@ class TradingView_Ideas(commands.Cog):
         await self.send_embed(df, "stocks")
 
     @loop(hours=24)
+    @loop_error_catcher
     async def forex_ideas(self) -> None:
         """
         This function posts the forex Trading View ideas.

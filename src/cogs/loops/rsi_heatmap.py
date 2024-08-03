@@ -10,7 +10,7 @@ from discord.ext.tasks import loop
 from tradingview_ta import get_multiple_analysis
 
 from util.cg_data import get_top_vol_coins
-from util.disc_util import get_channel
+from util.disc_util import get_channel, loop_error_catcher
 from util.vars import config, data_sources, logger
 
 FIGURE_SIZE = (12, 10)
@@ -46,19 +46,21 @@ class RSI_heatmap(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-
-        if config["LOOPS"]["RSI_HEATMAP"]["ENABLED"]:
-            self.channel = None
-            self.post_rsi_heatmap.start()
+        self.channel = None
+        self.post_rsi_heatmap.start()
 
     @loop(hours=24)
+    @loop_error_catcher
     async def post_rsi_heatmap(
         self, num_coins: int = 100, time_frame: str = "1d"
     ) -> None:
+
+        # Get the channel
         if self.channel is None:
             self.channel = await get_channel(
                 self.bot, config["LOOPS"]["RSI_HEATMAP"]["CHANNEL"]
             )
+
         top_vol = get_top_vol_coins(num_coins)
         rsi_data = get_RSI(top_vol, time_frame=time_frame)
         old_rsi_data = get_closest_to_24h(time_frame=time_frame)

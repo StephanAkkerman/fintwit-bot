@@ -1,7 +1,6 @@
 import datetime
 from io import StringIO
 
-# > Discord dependencies
 import discord
 import pandas as pd
 from dateutil import tz
@@ -9,9 +8,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 from util.afterhours import afterHours
-from util.disc_util import get_channel, get_tagged_users
-
-# Local dependencies
+from util.disc_util import get_channel, get_tagged_users, loop_error_catcher
 from util.vars import config, data_sources, post_json_data
 
 
@@ -27,6 +24,7 @@ class StockHalts(commands.Cog):
         self.halt_embed.start()
 
     @loop(minutes=15)
+    @loop_error_catcher
     async def halt_embed(self):
         # Dont send if the market is closed
         if afterHours():

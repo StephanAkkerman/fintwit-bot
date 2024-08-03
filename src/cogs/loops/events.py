@@ -2,10 +2,7 @@ import datetime
 import re
 from io import StringIO
 
-# > Discord dependencies
 import discord
-
-# 3rd party imports
 import pandas as pd
 import pytz
 from bs4 import BeautifulSoup
@@ -13,9 +10,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 from lxml.html import fromstring
 
-from util.disc_util import get_channel
-
-# Local dependencies
+from util.disc_util import get_channel, loop_error_catcher
 from util.vars import config, data_sources, get_json_data, post_json_data
 
 
@@ -117,6 +112,7 @@ class Events(commands.Cog):
         return pd.DataFrame(results)
 
     @loop(hours=1)
+    @loop_error_catcher
     async def post_events(self):
         """
         Checks every hour if today is a friday and if the market is closed.
@@ -302,6 +298,7 @@ class Events(commands.Cog):
         return df
 
     @loop(hours=24)
+    @loop_error_catcher
     async def post_crypto_events(self):
         if self.crypto_channel is None:
             self.crypto_channel = await get_channel(
