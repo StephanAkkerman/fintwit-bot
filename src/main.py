@@ -132,7 +132,9 @@ def get_token():
 
     if debug_mode:
         logger.info("DEBUG_MODE is enabled")
-        logger.info(f"DEBUG_MODE_TYPE is set to: {config.get("DEBUG_MODE_TYPE", "include_only")}")
+        logger.info(
+            f"DEBUG_MODE_TYPE is set to: {config.get('DEBUG_MODE_TYPE', 'include_only')}"
+        )
 
     # Read the token from the config
     token = os.getenv("DEBUG_TOKEN") if debug_mode else os.getenv("DISCORD_TOKEN")
