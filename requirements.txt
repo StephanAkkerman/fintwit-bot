@@ -21,3 +21,5 @@ yahooquery==2.3.7
 nltk==3.8.1
 timm==1.0.8
 seaborn==0.13.2
+plotly==5.23.0
+kaleido==0.2.1
