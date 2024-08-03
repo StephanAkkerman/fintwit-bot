@@ -290,8 +290,11 @@ LISTENERS:
 LOGGING_LEVEL: DEBUG
 
 # This is only for debugging
-DEBUG_MODE: True
+DEBUG_MODE: False
+
+# Choose the debug mode: "include_only" to enable only DEBUG_COGS, "exclude" to enable everything except DEBUG_COGS
+DEBUG_MODE_TYPE: "exclude"
 
 # Add file names of the cogs that should be enabled
 DEBUG_COGS:
-  - rsi_heatmap
+  - timeline
