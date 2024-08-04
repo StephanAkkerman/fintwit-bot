@@ -48,7 +48,6 @@ def update_reddit_ids():
 
 
 async def reddit_scraper(
-    self,
     limit: int = 15,
     subreddit_name: str = "WallStreetBets",
     reddit_client: asyncpraw.Reddit = None,

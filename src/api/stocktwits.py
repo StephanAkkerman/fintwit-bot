@@ -3,7 +3,7 @@ import pandas as pd
 from util.vars import get_json_data
 
 
-async def get_data(keyword: str) -> pd.Dataframe:
+async def get_data(keyword: str) -> pd.DataFrame:
     """
     Gets the data from StockTwits based on the passed keywords and returns a discord.Embed.
 
