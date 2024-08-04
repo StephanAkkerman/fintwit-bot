@@ -6,12 +6,13 @@ import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
 
+from api.fear_greed import get_feargread
 from util.afterhours import afterHours
 from util.disc_util import get_channel, loop_error_catcher
 from util.formatting import human_format
 from util.tv_data import tv
 from util.tv_symbols import crypto_indices, forex_indices, stock_indices
-from util.vars import config, data_sources, get_json_data
+from util.vars import config, data_sources
 
 
 class Index(commands.Cog):
@@ -37,29 +38,6 @@ class Index(commands.Cog):
             self.forex_channel = None
             self.forex_indices = [sym.split(":")[1] for sym in forex_indices]
             self.forex.start()
-
-    async def get_feargread(self) -> tuple[int, str] | None:
-        """
-        Gets the last 2 Fear and Greed indices from the API.
-
-        Returns
-        -------
-        int
-            Today's Fear and Greed index.
-        str
-            The percentual change compared to yesterday's Fear and Greed index.
-        """
-
-        response = await get_json_data("https://api.alternative.me/fng/?limit=2")
-
-        if "data" in response.keys():
-            today = int(response["data"][0]["value"])
-            yesterday = int(response["data"][1]["value"])
-
-            change = round((today - yesterday) / yesterday * 100, 2)
-            change = f"+{change}% 📈" if change > 0 else f"{change}% 📉"
-
-            return today, change
 
     @loop(hours=1)
     @loop_error_catcher
@@ -107,7 +85,7 @@ class Index(commands.Cog):
             prices.append(price)
             changes.append(change)
 
-        succes = await self.get_feargread()
+        succes = await get_feargread()
 
         if succes is not None:
             value, change = succes

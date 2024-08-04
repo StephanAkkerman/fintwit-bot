@@ -10,6 +10,7 @@ import yahoo_fin.stock_info as si
 from discord.ext import commands
 from discord.ext.tasks import loop
 
+from api.cmc import trending
 from util.afterhours import afterHours
 from util.cg_data import get_top_categories, get_trending_coins
 from util.disc_util import get_channel, loop_error_catcher
@@ -21,7 +22,7 @@ from util.formatting import (
 )
 
 # Local dependencies
-from util.vars import config, data_sources, get_json_data, logger
+from util.vars import config, data_sources, logger
 
 
 class Trending(commands.Cog):
@@ -209,29 +210,8 @@ class Trending(commands.Cog):
                 config["LOOPS"]["TRENDING"]["CHANNEL"],
                 config["CATEGORIES"]["CRYPTO"],
             )
-        cmc_data = await get_json_data(
-            "https://api.coinmarketcap.com/data-api/v3/topsearch/rank"
-        )
 
-        # Convert to dataframe
-        cmc_df = pd.DataFrame(cmc_data["data"]["cryptoTopSearchRanks"])
-
-        # Only save [[symbol, price + pricechange, volume]]
-        cmc_df = cmc_df[["symbol", "slug", "priceChange"]]
-
-        # Rename symbol
-        cmc_df.rename(columns={"symbol": "Symbol"}, inplace=True)
-
-        # Add website to symbol
-        cmc_df["Website"] = "https://coinmarketcap.com/currencies/" + cmc_df["slug"]
-        # Format the symbol
-        cmc_df["Symbol"] = "[" + cmc_df["Symbol"] + "](" + cmc_df["Website"] + ")"
-
-        # Get important information from priceChange dictionary
-        cmc_df["Price"] = cmc_df["priceChange"].apply(lambda x: x["price"])
-        cmc_df["% Change"] = cmc_df["priceChange"].apply(lambda x: x["priceChange24h"])
-        cmc_df["Volume"] = cmc_df["priceChange"].apply(lambda x: x["volume24h"])
-
+        cmc_df = await trending()
         cmc_e = await format_embed(cmc_df, "Trending On CoinMarketCap", "coinmarketcap")
 
         cg_df = await get_trending_coins()

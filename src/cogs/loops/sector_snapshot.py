@@ -1,17 +1,16 @@
 import datetime
 import os
-from io import StringIO
 
 import discord
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 from discord.ext import commands
 from discord.ext.tasks import loop
 
+from api.barchart import get_data
 from util.disc_util import get_channel, loop_error_catcher
-from util.vars import config, data_sources, get_json_data
+from util.vars import config, data_sources
 
 
 class Sector_snapshot(commands.Cog):
@@ -64,34 +63,6 @@ class Sector_snapshot(commands.Cog):
 
         # Delete temp file
         os.remove(file_path)
-
-
-async def get_data():
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
-    }
-    r = await get_json_data(
-        url="https://www.barchart.com/stocks/market-performance",
-        headers=headers,
-        text=True,
-    )
-    df = pd.read_html(StringIO(r))[0]
-
-    # Remove % from all rows
-    df = df.replace("%", "", regex=True)
-
-    # convert columns to numeric
-    num_cols = [
-        "5 Day Mov Avg",
-        "20 Day Mov Avg",
-        "50 Day Mov Avg",
-        "100 Day Mov Avg",
-        "150 Day Mov Avg",
-        "200 Day Mov Avg",
-    ]
-    df[num_cols] = df[num_cols].apply(pd.to_numeric, errors="coerce")
-
-    return df
 
 
 def plot_data(df):

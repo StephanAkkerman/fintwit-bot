@@ -4,14 +4,14 @@ import datetime
 import discord
 
 # > 3rd party dependencies
-import pandas as pd
 from discord.ext import commands
 from discord.ext.tasks import loop
 
+from api.binance import get_funding_rate
 from util.disc_util import get_channel, loop_error_catcher
 
 # Local dependencies
-from util.vars import config, data_sources, get_json_data, logger
+from util.vars import config, data_sources
 
 
 class Funding(commands.Cog):
@@ -40,50 +40,6 @@ class Funding(commands.Cog):
                 self.bot, config["LOOPS"]["FUNDING"]["CHANNEL"]
             )
 
-        # Get the JSON data from the Binance API
-        binance_data = await get_json_data(
-            "https://fapi.binance.com/fapi/v1/premiumIndex"
-        )
-
-        # If the call did not work
-        if not binance_data:
-            logger.warn("Could not get funding data...")
-            return
-
-        # Cast to dataframe
-        try:
-            df = pd.DataFrame(binance_data)
-        except Exception as e:
-            logger.error(f"Could not cast to dataframe, error: {e}")
-            return
-
-        # Keep only the USDT pairs
-        df = df[df["symbol"].str.contains("USDT")]
-
-        # Remove USDT from the symbol
-        df["symbol"] = df["symbol"].str.replace("USDT", "")
-
-        # Set it to numeric
-        df["lastFundingRate"] = df["lastFundingRate"].apply(pd.to_numeric)
-
-        # Sort on lastFundingRate, lowest to highest
-        sorted = df.sort_values(by="lastFundingRate", ascending=True)
-
-        # Multiply by 100 to get the funding rate in percent
-        sorted["lastFundingRate"] = sorted["lastFundingRate"] * 100
-
-        # Round to 4 decimal places
-        sorted["lastFundingRate"] = sorted["lastFundingRate"].round(4)
-
-        # Convert them back to string
-        sorted = sorted.astype(str)
-
-        # Add percentage to it
-        sorted["lastFundingRate"] = sorted["lastFundingRate"] + "%"
-
-        # Post the top 15 lowest
-        lowest = sorted.head(15)
-
         e = discord.Embed(
             title="Binance Top 15 Lowest Funding Rates",
             url="",
@@ -92,12 +48,7 @@ class Funding(commands.Cog):
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
 
-        # Get time to next funding, unix is in milliseconds
-        nextFundingTime = int(lowest["nextFundingTime"].tolist()[0]) // 1000
-        nextFundingTime = datetime.datetime.fromtimestamp(nextFundingTime)
-
-        # Get difference
-        timeToNextFunding = nextFundingTime - datetime.datetime.now()
+        lowest, timeToNextFunding = await get_funding_rate()
 
         # Set datetime and icon
         e.set_footer(

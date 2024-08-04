@@ -1,19 +1,19 @@
 import datetime
-import re
 
 import discord
-import numpy as np
 import pandas as pd
-from bs4 import BeautifulSoup
 from discord.ext import commands
 from discord.ext.tasks import loop
 
+from api.cmc import top_cmc, upcoming_cmc
+from api.opensea import get_opensea
+from api.play2earn import p2e_games
 from util.cg_data import cg
 from util.disc_util import get_channel, loop_error_catcher
 from util.formatting import format_change
 
 # > Local
-from util.vars import config, data_sources, get_json_data, logger
+from util.vars import config, data_sources, logger
 
 
 class NFTS(commands.Cog):
@@ -311,187 +311,3 @@ class NFTS(commands.Cog):
 
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(NFTS(bot))
-
-
-async def get_opensea(url=""):
-    """
-    _summary_
-
-    Parameters
-    ----------
-    url : str, optional
-        Can be either "trending" or empty, by default ""
-
-    Returns
-    -------
-    _type_
-        _description_
-    """
-
-    html_doc = await get_json_data(
-        f"https://opensea.io/rankings/{url}",
-        headers={"User-Agent": "Mozilla/5.0"},
-        text=True,
-    )
-
-    html_doc = html_doc[html_doc.find(':pageInfo"}},') + len(':pageInfo"}},') :]
-    html_doc = html_doc[: html_doc.find(":edges:10")]
-
-    rows = html_doc.split('"node":{')
-
-    opensea_nfts = []
-
-    for row in rows[1:]:
-        nft_dict = {}
-
-        name = re.search(r"\"name\":\"(.*?)\"", row).group(1)
-        slug = re.search(r"\"slug\":\"(.*?)\"", row)
-
-        if slug:
-            slug = slug.group(1)
-        else:
-            slug = ""
-
-        price_data = re.findall(r"\"unit\":\"(.*?)\"", row)
-        change = re.search(r"\"volumeChange\":(.*?),", row)
-        symbol = re.search(r"\"symbol\":\"(.*?)\"", row).group(1)
-
-        if len(price_data) == 2:
-            floor_price = f"{round(float(price_data[0]),3)} {symbol}"
-            volume = price_data[1]
-        else:
-            floor_price = "?"
-            volume = price_data[0]
-
-        volume = f"{int(float(volume))} {symbol}"
-        change = float(change.group(1)) * 100
-
-        if change != 0:
-            if change > 1:
-                change = int(change)
-            else:
-                change = round(change, 2)
-            volume = f"{volume} ({format_change(change)})"
-
-        nft_dict["symbol"] = f"[{name}](https://opensea.io/collection/{slug})"
-        nft_dict["price"] = floor_price
-        nft_dict["volume"] = volume
-
-        opensea_nfts.append(nft_dict)
-
-    return pd.DataFrame(opensea_nfts)
-
-
-async def top_cmc():
-    data = await get_json_data(
-        "https://api.coinmarketcap.com/nft/v3/nft/collectionsv2?start=0&limit=100&category=&collection=&blockchain=&sort=volume&desc=true&period=1"
-    )
-
-    # Convert to dataframe
-    if "data" not in data:
-        logger.error("No data found in CoinMarketCap response")
-        return pd.DataFrame()
-    if "collections" not in data["data"]:
-        logger.error("No collections found in CoinMarketCap response")
-        return pd.DataFrame()
-
-    df = pd.DataFrame(data["data"]["collections"])
-
-    df = df.head(10)
-
-    # Unpack all oneDay data
-    df = pd.concat([df.drop(["oneDay"], axis=1), df["oneDay"].apply(pd.Series)], axis=1)
-
-    # name, url, price, volume, volume change
-    # Conditionally concatenate "name" and "website" only when "website" is not NaN
-    df["symbol"] = np.where(
-        df["website"].notna() & (df["website"] != ""),
-        "[" + df["name"] + "]" + "(" + df["website"] + ")",
-        df["name"],
-    )
-    df["price"] = df["floorPriceUsd"].apply(lambda x: f"${x:,.2f}")
-    df["change"] = df["averagePriceChangePercentage"].apply(lambda x: format_change(x))
-    df["price"] = df["price"] + " (" + df["change"] + ")"
-    df["volume"] = df["volume"].apply(lambda x: f"{x:,.0f} ETH")
-    df["volume_change"] = df["volumeChangePercentage"].apply(lambda x: format_change(x))
-    df["volume"] = df["volume"] + " (" + df["volume_change"] + ")"
-
-    return df
-
-
-async def upcoming_cmc():
-    # Could remove category and expire from URL
-    data = await get_json_data(
-        "https://api.coinmarketcap.com/nft/v3/nft/upcoming-drops?start=0&limit=20&category=Popular&expire=30"
-    )
-
-    # Convert the data to a pandas DataFrame
-    df = pd.DataFrame(data["data"]["data"])
-
-    df = df.head(10)
-
-    # name, websiteUrl, price, dropDate
-    # Filter out the columns that actually exist in the DataFrame
-    existing_columns = [
-        col for col in ["name", "websiteUrl", "price", "dropType"] if col in df.columns
-    ]
-
-    # Use only the existing columns to filter the DataFrame
-    df = df[existing_columns]
-
-    # Use same method as #events channel time
-    # Rename to start_time
-    # df["start_time"] = df["dropDate"].apply(
-    #    lambda x: f"<t:{int(x/1000)}:d>" if pd.notnull(x) else ""
-    # )
-
-    # Conditionally concatenate "name" and "website" only when "website" is not NaN
-    df["symbol"] = np.where(
-        df["websiteUrl"].notna() & (df["websiteUrl"] != ""),
-        "[" + df["name"] + "]" + "(" + df["websiteUrl"] + ")",
-        df["name"],
-    )
-
-    return df
-
-
-async def p2e_games():
-    URL = "https://playtoearn.net/blockchaingames/All-Blockchain/All-Genre/All-Status/All-Device/NFT/nft-crypto-PlayToEarn/nft-required-FreeToPlay"
-
-    html = await get_json_data(URL, text=True)
-    soup = BeautifulSoup(html, "html.parser")
-    items = soup.find("table", class_="table table-bordered mainlist")
-
-    if items is None:
-        return pd.DataFrame()
-
-    allItems = items.find_all("tr")
-
-    p2e_games = []
-
-    # Skip header + ad
-    iterator = 2
-    for iterator in range(2, 12):
-        data = {}
-
-        allItems_td = allItems[iterator].find_all("td")
-        if len(allItems_td) < 11:
-            continue
-
-        name = allItems_td[2].find("div", class_="dapp_name").find_next("span").text
-        url = allItems_td[2].find_next("a")["href"]
-        status = allItems_td[6].get_text("title")
-        social_24h_change = allItems_td[10].find_all("span")
-        social_24h = social_24h_change[0].text
-        if len(social_24h_change) > 1:
-            social_change = social_24h_change[1].text.replace("%", "").replace(",", "")
-        else:
-            social_change = 0
-
-        data["name"] = f"[{name}]({url})"
-        data["status"] = status
-        data["social"] = f"{social_24h} ({format_change(float(social_change))})"
-
-        p2e_games.append(data)
-
-    return pd.DataFrame(p2e_games)

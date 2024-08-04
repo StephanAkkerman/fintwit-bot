@@ -4,14 +4,13 @@ from io import StringIO
 
 import discord
 import pandas as pd
-import pytz
 from bs4 import BeautifulSoup
 from discord.ext import commands
 from discord.ext.tasks import loop
-from lxml.html import fromstring
 
+from api.investing import get_events
 from util.disc_util import get_channel, loop_error_catcher
-from util.vars import config, data_sources, get_json_data, post_json_data
+from util.vars import config, data_sources, get_json_data
 
 
 class Events(commands.Cog):
@@ -30,86 +29,6 @@ class Events(commands.Cog):
         if config["LOOPS"]["EVENTS"]["CRYPTO"]["ENABLED"]:
             self.crypto_channel = None
             self.post_crypto_events.start()
-
-    async def get_events(self):
-        """
-        Gets the economic calendar from Investing.com for the next week.
-        The data contains the most important information for the USA and EU.
-
-        Forked from: https://github.com/alvarobartt/investpy/blob/master/investpy/news.py
-        """
-
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36",
-            "X-Requested-With": "XMLHttpRequest",
-        }
-
-        data = {
-            "country[]": [72, 5],  # USA and EU
-            "importance[]": 3,  # Highest importance, 3 stars
-            "timeZone": 8,
-            "timeFilter": "timeRemain",
-            "currentTab": "nextWeek",
-            "submitFilters": 1,
-            "limit_from": 0,
-        }
-
-        url = "https://www.investing.com/economic-calendar/Service/getCalendarFilteredData"
-
-        req = await post_json_data(url, headers=headers, data=data)
-        root = fromstring(req["data"])
-        table = root.xpath(".//tr")
-
-        results = []
-
-        for reversed_row in table[::-1]:
-            id_ = reversed_row.get("id")
-            if id_ is not None:
-                id_ = id_.replace("eventRowId_", "")
-
-        for row in table:
-            id_ = row.get("id")
-            if id_ is None:
-                curr_timescope = int(row.xpath("td")[0].get("id").replace("theDay", ""))
-                curr_date = datetime.datetime.fromtimestamp(
-                    curr_timescope, tz=pytz.timezone("GMT")
-                ).strftime("%d/%m/%Y")
-            else:
-                id_ = id_.replace("eventRowId_", "")
-
-                time = zone = currency = event = actual = forecast = previous = None
-
-                if row.get("id").__contains__("eventRowId_"):
-                    for value in row.xpath("td"):
-                        if value.get("class").__contains__("first left"):
-                            time = value.text_content()
-                        elif value.get("class").__contains__("flagCur"):
-                            zone = value.xpath("span")[0].get("title").lower()
-                            currency = value.text_content().strip()
-                        elif value.get("class") == "left event":
-                            event = value.text_content().strip()
-                        elif value.get("id") == "eventActual_" + id_:
-                            actual = value.text_content().strip()
-                        elif value.get("id") == "eventForecast_" + id_:
-                            forecast = value.text_content().strip()
-                        elif value.get("id") == "eventPrevious_" + id_:
-                            previous = value.text_content().strip()
-
-                results.append(
-                    {
-                        "id": id_,
-                        "date": curr_date,
-                        "time": time,
-                        "zone": zone,
-                        "currency": None if currency == "" else currency,
-                        "event": event,
-                        "actual": None if actual == "" else actual,
-                        "forecast": None if forecast == "" else forecast,
-                        "previous": None if previous == "" else previous,
-                    }
-                )
-
-        return pd.DataFrame(results)
 
     @loop(hours=1)
     @loop_error_catcher
@@ -132,7 +51,7 @@ class Events(commands.Cog):
         # Send this message every friday at 23:00 UTC
         if datetime.datetime.today().weekday() == 4:
             if datetime.datetime.utcnow().hour == 23:
-                df = await self.get_events()
+                df = await get_events()
 
                 # If time == "All Day" convert it to 00:00
                 df["time"] = df["time"].str.replace("All Day", "00:00")

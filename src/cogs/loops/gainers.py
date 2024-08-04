@@ -1,12 +1,12 @@
-import pandas as pd
 import yahoo_fin.stock_info as si
 from discord.ext import commands
 from discord.ext.tasks import loop
 
+from api.binance import get_gainers_losers
 from util.afterhours import afterHours
 from util.disc_util import get_channel, loop_error_catcher
 from util.formatting import format_embed
-from util.vars import config, get_json_data, logger
+from util.vars import config, logger
 
 
 class Gainers(commands.Cog):
@@ -46,57 +46,7 @@ class Gainers(commands.Cog):
         None
         """
 
-        binance_data = await get_json_data("https://api.binance.com/api/v3/ticker/24hr")
-
-        # If the call did not work
-        if not binance_data:
-            return
-
-        # Cast to dataframe
-        try:
-            df = pd.DataFrame(binance_data)
-        except Exception as e:
-            logger.error(f"Could not cast to dataframe, error: {e}")
-            return
-
-        # Keep only the USDT pairs
-        df = df[df["symbol"].str.contains("USDT")]
-
-        # Remove USDT from the symbol
-        df["symbol"] = df["symbol"].str.replace("USDT", "")
-
-        df[["priceChangePercent", "weightedAvgPrice", "volume"]] = df[
-            ["priceChangePercent", "weightedAvgPrice", "volume"]
-        ].apply(pd.to_numeric)
-
-        # Sort on priceChangePercent
-        sorted = df.sort_values(by="priceChangePercent", ascending=False)
-
-        sorted.rename(
-            columns={
-                "symbol": "Symbol",
-                "priceChangePercent": "% Change",
-                "weightedAvgPrice": "Price",
-                "volume": "Volume",
-            },
-            inplace=True,
-        )
-
-        # Add website to symbol
-        sorted["Symbol"] = (
-            "["
-            + sorted["Symbol"]
-            + "](https://www.binance.com/en/price/"
-            + sorted["Symbol"]
-            + ")"
-        )
-
-        # Post the top 10 highest
-        gainers = sorted.head(10)
-
-        # Post the top 10 lowest
-        losers = sorted.tail(10)
-        losers = losers.iloc[::-1]
+        gainers, losers = await get_gainers_losers()
 
         # Format the embed
         e_gainers = await format_embed(gainers, "Gainers", "binance")

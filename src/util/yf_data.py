@@ -19,6 +19,7 @@ async def yf_info(ticker: str, do_format_change: bool = True):
     # This can be blocking
     try:
         # No results when asynchronous=True
+        logger.info(f"Getting Yahoo Finance data for {ticker}")
         stock_info = Ticker(ticker, asynchronous=False).price
     except Exception as e:
         logger.error(f"Error in getting Yahoo Finance data for {ticker}: {e}")
@@ -56,7 +57,7 @@ async def yf_info(ticker: str, do_format_change: bool = True):
     url: str = f"https://finance.yahoo.com/quote/{ticker}"
     exchange: str = stock_info.get("exchange", [])
 
-    return volume, url, exchange, prices, changes if changes else ["N/A"], ticker
+    return volume, url, [], prices, changes if changes else ["N/A"], ticker
 
     # TODO: ratelimit exception
     # except Exception as e:

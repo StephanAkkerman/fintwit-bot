@@ -34,6 +34,7 @@ class Exchange_Listings(commands.Cog):
         list
             The symbols currently listed on the exchange
         """
+        # TODO: move this to api folder
 
         if exchange == "binance":
             url = "https://api.binance.com/api/v3/exchangeInfo"

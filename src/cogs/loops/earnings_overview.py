@@ -5,8 +5,9 @@ import pandas as pd
 from discord.ext import commands
 from discord.ext.tasks import loop
 
+from api.nasdaq import get_earnings_for_date
 from util.disc_util import get_channel, get_tagged_users, loop_error_catcher
-from util.vars import config, data_sources, get_json_data, logger
+from util.vars import config, data_sources, logger
 
 
 class Earnings_Overview(commands.Cog):
@@ -55,38 +56,10 @@ class Earnings_Overview(commands.Cog):
         dfs = []
         for i in range((end_date - start_date).days + 1):
             date = start_date + datetime.timedelta(days=i)
-            df = await self.get_earnings_for_date(date)
+            df = await get_earnings_for_date(date)
             dfs.append(df)
 
         return dfs
-
-    async def get_earnings_for_date(self, date: datetime.datetime) -> pd.DataFrame:
-        # Convert datetime to string YYYY-MM-DD
-        date = date.strftime("%Y-%m-%d")
-        url = f"https://api.nasdaq.com/api/calendar/earnings?date={date}"
-        # Add headers to avoid 403 error
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-            "Accept-Language": "en,nl-NL;q=0.9,nl;q=0.8,en-CA;q=0.7,ja;q=0.6",
-            "Accept-Encoding": "gzip, deflate, br, zstd",
-            "Sec-Ch-Ua": '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
-        }
-        json = await get_json_data(url, headers=headers)
-        # Automatically ordered from highest to lowest market cap
-        if "data" not in json:
-            return pd.DataFrame()
-        df = pd.DataFrame(json["data"]["rows"])
-        if df.empty:
-            return df
-        # Replace time with emojis
-        emoji_dict = {
-            "time-after-hours": "🌙",
-            "time-pre-market": "🌞",
-            "time-not-supplied": "❓",
-        }
-        df["time"] = df["time"].replace(emoji_dict)
-        return df
 
     def date_check(self) -> bool:
         """
