@@ -2,8 +2,8 @@ import re
 
 import pandas as pd
 
+from api.http_client import get_json_data
 from util.formatting import format_change
-from util.vars import get_json_data
 
 
 async def get_opensea(url=""):

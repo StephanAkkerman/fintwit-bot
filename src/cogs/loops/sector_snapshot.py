@@ -9,8 +9,9 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 from api.barchart import get_data
-from util.disc_util import get_channel, loop_error_catcher
-from util.vars import config, data_sources
+from constants.config import config
+from constants.sources import data_sources
+from util.disc import get_channel, loop_error_catcher
 
 
 class Sector_snapshot(commands.Cog):
@@ -66,7 +67,6 @@ class Sector_snapshot(commands.Cog):
 
 
 def plot_data(df):
-
     # Define custom colormap for each 10% increment
     colors = [
         (0, "#620101"),  # 0%

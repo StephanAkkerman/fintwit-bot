@@ -1,3 +1,5 @@
+import os
+import sys
 from functools import wraps
 from typing import Optional
 
@@ -5,7 +7,7 @@ import discord
 from discord.ext import commands
 
 import util.vars
-from util.vars import guild_name, logger
+from constants.logger import logger
 
 
 def loop_error_catcher(func):
@@ -39,6 +41,13 @@ def conditional_role_decorator(role: str):
         return noop_decorator
 
     return commands.has_role(role)
+
+
+guild_name = (
+    os.getenv("DEBUG_GUILD")
+    if len(sys.argv) > 1 and sys.argv[1] == "-test"
+    else os.getenv("DISCORD_GUILD")
+)
 
 
 def get_guild(bot: commands.Bot) -> discord.Guild:

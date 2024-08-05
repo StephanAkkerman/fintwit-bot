@@ -2,7 +2,8 @@ import json
 
 import uncurl
 
-from util.vars import get_json_data, logger
+from api.http_client import get_json_data
+from constants.logger import logger
 
 # Read curl.txt
 try:

@@ -11,10 +11,10 @@ import util.trades_msg
 
 # Local dependencies
 import util.vars
+from constants.stable_coins import stables
 from util.db import get_db, update_db
 from util.exchange_data import get_buying_price, get_data, get_usd_price
 from util.formatting import format_change
-from util.vars import stables
 
 
 async def on_msg(

@@ -13,8 +13,10 @@ from matplotlib.ticker import FuncFormatter
 from scipy.optimize import curve_fit
 
 from api.ccxt import fetch_data
-from util.disc_util import get_channel, loop_error_catcher
-from util.vars import config, data_sources, logger
+from constants.config import config
+from constants.logger import logger
+from constants.sources import data_sources
+from util.disc import get_channel, loop_error_catcher
 
 # Define constants
 COLORS_LABELS = {
@@ -137,7 +139,6 @@ def get_data(file_path):
 
 
 def create_plot(raw_data, popt):
-
     # Create plot
     fig, ax = plt.subplots(figsize=FIGURE_SIZE)
     fig.patch.set_facecolor(BACKGROUND_COLOR)

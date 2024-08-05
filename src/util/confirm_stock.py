@@ -7,13 +7,11 @@ from discord.ui import Button, View
 
 
 async def confirm_stock(bot: commands.Bot, ctx: commands.Context, ticker: str) -> bool:
-
     # Check if this ticker exists
     stock_info = yf.Ticker(ticker)
 
     # If it does not exist let the user know
     if stock_info.info["currentPrice"] is None:
-
         confirm_button = Button(
             label="Confirm",
             style=discord.ButtonStyle.green,

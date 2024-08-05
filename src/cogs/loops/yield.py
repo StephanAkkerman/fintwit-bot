@@ -9,10 +9,10 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 from scipy.interpolate import make_interp_spline
 
-from util.disc_util import get_channel, loop_error_catcher
-from util.tv_data import tv
-from util.tv_symbols import EU_bonds, US_bonds
-from util.vars import config
+from api.tradingview import tv
+from constants.config import config
+from constants.tradingview import EU_bonds, US_bonds
+from util.disc import get_channel, loop_error_catcher
 
 
 class Yield(commands.Cog):

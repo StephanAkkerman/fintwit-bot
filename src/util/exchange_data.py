@@ -2,7 +2,8 @@ import ccxt.async_support as ccxt
 import numpy as np
 import pandas as pd
 
-from util.vars import logger, stables
+from constants.logger import logger
+from constants.stable_coins import stables
 
 
 async def get_data(row) -> pd.DataFrame:

@@ -2,7 +2,7 @@ from io import StringIO
 
 import pandas as pd
 
-from util.vars import get_json_data
+from api.http_client import get_json_data
 
 
 async def get_data():

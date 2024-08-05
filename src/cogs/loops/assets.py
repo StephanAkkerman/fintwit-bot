@@ -10,13 +10,14 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 import util.vars
-from util.cg_data import get_coin_info
+from api.coingecko import get_coin_info
+from api.yahoo import get_stock_info
+from constants.config import config
+from constants.logger import logger
 from util.db import update_db
-from util.disc_util import get_channel, get_guild, get_user, loop_error_catcher
+from util.disc import get_channel, get_guild, get_user, loop_error_catcher
 from util.exchange_data import get_data
 from util.formatting import format_change, format_embed_length
-from util.vars import config, logger
-from util.yf_data import get_stock_info
 
 
 class Assets(commands.Cog):

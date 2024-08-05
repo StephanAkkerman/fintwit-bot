@@ -15,10 +15,11 @@ from discord.commands.context import ApplicationContext
 from discord.ext import commands
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-from util.confirm_stock import confirm_stock
-
 # > Local dependencies
-from util.vars import data_sources, get_json_data, logger
+from api.http_client import get_json_data
+from constants.logger import logger
+from constants.sources import data_sources
+from util.confirm_stock import confirm_stock
 
 # Initialize variables
 today_date = datetime.datetime.now().date()

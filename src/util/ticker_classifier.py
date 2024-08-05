@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from util.cg_data import get_coin_info
+from api.coingecko import get_coin_info
 
 # Local dependencies
-from util.tv_data import tv
-from util.tv_symbols import currencies
-from util.vars import logger
-from util.yf_data import get_stock_info
+from api.tradingview import tv
+from api.yahoo import get_stock_info
+from constants.logger import logger
+from constants.tradingview import currencies
 
 
 async def get_financials(ticker: str, website: str):

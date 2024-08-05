@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
 
+from api.http_client import get_json_data
+from constants.logger import logger
 from util.formatting import format_change
-from util.vars import get_json_data, logger
 
 
 async def top_cmc():

@@ -7,8 +7,10 @@ from discord.commands import Option
 from discord.commands.context import ApplicationContext
 from discord.ext import commands
 
-from util.disc_util import conditional_role_decorator
-from util.vars import config, get_json_data, logger
+from api.http_client import get_json_data
+from constants.config import config
+from constants.logger import logger
+from util.disc import conditional_role_decorator
 
 
 class Analyze(commands.Cog):

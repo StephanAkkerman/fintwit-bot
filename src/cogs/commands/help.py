@@ -5,7 +5,7 @@ from discord.commands import Option
 from discord.commands.context import ApplicationContext
 from discord.ext import commands
 
-from util.disc_util import get_guild
+from util.disc import get_guild
 
 
 class Help(commands.Cog):

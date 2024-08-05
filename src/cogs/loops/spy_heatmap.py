@@ -8,9 +8,10 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 from api.unusualwhales import get_spy_heatmap
+from constants.config import config
+from constants.sources import data_sources
 from util.afterhours import afterHours
-from util.disc_util import get_channel, loop_error_catcher
-from util.vars import config, data_sources
+from util.disc import get_channel, loop_error_catcher
 
 
 class SPY_heatmap(commands.Cog):

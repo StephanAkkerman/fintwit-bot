@@ -13,15 +13,32 @@ import numpy as np
 import pandas as pd
 from discord.ext import commands
 
-# Local dependencies
 import util.vars
 from cogs.loops.overview import Overview
+
+# Local dependencies
+from constants.logger import logger
+from constants.sources import data_sources
+from models.sentiment import add_sentiment
 from util.db import merge_and_update, remove_old_rows, update_tweet_db
-from util.sentiment_analyis import add_sentiment
 from util.ticker_classifier import classify_ticker, get_financials
-from util.vars import data_sources, filter_dict, logger
 
 tweet_overview = None
+
+# Replace key by value
+filter_dict = {
+    "BITCOIN": "BTC",
+    "BTCD": "BTC.D",
+    "ETHEREUM": "ETH",
+    "ES_F": "ES=F",
+    "ES": "ES=F",
+    "NQ": "NQ=F",
+    "NQ_F": "NQ=F",
+    "CL_F": "CL=F",
+    "APPL": "AAPL",
+    "DEFI": "DEFIPERP",
+    "NVIDIA": "NVDA",
+}
 
 
 async def make_tweet_embed(
@@ -372,7 +389,7 @@ def get_description(change, price, website):
         return "\u200b"
 
     # Change can be a list (if the information is from Yahoo Finance) or a string
-    if type(change) == list and type(price) == list:
+    if isinstance(change, list) and isinstance(price, list):
         # If the length is 2 then we know the after-hour prices
         if len(change) == 2 and len(price) == 2:
             for i in range(len(change)):

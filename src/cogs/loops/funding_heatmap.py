@@ -13,9 +13,10 @@ from matplotlib.ticker import FuncFormatter
 from tqdm import tqdm
 
 from api.binance import BinanceClient
-from util.cg_data import get_top_vol_coins
-from util.disc_util import get_channel, loop_error_catcher
-from util.vars import config, data_sources
+from api.coingecko import get_top_vol_coins
+from constants.config import config
+from constants.sources import data_sources
+from util.disc import get_channel, loop_error_catcher
 
 FIGURE_SIZE = (20, 10)
 NUM_COINS = 30
@@ -133,7 +134,6 @@ async def load_funding_rate_data(directory):
 
 
 def prepare_heatmap_data(df, NUM_DAYS: int) -> pd.DataFrame:
-
     # Filter data for the last NUM_DAYS days
     last_n_days = df["calcTime"].max() - pd.Timedelta(days=NUM_DAYS)
     df = df[df["calcTime"] >= last_n_days]

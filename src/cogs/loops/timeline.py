@@ -9,17 +9,13 @@ import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
 
-from util.chart_recognizer import classify_img
-from util.disc_util import (
-    get_channel,
-    get_tagged_users,
-    get_webhook,
-    loop_error_catcher,
-)
-from util.get_tweet import get_tweet
-from util.parse_tweet import parse_tweet
+from api.timeline import get_tweet
+from api.twitter import parse_tweet
+from constants.config import config
+from constants.logger import logger
+from models.chart import classify_img
+from util.disc import get_channel, get_tagged_users, get_webhook, loop_error_catcher
 from util.tweet_embed import make_tweet_embed
-from util.vars import config, logger
 
 
 class Timeline(commands.Cog):

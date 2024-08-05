@@ -7,12 +7,13 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 from api.fear_greed import get_feargread
+from api.tradingview import tv
+from constants.config import config
+from constants.sources import data_sources
+from constants.tradingview import crypto_indices, forex_indices, stock_indices
 from util.afterhours import afterHours
-from util.disc_util import get_channel, loop_error_catcher
+from util.disc import get_channel, loop_error_catcher
 from util.formatting import human_format
-from util.tv_data import tv
-from util.tv_symbols import crypto_indices, forex_indices, stock_indices
-from util.vars import config, data_sources
 
 
 class Index(commands.Cog):

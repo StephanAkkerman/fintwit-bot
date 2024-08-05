@@ -8,8 +8,9 @@ from dotenv import load_dotenv
 # Load the .env file before importing the rest of the bot
 load_dotenv()
 
-from util.disc_util import get_guild, set_emoji
-from util.vars import config, logger
+from constants.config import config
+from constants.logger import logger
+from util.disc import get_guild, set_emoji
 
 bot = commands.Bot(intents=discord.Intents.all())
 

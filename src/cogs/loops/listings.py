@@ -5,8 +5,10 @@ import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
 
-from util.disc_util import get_channel, loop_error_catcher
-from util.vars import config, data_sources, get_json_data
+from api.http_client import get_json_data
+from constants.config import config
+from constants.sources import data_sources
+from util.disc import get_channel, loop_error_catcher
 
 
 class Exchange_Listings(commands.Cog):

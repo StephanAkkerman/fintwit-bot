@@ -4,8 +4,8 @@ import sys
 from discord.commands.context import ApplicationContext
 from discord.ext import commands
 
-from util.disc_util import conditional_role_decorator
-from util.vars import config
+from constants.config import config
+from util.disc import conditional_role_decorator
 
 
 class Restart(commands.Cog):

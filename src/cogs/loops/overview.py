@@ -5,9 +5,10 @@ import discord
 from discord.ext.tasks import loop
 
 import util.vars
-from util.disc_util import get_channel, get_guild, loop_error_catcher
+from api.http_client import get_json_data
+from constants.config import config
+from util.disc import get_channel, get_guild, loop_error_catcher
 from util.formatting import format_change
-from util.vars import config, get_json_data
 
 text_to_emoji = defaultdict(lambda: "🦆", {"bear": "🐻", "bull": "🐂", "neutral": "🦆"})
 

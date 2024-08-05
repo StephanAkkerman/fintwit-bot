@@ -5,7 +5,8 @@ import re
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from util.vars import get_json_data, logger
+from api.http_client import get_json_data
+from constants.logger import logger
 
 
 def crypto_parser(soup: BeautifulSoup) -> pd.DataFrame:

@@ -4,7 +4,7 @@ import pandas as pd
 import pytz
 from lxml.html import fromstring
 
-from util.vars import post_json_data
+from api.http_client import post_json_data
 
 
 # For loop: events

@@ -17,9 +17,9 @@ from yahoo_fin.stock_info import tickers_nasdaq
 
 # > Local dependencies
 import util.vars
-from util.tv_data import get_tv_ticker_data
-from util.tv_symbols import all_forex_indices, crypto_indices, stock_indices
-from util.vars import logger
+from api.tradingview import get_tv_ticker_data
+from constants.logger import logger
+from constants.tradingview import all_forex_indices, crypto_indices, stock_indices
 
 # Convert emoji to text
 convert_emoji = defaultdict(

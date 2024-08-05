@@ -9,9 +9,11 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 from tradingview_ta import get_multiple_analysis
 
-from util.cg_data import get_top_vol_coins
-from util.disc_util import get_channel, loop_error_catcher
-from util.vars import config, data_sources, logger
+from api.coingecko import get_top_vol_coins
+from constants.config import config
+from constants.logger import logger
+from constants.sources import data_sources
+from util.disc import get_channel, loop_error_catcher
 
 FIGURE_SIZE = (12, 10)
 BACKGROUND_COLOR = "#0d1117"
@@ -52,7 +54,6 @@ class RSI_heatmap(commands.Cog):
     @loop(hours=24)
     @loop_error_catcher
     async def post_rsi_heatmap(self) -> None:
-
         # Get the channel
         if self.channel is None:
             self.channel = await get_channel(

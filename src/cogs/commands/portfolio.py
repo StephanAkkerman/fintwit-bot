@@ -16,8 +16,8 @@ from discord.ui import Select, View
 import util.vars
 from cogs.loops.assets import Assets
 from cogs.loops.trades import Trades
+from constants.logger import logger
 from util.db import update_db
-from util.vars import logger
 
 
 class Portfolio(commands.Cog):

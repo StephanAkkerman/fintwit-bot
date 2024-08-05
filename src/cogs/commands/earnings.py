@@ -10,9 +10,10 @@ from discord.commands import Option
 from discord.commands.context import ApplicationContext
 from discord.ext import commands
 
+from constants.logger import logger
+
 # Local dependencies
 from util.confirm_stock import confirm_stock
-from util.vars import logger
 
 
 class Earnings(commands.Cog):

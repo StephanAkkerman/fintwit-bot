@@ -4,7 +4,7 @@ from io import StringIO
 import pandas as pd
 from dateutil import tz
 
-from util.vars import get_json_data, post_json_data
+from api.http_client import get_json_data, post_json_data
 
 # for earnings_overview
 

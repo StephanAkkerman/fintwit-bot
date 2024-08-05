@@ -6,14 +6,16 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 from api.cmc import top_cmc, upcoming_cmc
+from api.coingecko import cg
 from api.opensea import get_opensea
 from api.play2earn import p2e_games
-from util.cg_data import cg
-from util.disc_util import get_channel, loop_error_catcher
-from util.formatting import format_change
+from constants.config import config
+from constants.logger import logger
 
 # > Local
-from util.vars import config, data_sources, logger
+from constants.sources import data_sources
+from util.disc import get_channel, loop_error_catcher
+from util.formatting import format_change
 
 
 class NFTS(commands.Cog):

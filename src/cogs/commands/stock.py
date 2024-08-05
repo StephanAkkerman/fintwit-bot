@@ -7,13 +7,15 @@ from discord.commands.context import ApplicationContext
 # Discord imports
 from discord.ext import commands
 
-# Local dependencies
 import util.vars
+
+# Local dependencies
+from constants.config import config
+from constants.logger import logger
 from util.confirm_stock import confirm_stock
 from util.db import merge_and_update, update_db
-from util.disc_util import get_channel
+from util.disc import get_channel
 from util.trades_msg import trades_msg
-from util.vars import config, logger
 
 
 class Stock(commands.Cog):

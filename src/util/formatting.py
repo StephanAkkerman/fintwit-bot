@@ -7,7 +7,7 @@ import discord
 # Third party libraries
 import pandas as pd
 
-from util.vars import data_sources
+from constants.sources import data_sources
 
 
 def format_change(change: float) -> str:

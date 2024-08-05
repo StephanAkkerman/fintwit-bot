@@ -7,8 +7,9 @@ import discord
 from discord.ext import commands
 
 # > Local dependencies
-from util.disc_util import get_channel, get_webhook
-from util.vars import config, logger
+from constants.config import config
+from constants.logger import logger
+from util.disc import get_channel, get_webhook
 
 
 class On_raw_reaction_add(commands.Cog):

@@ -6,8 +6,8 @@ import asyncpraw
 import pandas as pd
 
 import util.vars
+from constants.logger import logger
 from util.db import update_db
-from util.vars import logger
 
 URL_REGEX = r"(?P<url>https?://[^\s]+)"
 MARKDOWN_LINK_REGEX = r"\[(?P<text>[^\]]+)\]\((?P<url>https?://[^\s]+)\)"

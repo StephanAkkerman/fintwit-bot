@@ -8,9 +8,11 @@ from bs4 import BeautifulSoup
 from discord.ext import commands
 from discord.ext.tasks import loop
 
+from api.http_client import get_json_data
 from api.investing import get_events
-from util.disc_util import get_channel, loop_error_catcher
-from util.vars import config, data_sources, get_json_data
+from constants.config import config
+from constants.sources import data_sources
+from util.disc import get_channel, loop_error_catcher
 
 
 class Events(commands.Cog):

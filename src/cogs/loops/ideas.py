@@ -7,9 +7,10 @@ from discord.ext.tasks import loop
 
 import util.vars
 from api.tradingview_ideas import scraper
+from constants.config import config
+from constants.sources import data_sources
 from util.db import update_db
-from util.disc_util import get_channel, get_tagged_users, loop_error_catcher
-from util.vars import config, data_sources
+from util.disc import get_channel, get_tagged_users, loop_error_catcher
 
 
 class TradingView_Ideas(commands.Cog):
@@ -199,8 +200,6 @@ class TradingView_Ideas(commands.Cog):
             )
         df = await scraper("currencies")
         await self.send_embed(df, "forex")
-
-
 
 
 def setup(bot: commands.Bot) -> None:

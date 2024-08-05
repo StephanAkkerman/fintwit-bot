@@ -11,18 +11,20 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 from api.cmc import trending
+from api.coingecko import get_top_categories, get_trending_coins
+from constants.config import config
+from constants.logger import logger
+
+# Local dependencies
+from constants.sources import data_sources
 from util.afterhours import afterHours
-from util.cg_data import get_top_categories, get_trending_coins
-from util.disc_util import get_channel, loop_error_catcher
+from util.disc import get_channel, loop_error_catcher
 from util.formatting import (
     format_change,
     format_embed,
     format_embed_length,
     human_format,
 )
-
-# Local dependencies
-from util.vars import config, data_sources, logger
 
 
 class Trending(commands.Cog):

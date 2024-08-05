@@ -5,8 +5,9 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 from api.stocktwits import get_data
-from util.disc_util import get_channel, loop_error_catcher
-from util.vars import config, data_sources
+from constants.config import config
+from constants.sources import data_sources
+from util.disc import get_channel, loop_error_catcher
 
 
 class StockTwits(commands.Cog):
@@ -38,7 +39,6 @@ class StockTwits(commands.Cog):
             )
 
         for keyword in ["ts", "m_day", "wl_ct_day"]:
-
             df = await get_data(keyword)
             if df.empty:
                 continue

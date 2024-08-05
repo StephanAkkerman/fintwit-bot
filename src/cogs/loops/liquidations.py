@@ -10,9 +10,11 @@ from discord.ext.tasks import loop
 from matplotlib import ticker
 
 from api.binance import get_new_data, summarize_liquidations
-from util.disc_util import get_channel, loop_error_catcher
+from constants.config import config
+from constants.logger import logger
+from constants.sources import data_sources
+from util.disc import get_channel, loop_error_catcher
 from util.formatting import human_format
-from util.vars import config, data_sources, logger
 
 BACKGROUND_COLOR = "#0d1117"
 FIGURE_SIZE = (15, 7)

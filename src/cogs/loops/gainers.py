@@ -3,10 +3,11 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 from api.binance import get_gainers_losers
+from constants.config import config
+from constants.logger import logger
 from util.afterhours import afterHours
-from util.disc_util import get_channel, loop_error_catcher
+from util.disc import get_channel, loop_error_catcher
 from util.formatting import format_embed
-from util.vars import config, logger
 
 
 class Gainers(commands.Cog):

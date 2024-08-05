@@ -1,8 +1,8 @@
 import pandas as pd
 from bs4 import BeautifulSoup
 
+from api.http_client import get_json_data
 from util.formatting import format_change
-from util.vars import get_json_data
 
 
 async def p2e_games():
