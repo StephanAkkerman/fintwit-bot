@@ -89,7 +89,7 @@ class Funding_heatmap(commands.Cog):
 async def get_all_funding_rates(NUM_COINS: int = 30):
     # TODO: Check if there is new data and save it
     b = BinanceClient()
-    symbols = get_top_vol_coins(NUM_COINS)
+    symbols = await get_top_vol_coins(NUM_COINS)
 
     os.makedirs("data/funding_rate", exist_ok=True)
 

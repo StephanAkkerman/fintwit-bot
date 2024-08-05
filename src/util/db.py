@@ -5,18 +5,13 @@ import sqlite3
 from collections import defaultdict
 
 import numpy as np
-
-# > 3rd party dependencies
 import pandas as pd
-
-# > Discord dependencies
 from discord.ext import commands
 from discord.ext.tasks import loop
-from pycoingecko import CoinGeckoAPI
 from yahoo_fin.stock_info import tickers_nasdaq
 
-# > Local dependencies
 import util.vars
+from api.coingecko import get_coins_list
 from api.tradingview import get_tv_ticker_data
 from constants.logger import logger
 from constants.tradingview import all_forex_indices, crypto_indices, stock_indices
@@ -89,8 +84,8 @@ class DB(commands.Cog):
     @loop(hours=24)
     async def set_cg_db(self):
         # Saves all CoinGecko coins, maybe refresh this daily
-        cg = CoinGeckoAPI()
-        cg_coins = pd.DataFrame(cg.get_coins_list())
+        coin_list = await get_coins_list()
+        cg_coins = pd.DataFrame(coin_list)
         cg_coins["symbol"] = cg_coins["symbol"].str.upper()
 
         # Save cg_coins to database

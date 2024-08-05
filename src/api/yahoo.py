@@ -4,12 +4,9 @@ import csv
 from io import StringIO
 from typing import List, Optional
 
-from yahooquery import Ticker
-
 from api.http_client import get_json_data
 from api.tradingview import tv
 from constants.logger import logger
-from util.afterhours import afterHours
 from util.formatting import format_change
 
 headers = {
@@ -66,16 +63,16 @@ async def yf_info(ticker: str, do_format_change: bool = True):
     try:
         # No results when asynchronous=True
         logger.info(f"Getting Yahoo Finance data for {ticker}")
-        stock_info = Ticker(ticker, asynchronous=False).price
+        # stock_info = Ticker(ticker, asynchronous=False).price
+        stock_info = await all_info(ticker)  # could also use ohlcv function
+        stock_info = stock_info["chart"]["result"][0]["meta"]
     except Exception as e:
         logger.error(f"Error in getting Yahoo Finance data for {ticker}: {e}")
         return None
 
-    # Test if the ticker is valid
-    if not isinstance(stock_info.get(ticker), dict):
+    if stock_info == {}:
         return None
 
-    stock_info = stock_info[ticker]
     prices = []
     changes = []
 
@@ -90,9 +87,9 @@ async def yf_info(ticker: str, do_format_change: bool = True):
             changes.append(change or "N/A")  # Handle None or missing change
 
     # Determine which price to report based on market hours
-    if afterHours():
-        append_price_data("preMarketPrice", "preMarketChangePercent")
-    append_price_data("currentPrice", "regularMarketChangePercent")
+    # if afterHours():
+    #     append_price_data("preMarketPrice", "preMarketChangePercent")
+    append_price_data("regularMarketPrice", "regularMarketChangePercent")
 
     # Calculate volume
     volume: float = (
@@ -101,7 +98,7 @@ async def yf_info(ticker: str, do_format_change: bool = True):
 
     # Prepare return values
     url: str = f"https://finance.yahoo.com/quote/{ticker}"
-    exchange: str = stock_info.get("exchange", [])
+    # exchange: str = stock_info.get("fullExchangeName", [])
 
     return volume, url, [], prices, changes if changes else ["N/A"], ticker
 

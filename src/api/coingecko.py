@@ -1,5 +1,3 @@
-##> Imports
-# > Standard libaries
 from __future__ import annotations
 
 import numbers
@@ -10,27 +8,46 @@ from io import StringIO
 from typing import List, Optional
 
 import pandas as pd
-import tls_client
 from bs4 import BeautifulSoup
 
-# > Third party libraries
-from pycoingecko import CoinGeckoAPI
-
 import util.vars
+from api.http_client import get_json_data, session
 from api.tradingview import tv
-
-# Local dependencies
 from constants.logger import logger
 from constants.stable_coins import stables
 from util.formatting import format_change
 
-cg = CoinGeckoAPI()
-session = tls_client.Session(
-    client_identifier="chrome112", random_tls_extension_order=True
-)
+
+async def get_coin_by_id(id: str) -> dict:
+    data = await get_json_data(f"https://api.coingecko.com/api/v3/coins/{id}")
+    return data
 
 
-def get_crypto_info(ids):
+async def get_coins_markets(currency: str = "usd") -> list:
+    data = await get_json_data(
+        f"https://api.coingecko.com/api/v3/coins/markets?vs_currency={currency}"
+    )
+    return data
+
+
+async def get_exchange_tickers(exchange_id: str = "binance") -> dict:
+    data = await get_json_data(
+        f"https://api.coingecko.com/api/v3/exchanges/{exchange_id}/tickers"
+    )
+    return data
+
+
+async def get_search_trending() -> dict:
+    data = await get_json_data("https://api.coingecko.com/api/v3/search/trending")
+    return data
+
+
+async def get_coins_list() -> list:
+    data = await get_json_data("https://api.coingecko.com/api/v3/coins/list")
+    return data
+
+
+async def get_crypto_info(ids):
     if len(ids) > 1:
         id = None
         best_vol = 0
@@ -38,7 +55,7 @@ def get_crypto_info(ids):
         for symbol in ids.values:
             # Catch potential errors
             try:
-                coin_info = cg.get_coin_by_id(symbol)
+                coin_info = await get_coin_by_id(symbol)
                 if "usd" in coin_info["market_data"]["total_volume"]:
                     volume = coin_info["market_data"]["total_volume"]["usd"]
                     if volume > best_vol:
@@ -53,7 +70,7 @@ def get_crypto_info(ids):
         id = ids.values[0]
         # Try in case the CoinGecko API does not work
         try:
-            coin_dict = cg.get_coin_by_id(id)
+            coin_dict = await get_coin_by_id(id)
         except Exception as e:
             logger.error(f"Error getting coin info for {id}, Error: {e}")
             return None, None
@@ -163,7 +180,7 @@ async def get_coin_info(
     if ticker in util.vars.cg_db["symbol"].values:
         # Check coin by symbol, i.e. "BTC"
         logger.debug(f"Cg_data ticker: {ticker}")
-        coin_dict, id = get_crypto_info(
+        coin_dict, id = await get_crypto_info(
             util.vars.cg_db[util.vars.cg_db["symbol"] == ticker]["id"]
         )
 
@@ -189,13 +206,13 @@ async def get_coin_info(
 
         # Third option is to check by id
         elif ticker.lower() in util.vars.cg_db["id"].values:
-            coin_dict, id = get_crypto_info(
+            coin_dict, id = await get_crypto_info(
                 util.vars.cg_db[util.vars.cg_db["id"] == ticker.lower()]["id"]
             )
 
         # Fourth option is to check by name, i.e. "Bitcoin"
         elif ticker in util.vars.cg_db["name"].values:
-            coin_dict, id = get_crypto_info(
+            coin_dict, id = await get_crypto_info(
                 util.vars.cg_db[util.vars.cg_db["name"] == ticker]["id"]
             )
 
@@ -340,7 +357,7 @@ async def get_top_categories() -> pd.DataFrame | None:
     return pd.DataFrame(data)
 
 
-def get_top_vol_coins(length: int = 50) -> list:
+async def get_top_vol_coins(length: int = 50) -> list:
     CACHE_FILE = "data/top_vol_coins_cache.pkl"
     CACHE_EXPIRATION = 24 * 60 * 60  # 24 hours in seconds
     # List of symbols to exclude
@@ -370,7 +387,8 @@ def get_top_vol_coins(length: int = 50) -> list:
                 return cache_data["data"][:length]
 
     # Fetch fresh data if the cache is missing or expired
-    df = pd.DataFrame(cg.get_coins_markets("usd"))["symbol"].str.upper() + "USDT"
+    data = await get_coins_markets("usd")
+    df = pd.DataFrame(data)["symbol"].str.upper() + "USDT"
 
     sorted_volume = df[~df.isin(STABLE_COINS)]
     top_vol_coins = sorted_volume.tolist()

@@ -45,13 +45,17 @@ class Reddit(commands.Cog):
             self.wsb_channel = await get_channel(
                 self.bot, config["LOOPS"]["REDDIT"]["WALLSTREETBETS"]["CHANNEL"]
             )
-            posts = await reddit_scraper(subreddit_name="WallStreetBets")
+            posts = await reddit_scraper(
+                subreddit_name="WallStreetBets", reddit_client=self.reddit
+            )
             self.send_posts(posts, "WallStreetBets")
             self.first_time = False
 
         # To prevent it from going to quick
         if not self.first_time:
-            posts = await reddit_scraper(subreddit_name="WallStreetBets")
+            posts = await reddit_scraper(
+                subreddit_name="WallStreetBets", reddit_client=self.reddit
+            )
             self.send_posts(posts, "WallStreetBets")
 
     @loop(hours=12)
@@ -61,12 +65,16 @@ class Reddit(commands.Cog):
             self.cmc_channel = await get_channel(
                 self.bot, config["LOOPS"]["REDDIT"]["CRYPTOMOONSHOTS"]["CHANNEL"]
             )
-            posts = await reddit_scraper(subreddit_name="CryptoMoonShots")
+            posts = await reddit_scraper(
+                subreddit_name="CryptoMoonShots", reddit_client=self.reddit
+            )
             self.send_posts(posts, "CryptoMoonShots")
             self.first_time = False
 
         if not self.first_time:
-            posts = await reddit_scraper(subreddit_name="CryptoMoonShots")
+            posts = await reddit_scraper(
+                subreddit_name="CryptoMoonShots", reddit_client=self.reddit
+            )
             self.send_posts(posts, "CryptoMoonShots")
 
     async def send_posts(self, posts: list, subreddit_name: str):

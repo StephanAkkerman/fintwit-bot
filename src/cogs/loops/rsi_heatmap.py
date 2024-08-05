@@ -60,7 +60,7 @@ class RSI_heatmap(commands.Cog):
                 self.bot, config["LOOPS"]["RSI_HEATMAP"]["CHANNEL"]
             )
 
-        plot_rsi_heatmap()
+        await plot_rsi_heatmap()
 
         e = discord.Embed(
             title="Crypto Market RSI Heatmap",
@@ -92,8 +92,8 @@ def get_color_for_rsi(rsi_value: float) -> dict:
     return None
 
 
-def plot_rsi_heatmap(num_coins: int = 100, time_frame: str = "1d") -> None:
-    top_vol = get_top_vol_coins(num_coins)
+async def plot_rsi_heatmap(num_coins: int = 100, time_frame: str = "1d") -> None:
+    top_vol = await get_top_vol_coins(num_coins)
     rsi_data = get_RSI(top_vol, time_frame=time_frame)
     old_rsi_data = get_closest_to_24h(time_frame=time_frame)
 

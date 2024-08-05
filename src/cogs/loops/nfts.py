@@ -6,7 +6,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 from api.cmc import top_cmc, upcoming_cmc
-from api.coingecko import cg
+from api.coingecko import get_search_trending
 from api.opensea import get_opensea
 from api.play2earn import p2e_games
 from constants.config import config
@@ -159,7 +159,8 @@ class NFTS(commands.Cog):
         await self.trending_channel.send(embed=e)
 
     async def gc_trending(self):
-        df = pd.DataFrame(cg.get_search_trending()["nfts"])
+        search_trending = await get_search_trending()
+        df = pd.DataFrame(search_trending["nfts"])
 
         # Add URL
         df["url"] = "https://www.coingecko.com/en/nft/" + df["id"]

@@ -1,6 +1,7 @@
 import json
 
 import aiohttp
+import tls_client
 
 from constants.logger import logger
 
@@ -72,3 +73,8 @@ async def post_json_data(
         logger.error(f"Error with POST request for {url}.\nError: {e}")
 
     return {}
+
+
+session = tls_client.Session(
+    client_identifier="chrome112", random_tls_extension_order=True
+)
