@@ -72,7 +72,7 @@ def load_cog(filename, foldername):
         logger.info(f"Loading: {filename}")
         bot.load_extension(f"cogs.{foldername}.{filename[:-3]}")
     except discord.ExtensionAlreadyLoaded:
-        logger.warning(f"Extension already loaded: {filename}")
+        logger.debug(f"Extension already loaded: {filename}")
     except discord.ExtensionNotFound:
         logger.warning(f"Cog was not found: {filename}")
     except Exception as e:
