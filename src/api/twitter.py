@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 import datetime
 import json
 import re
 from typing import List
 
-# > Local imports
 import util.vars
 from constants.logger import logger
 

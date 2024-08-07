@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pandas as pd
 
 from api.http_client import get_json_data

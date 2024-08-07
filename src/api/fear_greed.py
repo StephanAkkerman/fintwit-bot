@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from api.http_client import get_json_data
 
 

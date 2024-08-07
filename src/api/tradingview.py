@@ -1,5 +1,3 @@
-## > Imports
-# > Standard libaries
 from __future__ import annotations
 
 import json
@@ -9,15 +7,12 @@ import string
 import traceback
 from typing import List, Optional
 
-# > 3rd party dependencies
 import aiohttp
 import pandas as pd
 from tradingview_ta import Interval, TA_Handler
 
 import util.vars
 from api.http_client import get_json_data
-
-# > Local dependencies
 from constants.logger import logger
 from constants.tradingview import all_forex_indices, crypto_indices, stock_indices
 
