@@ -10,7 +10,7 @@ from discord.ext import commands
 from discord.ext.tasks import loop
 
 import util.vars
-from api.coingecko import get_coins_list
+from api.coingecko import get_coins_list, rate_limit
 from api.nasdaq import tickers_nasdaq
 from api.tradingview import get_tv_ticker_data
 from constants.logger import logger
@@ -85,13 +85,22 @@ class DB(commands.Cog):
     async def set_cg_db(self):
         # Saves all CoinGecko coins, maybe refresh this daily
         coin_list = await get_coins_list()
-        cg_coins = pd.DataFrame(coin_list)
 
-        # Convert the symbol to uppercase
-        cg_coins["symbol"] = cg_coins["symbol"].str.upper()
+        if isinstance(coin_list, dict) and rate_limit(coin_list):
+            logger.warn(
+                "Could not get CoinGecko coins, rate limit reached. Falling back to old data."
+            )
 
-        # Save cg_coins to database
-        update_db(cg_coins, "cg_coins")
+            # Get the old data
+            cg_coins = get_db("cg_coins")
+        else:
+            cg_coins = pd.DataFrame(coin_list)
+
+            # Convert the symbol to uppercase
+            cg_coins["symbol"] = cg_coins["symbol"].str.upper()
+
+            # Save cg_coins to database
+            update_db(cg_coins, "cg_coins")
 
         # Set cg_coins
         util.vars.cg_db = cg_coins
