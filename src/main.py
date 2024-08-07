@@ -76,7 +76,7 @@ def load_cog(filename, foldername):
     except discord.ExtensionNotFound:
         logger.warning(f"Cog was not found: {filename}")
     except Exception as e:
-        logger.error(f"Failed to load cog {filename}: {e}")
+        logger.error(f"Failed to load cog {filename}: {e}", exc_info=True)
 
 
 def load_folder(foldername: str) -> None:
