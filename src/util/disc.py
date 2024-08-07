@@ -45,7 +45,7 @@ def conditional_role_decorator(role: str):
 
 guild_name = (
     os.getenv("DEBUG_GUILD")
-    if len(sys.argv) > 1 and sys.argv[1] == "-test"
+    if len(sys.argv) > 1 and sys.argv[1] == "-debug"
     else os.getenv("DISCORD_GUILD")
 )
 
@@ -67,7 +67,6 @@ def get_guild(bot: commands.Bot) -> discord.Guild:
 
     return discord.utils.get(
         bot.guilds,
-        # Return the debug server if -test is used as an argument
         name=guild_name,
     )
 

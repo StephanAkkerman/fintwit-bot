@@ -95,9 +95,12 @@ def load_folder(foldername: str) -> None:
     """
     logger.info(f"Loading cogs from folder: {foldername}")
     folder_config = config.get(foldername.upper(), {})
-    debug_mode = config.get("DEBUG_MODE", False)
-    debug_mode_type = config.get("DEBUG_MODE_TYPE", "include_only")
-    debug_cogs = config.get("DEBUG_COGS", [])
+
+    debug_mode = False
+    if "-debug" in sys.argv:
+        debug_mode = True
+        debug_mode_type = config.get("DEBUG_MODE_TYPE", "include_only")
+        debug_cogs = config.get("DEBUG_COGS", [])
 
     enabled_cogs = []
 
@@ -129,7 +132,9 @@ def load_folder(foldername: str) -> None:
 
 
 def get_token():
-    debug_mode = config.get("DEBUG_MODE", False)
+    debug_mode = False
+    if "-debug" in sys.argv:
+        debug_mode = True
 
     if debug_mode:
         logger.info("DEBUG_MODE is enabled")

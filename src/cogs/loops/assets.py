@@ -192,6 +192,11 @@ class Assets(commands.Cog):
         # Remove everything after % in change
         # new_df["change"] = new_df["change"].str.split("%").str[0]
 
+        # if change cannot be converted to float, set it to 0
+        new_df["change"] = new_df["change"].apply(
+            lambda x: 0 if not isinstance(x, float) else x
+        )
+
         # Set the types (again)
         new_df = new_df.astype(
             {

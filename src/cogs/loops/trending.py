@@ -6,12 +6,12 @@ import pandas as pd
 import pytz
 
 # > 3rd party dependencies
-import yahoo_fin.stock_info as si
 from discord.ext import commands
 from discord.ext.tasks import loop
 
 from api.cmc import trending
 from api.coingecko import get_top_categories, get_trending_coins
+from api.yahoo import get_most_active
 from constants.config import config
 from constants.logger import logger
 
@@ -318,7 +318,7 @@ class Trending(commands.Cog):
         # Only use the top 10 stocks
         try:
             e = await format_embed(
-                si.get_day_most_active().head(15), "Most Active Stocks", "yahoo"
+                pd.DataFrame(get_most_active(count=15)), "Most Active Stocks", "yahoo"
             )
             await self.stocks_channel.purge(limit=1)
             await self.stocks_channel.send(embed=e)

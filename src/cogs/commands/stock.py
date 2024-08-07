@@ -1,6 +1,5 @@
 # > 3rd Party Dependencies
 import pandas as pd
-import yfinance as yf
 from discord.commands import Option, SlashCommandGroup
 from discord.commands.context import ApplicationContext
 
@@ -8,6 +7,7 @@ from discord.commands.context import ApplicationContext
 from discord.ext import commands
 
 import util.vars
+from api.yahoo import get_ohlcv
 
 # Local dependencies
 from constants.config import config
@@ -105,7 +105,7 @@ class Stock(commands.Cog):
             return
 
         try:
-            price = yf.Ticker(ticker).info["currentPrice"]
+            price = get_ohlcv(ticker)["Close"]
         except Exception:
             price = 0
             logger.error(f"Could not get price for {ticker} when using /stock add")
@@ -269,7 +269,7 @@ class Stock(commands.Cog):
                 return
 
         try:
-            price = yf.Ticker(ticker).info["currentPrice"]
+            price = get_ohlcv(ticker)["Close"]
         except Exception:
             price = 0
 

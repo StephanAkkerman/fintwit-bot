@@ -287,10 +287,9 @@ LISTENERS:
     ENABLED: True
 
 # Set to "INFO" if you want less clutter in your terminal
-LOGGING_LEVEL: DEBUG
+LOGGING_LEVEL: INFO
 
-# This is only for debugging
-DEBUG_MODE: False
+# Debug mode is enabled when using the flag `--debug`
 
 # Choose the debug mode: "include_only" to enable only DEBUG_COGS, "exclude" to enable everything except DEBUG_COGS
 DEBUG_MODE_TYPE: "exclude"

@@ -179,7 +179,14 @@ async def format_embed(og_df: pd.DataFrame, type: str, source: str) -> discord.E
 
     if source == "yahoo":
         # Format the data
-        df.rename(columns={"Price (Intraday)": "Price"}, inplace=True)
+        df.rename(
+            columns={
+                "regularMarketPrice": "Price",
+                "regularMarketChange": "% Change",
+                "regularMarketVolume": "Volume",
+            },
+            inplace=True,
+        )
 
         # Add website to symbol
         df["Symbol"] = (

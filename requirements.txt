@@ -1,4 +1,3 @@
-yahoo-fin==0.8.9.1
 numpy==1.26.4
 yfinance==0.2.41
 pandas==2.2.2

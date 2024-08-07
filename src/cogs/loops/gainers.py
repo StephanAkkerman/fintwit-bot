@@ -1,8 +1,9 @@
-import yahoo_fin.stock_info as si
+import pandas as pd
 from discord.ext import commands
 from discord.ext.tasks import loop
 
 from api.binance import get_gainers_losers
+from api.yahoo import get_gainers
 from constants.config import config
 from constants.logger import logger
 from util.afterhours import afterHours
@@ -78,7 +79,7 @@ class Gainers(commands.Cog):
     @loop_error_catcher
     async def stocks(self) -> None:
         """
-        This function uses the yahoo_fin.stock_info module to get the gainers for todays stocks.
+        Gets the top 10 gainers for the day and posts them in the channel.
 
         Returns
         -------
@@ -96,7 +97,9 @@ class Gainers(commands.Cog):
             return
 
         try:
-            e = await format_embed(si.get_day_gainers().head(10), "Gainers", "yahoo")
+            e = await format_embed(
+                pd.DataFrame(get_gainers(count=10)), "Gainers", "yahoo"
+            )
             await self.stocks_channel.purge(limit=1)
             await self.stocks_channel.send(embed=e)
         except Exception as e:

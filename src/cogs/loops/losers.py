@@ -1,7 +1,8 @@
-import yahoo_fin.stock_info as si
+import pandas as pd
 from discord.ext import commands
 from discord.ext.tasks import loop
 
+from api.yahoo import get_losers
 from constants.config import config
 from constants.logger import logger
 from util.afterhours import afterHours
@@ -45,7 +46,9 @@ class Losers(commands.Cog):
             return
 
         try:
-            e = await format_embed(si.get_day_losers().head(10), "Losers", "yahoo")
+            e = await format_embed(
+                pd.DataFrame(get_losers(count=10)), "Losers", "yahoo"
+            )
             await self.channel.send(embed=e)
         except Exception as e:
             logger.error(f"Error getting or posting stock losers, error: {e}")

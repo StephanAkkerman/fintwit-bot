@@ -14,7 +14,31 @@ headers = {
 }
 
 
-async def ohlcv(ticker: str) -> dict:
+async def get_gainers(count: int = 10) -> list[dict]:
+    url = f"https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved?formatted=false&lang=en-US&region=US&scrIds=day_gainers&count={count}&corsDomain=finance.yahoo.com"
+    data = await get_json_data(url, headers=headers)
+    return data["finance"]["result"][0]["quotes"]
+
+
+async def get_losers(count: int = 10) -> list[dict]:
+    url = f"https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved?formatted=false&lang=en-US&region=US&scrIds=day_losers&count={count}&corsDomain=finance.yahoo.com"
+    data = await get_json_data(url, headers=headers)
+    return data["finance"]["result"][0]["quotes"]
+
+
+async def get_most_active(count: int = 10) -> list[dict]:
+    url = f"https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved?formatted=false&lang=en-US&region=US&scrIds=most_actives&count={count}&corsDomain=finance.yahoo.com"
+    data = await get_json_data(url, headers=headers)
+    return data["finance"]["result"][0]["quotes"]
+
+
+async def get_trending(count: int = 10) -> list:
+    url = f"https://query1.finance.yahoo.com/v1/finance/trending/US?count={count}"
+    data = await get_json_data(url, headers=headers)
+    return [stock["symbol"] for stock in data["finance"]["result"][0]["quotes"]]
+
+
+async def get_ohlcv(ticker: str) -> dict:
     csv_text = await get_json_data(
         f"https://query1.finance.yahoo.com/v7/finance/download/{ticker}",
         headers=headers,
@@ -37,19 +61,19 @@ async def ohlcv(ticker: str) -> dict:
     return data
 
 
-async def all_info(ticker: str) -> dict:
+async def get_stock_details(ticker: str) -> dict:
     """
-    _summary_
+    Gets all the financial information for a stock.
 
     Parameters
     ----------
     ticker : str
-        _description_
+        The ticker of the stock, e.g. AAPL.
 
     Returns
     -------
     dict
-        _description_
+        The financial information for the stock.
     """
     data = await get_json_data(
         f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}",
@@ -62,9 +86,11 @@ async def yf_info(ticker: str, do_format_change: bool = True):
     # This can be blocking
     try:
         # No results when asynchronous=True
-        logger.info(f"Getting Yahoo Finance data for {ticker}")
+        logger.debug(f"Getting Yahoo Finance data for {ticker}")
         # stock_info = Ticker(ticker, asynchronous=False).price
-        stock_info = await all_info(ticker)  # could also use ohlcv function
+        stock_info = await get_stock_details(ticker)  # could also use ohlcv function
+        if stock_info["chart"]["result"] is None:
+            return None
         stock_info = stock_info["chart"]["result"][0]["meta"]
     except Exception as e:
         logger.error(f"Error in getting Yahoo Finance data for {ticker}: {e}")
@@ -101,12 +127,6 @@ async def yf_info(ticker: str, do_format_change: bool = True):
     # exchange: str = stock_info.get("fullExchangeName", [])
 
     return volume, url, [], prices, changes if changes else ["N/A"], ticker
-
-    # TODO: ratelimit exception
-    # except Exception as e:
-    #    print(f"Error in getting Yahoo Finance data for {ticker}: {e}")
-
-    return None
 
 
 async def get_stock_info(

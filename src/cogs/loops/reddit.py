@@ -48,7 +48,7 @@ class Reddit(commands.Cog):
             posts = await reddit_scraper(
                 subreddit_name="WallStreetBets", reddit_client=self.reddit
             )
-            self.send_posts(posts, "WallStreetBets")
+            await self.send_posts(posts, "WallStreetBets")
             self.first_time = False
 
         # To prevent it from going to quick
@@ -56,7 +56,7 @@ class Reddit(commands.Cog):
             posts = await reddit_scraper(
                 subreddit_name="WallStreetBets", reddit_client=self.reddit
             )
-            self.send_posts(posts, "WallStreetBets")
+            await self.send_posts(posts, "WallStreetBets")
 
     @loop(hours=12)
     @loop_error_catcher
@@ -68,14 +68,14 @@ class Reddit(commands.Cog):
             posts = await reddit_scraper(
                 subreddit_name="CryptoMoonShots", reddit_client=self.reddit
             )
-            self.send_posts(posts, "CryptoMoonShots")
+            await self.send_posts(posts, "CryptoMoonShots")
             self.first_time = False
 
         if not self.first_time:
             posts = await reddit_scraper(
                 subreddit_name="CryptoMoonShots", reddit_client=self.reddit
             )
-            self.send_posts(posts, "CryptoMoonShots")
+            await self.send_posts(posts, "CryptoMoonShots")
 
     async def send_posts(self, posts: list, subreddit_name: str):
         for counter, post in enumerate(posts):

@@ -1,6 +1,8 @@
 import logging
 import sys
 
+from constants.config import config
+
 
 class UTF8StreamHandler(logging.StreamHandler):
     def __init__(self, stream=None):
@@ -22,7 +24,9 @@ logging.basicConfig(
     ],
 )
 
-logging_lvl = "INFO"  # Replace with your config value if needed
+logging_lvl = config.get("LOGGING_LEVEL", "INFO")
+if "-debug" in sys.argv:
+    logging_lvl = "DEBUG"
 logger = logging.getLogger("fintwit-logger")
 logger.setLevel(logging_lvl)
 logger.info(f"LOGGING_LEVEL is set to {logging_lvl}")

@@ -8,10 +8,10 @@ import numpy as np
 import pandas as pd
 from discord.ext import commands
 from discord.ext.tasks import loop
-from yahoo_fin.stock_info import tickers_nasdaq
 
 import util.vars
 from api.coingecko import get_coins_list
+from api.nasdaq import tickers_nasdaq
 from api.tradingview import get_tv_ticker_data
 from constants.logger import logger
 from constants.tradingview import all_forex_indices, crypto_indices, stock_indices
