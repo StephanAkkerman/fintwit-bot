@@ -69,8 +69,8 @@ async def get_earnings_for_date(date: datetime.datetime) -> pd.DataFrame:
     return df
 
 
-def get_halt_data():
-    html = fetch_halt_data
+async def get_halt_data():
+    html = await fetch_halt_data()
     if html == {}:
         return pd.DataFrame()
 

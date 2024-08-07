@@ -34,7 +34,7 @@ class StockHalts(commands.Cog):
                 self.bot, config["LOOPS"]["STOCK_HALTS"]["CHANNEL"]
             )
 
-        df = get_halt_data()
+        df = await get_halt_data()
         if df.empty:
             return
 

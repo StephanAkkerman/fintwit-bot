@@ -97,8 +97,9 @@ class Gainers(commands.Cog):
             return
 
         try:
+            gainers = await get_gainers(count=10)
             e = await format_embed(
-                pd.DataFrame(get_gainers(count=10)), "Gainers", "yahoo"
+                pd.DataFrame(gainers), "Gainers", "yahoo"
             )
             await self.stocks_channel.purge(limit=1)
             await self.stocks_channel.send(embed=e)

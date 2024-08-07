@@ -46,9 +46,8 @@ class Losers(commands.Cog):
             return
 
         try:
-            e = await format_embed(
-                pd.DataFrame(get_losers(count=10)), "Losers", "yahoo"
-            )
+            losers = await get_losers(count=10)
+            e = await format_embed(pd.DataFrame(losers), "Losers", "yahoo")
             await self.channel.send(embed=e)
         except Exception as e:
             logger.error(f"Error getting or posting stock losers, error: {e}")
