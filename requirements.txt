@@ -10,7 +10,7 @@ asyncpraw==7.7.1
 ccxt==4.3.74
 transformers==4.43.3
 matplotlib==3.9.1
-scipy==1.13.1 # Not upgrading to 1.14.0
+scipy==1.14.0 # Not upgrading to 1.14.0
 brotli==1.1.0
 py-cord==2.6.0
 python-dotenv==1.0.1
