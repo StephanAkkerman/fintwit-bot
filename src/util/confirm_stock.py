@@ -1,17 +1,18 @@
 ## > Imports
 # > 3rd Party Dependencies
 import discord
-import yfinance as yf
 from discord.ext import commands
 from discord.ui import Button, View
+
+from api.yahoo import get_stock_details
 
 
 async def confirm_stock(bot: commands.Bot, ctx: commands.Context, ticker: str) -> bool:
     # Check if this ticker exists
-    stock_info = yf.Ticker(ticker)
+    stock_info = await get_stock_details(ticker)
 
     # If it does not exist let the user know
-    if stock_info.info["currentPrice"] is None:
+    if stock_info["chart"]["result"] is None:
         confirm_button = Button(
             label="Confirm",
             style=discord.ButtonStyle.green,
