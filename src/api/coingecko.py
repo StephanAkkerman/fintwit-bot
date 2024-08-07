@@ -47,6 +47,27 @@ async def get_coins_list() -> list:
     return data
 
 
+def rate_limit(response: dict):
+    """
+    Error response will look like this;
+    {
+        "status": {
+            "error_code": 429,
+            "error_message": "You've exceeded the Rate Limit. Please visit https://www.coingecko.com/en/api/pricing to subscribe to our API plans for higher rate limits."
+        }
+    }
+
+    Parameters
+    ----------
+    response : dict
+        _description_
+    """
+    if "status" in response.keys():
+        logger.debug(f"Rate limit error: {response['status']['error_message']}")
+        return True
+    return False
+
+
 async def get_crypto_info(ids):
     if len(ids) > 1:
         id = None
@@ -56,6 +77,9 @@ async def get_crypto_info(ids):
             # Catch potential errors
             try:
                 coin_info = await get_coin_by_id(symbol)
+                if rate_limit(coin_info):
+                    return None, None
+
                 if "usd" in coin_info["market_data"]["total_volume"]:
                     volume = coin_info["market_data"]["total_volume"]["usd"]
                     if volume > best_vol:
@@ -64,6 +88,7 @@ async def get_crypto_info(ids):
                         coin_dict = coin_info
             except Exception as e:
                 logger.error(f"Error getting coin info for {symbol}, Error: {e}")
+                logger.error(f"Coin info: {coin_info}")
                 pass
 
     else:
@@ -177,9 +202,11 @@ async def get_coin_info(
     # Get the id of the ticker
     # Check if the symbol exists
     coin_dict = None
+
+    # Test if the ticker is in the CoinGecko database for symbols
     if ticker in util.vars.cg_db["symbol"].values:
         # Check coin by symbol, i.e. "BTC"
-        logger.debug(f"Cg_data ticker: {ticker}")
+        logger.debug(f"Found Coingecko info by matching on symbol for ticker: {ticker}")
         coin_dict, id = await get_crypto_info(
             util.vars.cg_db[util.vars.cg_db["symbol"] == ticker]["id"]
         )
@@ -195,6 +222,9 @@ async def get_coin_info(
             ticker, "crypto"
         )
         if volume != 0:
+            logger.debug(
+                f"Found useful crypto info from TradingView for ticker: {ticker}"
+            )
             return (
                 volume,
                 website,
@@ -206,12 +236,16 @@ async def get_coin_info(
 
         # Third option is to check by id
         elif ticker.lower() in util.vars.cg_db["id"].values:
+            logger.debug(f"Found Coingecko info by matching on id for ticker: {ticker}")
             coin_dict, id = await get_crypto_info(
                 util.vars.cg_db[util.vars.cg_db["id"] == ticker.lower()]["id"]
             )
 
         # Fourth option is to check by name, i.e. "Bitcoin"
         elif ticker in util.vars.cg_db["name"].values:
+            logger.debug(
+                f"Found Coingecko info by matching on name for ticker: {ticker}"
+            )
             coin_dict, id = await get_crypto_info(
                 util.vars.cg_db[util.vars.cg_db["name"] == ticker]["id"]
             )

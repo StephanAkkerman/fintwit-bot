@@ -18,6 +18,7 @@ async def get_tweet():
     if cURL is None:
         logger.critical("Error: no curl.txt file found. Timelines will not be updated.")
         return []
+    
     result = await get_json_data(
         cURL.url,
         headers=dict(cURL.headers),

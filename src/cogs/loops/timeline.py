@@ -134,6 +134,7 @@ class Timeline(commands.Cog):
         """Fetches the latest tweets."""
         logger.debug(f"Getting tweets at {datetime.datetime.now()}...")
         tweets = await get_tweet()
+        logger.debug(f"Got {len(tweets)} tweets.")
 
         # Loop from oldest to newest tweet
         for tweet in reversed(tweets):

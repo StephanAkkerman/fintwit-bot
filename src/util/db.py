@@ -86,6 +86,8 @@ class DB(commands.Cog):
         # Saves all CoinGecko coins, maybe refresh this daily
         coin_list = await get_coins_list()
         cg_coins = pd.DataFrame(coin_list)
+
+        # Convert the symbol to uppercase
         cg_coins["symbol"] = cg_coins["symbol"].str.upper()
 
         # Save cg_coins to database
