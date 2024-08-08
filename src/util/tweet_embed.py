@@ -200,7 +200,7 @@ async def add_financials(
         util.vars.classified_tickers = remove_old_rows(util.vars.classified_tickers, 3)
         classified_tickers = util.vars.classified_tickers["ticker"].tolist()
 
-    for ticker in symbols:
+    for ticker in symbols[24:]:
         if crypto > stocks and crypto > forex:
             majority = "crypto"
         elif stocks > crypto and stocks > forex:

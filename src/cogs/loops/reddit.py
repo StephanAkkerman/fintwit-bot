@@ -65,6 +65,7 @@ class Reddit(commands.Cog):
             self.cmc_channel = await get_channel(
                 self.bot, config["LOOPS"]["REDDIT"]["CRYPTOMOONSHOTS"]["CHANNEL"]
             )
+            print(self.cmc_channel)
             posts = await reddit_scraper(
                 subreddit_name="CryptoMoonShots", reddit_client=self.reddit
             )

@@ -181,6 +181,7 @@ async def format_embed(og_df: pd.DataFrame, type: str, source: str) -> discord.E
         # Format the data
         df.rename(
             columns={
+                "symbol": "Symbol",
                 "regularMarketPrice": "Price",
                 "regularMarketChange": "% Change",
                 "regularMarketVolume": "Volume",

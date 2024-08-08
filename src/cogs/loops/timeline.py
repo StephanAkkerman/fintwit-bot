@@ -360,7 +360,7 @@ class Timeline(commands.Cog):
             logger.error("Connection Error posting tweet on timeline")
 
         except Exception as error:
-            logger.error("Error posting tweet on timeline", error)
+            logger.error(f"Error posting tweet on timeline, error: {error}")
             logger.error(traceback.format_exc())
 
     async def make_and_send_webhook(
