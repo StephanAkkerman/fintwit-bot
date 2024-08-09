@@ -44,7 +44,7 @@ class Events(commands.Cog):
         None
         """
         if self.forex_channel is None:
-            self.forex_channel = get_channel(
+            self.forex_channel = await get_channel(
                 self.bot,
                 config["LOOPS"]["EVENTS"]["CHANNEL"],
                 config["CATEGORIES"]["FOREX"],
