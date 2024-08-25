@@ -21,26 +21,61 @@ def loop_error_catcher(func):
     return wrapper
 
 
-def noop_decorator(func):
-    return func
-
-
 def conditional_role_decorator(role: str):
-    if "," in role:
-        roles = role.split(",")
-        # remove whitespace
-        roles = [r.strip() for r in role]
-        # capitalize
-        roles = [r.capitalize() for r in role]
-        return commands.has_any_role(*roles)
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(self, ctx, *args, **kwargs):
+            if role == "None":
+                return await func(self, ctx, *args, **kwargs)
 
-    role = role.capitalize()
-    if role == "Admin":
-        return commands.has_permissions(administrator=True)
-    if role == "None":
-        return noop_decorator
+            # Split and clean up roles if there's a comma
+            if "," in role:
+                roles = [r.strip().capitalize() for r in role.split(",")]
+                if any(r.name in roles for r in ctx.author.roles):
+                    return await func(self, ctx, *args, **kwargs)
+                else:
+                    await ctx.send(
+                        f"Sorry {ctx.author.mention}, you do not have the required role(s): {', '.join(roles)}"
+                    )
+                    return
+            else:
+                role_clean = role.capitalize()
 
-    return commands.has_role(role)
+                # Special role handling (like Admin)
+                if role_clean == "Admin":
+                    if ctx.author.guild_permissions.administrator:
+                        return await func(self, ctx, *args, **kwargs)
+                    else:
+                        await ctx.send(
+                            f"Sorry {ctx.author.mention}, you need to be an administrator to use this command."
+                        )
+                        return
+
+                # Check if user has the specific role
+                if any(r.name == role_clean for r in ctx.author.roles):
+                    return await func(self, ctx, *args, **kwargs)
+                else:
+                    await ctx.send(
+                        f"Sorry {ctx.author.mention}, you do not have the required role: {role_clean}"
+                    )
+                    return
+
+        return wrapper
+
+    return decorator
+
+
+def log_command_usage(func):
+    @wraps(func)
+    async def wrapper(self, ctx, *args, **kwargs):
+        user = ctx.author  # Get the user who invoked the command
+        command_name = func.__name__  # Get the command name
+        logger.info(f"User {user} invoked the command {command_name}")
+
+        # Call the original command function
+        return await func(self, ctx, *args, **kwargs)
+
+    return wrapper
 
 
 guild_name = (

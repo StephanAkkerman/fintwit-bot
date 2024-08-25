@@ -1,20 +1,15 @@
-# > 3rd Party Dependencies
 import pandas as pd
 from discord.commands import Option, SlashCommandGroup
 from discord.commands.context import ApplicationContext
-
-# Discord imports
 from discord.ext import commands
 
 import util.vars
 from api.yahoo import get_ohlcv
-
-# Local dependencies
 from constants.config import config
 from constants.logger import logger
 from util.confirm_stock import confirm_stock
 from util.db import merge_and_update, update_db
-from util.disc import get_channel
+from util.disc import get_channel, log_command_usage
 from util.trades_msg import trades_msg
 
 
@@ -52,6 +47,7 @@ class Stock(commands.Cog):
         update_db(new_db, "assets")
 
     @stocks.command(name="add", description="Add a stock to your portfolio.")
+    @log_command_usage
     async def add(
         self,
         ctx: ApplicationContext,
@@ -192,6 +188,7 @@ class Stock(commands.Cog):
     @stocks.command(
         name="remove", description="Remove a specific stock from your portfolio."
     )
+    @log_command_usage
     async def remove(
         self,
         ctx: ApplicationContext,
@@ -290,6 +287,7 @@ class Stock(commands.Cog):
         )
 
     @stocks.command(name="show", description="Show the stocks in your portfolio.")
+    @log_command_usage
     async def show(self, ctx: ApplicationContext) -> None:
         """
         Usage:

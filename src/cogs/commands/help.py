@@ -5,7 +5,7 @@ from discord.commands import Option
 from discord.commands.context import ApplicationContext
 from discord.ext import commands
 
-from util.disc import get_guild
+from util.disc import get_guild, log_command_usage
 
 
 class Help(commands.Cog):
@@ -19,6 +19,7 @@ class Help(commands.Cog):
         self.guild = None
 
     @commands.slash_command(description="Receive information about a command.")
+    @log_command_usage
     async def help(
         self,
         ctx: ApplicationContext,

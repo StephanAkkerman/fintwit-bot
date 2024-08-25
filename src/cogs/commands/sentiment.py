@@ -1,25 +1,20 @@
-## > Imports
-# > Standard Library
 import datetime
 import traceback
 from io import StringIO
 
-# > Discord imports
 import discord
 import nltk
-
-# > 3rd Party Dependencies
 import pandas as pd
 from discord.commands import Option
 from discord.commands.context import ApplicationContext
 from discord.ext import commands
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-# > Local dependencies
 from api.http_client import get_json_data
 from constants.logger import logger
 from constants.sources import data_sources
 from util.confirm_stock import confirm_stock
+from util.disc import log_command_usage
 
 # Initialize variables
 today_date = datetime.datetime.now().date()
@@ -71,6 +66,7 @@ class Sentiment(commands.Cog):
     @commands.slash_command(
         description="Request the current sentiment for a stock ticker."
     )
+    @log_command_usage
     async def sentiment(
         self,
         ctx: ApplicationContext,

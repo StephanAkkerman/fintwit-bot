@@ -5,7 +5,7 @@ from discord.commands.context import ApplicationContext
 from discord.ext import commands
 
 from constants.config import config
-from util.disc import conditional_role_decorator
+from util.disc import conditional_role_decorator, log_command_usage
 
 
 class Restart(commands.Cog):
@@ -22,6 +22,7 @@ class Restart(commands.Cog):
 
     @commands.slash_command(description="Restarts the FinTwit bot.")
     @conditional_role_decorator(config["COMMANDS"]["RESTART"]["ROLE"])
+    @log_command_usage
     async def restart(
         self,
         ctx: ApplicationContext,

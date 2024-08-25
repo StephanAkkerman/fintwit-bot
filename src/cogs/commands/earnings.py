@@ -14,6 +14,7 @@ from constants.logger import logger
 
 # Local dependencies
 from util.confirm_stock import confirm_stock
+from util.disc import log_command_usage
 
 
 class Earnings(commands.Cog):
@@ -28,6 +29,7 @@ class Earnings(commands.Cog):
     @commands.slash_command(
         name="earnings", description="Gets next earnings date for a given stock."
     )
+    @log_command_usage
     async def earnings(
         self,
         ctx: ApplicationContext,

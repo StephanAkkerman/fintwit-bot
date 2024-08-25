@@ -1,9 +1,6 @@
-# > 3rd Party Dependencies
 import traceback
 
 import ccxt
-
-# > Discord dependencies
 import discord
 import pandas as pd
 from discord import Interaction, SelectOption
@@ -12,12 +9,12 @@ from discord.commands.context import ApplicationContext
 from discord.ext import commands
 from discord.ui import Select, View
 
-# Local dependencies
 import util.vars
 from cogs.loops.assets import Assets
 from cogs.loops.trades import Trades
 from constants.logger import logger
 from util.db import update_db
+from util.disc import log_command_usage
 
 
 class Portfolio(commands.Cog):
@@ -42,6 +39,7 @@ class Portfolio(commands.Cog):
     @portfolios.command(
         name="add", description="Add a cryptocurrency portfolio to the database."
     )
+    @log_command_usage
     async def add(
         self,
         ctx: ApplicationContext,
@@ -148,6 +146,7 @@ class Portfolio(commands.Cog):
     @portfolios.command(
         name="remove", description="Remove a portfolio from the database."
     )
+    @log_command_usage
     async def remove(
         self,
         ctx: ApplicationContext,
@@ -180,6 +179,7 @@ class Portfolio(commands.Cog):
     @portfolios.command(
         name="show", description="Show the portfolio(s) in the database."
     )
+    @log_command_usage
     async def show(
         self,
         ctx: ApplicationContext,
@@ -218,12 +218,13 @@ class Portfolio(commands.Cog):
 
     @show.error
     async def show_error(self, ctx: ApplicationContext, error: Exception) -> None:
-        logger.error(traceback.format_exc())
+
         if isinstance(error, commands.PrivateMessageOnly):
             await ctx.respond(
                 "Please only use the `/portfolio` command in private messages for security reasons."
             )
         else:
+            logger.error(traceback.format_exc())
             await ctx.respond("An error has occurred. Please try again later.")
 
 

@@ -1,16 +1,14 @@
 import datetime
-from io import StringIO
 
 import discord
-import pandas as pd
 from discord.commands import Option
 from discord.commands.context import ApplicationContext
 from discord.ext import commands
 
-from api.http_client import get_json_data
+from api.benzinga import get_benzinga_data
 from constants.config import config
 from constants.logger import logger
-from util.disc import conditional_role_decorator
+from util.disc import conditional_role_decorator, log_command_usage
 
 
 class Analyze(commands.Cog):
@@ -22,29 +20,10 @@ class Analyze(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-    async def get_benzinga_data(self, stock: str) -> list:
-        req = await get_json_data(
-            f"https://www.benzinga.com/quote/{stock}/analyst-ratings", text=True
-        )
-
-        try:
-            df = pd.read_html(StringIO(req))[0]
-        except Exception:
-            raise commands.UserInputError
-
-        # Drop the 4rd row
-        df = df.drop(3)
-
-        # Drop 'Buy Now', 'Analyst Firm▲▼', 'Analyst & % Accurate▲▼','Get Alert' columns
-        df = df.drop(
-            columns=["Buy Now", "Analyst Firm▲▼", "Analyst & % Accurate▲▼", "Get Alert"]
-        )
-
-        return df
-
     @commands.slash_command(
         description="Request the current analysis for a stock ticker."
     )
+    @log_command_usage
     @conditional_role_decorator(config["COMMANDS"]["ANALYZE"]["ROLE"])
     async def analyze(
         self,
@@ -62,7 +41,7 @@ class Analyze(commands.Cog):
             The ticker of a stock, e.g. AAPL
         """
 
-        # await ctx.response.defer(ephemeral=True)
+        await ctx.response.defer(ephemeral=True)
 
         e = discord.Embed(
             title=f"Last 10 {stock.upper()} Analysist Ratings",
@@ -76,7 +55,7 @@ class Analyze(commands.Cog):
             text="\u200b",
             icon_url="https://www.benzinga.com/next-assets/images/apple-touch-icon.png",
         )
-        data = await self.get_benzinga_data(stock)
+        data = await get_benzinga_data(stock)
         # Only use top 10
         data = data.head(10)
 

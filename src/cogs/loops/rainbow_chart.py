@@ -112,7 +112,7 @@ def get_data(file_path):
     diff_days = (pd.Timestamp.today() - raw_data["Date"].max()).days
 
     if diff_days > 1:
-        logger.info(f"Data is {diff_days} days old. Updating...")
+        # logger.info(f"Rainbow chart data is {diff_days} days old. Fetching new price data from Binance ...")
 
         # Get new data
         # raw_data = pd.DataFrame(nasdaqdatalink.get("BCHAIN/MKPRU")).reset_index()
