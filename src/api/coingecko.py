@@ -352,7 +352,11 @@ async def get_trending_coins() -> pd.DataFrame:
 
 
 async def get_top_categories() -> pd.DataFrame | None:
-    html = session.get("https://www.coingecko.com/en/categories").text
+    try:
+        html = session.get("https://www.coingecko.com/en/categories").text
+    except Exception as e:
+        logger.error(f"Error getting top categories from CoinGecko: {e}")
+        return
 
     soup = BeautifulSoup(html, "html.parser")
 

@@ -97,6 +97,9 @@ async def plot_rsi_heatmap(num_coins: int = 100, time_frame: str = "1d") -> None
     rsi_data = get_RSI(top_vol, time_frame=time_frame)
     old_rsi_data = get_closest_to_24h(time_frame=time_frame)
 
+    # Drop entries where the RSI is None
+    rsi_data = {k: v for k, v in rsi_data.items() if v is not None}
+
     # Create lists of labels and RSI values
     rsi_symbols = list(rsi_data.keys())
     rsi_values = list(rsi_data.values())
