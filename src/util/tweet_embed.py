@@ -89,13 +89,27 @@ async def make_tweet_embed(
     # Ensure the tickers are unique
     symbols = get_clean_symbols(tickers, hashtags)[:24]
 
-    e = make_embed(symbols, url, text, profile_pic, images, e_title, media_types)
+    # Check for difference
+    if symbols != tickers + hashtags:
+        logger.debug(
+            f"Removed following symbols: {set(tickers + hashtags) - set(symbols)}"
+        )
+
+    e = make_embed(
+        symbols=symbols,
+        url=url,
+        text=text,
+        profile_pic=profile_pic,
+        images=images,
+        e_title=e_title,
+        media_types=media_types,
+    )
 
     # Max 25 fields
     if symbols:
-        logger.debug("Adding financials to tweet embed...")
+        logger.debug(f"Adding financials for symbols: {symbols}")
         e, category, base_symbols = await add_financials(
-            e, symbols, tickers, text, user_name, bot
+            e=e, symbols=symbols, tickers=tickers, text=text, user=user_name, bot=bot
         )
 
     return e, category, base_symbols
@@ -185,6 +199,9 @@ async def add_financials(
             The base symbols of the tickers.
     """
     global tweet_overview
+    logger.debug(
+        f"Adding financials to the embed. For symbols: {symbols}, tickers: {tickers}"
+    )
 
     # In case multiple tickers get send
     crypto = stocks = forex = 0
@@ -200,7 +217,8 @@ async def add_financials(
         util.vars.classified_tickers = remove_old_rows(util.vars.classified_tickers, 3)
         classified_tickers = util.vars.classified_tickers["ticker"].tolist()
 
-    for ticker in symbols[24:]:
+    for symbol in symbols:
+        logger.debug(f"Symbol: {symbol}")
         if crypto > stocks and crypto > forex:
             majority = "crypto"
         elif stocks > crypto and stocks > forex:
@@ -211,8 +229,10 @@ async def add_financials(
             majority = "Unknown"
 
         # Get the information about the ticker
-        if ticker not in classified_tickers:
-            ticker_info = await classify_ticker(ticker, majority)
+        if symbol not in classified_tickers:
+            logger.debug(f"Classifying ticker: {symbol} with majority: {majority}")
+            ticker_info = await classify_ticker(symbol, majority)
+
             if ticker_info:
                 (
                     _,
@@ -224,6 +244,9 @@ async def add_financials(
                     one_d_ta,
                     base_symbol,
                 ) = ticker_info
+                logger.debug(
+                    f"Classified ticker: {symbol} as {base_symbol}. Website: {website}"
+                )
 
                 # Skip if this ticker has been done before, for instance in tweets containing Solana and SOL
                 if base_symbol in base_symbols:
@@ -231,13 +254,13 @@ async def add_financials(
 
                 if exchanges is None:
                     exchanges = []
-                    logger.warn("No exchanges found for", ticker)
+                    logger.warn(f"No exchanges found for ticker: {symbol}")
 
                 # Convert info to a dataframe
                 df = pd.DataFrame(
                     [
                         {
-                            "ticker": ticker,
+                            "ticker": symbol,
                             "website": website,
                             # Db cannot handle lists, so we convert them to strings
                             "exchanges": (
@@ -255,17 +278,18 @@ async def add_financials(
                 )
 
             else:
-                if ticker in tickers:
-                    e.add_field(name=f"${ticker}", value=majority)
-                    logger.debug(
-                        f"No crypto or stock match found for ${ticker} in {user}'s tweet at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
-                    )
+                if symbol in tickers:
+                    e.add_field(name=f"${symbol}", value=majority)
+                logger.debug(
+                    f"No crypto or stock match found for ${symbol} in {user}'s tweet at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}"
+                )
 
                 # Go to next in symbols
                 continue
         else:
+            logger.debug(f"Found ticker {symbol} in previously classified tickers.")
             ticker_info = util.vars.classified_tickers[
-                util.vars.classified_tickers["ticker"] == ticker
+                util.vars.classified_tickers["ticker"] == symbol
             ]
             website = ticker_info["website"].values[0]
             exchanges = ticker_info["exchanges"].values[0]
@@ -274,9 +298,9 @@ async def add_financials(
             base_symbol = ticker_info["base_symbol"].values[0]
 
             # Still need the price, change, TA info
-            price, change, four_h_ta, one_d_ta = await get_financials(ticker, website)
+            price, change, four_h_ta, one_d_ta = await get_financials(symbol, website)
 
-        title = f"${ticker}"
+        title = f"${symbol}"
 
         # Add to base symbol list to prevent duplicates
         base_symbols.append(base_symbol)

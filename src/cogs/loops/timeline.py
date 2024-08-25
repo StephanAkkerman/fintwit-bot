@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import datetime
 import traceback
 from typing import List, Optional
@@ -136,25 +137,27 @@ class Timeline(commands.Cog):
         tweets = await get_tweet()
         logger.debug(f"Got {len(tweets)} tweets.")
 
+        # Process tweets concurrently
+        tasks = []
+
         # Loop from oldest to newest tweet
-        for tweet in reversed(tweets):
-            tweet = tweet["content"]
+        for tweet_data in reversed(tweets):
+            tweet = tweet_data["content"]
 
-            # Skip if the tweet is not a timeline item
-            if "entryType" in tweet:
-                if tweet["entryType"] != "TimelineTimelineItem":
-                    continue
-                # Ignore popups about X Premium
-                else:
-                    if "itemContent" in tweet:
-                        if "itemType" in tweet["itemContent"]:
-                            if (
-                                tweet["itemContent"]["itemType"]
-                                == "TimelineMessagePrompt"
-                            ):
-                                continue
+            # Skip tweets that are not timeline items
+            if not (
+                tweet.get("entryType") == "TimelineTimelineItem"
+                and tweet.get("itemContent", {}).get("itemType")
+                != "TimelineMessagePrompt"
+            ):
+                continue
 
-            await self.on_data(tweet, update_tweet_id=True)
+            # Collect tasks for concurrent processing
+            tasks.append(self.on_data(tweet, update_tweet_id=True))
+
+        # Run tasks concurrently for faster processing
+        if tasks:
+            await asyncio.gather(*tasks)
 
     async def on_data(self, tweet: dict, update_tweet_id: bool = False) -> None:
         """This method is called whenever data is received from the stream.
@@ -195,7 +198,8 @@ class Timeline(commands.Cog):
                 self.bot,
             )
 
-            # Upload the tweet to the Discord.
+            # Upload the tweet to the Discord..
+            logger.debug(f"Uploading {user_screen_name}'s tweet to {category}")
             await self.upload_tweet(e, category, media, user_screen_name, base_symbols)
 
     async def upload_tweet(

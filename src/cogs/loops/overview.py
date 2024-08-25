@@ -7,6 +7,7 @@ from discord.ext.tasks import loop
 import util.vars
 from api.http_client import get_json_data
 from constants.config import config
+from constants.logger import logger
 from util.disc import get_channel, get_guild, loop_error_catcher
 from util.formatting import format_change
 
@@ -181,10 +182,16 @@ class Overview:
 
         if category == "crypto":
             # Delete previous message
-            await self.crypto_channel.purge(limit=1)
+            try:
+                await self.crypto_channel.purge(limit=1)
+            except discord.errors.NotFound:
+                logger.warn("Could not delete previous crypto overview message.")
             await self.crypto_channel.send(embed=e)
         else:
-            await self.stocks_channel.purge(limit=1)
+            try:
+                await self.stocks_channel.purge(limit=1)
+            except discord.errors.NotFound:
+                logger.warn("Could not delete previous stock overview message.")
             await self.stocks_channel.send(embed=e)
 
 
