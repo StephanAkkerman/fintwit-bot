@@ -183,13 +183,13 @@ class Overview:
         if category == "crypto":
             # Delete previous message
             try:
-                await self.crypto_channel.purge(limit=1)
+                await self.crypto_channel.purge()
             except discord.errors.NotFound:
                 logger.warn("Could not delete previous crypto overview message.")
             await self.crypto_channel.send(embed=e)
         else:
             try:
-                await self.stocks_channel.purge(limit=1)
+                await self.stocks_channel.purge()
             except discord.errors.NotFound:
                 logger.warn("Could not delete previous stock overview message.")
             await self.stocks_channel.send(embed=e)
