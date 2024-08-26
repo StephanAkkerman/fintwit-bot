@@ -260,7 +260,7 @@ async def get_coin_info(
 
     # Look into this!
     if total_vol != 0 and base is None:
-        logger.debug("No base symbol found for:", ticker)
+        logger.debug(f"No base symbol found for: {ticker}")
         base = ticker
 
     # Return the information
