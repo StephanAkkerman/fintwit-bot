@@ -88,6 +88,7 @@ async def make_tweet_embed(
 
     # Ensure the tickers are unique
     symbols = get_clean_symbols(tickers, hashtags)[:24]
+    tickers = tickers[:24]
 
     # Check for difference
     if symbols != tickers + hashtags:
