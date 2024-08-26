@@ -28,7 +28,7 @@ async def get_events() -> pd.DataFrame:
         "importance[]": 3,  # Highest importance, 3 stars
         "timeZone": 8,
         "timeFilter": "timeRemain",
-        "currentTab": "nextWeek",
+        "currentTab": "thisWeek",
         "submitFilters": 1,
         "limit_from": 0,
     }

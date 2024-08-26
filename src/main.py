@@ -106,7 +106,10 @@ def load_folder(foldername: str) -> None:
 
     if debug_mode:
         if debug_mode_type == "include_only":
-            enabled_cogs = [cog + ".py" for cog in debug_cogs]
+            if isinstance(debug_cogs, list):
+                enabled_cogs = [cog + ".py" for cog in debug_cogs]
+            if isinstance(debug_cogs, str):
+                enabled_cogs = [debug_cogs + ".py"]
         elif debug_mode_type == "exclude":
             if debug_cogs is None:
                 enabled_cogs = [

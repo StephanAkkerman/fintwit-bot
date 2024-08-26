@@ -32,7 +32,7 @@ class Events(commands.Cog):
             self.crypto_channel = None
             self.post_crypto_events.start()
 
-    @loop(hours=1)
+    @loop(hours=6)
     @loop_error_catcher
     async def post_events(self):
         """
@@ -50,67 +50,59 @@ class Events(commands.Cog):
                 config["CATEGORIES"]["FOREX"],
             )
 
-        # Send this message every friday at 23:00 UTC
-        if datetime.datetime.today().weekday() == 4:
-            if datetime.datetime.utcnow().hour == 23:
-                df = await get_events()
+        df = await get_events()
 
-                # If time == "All Day" convert it to 00:00
-                df["time"] = df["time"].str.replace("All Day", "00:00")
+        # If time == "All Day" convert it to 00:00
+        df["time"] = df["time"].str.replace("All Day", "00:00")
 
-                # Create datetime
-                df["datetime"] = pd.to_datetime(
-                    df["date"] + " " + df["time"],
-                    format="%d/%m/%Y %H:%M",
-                )
+        # Create datetime
+        df["datetime"] = pd.to_datetime(
+            df["date"] + " " + df["time"],
+            format="%d/%m/%Y %H:%M",
+        )
 
-                # Convert datetime to unix timestamp
-                df["timestamp"] = df["datetime"].astype("int64") // 10**9
+        # Convert datetime to unix timestamp
+        df["timestamp"] = df["datetime"].astype("int64") // 10**9
 
-                # Convert timestamp to Discord timestamp using mode F
-                df["timestamp"] = df["timestamp"].apply(lambda x: f"<t:{int(x)}:d>")
+        # Convert timestamp to Discord timestamp using mode F
+        df["timestamp"] = df["timestamp"].apply(lambda x: f"<t:{int(x)}:d>")
 
-                # Replace zone names with emojis
-                df["zone"] = df["zone"].replace(
-                    {"euro zone": "🇪🇺", "united states": "🇺🇸"}
-                )
-                time = "\n".join(df["timestamp"])
+        # Replace zone names with emojis
+        df["zone"] = df["zone"].replace({"euro zone": "🇪🇺", "united states": "🇺🇸"})
+        time = "\n".join(df["timestamp"])
 
-                # Do this if both forecast and previous are not NaN
-                if (
-                    not df["forecast"].isnull().all()
-                    and not df["previous"].isnull().all()
-                ):
-                    df["forecast|previous"] = df["forecast"] + " | " + df["previous"]
-                    for_prev = "\n".join(df["forecast|previous"].astype(str))
-                    for_prev_title = "Forecast | Previous"
+        # Do this if both forecast and previous are not NaN
+        # Combine 'actual', 'forecast', and 'previous' into a single column
+        df["Actual | Forecast | Previous"] = df.apply(
+            lambda row: f"{row['actual'] or '~'} | {row['forecast'] or '~'} | {row['previous'] or '~'}",
+            axis=1,
+        )
+        for_prev = "\n".join(df["Actual | Forecast | Previous"])
 
-                else:
-                    for_prev_title = "Previous"
-                    for_prev = "\n".join(df["previous"].astype(str))
+        df["info"] = df["zone"] + " " + df["event"]
+        info = "\n".join(df["info"])
 
-                df["info"] = df["zone"] + " " + df["event"]
-                info = "\n".join(df["info"])
+        # Make an embed with these tickers and their earnings date + estimation
+        e = discord.Embed(
+            title="Events This Week",
+            url="https://www.investing.com/economic-calendar/",
+            description="",
+            color=data_sources["investing"]["color"],
+            timestamp=datetime.datetime.now(datetime.timezone.utc),
+        )
 
-                # Make an embed with these tickers and their earnings date + estimation
-                e = discord.Embed(
-                    title="Events Upcoming Week",
-                    url="https://www.investing.com/economic-calendar/",
-                    description="",
-                    color=data_sources["investing"]["color"],
-                    timestamp=datetime.datetime.now(datetime.timezone.utc),
-                )
+        e.add_field(name="Date", value=time, inline=True)
+        e.add_field(name="Event", value=info, inline=True)
+        e.add_field(name="Actual | Forecast | Previous", value=for_prev, inline=True)
 
-                e.add_field(name="Date", value=time, inline=True)
-                e.add_field(name="Event", value=info, inline=True)
-                e.add_field(name=for_prev_title, value=for_prev, inline=True)
+        e.set_footer(
+            text="\u200b",
+            icon_url=data_sources["investing"]["icon"],
+        )
 
-                e.set_footer(
-                    text="\u200b",
-                    icon_url=data_sources["investing"]["icon"],
-                )
-
-                await self.forex_channel.send(embed=e)
+        # Remove the previous message
+        await self.forex_channel.purge()
+        await self.forex_channel.send(embed=e)
 
     async def get_crypto_calendar(self) -> pd.DataFrame:
         """
