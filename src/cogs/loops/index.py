@@ -32,13 +32,13 @@ class Index(commands.Cog):
 
         if config["LOOPS"]["INDEX"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = None
-            self.stock_indices = [sym.split(":")[1] for sym in stock_indices]
+            self.stock_indices = [sym.split(":")[1] for sym in stock_indices] + [sym.split(":")[1] for sym in forex_indices]
             self.stocks.start()
 
-        if config["LOOPS"]["INDEX"]["FOREX"]["ENABLED"]:
-            self.forex_channel = None
-            self.forex_indices = [sym.split(":")[1] for sym in forex_indices]
-            self.forex.start()
+        # if config["LOOPS"]["INDEX"]["FOREX"]["ENABLED"]:
+        #     self.forex_channel = None
+        #     self.forex_indices =  [sym.split(":")[1] for sym in forex_indices]
+        #     self.forex.start()
 
     @loop(hours=1)
     @loop_error_catcher

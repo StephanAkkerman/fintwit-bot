@@ -58,7 +58,7 @@ class Timeline(commands.Cog):
             The name of the text channel.
         """
         if config["LOOPS"]["TIMELINE"][name]["ENABLED"]:
-            if name in ["STOCKS", "CRYPTO", "FOREX"]:
+            if name in ["STOCKS", "CRYPTO"]:
                 self.__dict__[f"{name.lower()}_charts_channel"] = await get_channel(
                     self.bot, charts_channel, config["CATEGORIES"][name]
                 )

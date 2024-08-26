@@ -205,7 +205,7 @@ async def add_financials(
     )
 
     # In case multiple tickers get send
-    crypto = stocks = forex = 0
+    crypto = stocks = 0
 
     base_symbols = []
     categories = []
@@ -220,18 +220,18 @@ async def add_financials(
 
     for symbol in symbols:
         logger.debug(f"Symbol: {symbol}")
-        if crypto > stocks and crypto > forex:
+        if crypto > stocks:
             majority = "crypto"
-        elif stocks > crypto and stocks > forex:
+        elif stocks > crypto:
             majority = "stocks"
-        elif forex > crypto and forex > stocks:
-            majority = "forex"
         else:
             majority = "Unknown"
 
         # Get the information about the ticker
         if symbol not in classified_tickers:
             logger.debug(f"Classifying ticker: {symbol} with majority: {majority}")
+            if symbol == "BTC":
+                majority = "crypto"
             ticker_info = await classify_ticker(symbol, majority)
 
             if ticker_info:
@@ -323,9 +323,6 @@ async def add_financials(
             if "yahoo" in website:
                 stocks += 1
                 categories.append("stocks")
-            if "forex" in website:
-                forex += 1
-                categories.append("forex")
         else:
             # Default category is crypto
             categories.append("crypto")
@@ -357,10 +354,10 @@ async def add_financials(
         prediction = None
 
     # Decide the category of this tweet
-    if crypto == 0 and stocks == 0 and forex == 0:
+    if crypto == 0 and stocks == 0:
         category = None
     else:
-        category = ("crypto", "stocks", "forex")[np.argmax([crypto, stocks, forex])]
+        category = ("crypto", "stocks")[np.argmax([crypto, stocks])]
 
     # If there are base symbols, add them to the database
     # Also post the overview of mentioned tickers

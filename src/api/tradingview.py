@@ -167,7 +167,6 @@ class TV_data:
             if not stock.empty:
                 return stock["exchange"].values[0], "america", symbol
 
-        elif asset == "forex":
             forex = tv_forex.loc[tv_forex["stock"] == symbol]
             if not forex.empty:
                 return forex["exchange"].values[0], "forex", symbol
@@ -314,7 +313,7 @@ class TV_data:
         symbol : str
             The ticker of the stock / crypto.
         asset : str
-            The type of asset, either "stock", "crypto" or "forex".
+            The type of asset, either "stock" or "crypto".
 
         Returns
         -------

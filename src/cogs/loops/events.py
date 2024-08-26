@@ -24,7 +24,7 @@ class Events(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-        if config["LOOPS"]["EVENTS"]["FOREX"]["ENABLED"]:
+        if config["LOOPS"]["EVENTS"]["STOCKS"]["ENABLED"]:
             self.forex_channel = None
             self.post_events.start()
 

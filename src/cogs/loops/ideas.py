@@ -30,9 +30,9 @@ class TradingView_Ideas(commands.Cog):
             self.stocks_channel = None
             self.stock_ideas.start()
 
-        if config["LOOPS"]["IDEAS"]["FOREX"]["ENABLED"]:
-            self.forex_channel = None
-            self.forex_ideas.start()
+        # if config["LOOPS"]["IDEAS"]["FOREX"]["ENABLED"]:
+        #     self.forex_channel = None
+        #     self.forex_ideas.start()
 
     def add_id_to_db(self, id: str) -> None:
         """

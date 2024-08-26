@@ -103,9 +103,16 @@ async def yf_info(ticker: str, do_format_change: bool = True):
     changes = []
 
     # Helper function to format and append price data
-    def append_price_data(price_key, change_key):
+    def append_price_data(price_key: str, prev_close_key: str):
         price = stock_info.get(price_key)
-        change = stock_info.get(change_key, 0)
+        # Could also use chartPreviousClose
+        prev_close = stock_info.get(prev_close_key, price)
+
+        # Calculate percentage change
+        change = (
+            (price - prev_close) / prev_close * 100 if price and prev_close else None
+        )
+
         if do_format_change:
             change = format_change(change)
         if price and price != 0:
@@ -115,7 +122,7 @@ async def yf_info(ticker: str, do_format_change: bool = True):
     # Determine which price to report based on market hours
     # if afterHours():
     #     append_price_data("preMarketPrice", "preMarketChangePercent")
-    append_price_data("regularMarketPrice", "regularMarketChangePercent")
+    append_price_data("regularMarketPrice", "previousClose")
 
     # Calculate volume
     volume: float = (
@@ -162,6 +169,9 @@ async def get_stock_info(
     """
 
     if asset_type == "stock":
+        if ticker == "BTC":
+            # Use btc-usd otherwise it will use BTC grayscale trust
+            ticker = "BTC-USD"
         stock_info = await yf_info(ticker, do_format_change)
         if stock_info and stock_info[0] > 0:  # or price == []
             return stock_info
