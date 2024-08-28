@@ -295,4 +295,4 @@ LOGGING_LEVEL: INFO
 DEBUG_MODE_TYPE: "include_only"
 
 # Add file names of the cogs that should be enabled, for instance "events"
-DEBUG_COGS: timeline
+DEBUG_COGS: index

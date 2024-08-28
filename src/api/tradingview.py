@@ -211,8 +211,6 @@ class TV_data:
 
         if asset == "stock":
             website_suffix = "/?yahoo"
-        elif asset == "forex":
-            website_suffix = "/?forex"
         elif asset == "crypto":
             website_suffix = "/?coingecko"
         else:
