@@ -8,7 +8,7 @@ aiohttp==3.10.5
 asyncpraw==7.7.1
 ccxt==4.3.74
 transformers==4.44.0
-matplotlib==3.9.1
+matplotlib==3.9.2
 scipy==1.13.1 # Not upgrading to 1.14.0
 brotli==1.1.0
 py-cord==2.6.0
