@@ -32,7 +32,7 @@ async def get_financials(ticker: str, website: str):
     asset_type_mapping = {
         "coingecko": "crypto",
         "yahoo": "stock",
-    }  # , "forex": "forex"}
+    }
 
     # Determine the asset type based on the website
     asset_type = next((v for k, v in asset_type_mapping.items() if k in website), None)
@@ -60,18 +60,6 @@ async def fetch_asset_info(ticker: str, asset_type: str) -> Tuple:
         return await get_coin_info(ticker)
     elif asset_type == "stock":
         return await get_stock_info(ticker)
-    # elif asset_type == "forex" and ticker in currencies:
-    #     return (
-    #         100000,
-    #         "https://www.tradingview.com/ideas/eur/?forex",
-    #         "forex",
-    #         None,
-    #         None,
-    #         None,
-    #         None,
-    #         ticker,
-    #         True,
-    #     )
     else:
         return await get_stock_info(ticker, asset_type)
 
@@ -166,11 +154,6 @@ async def classify_ticker(
     Optional[tuple]
         The classified asset data.
     """
-
-    # Try forex first
-    # forex_data = await get_best_guess(ticker, "forex")
-    # if forex_data[-1]:  # If TA exists
-    #     return forex_data[:-1]
 
     if majority == "crypto":
         crypto_data = await get_best_guess(ticker, "crypto")

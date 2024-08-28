@@ -313,7 +313,7 @@ async def add_financials(
 
         # Determine if this is a crypto or stock
         if website:
-            if "coingecko" in website:
+            if "coingecko" in website or "BTC" in base_symbol:
                 crypto += 1
                 categories.append("crypto")
                 for x in exchanges:
