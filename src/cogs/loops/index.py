@@ -32,7 +32,9 @@ class Index(commands.Cog):
 
         if config["LOOPS"]["INDEX"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = None
-            self.stock_indices = [sym.split(":")[1] for sym in stock_indices] + [sym.split(":")[1] for sym in forex_indices]
+            self.stock_indices = [sym.split(":")[1] for sym in stock_indices] + [
+                sym.split(":")[1] for sym in forex_indices
+            ]
             self.stocks.start()
 
         # if config["LOOPS"]["INDEX"]["FOREX"]["ENABLED"]:

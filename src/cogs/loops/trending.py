@@ -318,7 +318,9 @@ class Trending(commands.Cog):
         # Only use the top 10 stocks
         try:
             most_active = await get_most_active(count=15)
-            e = await format_embed(pd.DataFrame(most_active), "Most Active Stocks", "yahoo")
+            e = await format_embed(
+                pd.DataFrame(most_active), "Most Active Stocks", "yahoo"
+            )
             await self.stocks_channel.purge(limit=1)
             await self.stocks_channel.send(embed=e)
         except Exception as e:

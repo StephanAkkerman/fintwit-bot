@@ -98,9 +98,7 @@ class Gainers(commands.Cog):
 
         try:
             gainers = await get_gainers(count=10)
-            e = await format_embed(
-                pd.DataFrame(gainers), "Gainers", "yahoo"
-            )
+            e = await format_embed(pd.DataFrame(gainers), "Gainers", "yahoo")
             await self.stocks_channel.purge(limit=1)
             await self.stocks_channel.send(embed=e)
         except Exception as e:
