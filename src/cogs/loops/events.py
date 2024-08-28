@@ -25,7 +25,7 @@ class Events(commands.Cog):
         self.bot = bot
 
         if config["LOOPS"]["EVENTS"]["STOCKS"]["ENABLED"]:
-            self.forex_channel = None
+            self.stocks_channel = None
             self.post_events.start()
 
         if config["LOOPS"]["EVENTS"]["CRYPTO"]["ENABLED"]:
@@ -43,11 +43,11 @@ class Events(commands.Cog):
         ----------
         None
         """
-        if self.forex_channel is None:
-            self.forex_channel = await get_channel(
+        if self.stocks_channel is None:
+            self.stocks_channel = await get_channel(
                 self.bot,
                 config["LOOPS"]["EVENTS"]["CHANNEL"],
-                config["CATEGORIES"]["FOREX"],
+                config["CATEGORIES"]["STOCKS"],
             )
 
         df = await get_events()
@@ -101,8 +101,8 @@ class Events(commands.Cog):
         )
 
         # Remove the previous message
-        await self.forex_channel.purge()
-        await self.forex_channel.send(embed=e)
+        await self.stocks_channel.purge()
+        await self.stocks_channel.send(embed=e)
 
     async def get_crypto_calendar(self) -> pd.DataFrame:
         """
