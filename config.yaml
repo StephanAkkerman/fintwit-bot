@@ -292,7 +292,7 @@ LOGGING_LEVEL: INFO
 # Debug mode is enabled when using the flag `--debug`
 
 # Choose the debug mode: "include_only" to enable only DEBUG_COGS, "exclude" to enable everything except DEBUG_COGS
-DEBUG_MODE_TYPE: "include_only"
+DEBUG_MODE_TYPE: "exclude"
 
 # Add file names of the cogs that should be enabled, for instance "events"
-DEBUG_COGS: index
+DEBUG_COGS:

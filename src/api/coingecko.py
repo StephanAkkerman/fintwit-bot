@@ -18,6 +18,16 @@ from constants.stable_coins import stables
 from util.formatting import format_change
 
 
+async def get_query_result(query: str) -> dict:
+    data = await get_json_data(
+        f"https://www.coingecko.com/en/search_v2?query={query}",
+        headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+        },
+    )
+    return data
+
+
 async def get_coin_by_id(id: str) -> dict:
     data = await get_json_data(f"https://api.coingecko.com/api/v3/coins/{id}")
     return data
@@ -162,6 +172,54 @@ def get_info_from_dict(coin_dict: dict):
 
 async def get_coin_info(
     ticker: str,
+) -> tuple[float, str, List[str], float, str, str]:
+
+    data = await get_query_result(ticker)
+    if rate_limit(data):
+        return 0, "", [], 0, "N/A", ""
+
+    coins = data.get("coins")
+    logger.debug(f"Found {len(coins)} coins for ticker: {ticker}")
+    if coins:
+        coin = coins[0]
+        website = f"https://coingecko.com/en/coins/{coin.get('id')}"
+        base = coin.get("symbol")
+        # Format the price
+        price = coin["data"]["price"]
+        price = price.replace("$", "").replace(",", "").replace(".", "")
+
+        change = coin["data"]["price_change_percentage_24h"]["usd"]
+        volume = coin["data"]["total_volume"]
+        volume = volume.replace("$", "").replace(",", "").replace(".", "")
+        try:
+            volume = float(volume)
+            price = float(price)
+        except ValueError:
+            logger.debug(
+                f"Could not convert volume or price to float for ticker: {ticker}. Volume: {volume}, Price: {price}"
+            )
+            volume = 0
+            price = 0
+        exchanges = []
+    else:
+        base = ticker
+        price, change, volume, exchange, website = await tv.get_tv_data(
+            ticker, "crypto"
+        )
+        exchanges = [exchange]
+    # Return the information
+    return (
+        volume,
+        website,
+        exchanges,
+        price,
+        format_change(change) if change else "N/A",
+        base,
+    )
+
+
+async def get_coin_info_old(
+    ticker: str,
 ) -> Optional[tuple[float, str, List[str], float, str, str]]:
     """
     Gets the volume, website, exchanges, price, and change of the coin.
@@ -258,7 +316,7 @@ async def get_coin_info(
         exchanges = [x.lower().replace(" exchange", "") for x in exchanges]
         exchanges = list(set(exchanges))
 
-    # Look into this!
+    # TODO: Look into this
     if total_vol != 0 and base is None:
         logger.debug(f"No base symbol found for: {ticker}")
         base = ticker

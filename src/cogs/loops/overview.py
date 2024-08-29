@@ -2,6 +2,7 @@ import datetime
 from collections import Counter, defaultdict
 
 import discord
+from discord.ext import commands
 from discord.ext.tasks import loop
 
 import util.vars
@@ -14,7 +15,7 @@ from util.formatting import format_change
 text_to_emoji = defaultdict(lambda: "🦆", {"bear": "🐻", "bull": "🐂", "neutral": "🦆"})
 
 
-class Overview:
+class Overview(commands.Cog):
     """
     This class contains the cog for posting the top crypto and stocks mentions.
     It can be configured in the config.yaml file under ["LOOPS"]["OVERVIEW"].
@@ -189,6 +190,10 @@ class Overview:
             except discord.errors.NotFound:
                 logger.warn("Could not delete previous stock overview message.")
             await self.stocks_channel.send(embed=e)
+
+
+def setup(bot: commands.Bot) -> None:
+    bot.add_cog(Overview(bot))
 
 
 async def count_tweets(ticker: str) -> int:

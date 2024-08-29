@@ -42,6 +42,7 @@ async def get_json_data(
         logger.error(f"Error with get request for {url}.\nError: {e}")
     except json.JSONDecodeError as e:
         logger.error(f"Error decoding JSON from {url}.\nError: {e}")
+        logger.error(f"Response: {await r.text()}")
     return {}
 
 
