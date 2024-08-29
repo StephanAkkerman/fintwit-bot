@@ -5,7 +5,6 @@ from io import StringIO
 import discord
 import nltk
 import pandas as pd
-from discord.commands import Option
 from discord.commands.context import ApplicationContext
 from discord.ext import commands
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
@@ -66,11 +65,14 @@ class Sentiment(commands.Cog):
     @commands.slash_command(
         description="Request the current sentiment for a stock ticker."
     )
+    @discord.option(
+        "stock", type=str, description="Stock ticker, e.g. AAPL.", required=True
+    )
     @log_command_usage
     async def sentiment(
         self,
         ctx: ApplicationContext,
-        stock: Option(str, description="Stock ticker, i.e. AAPL.", required=True),
+        stock: str,
     ) -> None:
         """
         This method is used to handle the sentiment command.

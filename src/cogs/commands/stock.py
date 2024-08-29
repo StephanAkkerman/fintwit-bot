@@ -1,5 +1,6 @@
+import discord
 import pandas as pd
-from discord.commands import Option, SlashCommandGroup
+from discord.commands import SlashCommandGroup
 from discord.commands.context import ApplicationContext
 from discord.ext import commands
 
@@ -47,23 +48,31 @@ class Stock(commands.Cog):
         update_db(new_db, "assets")
 
     @stocks.command(name="add", description="Add a stock to your portfolio.")
+    @discord.option(
+        "ticker",
+        type=str,
+        description="The ticker of the stock e.g., AAPL.",
+        required=True,
+    )
+    @discord.option(
+        "buying_price",
+        type=str,
+        description="The price of the stock when you bought it, e.g., 106.40",
+        required=True,
+    )
+    @discord.option(
+        "amount",
+        type=str,
+        description="The amount of stocks that you own at this price, e.g., 2",
+        required=True,
+    )
     @log_command_usage
     async def add(
         self,
         ctx: ApplicationContext,
-        ticker: Option(
-            str, description="The ticker of the stock e.g., AAPL", required=True
-        ),
-        buying_price: Option(
-            str,
-            description="The price of the stock when you bought it, e.g., 106.40",
-            required=True,
-        ),
-        amount: Option(
-            str,
-            description="The amount of stocks that you own at this price, e.g., 2",
-            required=True,
-        ),
+        ticker: str,
+        buying_price: str,
+        amount: str,
     ) -> None:
         """
         Add stocks to your portfolio.
@@ -188,18 +197,24 @@ class Stock(commands.Cog):
     @stocks.command(
         name="remove", description="Remove a specific stock from your portfolio."
     )
+    @discord.option(
+        "ticker",
+        type=str,
+        description="The ticker of the stock e.g., AAPL.",
+        required=True,
+    )
+    @discord.option(
+        "amount",
+        type=str,
+        description="The amount of stocks that you want to delete, e.g., 2",
+        required=False,
+    )
     @log_command_usage
     async def remove(
         self,
         ctx: ApplicationContext,
-        ticker: Option(
-            str, description="The ticker of the stock e.g., AAPL", required=True
-        ),
-        amount: Option(
-            str,
-            description="The amount of stocks that you want to delete, e.g., 2",
-            required=False,
-        ),
+        ticker: str,
+        amount: str,
     ) -> None:
         """
         Usage:

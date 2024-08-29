@@ -1,7 +1,6 @@
 import datetime
 
 import discord
-from discord.commands import Option
 from discord.commands.context import ApplicationContext
 from discord.ext import commands
 
@@ -23,13 +22,12 @@ class Analyze(commands.Cog):
     @commands.slash_command(
         description="Request the current analysis for a stock ticker."
     )
+    @discord.option(
+        "stock", type=str, description="Stock ticker, e.g. AAPL.", required=True
+    )
     @log_command_usage
     @conditional_role_decorator(config["COMMANDS"]["ANALYZE"]["ROLE"])
-    async def analyze(
-        self,
-        ctx: ApplicationContext,
-        stock: Option(str, description="Stock ticker, e.g. AAPL.", required=True),
-    ) -> None:
+    async def analyze(self, ctx: ApplicationContext, stock: str) -> None:
         """
         The analyze command is used to get the current analyst ratings for a stock ticker from benzinga.com.
 

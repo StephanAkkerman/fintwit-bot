@@ -1,18 +1,13 @@
-##> Imports
 from datetime import datetime
 
+import discord
 import pandas as pd
 import pytz
-
-# > 3rd Party Dependencies
 import yfinance
-from discord.commands import Option
 from discord.commands.context import ApplicationContext
 from discord.ext import commands
 
 from constants.logger import logger
-
-# Local dependencies
 from util.confirm_stock import confirm_stock
 from util.disc import log_command_usage
 
@@ -29,11 +24,14 @@ class Earnings(commands.Cog):
     @commands.slash_command(
         name="earnings", description="Gets next earnings date for a given stock."
     )
+    @discord.option(
+        "stock", type=str, description="Stock ticker, e.g. AAPL.", required=True
+    )
     @log_command_usage
     async def earnings(
         self,
         ctx: ApplicationContext,
-        stock: Option(str, description="Stock ticker, e.g. AAPL.", required=True),
+        stock: str,
     ):
         """
         Gets next earnings date for a given stock.

@@ -1,7 +1,4 @@
-##> Imports
-# > Discord dependencies
 import discord
-from discord.commands import Option
 from discord.commands.context import ApplicationContext
 from discord.ext import commands
 
@@ -19,11 +16,14 @@ class Help(commands.Cog):
         self.guild = None
 
     @commands.slash_command(description="Receive information about a command.")
+    @discord.option(
+        "command", str, description="Command to get help for.", required=False
+    )
     @log_command_usage
     async def help(
         self,
         ctx: ApplicationContext,
-        command: Option(str, description="Command to get help for.", required=False),
+        command: str = None,
     ):
         """
         Receive information about a command or channel

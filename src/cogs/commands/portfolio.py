@@ -4,7 +4,7 @@ import ccxt
 import discord
 import pandas as pd
 from discord import Interaction, SelectOption
-from discord.commands import Option, SlashCommandGroup
+from discord.commands import SlashCommandGroup
 from discord.commands.context import ApplicationContext
 from discord.ext import commands
 from discord.ui import Select, View
@@ -39,30 +39,28 @@ class Portfolio(commands.Cog):
     @portfolios.command(
         name="add", description="Add a cryptocurrency portfolio to the database."
     )
+    @discord.option(
+        "exchange",
+        type=str,
+        description="The name of your crypto exchange.",
+        required=True,
+    )
+    @discord.option("key", type=str, description="Your API key.", required=True)
+    @discord.option("secret", type=str, description="Your API secret.", required=True)
+    @discord.option(
+        "passphrase",
+        type=str,
+        description="Your API passphrase (only used for Kucoin).",
+        required=False,
+    )
     @log_command_usage
     async def add(
         self,
         ctx: ApplicationContext,
-        exchange: Option(
-            str,
-            description="Provide the name of your crypto exchange.",
-            required=True,
-        ),
-        key: Option(
-            str,
-            description="Provide your API key.",
-            required=True,
-        ),
-        secret: Option(
-            str,
-            description="Provide your API secret.",
-            required=True,
-        ),
-        passphrase: Option(
-            str,
-            description="Provide your API passphrase (only used for Kucoin).",
-            required=False,
-        ),
+        exchange: str,
+        key: str,
+        secret: str,
+        passphrase: str,
     ) -> None:
         """
         Adds your portfolio to the database.
