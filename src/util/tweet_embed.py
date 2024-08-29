@@ -14,7 +14,6 @@ import pandas as pd
 from discord.ext import commands
 
 import util.vars
-from cogs.loops.overview import Overview
 
 # Local dependencies
 from constants.logger import logger
@@ -363,11 +362,6 @@ async def add_financials(
     # Also post the overview of mentioned tickers
     if base_symbols:
         update_tweet_db(base_symbols, user, prediction, categories, changes)
-
-        if not tweet_overview:
-            tweet_overview = Overview(bot)
-
-        await tweet_overview.overview(category, base_symbols, prediction)
 
     # Return just the prediction without emoji
     return e, category, base_symbols

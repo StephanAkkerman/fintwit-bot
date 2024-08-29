@@ -134,10 +134,6 @@ def load_folder(foldername: str) -> None:
     # Load all enabled cogs
     for filename in os.listdir(f"./src/cogs/{foldername}"):
         if filename.endswith(".py") and filename in enabled_cogs:
-            # Skip overview.py if it should not be loaded as a cog
-            if filename == "overview.py":
-                logger.debug("Skipping overview.py")
-                continue
             load_cog(filename, foldername)
 
 

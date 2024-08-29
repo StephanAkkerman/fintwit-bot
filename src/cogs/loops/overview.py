@@ -31,22 +31,16 @@ class Overview:
         if config["LOOPS"]["OVERVIEW"]["STOCKS"]["ENABLED"]:
             self.stocks_channel = None
             self.do_stocks = True
+            self.stocks_overview.start()
         else:
             self.do_stocks = False
 
         if config["LOOPS"]["OVERVIEW"]["CRYPTO"]["ENABLED"]:
             self.crypto_channel = None
             self.do_crypto = True
+            self.crypto_overview.start()
         else:
             self.do_crypto = False
-
-    async def overview(self, category, tickers, sentiment):
-        # Make sure that the new db is not empty
-        if not util.vars.tweets_db.empty:
-            if self.do_stocks and category == "stocks":
-                await self.make_overview(category, tickers, sentiment)
-            if self.do_crypto and category == "crypto":
-                await self.make_overview(category, tickers, sentiment)
 
     @loop(minutes=5)
     @loop_error_catcher
@@ -80,13 +74,8 @@ class Overview:
                     if global_mentions is not None:
                         self.global_crypto[ticker] = await count_tweets(ticker)
 
-    async def make_overview(self, category: str, tickers: list, last_sentiment: str):
-        if self.stocks_channel is None:
-            self.stocks_channel = await get_channel(
-                self.bot,
-                config["LOOPS"]["OVERVIEW"]["CHANNEL"],
-                config["CATEGORIES"]["STOCKS"],
-            )
+    @loop(minutes=5)
+    async def crypto_overview(self):
         if self.crypto_channel is None:
             self.crypto_channel = await get_channel(
                 self.bot,
@@ -94,6 +83,20 @@ class Overview:
                 config["CATEGORIES"]["CRYPTO"],
             )
 
+        await self.make_overview("crypto")
+
+    @loop(minutes=5)
+    async def stocks_overview(self):
+        if self.stocks_channel is None:
+            self.stocks_channel = await get_channel(
+                self.bot,
+                config["LOOPS"]["OVERVIEW"]["CHANNEL"],
+                config["CATEGORIES"]["STOCKS"],
+            )
+
+        await self.make_overview("stocks")
+
+    async def make_overview(self, category: str):
         # Post the overview for stocks and crypto
         db = util.vars.tweets_db.loc[util.vars.tweets_db["category"] == category]
 
@@ -126,13 +129,11 @@ class Overview:
             sentiment = dict(Counter(sentiment))
 
             formatted_sentiment = ""
+
             # Use this method to sort the dict
             for emoji in ["🐂", "🦆", "🐻"]:
                 if emoji in sentiment.keys():
-                    if emoji == last_sentiment and ticker in tickers:
-                        formatted_sentiment += f"**{sentiment[emoji]}**{emoji} "
-                    else:
-                        formatted_sentiment += f"{sentiment[emoji]}{emoji} "
+                    formatted_sentiment += f"{sentiment[emoji]}{emoji} "
 
             if category == "stocks":
                 if ticker in self.global_stocks.keys():
@@ -142,12 +143,7 @@ class Overview:
                 if ticker in self.global_crypto.keys():
                     count = f"{count} - {self.global_crypto[ticker]}"
 
-            if ticker in tickers:
-                # Make bold
-                ticker = f"**{ticker} ({change})**"
-                count = f"**{count}**"
-            else:
-                ticker = f"{ticker} ({change})"
+            ticker = f"{ticker} ({change})"
 
             # Add count, symbol, sentiment to embed lists
             count_list.append(str(count))
@@ -183,13 +179,13 @@ class Overview:
         if category == "crypto":
             # Delete previous message
             try:
-                await self.crypto_channel.purge()
+                await self.crypto_channel.purge(limit=1)
             except discord.errors.NotFound:
                 logger.warn("Could not delete previous crypto overview message.")
             await self.crypto_channel.send(embed=e)
         else:
             try:
-                await self.stocks_channel.purge()
+                await self.stocks_channel.purge(limit=1)
             except discord.errors.NotFound:
                 logger.warn("Could not delete previous stock overview message.")
             await self.stocks_channel.send(embed=e)
