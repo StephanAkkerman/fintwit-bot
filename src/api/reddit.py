@@ -74,21 +74,24 @@ async def reddit_scraper(
     subreddit = await reddit_client.subreddit(subreddit_name)
 
     posts = []
-    async for submission in subreddit.hot(limit=limit):
-        if submission.stickied or is_submission_processed(submission.id):
-            continue
+    try:
+        async for submission in subreddit.hot(limit=limit):
+            if submission.stickied or is_submission_processed(submission.id):
+                continue
 
-        add_id_to_db(submission.id)
+            add_id_to_db(submission.id)
 
-        descr = truncate_text(html.unescape(submission.selftext), 4000)
-        descr = process_description(descr)  # Process the description for URLs
+            descr = truncate_text(html.unescape(submission.selftext), 4000)
+            descr = process_description(descr)  # Process the description for URLs
 
-        title = truncate_text(html.unescape(submission.title), 250)
-        img_urls, title = process_submission_media(submission, title)
+            title = truncate_text(html.unescape(submission.title), 250)
+            img_urls, title = process_submission_media(submission, title)
 
-        posts.append((submission, title, descr, img_urls))
+            posts.append((submission, title, descr, img_urls))
+        update_db(util.vars.reddit_ids, "reddit_ids")
+    except Exception as e:
+        logger.error(f"Error scraping Reddit: {e}")
 
-    update_db(util.vars.reddit_ids, "reddit_ids")
     return posts
 
 

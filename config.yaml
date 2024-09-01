@@ -202,6 +202,10 @@ LOOPS:
     ENABLED: True
     CHANNEL: 🎤┃stocktwits
 
+  TREEMAP:
+    ENABLED: True
+    CHANNEL: 📊┃treemap
+
   TRENDING:
     ENABLED: True
     CHANNEL: 🔥┃trending

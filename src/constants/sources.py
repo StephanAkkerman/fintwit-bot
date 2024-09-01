@@ -21,4 +21,5 @@ data_sources = {
     "cryptocraft": {"color": 0x634C7B, "icon": icon_url + "cryptocraft.png"},
     "barchart": {"color": 0x84C8C, "icon": icon_url + "barchart.png"},
     "finviz": {"color": 0xFFFFFF, "icon": icon_url + "finviz.png"},
+    "coin360": {"color": 0x383434, "icon": icon_url + "coin360.png"},
 }
