@@ -9,7 +9,6 @@ from lxml.html import fromstring
 from api.http_client import post_json_data
 
 
-# For loop: events
 async def get_events() -> pd.DataFrame:
     """
     Gets the economic calendar from Investing.com for the next week.

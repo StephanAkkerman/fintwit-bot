@@ -214,7 +214,7 @@ class TV_data:
         elif asset == "crypto":
             website_suffix = "/?coingecko"
         else:
-            logger.warn(f"Unkown asset type: {asset}")
+            logger.warn(f"Unknown asset type: {asset}")
             website_suffix = ""
 
         website = f"https://www.tradingview.com/symbols/{symbol}{website_suffix}"

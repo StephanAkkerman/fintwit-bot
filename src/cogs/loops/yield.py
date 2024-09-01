@@ -134,7 +134,7 @@ class Yield(commands.Cog):
         yield_percentage = []
         for bond in bonds:
             no_exch = bond.split(":")[1]
-            tv_data = await tv.get_tv_data(no_exch, "forex")
+            tv_data = await tv.get_tv_data(no_exch, "stock")
             yield_percentage.append(tv_data[0])
 
         return yield_percentage

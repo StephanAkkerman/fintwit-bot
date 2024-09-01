@@ -5,7 +5,7 @@ import os
 import pickle
 import time
 from io import StringIO
-from typing import List, Optional
+from typing import List, Optional, Tuple, Union
 
 import pandas as pd
 from bs4 import BeautifulSoup
@@ -170,43 +170,51 @@ def get_info_from_dict(coin_dict: dict):
     return 0, None, None, None, None
 
 
+def sanitize_currency_value(value: Union[str, float]) -> float:
+    """
+    Helper function to sanitize and convert currency values from strings to floats.
+    Removes any $ signs, commas, and periods before conversion.
+    """
+    if isinstance(value, str):
+        value = value.replace("$", "").replace(",", "").replace(".", "")
+        try:
+            return float(value)
+        except ValueError:
+            logger.debug(f"Could not convert value to float: {value}")
+            return 0.0
+    return value
+
+
 async def get_coin_info(
     ticker: str,
-) -> tuple[float, str, List[str], float, str, str]:
+) -> Tuple[float, str, List[str], float, str, str]:
 
     data = await get_query_result(ticker)
-    if rate_limit(data):
-        return 0, "", [], 0, "N/A", ""
 
-    coins = data.get("coins")
+    if rate_limit(data):
+        return 0.0, "", [], 0.0, "N/A", ""
+
+    coins = data.get("coins", [])
     logger.debug(f"Found {len(coins)} coins for ticker: {ticker}")
+
     if coins:
         coin = coins[0]
         website = f"https://coingecko.com/en/coins/{coin.get('id')}"
-        base = coin.get("symbol")
-        # Format the price
-        price = coin["data"]["price"]
-        price = price.replace("$", "").replace(",", "").replace(".", "")
+        base = coin.get("symbol", ticker)
 
-        change = coin["data"]["price_change_percentage_24h"]["usd"]
-        volume = coin["data"]["total_volume"]
-        volume = volume.replace("$", "").replace(",", "").replace(".", "")
-        try:
-            volume = float(volume)
-            price = float(price)
-        except ValueError:
-            logger.debug(
-                f"Could not convert volume or price to float for ticker: {ticker}. Volume: {volume}, Price: {price}"
-            )
-            volume = 0
-            price = 0
+        # Extract and sanitize price, change, and volume
+        price = sanitize_currency_value(coin["data"].get("price", "0"))
+        change = coin["data"].get("price_change_percentage_24h", {}).get("usd", "0")
+        volume = sanitize_currency_value(coin["data"].get("total_volume", "0"))
+
         exchanges = []
     else:
         base = ticker
         price, change, volume, exchange, website = await tv.get_tv_data(
             ticker, "crypto"
         )
-        exchanges = [exchange]
+        exchanges = [exchange] if exchange else []
+
     # Return the information
     return (
         volume,
