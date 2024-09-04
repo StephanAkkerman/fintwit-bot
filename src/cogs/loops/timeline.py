@@ -335,8 +335,13 @@ class Timeline(commands.Cog):
 
             else:
                 # Use the normal send function
-                msg = await channel.send(content=get_tagged_users(tickers), embed=e)
-                msgs.append(msg)
+                try:
+                    msg = await channel.send(content=get_tagged_users(tickers), embed=e)
+                    msgs.append(msg)
+                except discord.HTTPException:
+                    logger.error(
+                        f"Could not post tweet on timeline, with the following info. Embed: {e.to_dict()}. Media: {media}, Tickers: {tickers}"
+                    )
 
                 if user_channel:
                     msg = await user_channel.send(
