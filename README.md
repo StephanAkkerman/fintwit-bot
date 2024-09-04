@@ -14,6 +14,8 @@ This is a Discord bot written in Python, this bot aims to provide an overview of
 Not only data from Twitter is gathered, but other sources are used too, such as Reddit, Binance, Yahoo-Finance, TradingView, and many other related websites.
 This bot was written with flexibility in mind, meaning that you can toggle on and off certain features without issues by using the `config.yaml` file.
 
+If you would like to see the bot in action then feel free to [join my Discord server](https://discord.gg/UujjNA7hNv).
+
 ## Key Features ⚙️
 
 - **Automatic Sentiment Analysis**: Analyze the sentiment of tweets to gauge market mood.
