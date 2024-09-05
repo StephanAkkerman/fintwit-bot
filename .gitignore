@@ -8,8 +8,8 @@ yield.png
 src/cogs/loops/option_alert.py
 .vscode/
 *.db
-scraper.py
 scraped/*
+scraped_old/*
 logs/*
 curl.txt
 data/

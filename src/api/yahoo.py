@@ -7,6 +7,7 @@ from typing import List, Optional
 from api.http_client import get_json_data
 from api.tradingview import tv
 from constants.logger import logger
+from util.afterhours import afterHours
 from util.formatting import format_change
 
 headers = {
@@ -88,10 +89,10 @@ async def yf_info(ticker: str, do_format_change: bool = True):
         # No results when asynchronous=True
         logger.debug(f"Getting Yahoo Finance data for {ticker}")
         # stock_info = Ticker(ticker, asynchronous=False).price
-        stock_info = await get_stock_details(ticker)  # could also use ohlcv function
-        if stock_info["chart"]["result"] is None:
+        data = await get_stock_details(ticker)  # could also use ohlcv function
+        if data["chart"]["result"] is None:
             return None
-        stock_info = stock_info["chart"]["result"][0]["meta"]
+        stock_info = data["chart"]["result"][0]["meta"]
     except Exception as e:
         logger.error(f"Error in getting Yahoo Finance data for {ticker}: {e}")
         return None
@@ -120,8 +121,10 @@ async def yf_info(ticker: str, do_format_change: bool = True):
             changes.append(change or "N/A")  # Handle None or missing change
 
     # Determine which price to report based on market hours
-    # if afterHours():
-    #     append_price_data("preMarketPrice", "preMarketChangePercent")
+    if afterHours():
+        last_close = data["chart"]["indicators"]["quote"][0]["close"][-1]
+        perc_change = ...
+        append_price_data
     append_price_data("regularMarketPrice", "previousClose")
 
     # Calculate volume
