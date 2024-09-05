@@ -120,12 +120,20 @@ async def yf_info(ticker: str, do_format_change: bool = True):
             prices.append(price)
             changes.append(change or "N/A")  # Handle None or missing change
 
+    append_price_data("regularMarketPrice", "previousClose")
+
     # Determine which price to report based on market hours
     if afterHours():
         last_close = data["chart"]["indicators"]["quote"][0]["close"][-1]
-        perc_change = ...
-        append_price_data
-    append_price_data("regularMarketPrice", "previousClose")
+        # Compare last close to current price
+        previous_close = stock_info.get("previousClose", last_close)
+        ah_change = (last_close - previous_close) / previous_close * 100
+
+        if do_format_change:
+            ah_change = format_change(ah_change)
+        if last_close and last_close != 0:
+            prices.append(last_close)
+            changes.append(ah_change or "N/A")  # Handle None or missing change
 
     # Calculate volume
     volume: float = (

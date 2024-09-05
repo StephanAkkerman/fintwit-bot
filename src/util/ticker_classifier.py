@@ -102,21 +102,6 @@ async def get_best_guess(ticker: str, asset_type: str) -> Tuple:
         ticker, asset_type
     )
 
-    # Forex-specific logic
-    # if asset_type == "forex" and price > 0:
-    #     four_h_ta, one_d_ta = tv.get_tv_TA(ticker, "forex")
-    #     return (
-    #         volume,
-    #         website,
-    #         exchange,
-    #         price,
-    #         change,
-    #         four_h_ta,
-    #         one_d_ta,
-    #         base_sym,
-    #         True,
-    #     )
-
     # Perform technical analysis if necessary
     if volume > 1000000 or get_TA:
         four_h_ta, one_d_ta = await perform_ta(ticker, base_sym, asset_type, True)
