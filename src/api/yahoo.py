@@ -83,6 +83,43 @@ async def get_stock_details(ticker: str) -> dict:
     return data
 
 
+def add_afterhours_data(
+    data: dict, do_format_change: bool, prices: list, changes: list
+) -> dict:
+    try:
+        # Determine which price to report based on market hours
+        if afterHours():
+            # Safely extract last close using .get() with fallback to None
+            last_close = (
+                data.get("chart", {})
+                .get("result", [{}])[0]
+                .get("indicators", {})
+                .get("quote", [{}])[0]
+                .get("close", [None])[-1]
+            )
+
+            # Ensure last_close is valid
+            if last_close is not None and last_close != 0:
+                # Use .get() to safely get previous close, fallback to last_close if missing
+                previous_close = data["chart"]["result"][0]["meta"].get(
+                    "previousClose", last_close
+                )
+
+                # Ensure previous_close is valid before calculating change
+                if previous_close and previous_close != 0:
+                    ah_change = (last_close - previous_close) / previous_close * 100
+
+                    # Format change if required
+                    if do_format_change:
+                        ah_change = format_change(ah_change)
+
+                    # Append valid data
+                    prices.append(last_close)
+                    changes.append(ah_change if ah_change is not None else "N/A")
+    except Exception as e:
+        logger.error(f"Error in adding after hours data: {e}")
+
+
 async def yf_info(ticker: str, do_format_change: bool = True):
     # This can be blocking
     try:
@@ -121,19 +158,7 @@ async def yf_info(ticker: str, do_format_change: bool = True):
             changes.append(change or "N/A")  # Handle None or missing change
 
     append_price_data("regularMarketPrice", "previousClose")
-
-    # Determine which price to report based on market hours
-    if afterHours():
-        last_close = data["chart"]["result"][0]["indicators"]["quote"][0]["close"][-1]
-        # Compare last close to current price
-        previous_close = stock_info.get("previousClose", last_close)
-        ah_change = (last_close - previous_close) / previous_close * 100
-
-        if do_format_change:
-            ah_change = format_change(ah_change)
-        if last_close and last_close != 0:
-            prices.append(last_close)
-            changes.append(ah_change or "N/A")  # Handle None or missing change
+    add_afterhours_data(data, do_format_change, prices, changes)
 
     # Calculate volume
     volume: float = (
