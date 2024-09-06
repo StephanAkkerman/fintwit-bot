@@ -124,7 +124,7 @@ async def yf_info(ticker: str, do_format_change: bool = True):
 
     # Determine which price to report based on market hours
     if afterHours():
-        last_close = data["chart"]["indicators"]["quote"][0]["close"][-1]
+        last_close = data["chart"]["result"][0]["indicators"]["quote"][0]["close"][-1]
         # Compare last close to current price
         previous_close = stock_info.get("previousClose", last_close)
         ah_change = (last_close - previous_close) / previous_close * 100
