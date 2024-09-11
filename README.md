@@ -8,6 +8,7 @@
   <img src="https://img.shields.io/badge/python-3.10-blue.svg" alt="Supported versions">
   <img src="https://img.shields.io/github/license/StephanAkkerman/fintwit-bot.svg?color=brightgreen" alt="License">
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black"></a>
+  <img src="https://discord.com/api/guilds/923184741673476096/widget.png?style=shield" alt="Discord Shield"/>
 </p>
 
 This is a Discord bot written in Python, this bot aims to provide an overview of the financial markets discussed on X / Twitter.
