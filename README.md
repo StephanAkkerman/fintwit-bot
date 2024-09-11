@@ -8,14 +8,12 @@
   <img src="https://img.shields.io/badge/python-3.10-blue.svg" alt="Supported versions">
   <img src="https://img.shields.io/github/license/StephanAkkerman/fintwit-bot.svg?color=brightgreen" alt="License">
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black"></a>
-  <img src="https://discord.com/api/guilds/923184741673476096/widget.png?style=shield" alt="Discord Shield"/>
+  <img src="https://dcbadge.limes.pink/api/server/https://discord.gg/UujjNA7hNv?style=flat" alt="Discord Shield"/>
 </p>
 
 This is a Discord bot written in Python, this bot aims to provide an overview of the financial markets discussed on X / Twitter.
 Not only data from Twitter is gathered, but other sources are used too, such as Reddit, Binance, Yahoo-Finance, TradingView, and many other related websites.
 This bot was written with flexibility in mind, meaning that you can toggle on and off certain features without issues by using the `config.yaml` file.
-
-If you would like to see the bot in action then feel free to [join my Discord server](https://discord.gg/UujjNA7hNv).
 
 ## Key Features ⚙️
 
