@@ -1,0 +1,647 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>util package &#8212; FinTwit Bot 1.2.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="_static/documentation_options.js?v=6efca38a"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'util';</script>
+    <link rel="icon" href="_static/fintwit-nobg.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="cogs.loops package" href="cogs.loops.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/fintwit.png" class="logo__image only-light" alt="FinTwit Bot 1.2.0 documentation - Home"/>
+    <img src="_static/fintwit.png" class="logo__image only-dark pst-js-only" alt="FinTwit Bot 1.2.0 documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="modules.html">
+    Modules
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/StephanAkkerman/fintwit-bot" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="modules.html">
+    Modules
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/StephanAkkerman/fintwit-bot" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="main.html">main module</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="cogs.html">cogs package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="cogs.commands.html">cogs.commands package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.listeners.html">cogs.listeners package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cogs.loops.html">cogs.loops package</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="cogs.commands.html">cogs.commands package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cogs.listeners.html">cogs.listeners package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cogs.loops.html">cogs.loops package</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">util package</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="modules.html" class="nav-link">src</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">util package</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="util-package">
+<h1>util package<a class="headerlink" href="#util-package" title="Link to this heading">#</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
+</section>
+<section id="module-util.afterhours">
+<span id="util-afterhours-module"></span><h2>util.afterhours module<a class="headerlink" href="#module-util.afterhours" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="util.afterhours.afterHours">
+<span class="sig-prename descclassname"><span class="pre">util.afterhours.</span></span><span class="sig-name descname"><span class="pre">afterHours</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/util/afterhours.html#afterHours"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#util.afterhours.afterHours" title="Link to this definition">#</a></dt>
+<dd><p>Simple code to check if the current time is after hours in the US.
+Source: <a class="reference external" href="https://www.reddit.com/r/algotrading/comments/9x9xho/python_code_to_check_if_market_is_open_in_your/">https://www.reddit.com/r/algotrading/comments/9x9xho/python_code_to_check_if_market_is_open_in_your/</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if it is currently after-hours, False otherwise.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="util-cg-data-module">
+<h2>util.cg_data module<a class="headerlink" href="#util-cg-data-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="util-confirm-stock-module">
+<h2>util.confirm_stock module<a class="headerlink" href="#util-confirm-stock-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="util-db-module">
+<h2>util.db module<a class="headerlink" href="#util-db-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="util-disc-util-module">
+<h2>util.disc_util module<a class="headerlink" href="#util-disc-util-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="util-earnings-scraper-module">
+<h2>util.earnings_scraper module<a class="headerlink" href="#util-earnings-scraper-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="util-exchange-data-module">
+<h2>util.exchange_data module<a class="headerlink" href="#util-exchange-data-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="module-util.formatting">
+<span id="util-formatting-module"></span><h2>util.formatting module<a class="headerlink" href="#module-util.formatting" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="util.formatting.format_change">
+<span class="sig-prename descclassname"><span class="pre">util.formatting.</span></span><span class="sig-name descname"><span class="pre">format_change</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">change</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/util/formatting.html#format_change"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#util.formatting.format_change" title="Link to this definition">#</a></dt>
+<dd><p>Converts a float to a string with a plus sign if the float is positive, and a minus sign if the float is negative.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>change</strong> (<em>float</em>) – The percentual change of an asset.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The formatted change.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="util.formatting.format_embed">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">util.formatting.</span></span><span class="sig-name descname"><span class="pre">format_embed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">og_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/util/formatting.html#format_embed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#util.formatting.format_embed" title="Link to this definition">#</a></dt>
+<dd><p>Formats the dataframe to an embed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – A dataframe with the columns:
+Symbol
+Price
+% Change
+Volume</p></li>
+<li><p><strong>type</strong> (<em>str</em>) – The type used in the title of the embed</p></li>
+<li><p><strong>source</strong> (<em>str</em>) – The source used for this data</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Discord embed containing the formatted data</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>discord.Embed</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="util.formatting.format_embed_length">
+<span class="sig-prename descclassname"><span class="pre">util.formatting.</span></span><span class="sig-name descname"><span class="pre">format_embed_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/util/formatting.html#format_embed_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#util.formatting.format_embed_length" title="Link to this definition">#</a></dt>
+<dd><p>If the length of the data is greater than 1024 characters, it will be shortened to that amount.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>list</em>) – The list containing the description for an embed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The shortened description.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="util.formatting.human_format">
+<span class="sig-prename descclassname"><span class="pre">util.formatting.</span></span><span class="sig-name descname"><span class="pre">human_format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">absolute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decimals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/util/formatting.html#human_format"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#util.formatting.human_format" title="Link to this definition">#</a></dt>
+<dd><p>Takes a number and returns a human readable string.
+Taken from: <a class="reference external" href="https://stackoverflow.com/questions/579310/formatting-long-numbers-as-strings-in-python/45846841">https://stackoverflow.com/questions/579310/formatting-long-numbers-as-strings-in-python/45846841</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>number</strong> (<em>float</em>) – The number to be formatted.</p></li>
+<li><p><strong>absolute</strong> (<em>bool</em>) – If True, the number will be converted to its absolute value.</p></li>
+<li><p><strong>decimals</strong> (<em>int</em>) – The number of decimals to be used.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The formatted number as a string.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="util-get-tweet-module">
+<h2>util.get_tweet module<a class="headerlink" href="#util-get-tweet-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="util-parse-tweet-module">
+<h2>util.parse_tweet module<a class="headerlink" href="#util-parse-tweet-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="util-sentiment-analyis-module">
+<h2>util.sentiment_analyis module<a class="headerlink" href="#util-sentiment-analyis-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="util-ticker-classifier-module">
+<h2>util.ticker_classifier module<a class="headerlink" href="#util-ticker-classifier-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="util-trades-msg-module">
+<h2>util.trades_msg module<a class="headerlink" href="#util-trades-msg-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="util-tv-data-module">
+<h2>util.tv_data module<a class="headerlink" href="#util-tv-data-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="util-tv-symbols-module">
+<h2>util.tv_symbols module<a class="headerlink" href="#util-tv-symbols-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="util-tweet-embed-module">
+<h2>util.tweet_embed module<a class="headerlink" href="#util-tweet-embed-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="module-util.vars">
+<span id="util-vars-module"></span><h2>util.vars module<a class="headerlink" href="#module-util.vars" title="Link to this heading">#</a></h2>
+</section>
+<section id="util-yf-data-module">
+<h2>util.yf_data module<a class="headerlink" href="#util-yf-data-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="module-util">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-util" title="Link to this heading">#</a></h2>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="cogs.loops.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">cogs.loops package</p>
+      </div>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-util.afterhours">util.afterhours module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#util.afterhours.afterHours"><code class="docutils literal notranslate"><span class="pre">afterHours()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#util-cg-data-module">util.cg_data module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#util-confirm-stock-module">util.confirm_stock module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#util-db-module">util.db module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#util-disc-util-module">util.disc_util module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#util-earnings-scraper-module">util.earnings_scraper module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#util-exchange-data-module">util.exchange_data module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-util.formatting">util.formatting module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#util.formatting.format_change"><code class="docutils literal notranslate"><span class="pre">format_change()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#util.formatting.format_embed"><code class="docutils literal notranslate"><span class="pre">format_embed()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#util.formatting.format_embed_length"><code class="docutils literal notranslate"><span class="pre">format_embed_length()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#util.formatting.human_format"><code class="docutils literal notranslate"><span class="pre">human_format()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#util-get-tweet-module">util.get_tweet module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#util-parse-tweet-module">util.parse_tweet module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#util-sentiment-analyis-module">util.sentiment_analyis module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#util-ticker-classifier-module">util.ticker_classifier module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#util-trades-msg-module">util.trades_msg module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#util-tv-data-module">util.tv_data module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#util-tv-symbols-module">util.tv_symbols module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#util-tweet-embed-module">util.tweet_embed module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-util.vars">util.vars module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#util-yf-data-module">util.yf_data module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-util">Module contents</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/util.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, Stephan Akkerman.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
