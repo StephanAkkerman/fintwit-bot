@@ -1,5 +1,5 @@
 Replace all contents of this file with the following:
-1. Go to Twitter.com
+1. Go to x.com (using Chrome as browser, otherwise the cURL will be a different format)
 2. Login
 3. On the home timeline (click on following) press F12, this will open devtools in Chrome
 4. Go to the Network section

@@ -125,25 +125,32 @@ async def get_channel(
         The discord.TextChannel object of the channel with the given name.
     """
 
+    # Loop over all the guilds the bot is in
     for guild in bot.guilds:
+        # Find the guild with the given name from the .env file
         if guild.name == guild_name:
+            # Loop over all the channels in the guild
             for channel in guild.channels:
+                # Find the channel with the given name
                 if channel.name == channel_name:
+                    # If there is no given category name return the first one
                     if category_name is None:
                         return channel
                     else:
+                        # Otherwise find it in the given category
                         if channel.category:
                             if channel.category.name == category_name:
                                 return channel
 
-    logger.info(
+    logger.warning(
         f"Channel named: {channel_name}, with category {category_name} not found in guild: {guild_name}.\nCreating it..."
     )
 
-    # If the channel is not found, create it
+    # If the channel is not found, create it (with a category if given)
     if category_name:
         category = discord.utils.get(guild.categories, name=category_name)
         channel = await guild.create_text_channel(channel_name, category=category)
+        return channel
 
     # Maybe read the category from the config file
     channel = await guild.create_text_channel(channel_name)
