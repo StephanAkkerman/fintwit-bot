@@ -18,5 +18,5 @@ uncurl==0.0.11
 nltk==3.9.1
 timm==1.0.9
 seaborn==0.13.2
-plotly==5.24.0
+plotly==6.1.1
 kaleido==0.2.1
