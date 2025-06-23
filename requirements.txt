@@ -19,4 +19,4 @@ nltk==3.9.1
 timm==1.0.9
 seaborn==0.13.2
 plotly==5.24.0
-kaleido==0.2.1
+kaleido==1.0.0
