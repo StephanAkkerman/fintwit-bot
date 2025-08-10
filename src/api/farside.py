@@ -3,11 +3,16 @@ from io import StringIO
 import pandas as pd
 
 from api.http_client import get_json_data
+from constants.logger import logger
 
 
 async def get_etf_inflow(coin: str = "btc") -> float:
     data = await get_json_data(f"https://farside.co.uk/{coin}/", text=True)
-    df = pd.read_html(StringIO(data))[1]
+    try:
+        df = pd.read_html(StringIO(data))[1]
+    except ValueError:
+        logger.error(f"Failed to parse ETF inflow data for {coin}")
+        return 0.0
 
     # Use only top row for columns
     df.columns = [col[0] for col in df.columns]

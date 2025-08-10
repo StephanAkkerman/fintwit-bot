@@ -90,7 +90,11 @@ class Trending(commands.Cog):
             return
 
         # Format the dataframe
-        df = df[columns]
+        try:
+            df = df[columns]
+        except KeyError as e:
+            logger.error(f"Failed to format TradingView market data: {e}")
+            return
 
         # Create renaming dictionary dynamically
         rename_dict = {
@@ -235,7 +239,11 @@ class Trending(commands.Cog):
                 self.bot,
                 config["LOOPS"]["CRYPTO_CATEGORIES"]["CHANNEL"],
             )
-        df = await get_top_categories()
+        try:
+            df = await get_top_categories()
+        except Exception as e:
+            logger.error(f"Error getting coingecko crypto categories: {e}")
+            return
 
         if df is None or df.empty:
             return

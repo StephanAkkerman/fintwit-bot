@@ -441,8 +441,16 @@ async def get_top_categories() -> pd.DataFrame | None:
 
             # Category column (including name and link)
             if i == 1:
-                coin_data["Name"] = td.find("a").text
-                coin_data["Link"] = "https://www.coingecko.com/" + td.find("a")["href"]
+                # Defaults
+                coin_data["Name"] = "unknown"
+                coin_data["Link"] = "https://www.coingecko.com/"
+
+                name_element = td.find("a")
+                if name_element:
+                    coin_data["Name"] = name_element.text
+                    coin_data["Link"] = (
+                        "https://www.coingecko.com/" + name_element["href"]
+                    )
 
             # 24h
             if i == 4:
