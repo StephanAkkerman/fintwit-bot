@@ -111,7 +111,11 @@ class Events(commands.Cog):
                 config["CATEGORIES"]["CRYPTO"],
             )
 
-        df = await get_crypto_calendar()
+        try:
+            df = await get_crypto_calendar()
+        except Exception as e:
+            print(f"Error occurred while fetching crypto calendar: {e}")
+            return
 
         if df.empty:
             return

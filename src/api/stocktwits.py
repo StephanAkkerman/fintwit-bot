@@ -23,12 +23,16 @@ async def get_data(keyword: str) -> pd.DataFrame:
     """
 
     # Keyword can be "ts", "m_day", "wl_ct_day"
-    data = await get_json_data(
-        "https://api.stocktwits.com/api/2/charts/" + keyword,
-        headers={
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
-        },
-    )
+    try:
+        data = await get_json_data(
+            "https://api.stocktwits.com/api/2/charts/" + keyword,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+            },
+        )
+    except Exception as e:
+        print(f"Error occurred while fetching data from StockTwits: {e}")
+        return pd.DataFrame()
 
     # If no data could be found, return the embed
     if data == {}:

@@ -27,7 +27,9 @@ def _parse_tweet_object(tweet_obj, update_tweet_id: bool = False):
         user_img = tweet_obj.user_img
         tweet_url = tweet_obj.url
 
-        media = [m.url for m in getattr(tweet_obj, "media", []) if getattr(m, "url", None)]
+        media = [
+            m.url for m in getattr(tweet_obj, "media", []) if getattr(m, "url", None)
+        ]
         tickers = getattr(tweet_obj, "tickers", []) or []
         hashtags = getattr(tweet_obj, "hashtags", []) or []
         e_title = getattr(tweet_obj, "title", None) or f"{user_name} tweeted"
