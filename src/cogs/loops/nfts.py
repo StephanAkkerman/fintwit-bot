@@ -121,7 +121,11 @@ class NFTS(commands.Cog):
         await self.gc_trending()
 
     async def opensea_trending(self):
-        trending = await get_opensea("trending")
+        try:
+            trending = await get_opensea("trending")
+        except Exception as e:
+            logger.error(f"Error occurred while fetching OpenSea trending NFTs: {e}")
+            return
 
         e = discord.Embed(
             title=f"{len(trending)} Trending OpenSea NFTs",
@@ -159,7 +163,12 @@ class NFTS(commands.Cog):
         await self.trending_channel.send(embed=e)
 
     async def gc_trending(self):
-        search_trending = await get_search_trending()
+        try:
+            search_trending = await get_search_trending()
+        except Exception as e:
+            logger.error(f"Error occurred while fetching CoinGecko trending NFTs: {e}")
+            return
+
         df = pd.DataFrame(search_trending["nfts"])
 
         # Add URL

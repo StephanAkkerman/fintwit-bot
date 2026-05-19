@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import os
 
@@ -39,7 +40,7 @@ class SPY_heatmap(commands.Cog):
             )
 
         df = await get_spy_heatmap()
-        create_treemap(df)
+        await create_treemap(df)
 
         e = discord.Embed(
             title="The S&P 500 Heatmap",
@@ -65,7 +66,7 @@ class SPY_heatmap(commands.Cog):
         os.remove(file_path)
 
 
-def create_treemap(df: pd.DataFrame, save_img: bool = True) -> None:
+async def create_treemap(df: pd.DataFrame, save_img: bool = True) -> None:
     """
     Creates a treemap of the S&P 500 heatmap data.
 
@@ -120,8 +121,12 @@ def create_treemap(df: pd.DataFrame, save_img: bool = True) -> None:
     # Save the figure as an image
     # Increase the width and height for better quality
     if save_img:
-        fig.write_image(
-            file="temp/spy_heatmap.png", format="png", width=1920, height=1080
+        await asyncio.to_thread(
+            fig.write_image,
+            file="temp/spy_heatmap.png",
+            format="png",
+            width=1920,
+            height=1080,
         )
 
 

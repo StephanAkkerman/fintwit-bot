@@ -137,7 +137,11 @@ class Treemap(commands.Cog):
 
         # Save the figure as an image
         # Increase the width and height for better quality
-        fig.write_image(
+        import asyncio
+
+        # The non-blocking async way
+        await asyncio.to_thread(
+            fig.write_image,
             file=os.path.join(self.dir, self.file_name),
             format="png",
             width=1920,

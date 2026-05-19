@@ -13,6 +13,9 @@ async def get_etf_inflow(coin: str = "btc") -> float:
     except ValueError:
         logger.error(f"Failed to parse ETF inflow data for {coin}")
         return 0.0
+    except Exception as e:
+        logger.error(f"Error occurred while fetching ETF inflow data for {coin}: {e}")
+        return 0.0
 
     # Use only top row for columns
     df.columns = [col[0] for col in df.columns]

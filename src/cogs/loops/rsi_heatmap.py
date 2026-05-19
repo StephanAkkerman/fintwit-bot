@@ -273,9 +273,13 @@ def get_RSI(coins: list, exchange: str = "BINANCE", time_frame: str = "1d") -> d
     # Format symbols exchange:symbol
     symbols = [f"{exchange.upper()}:{symbol}" for symbol in coins]
 
-    analysis = get_multiple_analysis(
-        symbols=symbols, interval=time_frame, screener="crypto"
-    )
+    try:
+        analysis = get_multiple_analysis(
+            symbols=symbols, interval=time_frame, screener="crypto"
+        )
+    except Exception as e:
+        logger.error(f"Error occurred while fetching RSI data: {e}")
+        return {}
 
     # For each symbol get the RSI
     rsi_dict = {}

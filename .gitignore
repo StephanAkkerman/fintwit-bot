@@ -182,3 +182,4 @@ cython_debug/
 job.slurm
 ssh.txt
 wandb_key.txt
+last_id.txt
