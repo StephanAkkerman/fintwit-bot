@@ -9,8 +9,8 @@ import aiohttp
 import discord
 from discord.ext import commands
 from discord.ext.tasks import loop
+from xclient import XTimelineClient
 
-from api.timeline import get_tweet
 from api.twitter import parse_tweet
 from constants.config import config
 from constants.logger import logger
@@ -134,30 +134,67 @@ class Timeline(commands.Cog):
     async def get_latest_tweet(self) -> None:
         """Fetches the latest tweets."""
         logger.debug(f"Getting tweets at {datetime.datetime.now()}...")
-        tweets = await get_tweet()
+        # Use x-timeline-scraper to fetch parsed Tweet objects
+        try:
+            async with XTimelineClient(
+                "curl.txt", persist_last_id_path="state/last_id.txt"
+            ) as xc:
+                tweets = await xc.fetch_tweets(mode="new_only")
+        except Exception as e:
+            logger.error(f"Error fetching tweets from XTimelineClient: {e}")
+            return
+
         logger.debug(f"Got {len(tweets)} tweets.")
 
         # Process tweets concurrently
         tasks = []
 
         # Loop from oldest to newest tweet
-        for tweet_data in reversed(tweets):
-            tweet = tweet_data["content"]
+        for tweet_obj in reversed(tweets):
+            # tweet_obj is a x-timeline-scraper Tweet dataclass
+            tasks.append(self.on_xtweet(tweet_obj))
 
-            # Skip tweets that are not timeline items
-            if not (
-                tweet.get("entryType") == "TimelineTimelineItem"
-                and tweet.get("itemContent", {}).get("itemType")
-                != "TimelineMessagePrompt"
-            ):
-                continue
-
-            # Collect tasks for concurrent processing
-            tasks.append(self.on_data(tweet, update_tweet_id=True))
-
-        # Run tasks concurrently for faster processing
         if tasks:
             await asyncio.gather(*tasks)
+
+    async def on_xtweet(self, tweet_obj) -> None:
+        """Process a Tweet object from x-timeline-scraper."""
+        try:
+            text = tweet_obj.text
+            user_name = tweet_obj.user_name
+            user_screen_name = tweet_obj.user_screen_name
+            user_img = tweet_obj.user_img
+            tweet_url = tweet_obj.url
+
+            # media items are objects with .url
+            media = [
+                m.url
+                for m in getattr(tweet_obj, "media", [])
+                if getattr(m, "url", None)
+            ]
+            tickers = getattr(tweet_obj, "tickers", []) or []
+            hashtags = getattr(tweet_obj, "hashtags", []) or []
+            e_title = getattr(tweet_obj, "title", None) or f"{user_name} tweeted"
+            media_types = getattr(tweet_obj, "media_types", []) or []
+
+            e, category, base_symbols = await make_tweet_embed(
+                text,
+                user_name,
+                user_img,
+                tweet_url,
+                media,
+                tickers,
+                hashtags,
+                e_title,
+                media_types,
+                self.bot,
+            )
+
+            logger.debug(f"Uploading {user_screen_name}'s tweet to {category}")
+            await self.upload_tweet(e, category, media, user_screen_name, base_symbols)
+
+        except Exception as e:
+            logger.error(f"Error processing Tweet object: {e}")
 
     async def on_data(self, tweet: dict, update_tweet_id: bool = False) -> None:
         """This method is called whenever data is received from the stream.

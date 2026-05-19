@@ -8,6 +8,56 @@ from typing import List
 import util.vars
 from constants.logger import logger
 
+# Optional import for x-timeline-scraper Tweet dataclass
+try:
+    from tweet import Tweet
+except Exception:
+    Tweet = None
+
+
+def _parse_tweet_object(tweet_obj, update_tweet_id: bool = False):
+    """Adapter: parse a x-timeline-scraper Tweet object into the tuple
+    expected by the rest of the codebase (same return shape as parse_tweet).
+    Returns None if the tweet should be skipped due to id checks.
+    """
+    try:
+        text = tweet_obj.text
+        user_name = tweet_obj.user_name
+        user_screen_name = tweet_obj.user_screen_name
+        user_img = tweet_obj.user_img
+        tweet_url = tweet_obj.url
+
+        media = [m.url for m in getattr(tweet_obj, "media", []) if getattr(m, "url", None)]
+        tickers = getattr(tweet_obj, "tickers", []) or []
+        hashtags = getattr(tweet_obj, "hashtags", []) or []
+        e_title = getattr(tweet_obj, "title", None) or f"{user_name} tweeted"
+        media_types = getattr(tweet_obj, "media_types", []) or []
+
+        if update_tweet_id:
+            try:
+                tid = int(getattr(tweet_obj, "id", 0))
+                if tid <= util.vars.latest_tweet_id:
+                    return None
+                util.vars.latest_tweet_id = tid
+            except Exception:
+                pass
+
+        return (
+            text,
+            user_name,
+            user_screen_name,
+            user_img,
+            tweet_url,
+            media,
+            tickers,
+            hashtags,
+            e_title,
+            media_types,
+        )
+    except Exception as e:
+        logger.error(f"Error parsing Tweet object: {e}")
+        return None
+
 
 def remove_twitter_url_at_end(text: str) -> str:
     """
@@ -67,6 +117,10 @@ def save_errored_tweet(tweet, error_msg: str):
 
 
 def parse_tweet(tweet: dict, update_tweet_id: bool = False):
+    # If a Tweet object was passed in (from x-timeline-scraper), adapt it.
+    if Tweet is not None and isinstance(tweet, Tweet):
+        return _parse_tweet_object(tweet, update_tweet_id=update_tweet_id)
+
     reply = None
     is_long_tweet = False
 
