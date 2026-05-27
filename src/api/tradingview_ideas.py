@@ -134,7 +134,10 @@ async def scraper(type: str) -> pd.DataFrame:
     soup = BeautifulSoup(response, "html.parser")
 
     if type == "crypto":
-        return crypto_parser(soup)
+        try:
+            return crypto_parser(soup)
+        except Exception as e:
+            logger.error(f"Error occurred while parsing crypto ideas: {e}")
 
     # Find all divs with the following class
     content = soup.find(

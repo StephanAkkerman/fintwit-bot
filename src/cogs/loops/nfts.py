@@ -53,8 +53,19 @@ class NFTS(commands.Cog):
                 config["LOOPS"]["NFTS"]["TOP"]["CHANNEL"],
                 config["CATEGORIES"]["NFTS"],
             )
-        opensea_top = await get_opensea()
-        cmc_top = await top_cmc()
+        try:
+            opensea_top = await get_opensea()
+        except Exception as e:
+            logger.error(f"Error occurred while fetching top NFTs from Opensea: {e}")
+            return
+
+        try:
+            cmc_top = await top_cmc()
+        except Exception as e:
+            logger.error(
+                f"Error occurred while fetching top NFTs from CoinMarketCap: {e}"
+            )
+            return
 
         await self.top_channel.purge(limit=2)
 

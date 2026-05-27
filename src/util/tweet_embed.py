@@ -96,6 +96,7 @@ async def make_tweet_embed(
         )
 
     e = make_embed(
+        user_name=user_name,
         symbols=symbols,
         url=url,
         text=text,
@@ -116,7 +117,14 @@ async def make_tweet_embed(
 
 
 def make_embed(
-    symbols, url, text, profile_pic, images, e_title, media_types: List[str]
+    user_name,
+    symbols,
+    url,
+    text,
+    profile_pic,
+    images,
+    e_title,
+    media_types: List[str],
 ) -> discord.Embed:
     # Set the properties of the embed
     e = discord.Embed(
@@ -127,6 +135,7 @@ def make_embed(
         timestamp=datetime.datetime.now(datetime.timezone.utc),
     )
 
+    e.set_author(name=user_name, icon_url=profile_pic, url=url)
     e.set_thumbnail(url=profile_pic)
 
     # Set image if an image is included in the tweet

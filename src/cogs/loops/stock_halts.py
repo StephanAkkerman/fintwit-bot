@@ -9,6 +9,7 @@ from constants.config import config
 from constants.sources import data_sources
 from util.afterhours import afterHours
 from util.disc import get_channel, get_tagged_users, loop_error_catcher
+from constants.logger import logger
 
 
 class StockHalts(commands.Cog):
@@ -34,8 +35,14 @@ class StockHalts(commands.Cog):
                 self.bot, config["LOOPS"]["STOCK_HALTS"]["CHANNEL"]
             )
 
-        df = await get_halt_data()
+        try:
+            df = await get_halt_data()
+        except Exception as e:
+            logger.error(f"Error occurred while fetching halt data: {e}")
+            return
+
         if df.empty:
+            logger.warning("No halt data found for today.")
             return
 
         # Remove previous message first

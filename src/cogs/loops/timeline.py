@@ -166,6 +166,10 @@ class Timeline(commands.Cog):
             user_img = tweet_obj.user_img
             tweet_url = tweet_obj.url
 
+            logger.info(
+                f"Processing tweet from {user_screen_name}({user_name}): {text[:10]}..."
+            )
+
             # media items are objects with .url
             media = [
                 m.url
