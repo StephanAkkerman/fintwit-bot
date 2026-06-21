@@ -12,6 +12,7 @@ from discord.ext.tasks import loop
 from xclient import XTimelineClient
 
 from api.twitter import parse_tweet
+from api.xquik import build_xquik_search_query, fetch_xquik_tweets, is_xquik_enabled
 from constants.config import config
 from constants.logger import logger
 from models.chart import classify_img
@@ -134,6 +135,15 @@ class Timeline(commands.Cog):
     async def get_latest_tweet(self) -> None:
         """Fetches the latest tweets."""
         logger.debug(f"Getting tweets at {datetime.datetime.now()}...")
+        xquik_query = build_xquik_search_query(self.timeline_following())
+        if is_xquik_enabled() and xquik_query:
+            tweets = await fetch_xquik_tweets(xquik_query)
+            if tweets is not None:
+                await self.process_xtweets(tweets)
+                return
+
+            logger.error("Falling back to XTimelineClient after Xquik failure")
+
         # Use x-timeline-scraper to fetch parsed Tweet objects
         try:
             async with XTimelineClient(
@@ -144,6 +154,15 @@ class Timeline(commands.Cog):
             logger.error(f"Error fetching tweets from XTimelineClient: {e}")
             return
 
+        await self.process_xtweets(tweets)
+
+    def timeline_following(self) -> List[str]:
+        news = config["LOOPS"]["TIMELINE"]["NEWS"]
+        following = list(news["FOLLOWING"])
+        following += list(news["CRYPTO"]["FOLLOWING"])
+        return following
+
+    async def process_xtweets(self, tweets: List[object]) -> None:
         logger.debug(f"Got {len(tweets)} tweets.")
 
         # Process tweets concurrently
