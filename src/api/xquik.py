@@ -155,7 +155,12 @@ def _tweet_records_from_payload(payload: Any) -> List[dict]:
 
 
 def _has_next_page(payload: dict) -> bool:
-    return bool(payload.get("has_next_page"))
+    raw_value = payload.get("has_next_page")
+    if isinstance(raw_value, bool):
+        return raw_value
+    if isinstance(raw_value, str):
+        return raw_value.strip().lower() in {"1", "true", "yes"}
+    return bool(raw_value)
 
 
 def _tweet_from_record(record: dict) -> Optional[XquikTweet]:
