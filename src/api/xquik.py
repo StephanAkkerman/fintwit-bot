@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import re
 from dataclasses import dataclass
-from typing import Any, Iterable, List, Optional
+from typing import Any, List, Optional
 
 import aiohttp
 
@@ -13,9 +13,11 @@ XQUIK_API_KEY_ENV = "XQUIK_API_KEY"
 XQUIK_BASE_URL_ENV = "XQUIK_BASE_URL"
 XQUIK_SEARCH_QUERY_ENV = "XQUIK_SEARCH_QUERY"
 XQUIK_SEARCH_LIMIT_ENV = "XQUIK_SEARCH_LIMIT"
+XQUIK_SEARCH_MAX_PAGES_ENV = "XQUIK_SEARCH_MAX_PAGES"
 DEFAULT_XQUIK_BASE_URL = "https://xquik.com/api/v1"
 DEFAULT_SEARCH_LIMIT = 50
 MAX_SEARCH_LIMIT = 100
+DEFAULT_MAX_SEARCH_PAGES = 10
 LAST_ID_PATH = "state/xquik_last_id.txt"
 
 CASHTAG_RE = re.compile(r"(?<![A-Za-z0-9_])\$([A-Za-z][A-Za-z0-9_]{0,14})")
@@ -46,15 +48,8 @@ def is_xquik_enabled() -> bool:
     return bool(os.getenv(XQUIK_API_KEY_ENV, "").strip())
 
 
-def build_xquik_search_query(handles: Iterable[str]) -> str:
-    override = os.getenv(XQUIK_SEARCH_QUERY_ENV, "").strip()
-    if override:
-        return override
-
-    normalized = sorted(
-        {handle.strip().removeprefix("@") for handle in handles if handle.strip()}
-    )
-    return " OR ".join(f"from:{handle}" for handle in normalized)
+def build_xquik_search_query() -> str:
+    return os.getenv(XQUIK_SEARCH_QUERY_ENV, "").strip()
 
 
 async def fetch_xquik_tweets(query: str) -> Optional[List[XquikTweet]]:
@@ -62,36 +57,66 @@ async def fetch_xquik_tweets(query: str) -> Optional[List[XquikTweet]]:
     if not api_key or not query.strip():
         return []
 
+    tweets: List[XquikTweet] = []
+    cursor = ""
+    headers = {"Accept": "application/json", "X-API-Key": api_key}
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            for _ in range(_xquik_search_max_pages()):
+                payload = await _fetch_xquik_tweet_page(
+                    session,
+                    headers,
+                    query,
+                    cursor,
+                )
+                if payload is None:
+                    return None
+
+                tweets.extend(
+                    tweet
+                    for tweet in (
+                        _tweet_from_record(record)
+                        for record in _tweet_records_from_payload(payload)
+                    )
+                    if tweet is not None
+                )
+                if not _has_next_page(payload):
+                    return _filter_new_tweets(tweets)
+
+                cursor = _string_value(payload.get("next_cursor"))
+                if not cursor:
+                    return _filter_new_tweets(tweets)
+
+            logger.error("Xquik tweet search returned too many pages")
+            return None
+    except Exception as error:
+        logger.error(f"Xquik tweet search failed: {type(error).__name__}")
+        return None
+
+
+async def _fetch_xquik_tweet_page(
+    session: aiohttp.ClientSession,
+    headers: dict,
+    query: str,
+    cursor: str,
+) -> Optional[dict]:
     url = f"{_xquik_base_url()}/x/tweets/search"
     params = {
         "q": query,
         "queryType": "Latest",
         "limit": str(_xquik_search_limit()),
     }
-    headers = {"Accept": "application/json", "X-API-Key": api_key}
+    if cursor:
+        params["cursor"] = cursor
 
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers, params=params) as response:
-                if response.status != 200:
-                    logger.error(
-                        f"Xquik tweet search failed with status {response.status}"
-                    )
-                    return None
-                payload = await response.json()
-    except (aiohttp.ClientError, TimeoutError, ValueError) as error:
-        logger.error(f"Xquik tweet search failed: {type(error).__name__}")
-        return None
+    async with session.get(url, headers=headers, params=params) as response:
+        if response.status != 200:
+            logger.error(f"Xquik tweet search failed with status {response.status}")
+            return None
+        payload = await response.json()
 
-    tweets = [
-        tweet
-        for tweet in (
-            _tweet_from_record(record)
-            for record in _tweet_records_from_payload(payload)
-        )
-        if tweet is not None
-    ]
-    return _filter_new_tweets(tweets)
+    return payload if isinstance(payload, dict) else None
 
 
 def _xquik_base_url() -> str:
@@ -108,6 +133,16 @@ def _xquik_search_limit() -> int:
     return min(max(limit, 1), MAX_SEARCH_LIMIT)
 
 
+def _xquik_search_max_pages() -> int:
+    raw_pages = os.getenv(XQUIK_SEARCH_MAX_PAGES_ENV, "")
+    try:
+        pages = int(raw_pages)
+    except ValueError:
+        pages = DEFAULT_MAX_SEARCH_PAGES
+
+    return max(pages, 1)
+
+
 def _tweet_records_from_payload(payload: Any) -> List[dict]:
     if not isinstance(payload, dict):
         return []
@@ -117,6 +152,10 @@ def _tweet_records_from_payload(payload: Any) -> List[dict]:
         return []
 
     return [tweet for tweet in tweets if isinstance(tweet, dict)]
+
+
+def _has_next_page(payload: dict) -> bool:
+    return bool(payload.get("has_next_page"))
 
 
 def _tweet_from_record(record: dict) -> Optional[XquikTweet]:
@@ -159,7 +198,11 @@ def _tweet_from_record(record: dict) -> Optional[XquikTweet]:
 
 
 def _string_value(value: Any) -> str:
-    return value if isinstance(value, str) else ""
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value
+    return str(value)
 
 
 def _media_from_record(record: dict) -> tuple[List[XquikMedia], List[str]]:
@@ -224,6 +267,11 @@ def _entity_values(record: dict, key: str, value_key: str) -> List[str]:
 
 def _filter_new_tweets(tweets: List[XquikTweet]) -> List[XquikTweet]:
     latest_id = _read_last_id()
+    if latest_id == 0:
+        if tweets:
+            _write_last_id(max(_parse_tweet_id(tweet.id) for tweet in tweets))
+        return []
+
     new_tweets = [tweet for tweet in tweets if _parse_tweet_id(tweet.id) > latest_id]
     if not new_tweets:
         return []

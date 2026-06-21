@@ -135,7 +135,7 @@ class Timeline(commands.Cog):
     async def get_latest_tweet(self) -> None:
         """Fetches the latest tweets."""
         logger.debug(f"Getting tweets at {datetime.datetime.now()}...")
-        xquik_query = build_xquik_search_query(self.timeline_following())
+        xquik_query = build_xquik_search_query()
         if is_xquik_enabled() and xquik_query:
             tweets = await fetch_xquik_tweets(xquik_query)
             if tweets is not None:
@@ -155,12 +155,6 @@ class Timeline(commands.Cog):
             return
 
         await self.process_xtweets(tweets)
-
-    def timeline_following(self) -> List[str]:
-        news = config["LOOPS"]["TIMELINE"]["NEWS"]
-        following = list(news["FOLLOWING"])
-        following += list(news["CRYPTO"]["FOLLOWING"])
-        return following
 
     async def process_xtweets(self, tweets: List[object]) -> None:
         logger.debug(f"Got {len(tweets)} tweets.")
