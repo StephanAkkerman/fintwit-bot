@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import re
 from dataclasses import dataclass
@@ -10,15 +11,16 @@ import aiohttp
 from constants.logger import logger
 
 XQUIK_API_KEY_ENV = "XQUIK_API_KEY"
-XQUIK_BASE_URL_ENV = "XQUIK_BASE_URL"
 XQUIK_SEARCH_QUERY_ENV = "XQUIK_SEARCH_QUERY"
 XQUIK_SEARCH_LIMIT_ENV = "XQUIK_SEARCH_LIMIT"
 XQUIK_SEARCH_MAX_PAGES_ENV = "XQUIK_SEARCH_MAX_PAGES"
 DEFAULT_XQUIK_BASE_URL = "https://xquik.com/api/v1"
 DEFAULT_SEARCH_LIMIT = 50
-MAX_SEARCH_LIMIT = 100
+MAX_SEARCH_LIMIT = 200
 DEFAULT_MAX_SEARCH_PAGES = 10
-LAST_ID_PATH = "state/xquik_last_id.txt"
+MAX_SEARCH_PAGES = 100
+MAX_SEEN_IDS = MAX_SEARCH_LIMIT * MAX_SEARCH_PAGES
+SEEN_IDS_PATH = "state/xquik_seen_ids.json"
 
 CASHTAG_RE = re.compile(r"(?<![A-Za-z0-9_])\$([A-Za-z][A-Za-z0-9_]{0,14})")
 HASHTAG_RE = re.compile(r"(?<![A-Za-z0-9_])#([A-Za-z][A-Za-z0-9_]{0,49})")
@@ -59,10 +61,12 @@ async def fetch_xquik_tweets(query: str) -> Optional[List[XquikTweet]]:
 
     tweets: List[XquikTweet] = []
     cursor = ""
-    headers = {"Accept": "application/json", "X-API-Key": api_key}
+    seen_cursors = set()
+    headers = {"Accept": "application/json", "x-api-key": api_key}
 
     try:
-        async with aiohttp.ClientSession() as session:
+        timeout = aiohttp.ClientTimeout(total=30)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
             for _ in range(_xquik_search_max_pages()):
                 payload = await _fetch_xquik_tweet_page(
                     session,
@@ -86,7 +90,12 @@ async def fetch_xquik_tweets(query: str) -> Optional[List[XquikTweet]]:
 
                 cursor = _string_value(payload.get("next_cursor"))
                 if not cursor:
-                    return _filter_new_tweets(tweets)
+                    logger.error("Xquik tweet search returned no next cursor")
+                    return None
+                if cursor in seen_cursors:
+                    logger.error("Xquik tweet search repeated a pagination cursor")
+                    return None
+                seen_cursors.add(cursor)
 
             logger.error("Xquik tweet search returned too many pages")
             return None
@@ -101,7 +110,7 @@ async def _fetch_xquik_tweet_page(
     query: str,
     cursor: str,
 ) -> Optional[dict]:
-    url = f"{_xquik_base_url()}/x/tweets/search"
+    url = f"{DEFAULT_XQUIK_BASE_URL}/x/tweets/search"
     params = {
         "q": query,
         "queryType": "Latest",
@@ -117,10 +126,6 @@ async def _fetch_xquik_tweet_page(
         payload = await response.json()
 
     return payload if isinstance(payload, dict) else None
-
-
-def _xquik_base_url() -> str:
-    return os.getenv(XQUIK_BASE_URL_ENV, DEFAULT_XQUIK_BASE_URL).rstrip("/")
 
 
 def _xquik_search_limit() -> int:
@@ -140,7 +145,7 @@ def _xquik_search_max_pages() -> int:
     except ValueError:
         pages = DEFAULT_MAX_SEARCH_PAGES
 
-    return max(pages, 1)
+    return min(max(pages, 1), MAX_SEARCH_PAGES)
 
 
 def _tweet_records_from_payload(payload: Any) -> List[dict]:
@@ -271,42 +276,69 @@ def _entity_values(record: dict, key: str, value_key: str) -> List[str]:
 
 
 def _filter_new_tweets(tweets: List[XquikTweet]) -> List[XquikTweet]:
-    latest_id = _read_last_id()
-    if latest_id == 0:
-        if tweets:
-            _write_last_id(max(_parse_tweet_id(tweet.id) for tweet in tweets))
+    current_ids = _unique_strings([tweet.id for tweet in tweets if tweet.id])
+    if not current_ids:
         return []
 
-    new_tweets = [tweet for tweet in tweets if _parse_tweet_id(tweet.id) > latest_id]
-    if not new_tweets:
+    seen_ids = _read_seen_ids()
+    if seen_ids is None:
+        _write_seen_ids(current_ids)
         return []
 
-    _write_last_id(max(_parse_tweet_id(tweet.id) for tweet in new_tweets))
+    seen_id_set = set(seen_ids)
+    new_tweets: List[XquikTweet] = []
+    new_ids = set()
+    for tweet in tweets:
+        if tweet.id in seen_id_set or tweet.id in new_ids:
+            continue
+        new_tweets.append(tweet)
+        new_ids.add(tweet.id)
+
+    updated_ids = _unique_strings([*current_ids, *seen_ids])[:MAX_SEEN_IDS]
+    if not _write_seen_ids(updated_ids):
+        return []
+
     return new_tweets
 
 
-def _read_last_id() -> int:
+def _unique_strings(values: List[str]) -> List[str]:
+    seen = set()
+    unique_values = []
+    for value in values:
+        if value in seen:
+            continue
+        seen.add(value)
+        unique_values.append(value)
+    return unique_values
+
+
+def _read_seen_ids() -> Optional[List[str]]:
     try:
-        with open(LAST_ID_PATH, "r", encoding="utf-8") as file:
-            return _parse_tweet_id(file.read().strip())
+        with open(SEEN_IDS_PATH, "r", encoding="utf-8") as file:
+            values = json.load(file)
     except FileNotFoundError:
-        return 0
-    except OSError as error:
+        return None
+    except (json.JSONDecodeError, OSError) as error:
         logger.error(f"Could not read Xquik timeline state: {type(error).__name__}")
-        return 0
+        return None
+
+    if not isinstance(values, list) or not all(
+        isinstance(value, str) and value for value in values
+    ):
+        logger.error("Could not read Xquik timeline state: invalid data")
+        return None
+
+    return _unique_strings(values)[:MAX_SEEN_IDS]
 
 
-def _write_last_id(tweet_id: int) -> None:
+def _write_seen_ids(tweet_ids: List[str]) -> bool:
+    temp_path = f"{SEEN_IDS_PATH}.tmp"
     try:
-        os.makedirs(os.path.dirname(LAST_ID_PATH), exist_ok=True)
-        with open(LAST_ID_PATH, "w", encoding="utf-8") as file:
-            file.write(str(tweet_id))
+        os.makedirs(os.path.dirname(SEEN_IDS_PATH), exist_ok=True)
+        with open(temp_path, "w", encoding="utf-8") as file:
+            json.dump(tweet_ids, file)
+        os.replace(temp_path, SEEN_IDS_PATH)
     except OSError as error:
         logger.error(f"Could not write Xquik timeline state: {type(error).__name__}")
-
-
-def _parse_tweet_id(tweet_id: str) -> int:
-    try:
-        return int(tweet_id)
-    except ValueError:
-        return 0
+        return False
+    return True
