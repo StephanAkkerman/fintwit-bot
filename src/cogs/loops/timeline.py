@@ -12,6 +12,7 @@ from discord.ext.tasks import loop
 from xclient import XTimelineClient
 
 from api.twitter import parse_tweet
+from api.xquik import build_xquik_search_query, fetch_xquik_tweets, is_xquik_enabled
 from constants.config import config
 from constants.logger import logger
 from models.chart import classify_img
@@ -134,16 +135,30 @@ class Timeline(commands.Cog):
     async def get_latest_tweet(self) -> None:
         """Fetches the latest tweets."""
         logger.debug(f"Getting tweets at {datetime.datetime.now()}...")
+        xquik_tweets: List[object] = []
+        xquik_query = build_xquik_search_query()
+        if is_xquik_enabled() and xquik_query:
+            tweets = await fetch_xquik_tweets(xquik_query)
+            if tweets is not None:
+                xquik_tweets = list(tweets)
+            else:
+                logger.error("Falling back to XTimelineClient after Xquik failure")
+
         # Use x-timeline-scraper to fetch parsed Tweet objects
         try:
             async with XTimelineClient(
                 "curl.txt", persist_last_id_path="state/last_id.txt"
             ) as xc:
-                tweets = await xc.fetch_tweets(mode="new_only")
+                timeline_tweets = await xc.fetch_tweets(mode="new_only")
         except Exception as e:
             logger.error(f"Error fetching tweets from XTimelineClient: {e}")
+            if xquik_tweets:
+                await self.process_xtweets(xquik_tweets)
             return
 
+        await self.process_xtweets(_unique_tweets([*xquik_tweets, *timeline_tweets]))
+
+    async def process_xtweets(self, tweets: List[object]) -> None:
         logger.debug(f"Got {len(tweets)} tweets.")
 
         # Process tweets concurrently
@@ -447,6 +462,24 @@ class Timeline(commands.Cog):
         )
 
         return msg
+
+
+def _tweet_id(tweet_obj: object) -> str:
+    value = getattr(tweet_obj, "id", "")
+    return str(value) if value else ""
+
+
+def _unique_tweets(tweets: List[object]) -> List[object]:
+    seen_ids = set()
+    unique_tweets = []
+    for tweet in tweets:
+        tweet_id = _tweet_id(tweet)
+        if tweet_id and tweet_id in seen_ids:
+            continue
+        if tweet_id:
+            seen_ids.add(tweet_id)
+        unique_tweets.append(tweet)
+    return unique_tweets
 
 
 def setup(bot: commands.Bot) -> None:

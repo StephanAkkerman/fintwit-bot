@@ -6,10 +6,10 @@ from discord.ext.tasks import loop
 
 from api.nasdaq import get_halt_data
 from constants.config import config
+from constants.logger import logger
 from constants.sources import data_sources
 from util.afterhours import afterHours
 from util.disc import get_channel, get_tagged_users, loop_error_catcher
-from constants.logger import logger
 
 
 class StockHalts(commands.Cog):

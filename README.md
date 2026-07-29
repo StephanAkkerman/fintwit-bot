@@ -67,6 +67,34 @@ To access data from Twitter you need to follow these steps:
 - Locate **HomeLatestTimeline**, right click on it and press **Copy as cURL (bash)**.
 - Create a new file in the root folder of this project named `curl.txt` and paste the contents there.
 
+#### Add Xquik Search (Optional)
+
+[Xquik](https://xquik.com) can add tweets matching a search query to the
+existing home timeline. The bot merges both sources and removes duplicate tweet
+IDs. If either source fails, results from the other source still run.
+
+1. Create an API key in the [Xquik dashboard](https://dashboard.xquik.com/en/account?tab=api-keys).
+2. Add the following values to `.env`:
+
+   ```dotenv
+   XQUIK_API_KEY = xq_your_api_key_here
+   XQUIK_SEARCH_QUERY = from:DeItaone OR from:FirstSquawk
+   XQUIK_SEARCH_LIMIT = 50
+   XQUIK_SEARCH_MAX_PAGES = 10
+   ```
+
+`XQUIK_SEARCH_LIMIT` accepts 1 to 200 results per page.
+`XQUIK_SEARCH_MAX_PAGES` accepts 1 to 100 pages per poll. The first successful
+poll saves the returned tweet IDs without posting them. This prevents a new
+installation from sending a historical backlog. Later polls post only unseen
+results.
+
+See the [Search Tweets API documentation](https://docs.xquik.com/api-reference/x/search-tweets)
+for query syntax and API details.
+
+Xquik is an independent third-party service. Not affiliated with X Corp.
+"Twitter" and "X" are trademarks of X Corp.
+
 ### Setup .env 📝
 
 If you open `example.env` you will find the lines that need to be filled in. Start by renaming `example.env` to `.env` so the bot will use this file for you credentials.
