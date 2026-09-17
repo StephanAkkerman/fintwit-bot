@@ -87,6 +87,7 @@ async def make_tweet_embed(
 
     # Ensure the tickers are unique
     symbols = get_clean_symbols(tickers, hashtags)[:24]
+    symbol_aliases = get_symbol_aliases(tickers, hashtags)
     tickers = tickers[:24]
 
     # Check for difference
@@ -110,7 +111,13 @@ async def make_tweet_embed(
     if symbols:
         logger.debug(f"Adding financials for symbols: {symbols}")
         e, category, base_symbols = await add_financials(
-            e=e, symbols=symbols, tickers=tickers, text=text, user=user_name, bot=bot
+            e=e,
+            symbols=symbols,
+            tickers=tickers,
+            text=text,
+            user=user_name,
+            bot=bot,
+            aliases=symbol_aliases,
         )
 
     return e, category, base_symbols
@@ -178,6 +185,7 @@ async def add_financials(
     text: str,
     user: str,
     bot: commands.Bot,
+    aliases: dict | None = None,
 ) -> tuple[discord.Embed, str, List[str]]:
     """
     Adds the financial data to the embed and returns the corresponding category.
@@ -196,6 +204,10 @@ async def add_financials(
         The user that tweeted.
     bot : commands.Bot
         The bot object, used for getting the custom emojis.
+    aliases : dict, optional
+        Symbol to the forms it is written as in the text, from
+        `get_symbol_aliases`. Used to give each ticker the sentiment of the
+        part of the tweet that is about it.
 
     Returns
     -------
@@ -216,6 +228,9 @@ async def add_financials(
     crypto = stocks = 0
 
     base_symbols = []
+    # Surface forms per resolved symbol, so sentiment can be attributed to the
+    # part of the text that is actually about it.
+    base_symbol_aliases = {}
     categories = []
     do_last = []
     classified_tickers = []
@@ -313,6 +328,9 @@ async def add_financials(
 
         # Add to base symbol list to prevent duplicates
         base_symbols.append(base_symbol)
+        base_symbol_aliases[base_symbol] = (aliases or {}).get(symbol, {symbol}) | {
+            base_symbol
+        }
 
         if isinstance(change, list) and len(change) == 1:
             changes.append(change[-1])
@@ -357,9 +375,10 @@ async def add_financials(
 
     # Finally add the sentiment to the embed
     if base_symbols:  # or if categories:
-        e, prediction = add_sentiment(e, text)
+        e, prediction, symbol_sentiment = add_sentiment(e, text, base_symbol_aliases)
     else:
         prediction = None
+        symbol_sentiment = {}
 
     # Decide the category of this tweet
     if crypto == 0 and stocks == 0:
@@ -370,10 +389,45 @@ async def add_financials(
     # If there are base symbols, add them to the database
     # Also post the overview of mentioned tickers
     if base_symbols:
-        update_tweet_db(base_symbols, user, prediction, categories, changes)
+        # A tweet is not one opinion: "long $NVDA, short $INTC" gets one row
+        # per ticker, each with the sentiment of the part about that ticker.
+        sentiments = [
+            symbol_sentiment.get(symbol, prediction) for symbol in base_symbols
+        ]
+        update_tweet_db(base_symbols, user, sentiments, categories, changes)
 
     # Return just the prediction without emoji
     return e, category, base_symbols
+
+
+def get_symbol_aliases(tickers, hashtags) -> dict:
+    """
+    Maps each cleaned symbol to the surface forms it appears as in the text.
+
+    `get_clean_symbols` rewrites BITCOIN to BTC, but the tweet still says
+    "Bitcoin". Sentiment attribution has to search the text, so it needs both.
+
+    Parameters
+    ----------
+    tickers : list
+        The cashtags of the tweet.
+    hashtags : list
+        The hashtags of the tweet.
+
+    Returns
+    -------
+    dict
+        Cleaned symbol to the set of forms it may be written as.
+    """
+
+    hashtags = [hashtag for hashtag in hashtags if hashtag not in ["NFT", "CRYPTO"]]
+
+    aliases = {}
+    for raw in set(tickers + hashtags):
+        clean = filter_dict.get(raw, raw)
+        aliases.setdefault(clean, {clean}).add(raw)
+
+    return aliases
 
 
 def get_clean_symbols(tickers, hashtags):

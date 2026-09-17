@@ -1,4 +1,6 @@
 # > Standard library
+from __future__ import annotations
+
 import datetime
 import os
 import sqlite3
@@ -197,7 +199,11 @@ def clean_old_db(db, days: int = 1) -> pd.DataFrame:
 
 
 def update_tweet_db(
-    tickers: list, user: str, sentiment: str, categories: list, changes: list
+    tickers: list,
+    user: str,
+    sentiment: str | list,
+    categories: list,
+    changes: list,
 ) -> None:
     """
     Updates thet tweet database variable using the info provided.
@@ -208,14 +214,19 @@ def update_tweet_db(
         The list of tickers.
     user : str
         The name of the user.
-    sentiment : str
-        The sentiment of the tweet.
+    sentiment : str | list
+        The sentiment of the tweet, or one sentiment per ticker. A tweet that
+        is bullish on one ticker and bearish on another has no single answer,
+        so the per-ticker form keeps each row honest.
     categories : list
         The categories of the tickers.
     """
 
     # Prepare new data
     dict_list = []
+    sentiments = (
+        sentiment if isinstance(sentiment, list) else [sentiment] * len(tickers)
+    )
 
     for i in range(len(tickers)):
         # Remove emoji at end
@@ -232,7 +243,7 @@ def update_tweet_db(
             {
                 "ticker": tickers[i],
                 "user": user,
-                "sentiment": convert_emoji[sentiment],
+                "sentiment": convert_emoji[sentiments[i]],
                 "category": categories[i],
                 "change": change,
             }
