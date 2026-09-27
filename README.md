@@ -4,6 +4,8 @@
 
 ---
 
+> ⚠️ **Note:** This project has been superseded by [fintwit-web](https://github.com/StephanAkkerman/fintwit-web), a modern web application using FastAPI and React that replaces the Discord bot approach. This repository is no longer actively maintained.
+
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.10-blue.svg" alt="Supported versions">
   <img src="https://img.shields.io/github/license/StephanAkkerman/fintwit-bot.svg?color=brightgreen" alt="License">
