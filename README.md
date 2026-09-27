@@ -104,6 +104,17 @@ I suggest creating a new account for this too, if you feel uncomfortable leaving
 - This will give you the `REDDIT_PERSONAL_USE` and `REDDIT_SECRET` tokens.
 - Finally, fill in your Reddit username and password for `REDDIT_USERNAME` and `REDDIT_PASSWORD`.
 
+#### Adanos stock sentiment (Optional)
+
+The separate `/adanos` command can show source-labeled US-stock sentiment from
+Reddit, X/FinTwit, News, or Polymarket. It does not replace the existing
+Finviz-based `/sentiment` command or send a trading signal. Set `ADANOS_API_KEY`
+in `.env` (get a key at [Adanos](https://adanos.org/)) and set
+`COMMANDS.ADANOS.ENABLED` to `True` in `config.yaml` to register the command.
+The default is off. It requests the most recent seven UTC dates with explicit
+`from`/`to` parameters. Access and retention depend on your Adanos plan;
+unavailable sources and no-data results are shown explicitly.
+
 ### Discord Category and Channel Creation
 
 Since there are multiple channels that are about the same topic, we need to put them in different categories so the bot knows where to find this channel. The categories are specified in the config file, feel free to change the names. Below you can find an example showing how we set up our Discord channel.
