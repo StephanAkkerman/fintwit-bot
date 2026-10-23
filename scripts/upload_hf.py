@@ -5,11 +5,13 @@ Build locally first (nothing is sent), inspect ``scraped/hf_upload/``, then push
     python scripts/upload_hf.py --exclude-ids subscriber_ids.txt
     python scripts/upload_hf.py --exclude-ids subscriber_ids.txt --push
 
-Reads ``scraped/dataset/tweets.jsonl.gz`` (from ``merge_scraped.py``). A tweet
-goes into every subset it was posted in: ``crypto``, ``stocks``, or ``other``
+Reads ``scraped/combined/tweets.jsonl.gz`` (from ``merge_export.py``, which
+already holds the public schema). A tweet goes into every subset named in its
+``categories``: ``crypto``, ``stocks`` (which includes forex) or ``other``
 (everything else); ``all`` holds every tweet.
 
-Uploading needs write access to the repos: set ``HF_TOKEN`` or run
+Needs ``pip install pyarrow huggingface_hub``. Uploading needs write access to
+the repos: set ``HF_TOKEN`` or run
 ``hf auth login``. Existing files in the repos (the old CSVs) are kept unless
 ``--delete-old-csv`` is given; the dataset card is pointed at the new data so
 ``load_dataset`` ignores them either way.
@@ -22,6 +24,11 @@ import os
 import re
 import sys
 from dataclasses import dataclass
+from datetime import datetime, timezone
+
+import pyarrow as pa
+import pyarrow.parquet as pq
+from merge_export import COLUMNS
 
 OWNER = "StephanAkkerman"
 REPOS = {
@@ -30,25 +37,80 @@ REPOS = {
     "other": f"{OWNER}/financial-tweets-other",
     "all": f"{OWNER}/financial-tweets",
 }
-DATA_FILE = "data/train.jsonl.gz"
-# Discord message ids and the production-DB flag mean nothing outside this setup
-PUBLIC_COLUMNS = (
-    "tweet_id",
-    "tweet_created_at",
-    "first_posted_at",
-    "n_posts",
-    "channels",
-    "url",
-    "user_name",
-    "description",
-    "embed_title",
-    "tweet_type",
-    "media_kind",
-    "image_url",
-    "thumbnail_url",
-    "sentiment",
-    "financial_info",
+DATA_FILE = "data/train.parquet"
+BATCH_ROWS = 20_000
+
+# An explicit schema, because inferring it from the first rows breaks: the file
+# is ordered by id, so the first hundreds of thousands of rows are Discord-only
+# and every web-only column looks like an always-null one. Must match
+# merge_export.COLUMNS (checked below).
+_string, _list_str = pa.string(), pa.list_(pa.string())
+_time = pa.timestamp("us", tz="UTC")
+_TIME_COLUMNS = ("created_at", "first_posted_at", "edited_at")
+SCHEMA = pa.schema(
+    [
+        ("tweet_id", _string),
+        ("created_at", _time),
+        ("source", _string),
+        ("categories", _list_str),
+        ("url", _string),
+        ("user_name", _string),
+        ("user_screen_name", _string),
+        ("user_img", _string),
+        ("text", _string),
+        ("title", _string),
+        ("tweet_type", _string),
+        (
+            "media",
+            pa.list_(pa.struct([("url", _string), ("type", _string)])),
+        ),
+        ("tickers", _list_str),
+        ("hashtags", _list_str),
+        ("sentiment_label", _string),
+        ("sentiment_score", pa.float64()),
+        ("quoted_sentiment_label", _string),
+        ("quoted_sentiment_score", pa.float64()),
+        ("ticker_sentiment", _string),  # JSON
+        ("quoted_tweet", _string),  # JSON
+        ("replies", pa.int64()),
+        ("likes", pa.int64()),
+        ("views", pa.int64()),
+        ("retweets", pa.int64()),
+        ("has_chart", pa.bool_()),
+        ("chart_extraction", _string),  # JSON
+        ("image_text", _string),
+        ("is_options_tweet", pa.bool_()),
+        ("options_context", _string),  # JSON
+        ("edited_at", _time),
+        ("assets", _string),  # JSON
+        ("channels", _list_str),
+        ("first_posted_at", _time),
+        ("n_posts", pa.int64()),
+        (
+            "financial_info",
+            pa.list_(
+                pa.struct(
+                    [
+                        ("ticker", _string),
+                        ("exchanges", _list_str),
+                        ("price", _string),
+                        ("percentage_change", _string),
+                        ("after_hours_price", _string),
+                        ("after_hours_change", _string),
+                        ("source_url", _string),
+                        ("4h_ta_result", _string),
+                        ("4h_ta_details", _string),
+                        ("1d_ta_result", _string),
+                        ("1d_ta_details", _string),
+                    ]
+                )
+            ),
+        ),
+    ]
 )
+if SCHEMA.names != list(COLUMNS):
+    raise SystemExit("SCHEMA is out of sync with merge_export.COLUMNS")
+
 MARKER_START, MARKER_END = "<!-- generated:start -->", "<!-- generated:end -->"
 # The single CSV each repo has held since 2024-09-05
 LEGACY_CSV = {
@@ -77,34 +139,36 @@ class SubsetStats:
         self.last = max(self.last or created_at, created_at)
 
 
-def subsets_for(channels: list[str]) -> list[str]:
-    crypto = any(c.startswith("crypto") for c in channels)
-    stocks = any(c.startswith("stocks") for c in channels)
-    names = ["all"]
-    if crypto:
-        names.append("crypto")
-    if stocks:
-        names.append("stocks")
-    if not (crypto or stocks):
-        names.append("other")
-    return names
-
-
 def load_ids(path: str) -> set[str]:
     with open(path, encoding="utf-8") as fh:
         return {line.strip() for line in fh if line.strip()}
 
 
+def _to_row(record: dict) -> dict:
+    row = dict(record)
+    for key in _TIME_COLUMNS:
+        if row[key]:
+            moment = datetime.fromisoformat(row[key])
+            row[key] = moment if moment.tzinfo else moment.replace(tzinfo=timezone.utc)
+    return row
+
+
 def build_subsets(
     src: str, out_dir: str, names: list[str], excluded: set[str]
 ) -> tuple[dict[str, SubsetStats], int]:
-    """Stream ``src`` once, writing one data file per wanted subset."""
+    """Stream ``src`` once, writing one Parquet file per wanted subset."""
     stats = {n: SubsetStats() for n in names}
-    writers = {}
+    writers, buffers = {}, {n: [] for n in names}
     for name in names:
         path = os.path.join(out_dir, name, DATA_FILE)
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        writers[name] = gzip.open(path, "wt", encoding="utf-8")
+        writers[name] = pq.ParquetWriter(path, SCHEMA, compression="zstd")
+
+    def flush(name: str) -> None:
+        if buffers[name]:
+            batch = pa.RecordBatch.from_pylist(buffers[name], schema=SCHEMA)
+            writers[name].write_batch(batch)
+            buffers[name].clear()
 
     dropped = 0
     try:
@@ -114,13 +178,15 @@ def build_subsets(
                 if record["tweet_id"] in excluded:
                     dropped += 1
                     continue
-                out = json.dumps(
-                    {k: record.get(k) for k in PUBLIC_COLUMNS}, ensure_ascii=False
-                )
-                for name in subsets_for(record["channels"]):
+                row = _to_row(record)
+                for name in ("all", *record["categories"]):
                     if name in writers:
-                        writers[name].write(out + "\n")
-                        stats[name].add(record["tweet_created_at"])
+                        buffers[name].append(row)
+                        stats[name].add(record["created_at"])
+                        if len(buffers[name]) >= BATCH_ROWS:
+                            flush(name)
+        for name in names:
+            flush(name)
     finally:
         for w in writers.values():
             w.close()
@@ -145,41 +211,60 @@ def _body(
 ) -> str:
     scope = {
         "all": "every tweet",
-        "crypto": "tweets posted to the crypto channels",
-        "stocks": "tweets posted to the stocks channels",
-        "other": "tweets that were in neither the crypto nor stocks channels "
-        "(news, images, other, forex)",
+        "crypto": "tweets about crypto assets",
+        "stocks": "tweets about stocks, ETFs, indices, futures and forex",
+        "other": "tweets that mention no crypto or stock asset (news, images, "
+        "general commentary)",
     }[name]
     lines = [
         MARKER_START,
         "## Contents",
         "",
         f"{stats.rows:,} tweets ({scope}), sent between {stats.first[:10]} and "
-        f"{stats.last[:10]}, collected by "
-        "[fintwit-bot](https://github.com/StephanAkkerman/fintwit-bot). One row "
-        "per tweet; the same tweet is often posted several times by the bot (once "
-        "per ticker), so `financial_info` combines all of them.",
+        f"{stats.last[:10]}. One row per tweet, from two collections that are "
+        "combined here: the [fintwit-bot](https://github.com/StephanAkkerman/"
+        "fintwit-bot) Discord scrape (2021 to May 2026) and the "
+        "[fintwit-web](https://github.com/StephanAkkerman/fintwit-web) database "
+        "(April 2026 on). `source` says which one a row came from; columns a "
+        "source doesn't have are null.",
         "",
         "| Column | Meaning |",
         "|---|---|",
         "| `tweet_id` | Tweet id (string) |",
-        "| `tweet_created_at` | When the tweet was sent, decoded from its id |",
-        "| `first_posted_at` | When the bot first posted it; the bot can lag by "
-        "minutes, and this is null for older rows |",
-        "| `n_posts` | How many times the bot posted this tweet |",
-        "| `channels` | Source channels, e.g. `crypto_charts`, `twitter_news` |",
-        "| `user_name` | Poster's display name |",
-        "| `description` | Tweet text |",
+        "| `created_at` | When the tweet was sent (UTC) |",
+        "| `source` | `discord`, `web`, or `both` |",
+        "| `categories` | Which subsets it belongs to: `crypto`, `stocks`, `other` |",
+        '| `url`, `title` | Tweet link; the "X tweeted / retweeted / quote tweeted" '
+        "headline |",
+        "| `user_name`, `user_screen_name`, `user_img` | Poster's display name, "
+        "handle (web only) and profile picture |",
+        "| `text` | Tweet text, quoted tweet included (prefixed with `>`) |",
         "| `tweet_type` | `tweet`, `quote tweet` or `retweet` |",
-        "| `media_kind` | `Video` / `GIF` when the tweet had one |",
-        "| `image_url`, `thumbnail_url` | Tweet image / poster's profile picture |",
-        "| `sentiment` | Sentiment label the bot assigned |",
-        "| `financial_info` | Per ticker: price and change when the bot posted, "
-        "exchanges, and 4h / 1d technical-analysis summaries |",
+        "| `media` | `[{url, type}]` with type `photo`, `video` or `animated_gif` |",
+        "| `tickers`, `hashtags` | Tickers recognised in the tweet; hashtags (web only) |",
+        "| `sentiment_label`, `sentiment_score` | `BULLISH` / `BEARISH` / `NEUTRAL`; "
+        "the score is web only |",
+        "| `quoted_*`, `ticker_sentiment` | Sentiment of the quoted tweet and per "
+        "ticker (web only) |",
+        "| `replies`, `likes`, `views`, `retweets` | Engagement when collected "
+        "(web only) |",
+        "| `has_chart`, `chart_extraction`, `image_text` | Chart detection and OCR "
+        "of attached images (web only) |",
+        "| `is_options_tweet`, `options_context` | Option contracts extracted from "
+        "the tweet (web only) |",
+        "| `assets` | Prices, fundamentals and profile for each asset (web only) |",
+        "| `financial_info` | Price, change and 4h / 1d technical analysis per ticker "
+        "when the bot posted (Discord only) |",
+        "| `channels`, `first_posted_at`, `n_posts` | Discord channels it was posted "
+        "to, when the bot first posted it, and how often (the bot posts a tweet "
+        "once per ticker) |",
         "",
-        "Retweets and quotes point at the original tweet, so `tweet_created_at` "
-        "can be older than the rest of the data. Discord-hosted image links "
-        "expire.",
+        "`assets`, `quoted_tweet`, `chart_extraction`, `options_context` and "
+        "`ticker_sentiment` are JSON strings (their keys differ per row); read "
+        "them with `json.loads`.",
+        "",
+        "Retweets and quotes point at the original tweet, so `created_at` can be "
+        "older than the rest of the data. Discord-hosted image links expire.",
         "",
         "The previous version of this dataset (columns `tweet_text`, "
         "`price_of_ticker`, `tickers_mentioned`, …, up to 2024-09-05) is "
@@ -269,7 +354,7 @@ def push(name: str, repo_id: str, out_dir: str, delete_csv: bool) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    parser.add_argument("--input", default="scraped/dataset/tweets.jsonl.gz")
+    parser.add_argument("--input", default="scraped/combined/tweets.jsonl.gz")
     parser.add_argument("--out", default="scraped/hf_upload")
     parser.add_argument(
         "--repos",
@@ -307,9 +392,18 @@ def main() -> int:
             "to publish everything"
         )
     if not os.path.exists(args.input):
-        parser.error(f"{args.input} not found; run merge_scraped.py first")
+        parser.error(f"{args.input} not found; run merge_export.py first")
+
+    if args.exclude_ids and not os.path.exists(args.exclude_ids):
+        parser.error(
+            f"{args.exclude_ids} not found. Create it from the production database "
+            "(in fintwit-web):\n  python -m app.runtime.export_dataset "
+            f"--db-url <production url> --subscriber-ids {args.exclude_ids}"
+        )
 
     excluded = load_ids(args.exclude_ids) if args.exclude_ids else set()
+    if args.exclude_ids and not excluded:
+        print(f"warning: {args.exclude_ids} is empty, nothing will be excluded")
     stats, dropped = build_subsets(args.input, args.out, names, excluded)
 
     for name in names:
