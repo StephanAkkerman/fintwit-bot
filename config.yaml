@@ -246,6 +246,10 @@ LOOPS:
 # If you want multiple roles then use a comma like `ROLE: Admin, Pro`
 
 COMMANDS:
+  ADANOS:
+    ENABLED: False
+    ROLE: None
+
   ANALYZE:
     ENABLED: True
     ROLE: None
